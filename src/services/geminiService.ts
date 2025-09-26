@@ -1,5 +1,5 @@
 import { GoogleGenAI, FunctionDeclaration, Type, GenerateContentResponse } from '@google/genai';
-import type { WhatsAppMessage, Service } from '../types';
+import type { WhatsAppMessage } from '../types';
 import {
   getServices,
   getAvailability,
@@ -9,12 +9,17 @@ import {
 
 // This function is now designed to be run on the server.
 // The API KEY should be set as an environment variable on the server.
-const API_KEY = process.env.API_KEY;
+const API_KEY = process.env.GEMINI_API_KEY;
 
 if (!API_KEY) {
   console.error('CRITICAL: API_KEY for Gemini is not set in server environment variables.');
 }
-const ai = new GoogleGenAI({ apiKey: API_KEY! });
+
+// Only initialize GoogleGenAI on the server side
+let ai: GoogleGenAI | null = null;
+if (typeof window === 'undefined' && API_KEY) {
+  ai = new GoogleGenAI({ apiKey: API_KEY });
+}
 
 const getServicesList: FunctionDeclaration = {
   name: 'getServicesList',
@@ -87,7 +92,7 @@ export const handleWhatsAppMessage = async (
   userInput: string,
   chatHistory: Pick<WhatsAppMessage, 'text' | 'sender'>[],
 ): Promise<string> => {
-  if (!API_KEY) {
+  if (!API_KEY || !ai) {
     return "I'm sorry, my connection to my brain is currently offline. Please try again later.";
   }
 

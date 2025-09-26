@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
+import TelegramLoginWidget from './TelegramLoginWidget';
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -28,8 +29,25 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onSwitchToRegi
     }
   };
 
-  const handleSocialLogin = (provider: string) => {
-    alert(`${provider} login is not implemented in this demo.`);
+  const [telegramBotUsername, setTelegramBotUsername] = useState<string>('');
+
+  useEffect(() => {
+    // Load Telegram bot username for widget
+    if (isOpen) {
+      fetch('/api/auth/telegram')
+        .then(res => res.json())
+        .then(data => {
+          if (data.botUsername) {
+            setTelegramBotUsername(data.botUsername);
+          }
+        })
+        .catch(console.error);
+    }
+  }, [isOpen]);
+
+  const handleWhatsAppLogin = () => {
+    // Redirect to WhatsApp OAuth flow
+    window.location.href = '/api/auth/whatsapp';
   };
 
   if (!isOpen) return null;
@@ -49,19 +67,29 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onSwitchToRegi
 
         <div className="space-y-3">
           <button
-            onClick={() => handleSocialLogin('WhatsApp')}
-            className="w-full flex items-center justify-center py-2.5 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#25D366] hover:bg-[#1EBE57] transition-colors"
+            onClick={handleWhatsAppLogin}
+            disabled={isLoading}
+            className="w-full flex items-center justify-center py-2.5 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#25D366] hover:bg-[#1EBE57] disabled:bg-[#25D366]/60 transition-colors"
           >
             <i className="fa-brands fa-whatsapp text-xl mr-2"></i>
-            Continue with WhatsApp
+            {isLoading ? 'Connecting...' : 'Continue with WhatsApp'}
           </button>
-          <button
-            onClick={() => handleSocialLogin('Telegram')}
-            className="w-full flex items-center justify-center py-2.5 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#0088cc] hover:bg-[#0077b3] transition-colors"
-          >
-            <i className="fa-brands fa-telegram text-xl mr-2"></i>
-            Continue with Telegram
-          </button>
+          {telegramBotUsername ? (
+            <TelegramLoginWidget
+              botUsername={telegramBotUsername}
+              buttonSize="large"
+              requestAccess="write"
+              className="w-full"
+            />
+          ) : (
+            <button
+              disabled
+              className="w-full flex items-center justify-center py-2.5 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-gray-400 cursor-not-allowed"
+            >
+              <i className="fa-brands fa-telegram text-xl mr-2"></i>
+              Telegram Not Configured
+            </button>
+          )}
         </div>
 
         <div className="my-4 flex items-center before:flex-1 before:border-t before:border-gray-300 dark:before:border-gray-600 after:flex-1 after:border-t after:border-gray-300 dark:after:border-gray-600">

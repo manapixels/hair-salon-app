@@ -13,7 +13,7 @@ let adminSettingsDB: AdminSettings = {
   blockedSlots: {},
 };
 // User database with a default admin user. In a real app, passwords would be hashed.
-let usersDB: (User & { password: string })[] = [
+export let usersDB: (User & { password: string })[] = [
   {
     id: 'user-admin-01',
     name: 'Admin',
@@ -174,4 +174,11 @@ export const unblockSlot = (date: Date, time: string): AdminSettings['blockedSlo
     );
   }
   return adminSettingsDB.blockedSlots;
+};
+
+// Export the users database for auth endpoints
+export const database = {
+  users: usersDB,
+  appointments: appointmentsDB,
+  adminSettings: adminSettingsDB,
 };

@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
-import Script from 'next/script';
 import { AuthProvider } from '../context/AuthContext';
 import { BookingProvider } from '../context/BookingContext';
 import '../styles/globals.css';
+import 'dotenv/config';
 
 export const metadata: Metadata = {
   title: 'Luxe Cuts - Salon Booking',

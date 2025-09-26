@@ -41,4 +41,24 @@ export interface User {
   name: string;
   email: string;
   role: 'customer' | 'admin';
+  authProvider?: 'email' | 'whatsapp' | 'telegram';
+  telegramId?: number;
+  whatsappPhone?: string;
+  avatar?: string;
+}
+
+export interface WhatsAppAuthData {
+  accessToken: string;
+  phoneNumber: string;
+  name: string;
+}
+
+export interface TelegramAuthData {
+  id: number;
+  first_name: string;
+  last_name?: string;
+  username?: string;
+  photo_url?: string;
+  auth_date: number;
+  hash: string;
 }

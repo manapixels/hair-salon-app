@@ -58,6 +58,35 @@ export default function HomePage() {
   useEffect(() => {
     // Start the API mock when the app loads in the browser
     startApiMock();
+
+    // Handle OAuth redirect results
+    const urlParams = new URLSearchParams(window.location.search);
+    const loginStatus = urlParams.get('login');
+    const error = urlParams.get('error');
+
+    if (loginStatus === 'success') {
+      // Clear URL parameters and refresh to update auth state
+      window.history.replaceState({}, document.title, window.location.pathname);
+      window.location.reload();
+    } else if (error) {
+      // Handle OAuth errors
+      const errorMessages: { [key: string]: string } = {
+        whatsapp_oauth_denied: 'WhatsApp login was cancelled',
+        telegram_auth_failed: 'Telegram authentication failed',
+        invalid_telegram_data: 'Invalid Telegram data received',
+        telegram_data_expired: 'Telegram authentication data expired',
+        invalid_telegram_auth: 'Telegram authentication verification failed',
+        whatsapp_oauth_failed: 'WhatsApp authentication failed',
+        invalid_oauth_response: 'Invalid OAuth response',
+        invalid_state: 'Invalid OAuth state parameter',
+      };
+
+      const errorMessage = errorMessages[error] || 'Authentication failed';
+      alert(errorMessage);
+
+      // Clear URL parameters
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
   }, []);
 
   const renderView = () => {
