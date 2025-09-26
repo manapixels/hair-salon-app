@@ -1,0 +1,5 @@
+{
+  "name": "Luxe Cuts - Salon Booking",
+  "description": "A modern web application for booking hair salon appointments. Users can view services, select time slots, and book appointments. Admins can manage availability. The app also features a Gemini-powered WhatsApp chat assistant for booking.",
+  "requestFramePermissions": []
+}

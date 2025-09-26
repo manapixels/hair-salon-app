@@ -1,0 +1,45 @@
+
+export interface Service {
+  id: number;
+  name: string;
+  description: string;
+  price: number;
+  duration: number; // in minutes
+}
+
+export interface TimeSlot {
+  time: string; // e.g., "09:00"
+  available: boolean;
+}
+
+export interface Appointment {
+  id: string;
+  date: Date;
+  time: string;
+  services: Service[];
+  customerName: string;
+  customerEmail: string;
+  totalPrice: number;
+  totalDuration: number;
+}
+
+export interface AdminSettings {
+    openingTime: string; // "HH:MM"
+    closingTime: string; // "HH:MM"
+    blockedSlots: { [date: string]: string[] }; // e.g., { "2024-07-28": ["10:00", "10:30"] }
+}
+
+// FIX: Define and export the missing WhatsAppMessage interface.
+export interface WhatsAppMessage {
+  id: string;
+  text: string;
+  sender: 'user' | 'bot';
+  isLoading?: boolean;
+}
+
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: 'customer' | 'admin';
+}
