@@ -5,7 +5,7 @@
  * It receives incoming messages from users on WhatsApp, processes them with Gemini,
  * and sends a reply back via the provider's API.
  */
-import { handleWhatsAppMessage } from '../../../services/geminiService';
+import { handleMessagingWithUserContext } from '../../../services/messagingUserService';
 
 // GET handler for webhook verification
 export async function GET(request: Request) {
@@ -96,9 +96,12 @@ export async function POST(request: Request) {
     const incomingMessage = message.text.body;
 
     try {
-      // We're not using chat history here for simplicity, but you could store
-      // and retrieve conversation history from a database based on the `from` number.
-      const replyText = await handleWhatsAppMessage(incomingMessage, []);
+      // Use enhanced messaging service with user context
+      const { reply: replyText, user } = await handleMessagingWithUserContext(
+        incomingMessage,
+        'whatsapp',
+        from,
+      );
 
       // Send the generated reply back to the user via the WhatsApp API.
       await sendWhatsAppReply(from, replyText);
@@ -133,9 +136,12 @@ export async function handlePost(requestBody: any) {
     const incomingMessage = message.text.body;
 
     try {
-      // We're not using chat history here for simplicity, but you could store
-      // and retrieve conversation history from a database based on the `from` number.
-      const replyText = await handleWhatsAppMessage(incomingMessage, []);
+      // Use enhanced messaging service with user context
+      const { reply: replyText, user } = await handleMessagingWithUserContext(
+        incomingMessage,
+        'whatsapp',
+        from,
+      );
 
       // Send the generated reply back to the user via the WhatsApp API.
       await sendWhatsAppReply(from, replyText);

@@ -5,7 +5,13 @@ import {
   getAvailability,
   bookNewAppointment,
   cancelAppointment as dbCancelAppointment,
+  findAppointmentsByEmail,
+  updateAppointment,
+  findAppointmentById,
+  findUserByEmail,
 } from '../lib/database';
+import { updateCalendarEvent } from '../lib/google';
+import { sendAppointmentConfirmation } from './messagingService';
 
 // This function is now designed to be run on the server.
 // The API KEY should be set as an environment variable on the server.
@@ -88,6 +94,50 @@ const cancelAppointment: FunctionDeclaration = {
   },
 };
 
+const listMyAppointments: FunctionDeclaration = {
+  name: 'listMyAppointments',
+  description: 'List all upcoming appointments for a customer.',
+  parameters: {
+    type: Type.OBJECT,
+    properties: {
+      customerEmail: {
+        type: Type.STRING,
+        description: "The customer's email address to look up appointments.",
+      },
+    },
+    required: ['customerEmail'],
+  },
+};
+
+const modifyAppointment: FunctionDeclaration = {
+  name: 'modifyAppointment',
+  description: 'Modify an existing appointment - change date, time, or services.',
+  parameters: {
+    type: Type.OBJECT,
+    properties: {
+      appointmentId: {
+        type: Type.STRING,
+        description:
+          'The ID of the appointment to modify (get this from listMyAppointments first).',
+      },
+      newDate: {
+        type: Type.STRING,
+        description: 'The new date for the appointment, in YYYY-MM-DD format (optional).',
+      },
+      newTime: {
+        type: Type.STRING,
+        description: 'The new start time for the appointment, in HH:MM format (optional).',
+      },
+      newServices: {
+        type: Type.ARRAY,
+        items: { type: Type.STRING },
+        description: 'New array of service names for the appointment (optional).',
+      },
+    },
+    required: ['appointmentId'],
+  },
+};
+
 export const handleWhatsAppMessage = async (
   userInput: string,
   chatHistory: Pick<WhatsAppMessage, 'text' | 'sender'>[],
@@ -102,12 +152,25 @@ export const handleWhatsAppMessage = async (
     .join('\n');
 
   const systemInstruction = `You are a friendly and efficient AI assistant for 'Luxe Cuts' hair salon.
-Your goal is to help users inquire about services, book appointments, and cancel them.
+Your goal is to help users inquire about services, book appointments, cancel them, view their appointments, and modify existing bookings.
 Today's date is ${new Date().toLocaleDateString()}.
 Do not ask for information you can derive, like the year if the user says "next Tuesday".
 Be conversational and helpful.
-When booking, confirm all details with the user before calling the bookAppointment function. You must have the customer's name, email, desired services, date, and time.
-When canceling, you MUST ask for the customer's email address, the appointment date, and the appointment time to uniquely identify the appointment to be cancelled.
+
+Booking: When booking, confirm all details with the user before calling the bookAppointment function. You must have the customer's name, email, desired services, date, and time.
+
+Canceling: You MUST ask for the customer's email address, the appointment date, and the appointment time to uniquely identify the appointment to be cancelled.
+
+Viewing Appointments: Use listMyAppointments with the customer's email to show their upcoming appointments.
+
+Modifying Appointments: To modify an appointment:
+1. First use listMyAppointments to find the customer's appointments
+2. Show them their appointments with clear IDs/numbers
+3. Ask what they want to change (date, time, or services)
+4. Use modifyAppointment with the appointment ID and new details
+5. Confirm the changes were successful
+
+Always be helpful and guide users through the process step by step.
 
 Available Services:
 ${servicesListString}
@@ -126,6 +189,8 @@ ${servicesListString}
               checkAvailability,
               bookAppointment,
               cancelAppointment,
+              listMyAppointments,
+              modifyAppointment,
             ],
           },
         ],
@@ -188,6 +253,125 @@ ${servicesListString}
           return `Your appointment for ${date} at ${time} has been successfully cancelled. We hope to see you again soon!`;
         } catch (e: any) {
           return `I'm sorry, I couldn't cancel that appointment. Reason: ${e.message}. Please ensure the email, date, and time are correct.`;
+        }
+      }
+
+      if (name === 'listMyAppointments') {
+        try {
+          const customerEmail = args?.customerEmail as string;
+          const appointments = await findAppointmentsByEmail(customerEmail);
+
+          if (appointments.length === 0) {
+            return `You don't have any upcoming appointments. Would you like to book one?`;
+          }
+
+          let appointmentsList = `Here are your upcoming appointments:\n\n`;
+          appointments.forEach((apt, index) => {
+            const services = apt.services.map(s => s.name).join(', ');
+            const date = new Date(apt.date).toLocaleDateString();
+            appointmentsList += `${index + 1}. **${date} at ${apt.time}**\n`;
+            appointmentsList += `   Services: ${services}\n`;
+            appointmentsList += `   Duration: ${apt.totalDuration} minutes\n`;
+            appointmentsList += `   Total: $${apt.totalPrice}\n`;
+            appointmentsList += `   ID: ${apt.id}\n\n`;
+          });
+
+          appointmentsList += `To modify any appointment, just let me know which one and what you'd like to change!`;
+          return appointmentsList;
+        } catch (e: any) {
+          return `I'm sorry, I couldn't retrieve your appointments. Please ensure you provided the correct email address.`;
+        }
+      }
+
+      if (name === 'modifyAppointment') {
+        try {
+          const { appointmentId, newDate, newTime, newServices } = args as {
+            appointmentId: string;
+            newDate?: string;
+            newTime?: string;
+            newServices?: string[];
+          };
+
+          // Get the current appointment
+          const currentAppointment = await findAppointmentById(appointmentId);
+          if (!currentAppointment) {
+            return `I couldn't find an appointment with that ID. Please check your appointment list first.`;
+          }
+
+          // Prepare the update data
+          const updateData: any = {
+            customerName: currentAppointment.customerName,
+            customerEmail: currentAppointment.customerEmail,
+            date: newDate ? new Date(newDate) : currentAppointment.date,
+            time: newTime || currentAppointment.time,
+            services: currentAppointment.services, // Default to current services
+            totalPrice: currentAppointment.totalPrice,
+            totalDuration: currentAppointment.totalDuration,
+          };
+
+          // Update services if provided
+          if (newServices && newServices.length > 0) {
+            const servicesToUpdate = allServices.filter(s => newServices.includes(s.name));
+            if (servicesToUpdate.length !== newServices.length) {
+              return `I'm sorry, one or more of the requested services ("${newServices.join(', ')}") are not valid. Please choose from our list of services.`;
+            }
+            updateData.services = servicesToUpdate;
+            updateData.totalPrice = servicesToUpdate.reduce((sum, s) => sum + s.price, 0);
+            updateData.totalDuration = servicesToUpdate.reduce((sum, s) => sum + s.duration, 0);
+          }
+
+          // Update the appointment
+          const updatedAppointment = await updateAppointment(appointmentId, updateData);
+
+          // Update calendar if date/time changed
+          const dateChanged =
+            newDate &&
+            new Date(newDate).toISOString() !== new Date(currentAppointment.date).toISOString();
+          const timeChanged = newTime && newTime !== currentAppointment.time;
+          const servicesChanged =
+            newServices &&
+            JSON.stringify(newServices) !==
+              JSON.stringify(currentAppointment.services.map((s: any) => s.name));
+
+          if (
+            updatedAppointment.calendarEventId &&
+            (dateChanged || timeChanged || servicesChanged)
+          ) {
+            try {
+              await updateCalendarEvent(updatedAppointment.calendarEventId, updatedAppointment);
+            } catch (error) {
+              console.error('Failed to update calendar event:', error);
+            }
+          }
+
+          // Send notification
+          try {
+            const dbUser = await findUserByEmail(updatedAppointment.customerEmail);
+            let user = null;
+            if (dbUser) {
+              user = {
+                ...dbUser,
+                role: dbUser.role.toLowerCase() as 'customer' | 'admin',
+                authProvider:
+                  (dbUser.authProvider as 'email' | 'whatsapp' | 'telegram') ?? undefined,
+                telegramId: dbUser.telegramId ?? undefined,
+                whatsappPhone: dbUser.whatsappPhone ?? undefined,
+                avatar: dbUser.avatar ?? undefined,
+              };
+            }
+            await sendAppointmentConfirmation(user, updatedAppointment, 'confirmation');
+          } catch (error) {
+            console.error('Failed to send modification notification:', error);
+          }
+
+          const changes = [];
+          if (newDate) changes.push(`date to ${new Date(newDate).toLocaleDateString()}`);
+          if (newTime) changes.push(`time to ${newTime}`);
+          if (newServices) changes.push(`services to ${newServices.join(', ')}`);
+
+          return `Great! Your appointment has been successfully updated. Changes: ${changes.join(', ')}.\n\nNew appointment details:\n📅 Date: ${new Date(updatedAppointment.date).toLocaleDateString()}\n🕐 Time: ${updatedAppointment.time}\n✂️ Services: ${updatedAppointment.services.map(s => s.name).join(', ')}\n💰 Total: $${updatedAppointment.totalPrice}`;
+        } catch (e: any) {
+          return `I'm sorry, I couldn't modify that appointment. Reason: ${e.message}. Please try again or contact the salon directly.`;
         }
       }
     } else if (response.text) {

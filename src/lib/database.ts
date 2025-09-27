@@ -379,6 +379,24 @@ export const findAppointmentById = async (id: string): Promise<Appointment | nul
   };
 };
 
+export const findAppointmentsByEmail = async (customerEmail: string): Promise<Appointment[]> => {
+  const appointments = await prisma.appointment.findMany({
+    where: {
+      customerEmail: { equals: customerEmail, mode: 'insensitive' },
+      date: { gte: new Date() }, // Only future appointments
+    },
+    orderBy: { date: 'asc' },
+  });
+
+  return appointments.map(appointment => ({
+    ...appointment,
+    services: Array.isArray(appointment.services)
+      ? (appointment.services as unknown as Service[])
+      : [],
+    calendarEventId: appointment.calendarEventId ?? undefined,
+  }));
+};
+
 export const updateAppointment = async (
   id: string,
   appointmentData: {
