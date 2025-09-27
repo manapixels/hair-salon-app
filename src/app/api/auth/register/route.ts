@@ -11,7 +11,7 @@ export async function handlePost(requestBody: any) {
   }
 
   try {
-    const newUser = createUser({ name, email, password });
+    const newUser = await createUser({ name, email, password });
 
     // Set a "session" for the new user
     setSession(newUser);

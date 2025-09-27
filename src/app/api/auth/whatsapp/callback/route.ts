@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { setSession } from '@/lib/sessionStore';
-import { usersDB } from '@/lib/database';
+import { prisma } from '@/lib/prisma';
 import type { User } from '@/types';
 
 export async function GET(request: NextRequest) {
@@ -37,33 +37,46 @@ export async function GET(request: NextRequest) {
     const userProfile = await getWhatsAppProfile(access_token);
 
     // Find or create user
-    let user = usersDB.find(
-      (u: User & { password: string }) => u.whatsappPhone === userProfile.phone_number,
-    );
+    let user = await prisma.user.findFirst({
+      where: { whatsappPhone: userProfile.phone_number },
+    });
 
     if (!user) {
       // Create new user
-      const newUser: User & { password: string } = {
-        id: `wa_${Date.now()}`,
-        name: userProfile.name,
-        email: `${userProfile.phone_number}@whatsapp.local`,
-        role: 'customer',
-        authProvider: 'whatsapp',
-        whatsappPhone: userProfile.phone_number,
-        avatar: userProfile.profile_picture_url,
-        password: 'oauth_user',
-      };
-      usersDB.push(newUser);
-      user = newUser;
+      user = await prisma.user.create({
+        data: {
+          id: `wa_${Date.now()}`,
+          name: userProfile.name,
+          email: `${userProfile.phone_number}@whatsapp.local`,
+          role: 'CUSTOMER',
+          authProvider: 'whatsapp',
+          whatsappPhone: userProfile.phone_number,
+          avatar: userProfile.profile_picture_url,
+          password: 'oauth_user',
+        },
+      });
     } else {
       // Update existing user
-      user.name = userProfile.name;
-      user.authProvider = 'whatsapp';
-      user.avatar = userProfile.profile_picture_url;
+      user = await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          name: userProfile.name,
+          authProvider: 'whatsapp',
+          avatar: userProfile.profile_picture_url,
+        },
+      });
     }
 
-    // Set session
-    setSession(user);
+    // Set session with proper role conversion
+    const userForSession = {
+      ...user,
+      role: user.role.toLowerCase() as 'customer' | 'admin',
+      authProvider: (user.authProvider as 'email' | 'whatsapp' | 'telegram') ?? undefined,
+      telegramId: user.telegramId ?? undefined,
+      whatsappPhone: user.whatsappPhone ?? undefined,
+      avatar: user.avatar ?? undefined,
+    };
+    setSession(userForSession);
 
     // Redirect to success page
     const response = NextResponse.redirect(`${process.env.NEXTAUTH_URL}/?login=success`);

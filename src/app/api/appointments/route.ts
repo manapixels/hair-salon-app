@@ -4,8 +4,20 @@
  * App Router API handler for appointments
  */
 import { NextRequest, NextResponse } from 'next/server';
-import { bookNewAppointment } from '../../../lib/database';
+import { bookNewAppointment, getAppointments } from '../../../lib/database';
 import { createCalendarEvent } from '../../../lib/google';
+
+export async function GET(request: NextRequest) {
+  try {
+    const appointments = getAppointments();
+    return NextResponse.json(appointments, { status: 200 });
+  } catch (error: any) {
+    return NextResponse.json(
+      { message: error.message || 'Failed to fetch appointments.' },
+      { status: 500 },
+    );
+  }
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -24,7 +36,7 @@ export async function POST(request: NextRequest) {
       customerEmail,
     };
 
-    const newAppointment = bookNewAppointment(appointmentData);
+    const newAppointment = await bookNewAppointment(appointmentData);
 
     // After successfully creating the appointment in our DB,
     // create a corresponding event in Google Calendar.
@@ -40,6 +52,15 @@ export async function POST(request: NextRequest) {
 }
 
 // This is for compatibility with the mock API
+export async function handleGet() {
+  try {
+    const appointments = getAppointments();
+    return { status: 200, body: appointments };
+  } catch (error: any) {
+    return { status: 500, body: { message: error.message || 'Failed to fetch appointments.' } };
+  }
+}
+
 export async function handlePost(requestBody: any) {
   if (!requestBody) {
     return { status: 400, body: { message: 'Bad Request: Missing request body.' } };
@@ -60,7 +81,7 @@ export async function handlePost(requestBody: any) {
       customerEmail,
     };
 
-    const newAppointment = bookNewAppointment(appointmentData);
+    const newAppointment = await bookNewAppointment(appointmentData);
     createCalendarEvent(newAppointment);
 
     return { status: 201, body: newAppointment };

@@ -1,27 +1,65 @@
 import type { Appointment, AdminSettings, Service, User } from '../types';
 import { SALON_SERVICES } from '../constants';
+import { prisma } from './prisma';
 
 /**
- * SERVER-SIDE IN-MEMORY DATABASE
- * In a real application, this would be replaced with a proper database like PostgreSQL, MongoDB, etc.
- * This state is persistent for the lifetime of the server process.
+ * DATABASE FUNCTIONS USING PRISMA + NEON
+ * Persistent PostgreSQL database for production use
  */
-let appointmentsDB: Appointment[] = [];
-let adminSettingsDB: AdminSettings = {
-  openingTime: '09:00',
-  closingTime: '18:00',
-  blockedSlots: {},
-};
-// User database with a default admin user. In a real app, passwords would be hashed.
-export let usersDB: (User & { password: string })[] = [
-  {
-    id: 'user-admin-01',
-    name: 'Admin',
-    email: 'admin@luxecuts.com',
-    password: 'adminpassword', // In a real app, NEVER store plain text passwords
-    role: 'admin',
-  },
-];
+
+// Initialize default admin user and settings on first run
+async function initializeDatabase() {
+  try {
+    // Check if admin user exists
+    const adminUser = await prisma.user.findUnique({
+      where: { email: 'admin@luxecuts.com' },
+    });
+
+    if (!adminUser) {
+      // Create default admin user
+      await prisma.user.create({
+        data: {
+          id: 'user-admin-01',
+          name: 'Admin',
+          email: 'admin@luxecuts.com',
+          password: 'admin123', // In production, this should be hashed
+          role: 'ADMIN',
+        },
+      });
+    }
+
+    // Check if admin settings exist
+    const settings = await prisma.adminSettings.findFirst();
+    if (!settings) {
+      await prisma.adminSettings.create({
+        data: {
+          openingTime: '09:00',
+          closingTime: '18:00',
+          blockedSlots: {},
+        },
+      });
+    }
+
+    // Initialize services if they don't exist
+    const serviceCount = await prisma.service.count();
+    if (serviceCount === 0) {
+      await prisma.service.createMany({
+        data: SALON_SERVICES.map(service => ({
+          id: service.id,
+          name: service.name,
+          description: service.description,
+          price: service.price,
+          duration: service.duration,
+        })),
+      });
+    }
+  } catch (error) {
+    console.error('Database initialization error:', error);
+  }
+}
+
+// Initialize on module load
+initializeDatabase();
 
 // --- HELPERS ---
 const dateToKey = (date: Date) => date.toISOString().split('T')[0];
@@ -40,68 +78,168 @@ const generateTimeSlots = (start: string, end: string): string[] => {
 // --- PUBLIC API for the database module ---
 
 // User Management
-export const findUserByEmail = (email: string) => {
-  return usersDB.find(u => u.email.toLowerCase() === email.toLowerCase());
+export const findUserByEmail = async (email: string) => {
+  return await prisma.user.findUnique({
+    where: { email: email.toLowerCase() },
+  });
 };
 
-export const createUser = (userData: Omit<User, 'id' | 'role'> & { password: string }): User => {
-  if (findUserByEmail(userData.email)) {
+export const createUser = async (
+  userData: Omit<User, 'id' | 'role'> & { password: string },
+): Promise<User> => {
+  const existingUser = await findUserByEmail(userData.email);
+  if (existingUser) {
     throw new Error('User with this email already exists.');
   }
-  const newUser: User & { password: string } = {
-    ...userData,
-    id: `user-${Date.now()}`,
-    role: 'customer', // Default role
-  };
-  usersDB.push(newUser);
+
+  const newUser = await prisma.user.create({
+    data: {
+      name: userData.name,
+      email: userData.email.toLowerCase(),
+      password: userData.password,
+      role: 'CUSTOMER',
+      authProvider: userData.authProvider,
+      telegramId: userData.telegramId,
+      whatsappPhone: userData.whatsappPhone,
+      avatar: userData.avatar,
+    },
+  });
+
   const { password, ...userToReturn } = newUser;
-  return userToReturn;
+  return {
+    ...userToReturn,
+    role: newUser.role.toLowerCase() as 'customer' | 'admin',
+    authProvider: newUser.authProvider as 'email' | 'whatsapp' | 'telegram' | undefined,
+    telegramId: newUser.telegramId ?? undefined,
+    whatsappPhone: newUser.whatsappPhone ?? undefined,
+    avatar: newUser.avatar ?? undefined,
+  };
 };
 
 // Service Management
-export const getServices = (): Service[] => {
-  return SALON_SERVICES;
+export const getServices = async (): Promise<Service[]> => {
+  const services = await prisma.service.findMany({
+    where: { isActive: true },
+  });
+  return services;
 };
 
 // Appointment Management
-export const getAppointments = (): Appointment[] => {
-  return appointmentsDB;
+export const getAppointments = async (): Promise<Appointment[]> => {
+  const appointments = await prisma.appointment.findMany({
+    orderBy: { date: 'asc' },
+  });
+
+  return appointments.map(apt => ({
+    ...apt,
+    services: Array.isArray(apt.services) ? (apt.services as unknown as Service[]) : [],
+  }));
 };
 
-export const getAdminSettings = (): AdminSettings => {
-  return adminSettingsDB;
+export const getAdminSettings = async (): Promise<AdminSettings> => {
+  const settings = await prisma.adminSettings.findFirst();
+  if (!settings) {
+    // Return default settings if none exist
+    return {
+      openingTime: '09:00',
+      closingTime: '18:00',
+      blockedSlots: {},
+    };
+  }
+
+  return {
+    openingTime: settings.openingTime,
+    closingTime: settings.closingTime,
+    blockedSlots:
+      settings.blockedSlots &&
+      typeof settings.blockedSlots === 'object' &&
+      !Array.isArray(settings.blockedSlots)
+        ? (settings.blockedSlots as { [date: string]: string[] })
+        : {},
+  };
 };
 
-export const updateAdminSettings = (newSettings: Partial<AdminSettings>): AdminSettings => {
-  adminSettingsDB = { ...adminSettingsDB, ...newSettings };
-  return adminSettingsDB;
-};
+export const updateAdminSettings = async (
+  newSettings: Partial<AdminSettings>,
+): Promise<AdminSettings> => {
+  const existingSettings = await prisma.adminSettings.findFirst();
 
-export const getAvailability = (date: Date): string[] => {
-  const allSlots = generateTimeSlots(adminSettingsDB.openingTime, adminSettingsDB.closingTime);
-  const dateKey = dateToKey(date);
-
-  const bookedSlots = new Set<string>();
-  appointmentsDB
-    .filter(app => dateToKey(new Date(app.date)) === dateKey)
-    .forEach(app => {
-      let appTime = new Date(`1970-01-01T${app.time}:00`);
-      const numSlots = Math.ceil(app.totalDuration / 30);
-      for (let i = 0; i < numSlots; i++) {
-        bookedSlots.add(appTime.toTimeString().substring(0, 5));
-        appTime.setMinutes(appTime.getMinutes() + 30);
-      }
+  if (existingSettings) {
+    const updated = await prisma.adminSettings.update({
+      where: { id: existingSettings.id },
+      data: {
+        openingTime: newSettings.openingTime ?? existingSettings.openingTime,
+        closingTime: newSettings.closingTime ?? existingSettings.closingTime,
+        blockedSlots: (newSettings.blockedSlots ?? existingSettings.blockedSlots) as any,
+      },
     });
 
-  const blockedByAdmin = new Set<string>(adminSettingsDB.blockedSlots[dateKey] || []);
+    return {
+      openingTime: updated.openingTime,
+      closingTime: updated.closingTime,
+      blockedSlots:
+        updated.blockedSlots &&
+        typeof updated.blockedSlots === 'object' &&
+        !Array.isArray(updated.blockedSlots)
+          ? (updated.blockedSlots as { [date: string]: string[] })
+          : {},
+    };
+  } else {
+    const created = await prisma.adminSettings.create({
+      data: {
+        openingTime: newSettings.openingTime ?? '09:00',
+        closingTime: newSettings.closingTime ?? '18:00',
+        blockedSlots: newSettings.blockedSlots ?? {},
+      },
+    });
+
+    return {
+      openingTime: created.openingTime,
+      closingTime: created.closingTime,
+      blockedSlots:
+        created.blockedSlots &&
+        typeof created.blockedSlots === 'object' &&
+        !Array.isArray(created.blockedSlots)
+          ? (created.blockedSlots as { [date: string]: string[] })
+          : {},
+    };
+  }
+};
+
+export const getAvailability = async (date: Date): Promise<string[]> => {
+  const settings = await getAdminSettings();
+  const allSlots = generateTimeSlots(settings.openingTime, settings.closingTime);
+  const dateKey = dateToKey(date);
+
+  // Get booked appointments for this date
+  const appointments = await prisma.appointment.findMany({
+    where: {
+      date: {
+        gte: new Date(dateKey + 'T00:00:00.000Z'),
+        lt: new Date(dateKey + 'T23:59:59.999Z'),
+      },
+    },
+  });
+
+  const bookedSlots = new Set<string>();
+  appointments.forEach(app => {
+    let appTime = new Date(`1970-01-01T${app.time}:00`);
+    const numSlots = Math.ceil(app.totalDuration / 30);
+    for (let i = 0; i < numSlots; i++) {
+      bookedSlots.add(appTime.toTimeString().substring(0, 5));
+      appTime.setMinutes(appTime.getMinutes() + 30);
+    }
+  });
+
+  const blockedByAdmin = new Set<string>(settings.blockedSlots[dateKey] || []);
 
   return allSlots.filter(slot => !bookedSlots.has(slot) && !blockedByAdmin.has(slot));
 };
 
-export const bookNewAppointment = (
+export const bookNewAppointment = async (
   appointmentData: Omit<Appointment, 'id' | 'totalPrice' | 'totalDuration'>,
-): Appointment => {
-  const availableSlots = getAvailability(appointmentData.date);
+): Promise<Appointment> => {
+  const availableSlots = await getAvailability(appointmentData.date);
   const { totalPrice, totalDuration } = appointmentData.services.reduce(
     (acc, service) => {
       acc.totalPrice += service.price;
@@ -123,62 +261,91 @@ export const bookNewAppointment = (
     }
   }
 
-  const newAppointment: Appointment = {
-    ...appointmentData,
-    id: `appt-${Date.now()}`,
-    totalPrice,
-    totalDuration,
-  };
+  const newAppointment = await prisma.appointment.create({
+    data: {
+      date: appointmentData.date,
+      time: appointmentData.time,
+      services: appointmentData.services as any,
+      customerName: appointmentData.customerName,
+      customerEmail: appointmentData.customerEmail,
+      totalPrice,
+      totalDuration,
+    },
+  });
 
-  appointmentsDB.push(newAppointment);
-  return newAppointment;
+  return {
+    ...newAppointment,
+    services: Array.isArray(newAppointment.services)
+      ? (newAppointment.services as unknown as Service[])
+      : [],
+  };
 };
 
-export const cancelAppointment = (details: {
+export const cancelAppointment = async (details: {
   customerEmail: string;
   date: string;
   time: string;
-}): Appointment => {
+}): Promise<Appointment> => {
   const { customerEmail, date, time } = details;
-  const appointmentIndex = appointmentsDB.findIndex(
-    app =>
-      app.customerEmail.toLowerCase() === customerEmail.toLowerCase() &&
-      dateToKey(new Date(app.date)) === date &&
-      app.time === time,
-  );
 
-  if (appointmentIndex === -1) {
+  const appointment = await prisma.appointment.findFirst({
+    where: {
+      customerEmail: { equals: customerEmail, mode: 'insensitive' },
+      date: {
+        gte: new Date(date + 'T00:00:00.000Z'),
+        lt: new Date(date + 'T23:59:59.999Z'),
+      },
+      time: time,
+    },
+  });
+
+  if (!appointment) {
     throw new Error('Appointment not found. Please check the details provided.');
   }
 
-  const [cancelledAppointment] = appointmentsDB.splice(appointmentIndex, 1);
-  return cancelledAppointment;
+  await prisma.appointment.delete({
+    where: { id: appointment.id },
+  });
+
+  return {
+    ...appointment,
+    services: Array.isArray(appointment.services)
+      ? (appointment.services as unknown as Service[])
+      : [],
+  };
 };
 
-export const blockSlot = (date: Date, time: string): AdminSettings['blockedSlots'] => {
+export const blockSlot = async (
+  date: Date,
+  time: string,
+): Promise<AdminSettings['blockedSlots']> => {
+  const settings = await getAdminSettings();
   const dateKey = dateToKey(date);
-  if (!adminSettingsDB.blockedSlots[dateKey]) {
-    adminSettingsDB.blockedSlots[dateKey] = [];
+
+  const updatedBlockedSlots = { ...settings.blockedSlots };
+  if (!updatedBlockedSlots[dateKey]) {
+    updatedBlockedSlots[dateKey] = [];
   }
-  if (!adminSettingsDB.blockedSlots[dateKey].includes(time)) {
-    adminSettingsDB.blockedSlots[dateKey].push(time);
+  if (!updatedBlockedSlots[dateKey].includes(time)) {
+    updatedBlockedSlots[dateKey].push(time);
   }
-  return adminSettingsDB.blockedSlots;
+
+  await updateAdminSettings({ blockedSlots: updatedBlockedSlots });
+  return updatedBlockedSlots;
 };
 
-export const unblockSlot = (date: Date, time: string): AdminSettings['blockedSlots'] => {
+export const unblockSlot = async (
+  date: Date,
+  time: string,
+): Promise<AdminSettings['blockedSlots']> => {
+  const settings = await getAdminSettings();
   const dateKey = dateToKey(date);
-  if (adminSettingsDB.blockedSlots[dateKey]) {
-    adminSettingsDB.blockedSlots[dateKey] = adminSettingsDB.blockedSlots[dateKey].filter(
-      t => t !== time,
-    );
-  }
-  return adminSettingsDB.blockedSlots;
-};
 
-// Export the users database for auth endpoints
-export const database = {
-  users: usersDB,
-  appointments: appointmentsDB,
-  adminSettings: adminSettingsDB,
+  const updatedBlockedSlots = { ...settings.blockedSlots };
+  if (updatedBlockedSlots[dateKey]) {
+    updatedBlockedSlots[dateKey] = updatedBlockedSlots[dateKey].filter(t => t !== time);
+  }
+
+  await updateAdminSettings({ blockedSlots: updatedBlockedSlots });
+  return updatedBlockedSlots;
 };

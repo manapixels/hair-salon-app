@@ -96,7 +96,7 @@ export const handleWhatsAppMessage = async (
     return "I'm sorry, my connection to my brain is currently offline. Please try again later.";
   }
 
-  const allServices = getServices();
+  const allServices = await getServices();
   const servicesListString = allServices
     .map(s => `${s.name}: $${s.price} (${s.duration} mins)`)
     .join('\n');

@@ -36,9 +36,17 @@ export const BookingProvider: React.FC<{ children: ReactNode }> = ({ children })
     blockedSlots: {},
   });
 
-  const fetchAndSetAppointments = async () => {
-    // In a real app, you would fetch all appointments. For this demo, we'll keep it client-side after creation.
-  };
+  const fetchAndSetAppointments = useCallback(async () => {
+    try {
+      const response = await fetch('/api/appointments');
+      if (response.ok) {
+        const fetchedAppointments = await response.json();
+        setAppointments(fetchedAppointments);
+      }
+    } catch (error) {
+      console.error('Failed to fetch appointments:', error);
+    }
+  }, []);
 
   const fetchAndSetAdminSettings = useCallback(async () => {
     const settings = await getAdminSettings();

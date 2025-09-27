@@ -1,0 +1,73 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  CUSTOMER
+  ADMIN
+}
+
+model User {
+  id            String  @id @default(cuid())
+  name          String
+  email         String  @unique
+  password      String
+  role          Role    @default(CUSTOMER)
+  authProvider  String?
+  telegramId    Int?    @unique
+  whatsappPhone String?
+  avatar        String?
+  appointments  Appointment[]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("users")
+}
+
+model Service {
+  id          Int    @id @default(autoincrement())
+  name        String
+  description String
+  price       Int
+  duration    Int // in minutes
+  isActive    Boolean @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("services")
+}
+
+model Appointment {
+  id            String   @id @default(cuid())
+  date          DateTime
+  time          String
+  services      Json     // Array of services
+  customerName  String
+  customerEmail String
+  totalPrice    Int
+  totalDuration Int
+  userId        String?
+  user          User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("appointments")
+}
+
+model AdminSettings {
+  id           Int    @id @default(autoincrement())
+  openingTime  String @default("09:00")
+  closingTime  String @default("18:00")
+  blockedSlots Json   @default("{}")
+  updatedAt    DateTime @updatedAt
+
+  @@map("admin_settings")
+}

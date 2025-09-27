@@ -10,6 +10,7 @@ const AdminDashboard: React.FC = () => {
     unblockTimeSlot,
     appointments,
     fetchAndSetAdminSettings,
+    fetchAndSetAppointments,
     saveAdminSettings,
   } = useBooking();
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -22,6 +23,7 @@ const AdminDashboard: React.FC = () => {
     // FIX: `fetchAndSetAdminSettings` returns `Promise<void>`, so its resolved value cannot be used.
     // This call triggers a context update, and another `useEffect` syncs the local state.
     fetchAndSetAdminSettings();
+    fetchAndSetAppointments();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -153,6 +155,77 @@ const AdminDashboard: React.FC = () => {
             }
           </p>
         </div>
+      </div>
+
+      {/* Appointments Management Section */}
+      <div className="mb-8">
+        <h3 className="text-xl font-semibold mb-4">All Appointments</h3>
+        {appointments.length === 0 ? (
+          <div className="bg-gray-50 dark:bg-gray-700 p-6 rounded-lg text-center">
+            <p className="text-gray-500 dark:text-gray-400">No appointments booked yet.</p>
+          </div>
+        ) : (
+          <div className="bg-white dark:bg-gray-700 rounded-lg shadow overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-600">
+                <thead className="bg-gray-50 dark:bg-gray-800">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                      Date & Time
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                      Customer
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                      Services
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                      Duration
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                      Price
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200 dark:divide-gray-600">
+                  {appointments
+                    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+                    .map(appointment => (
+                      <tr key={appointment.id} className="hover:bg-gray-50 dark:hover:bg-gray-600">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                            {new Date(appointment.date).toLocaleDateString()}
+                          </div>
+                          <div className="text-sm text-gray-500 dark:text-gray-400">
+                            {appointment.time}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                            {appointment.customerName}
+                          </div>
+                          <div className="text-sm text-gray-500 dark:text-gray-400">
+                            {appointment.customerEmail}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="text-sm text-gray-900 dark:text-gray-100">
+                            {appointment.services.map(s => s.name).join(', ')}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                          {appointment.totalDuration} mins
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
+                          ${appointment.totalPrice}
+                        </td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
       </div>
 
       <div>

@@ -12,7 +12,9 @@
       "Bash(npm run format:*)",
       "Bash(mkdir:*)",
       "Bash(npm run check:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(npx prisma:*)",
+      "Bash(npx dotenv -e .env.local -- npx prisma db push:*)"
     ],
     "deny": [],
     "ask": []

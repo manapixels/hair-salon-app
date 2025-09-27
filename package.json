@@ -10,12 +10,26 @@
     "format": "prettier --write .",
     "typecheck": "tsc --noEmit",
     "check": "npm run lint && npm run format && npm run typecheck",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "db:push": "prisma db push",
+    "db:pull": "prisma db pull",
+    "db:generate": "prisma generate",
+    "db:studio": "prisma studio",
+    "db:reset": "prisma migrate reset --force",
+    "db:deploy": "prisma migrate deploy",
+    "db:seed": "prisma db seed",
+    "admin:create": "node -e \"require('./scripts/create-admin.js')\"",
+    "data:backup": "node -e \"console.log('Manual backup: Use Neon dashboard or pg_dump')\"",
+    "postinstall": "prisma generate"
+  },
+  "prisma": {
+    "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
   },
   "dependencies": {
     "@emotion/react": "^11.11.4",
     "@emotion/styled": "^11.11.0",
     "@google/genai": "^1.21.0",
+    "@prisma/client": "^6.16.2",
     "@tailwindcss/line-clamp": "^0.4.4",
     "date-fns": "^3.6.0",
     "framer-motion": "^11.0.8",
@@ -44,6 +58,7 @@
     "husky": "^9.0.11",
     "postcss": "^8",
     "prettier": "^3.2.5",
+    "prisma": "^6.16.2",
     "tailwindcss": "^3.3.0",
     "ts-node": "^10.9.2",
     "typescript": "~5.8.2"

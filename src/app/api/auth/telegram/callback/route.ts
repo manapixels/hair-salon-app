@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createHash, createHmac } from 'crypto';
 import { setSession } from '@/lib/sessionStore';
-import { usersDB } from '@/lib/database';
+import { prisma } from '@/lib/prisma';
 import type { User } from '@/types';
 
 // Handle Telegram Login Widget callback
@@ -43,7 +43,9 @@ export async function GET(request: NextRequest) {
     }
 
     // Find or create user
-    let user = usersDB.find((u: User & { password: string }) => u.telegramId === authData.id);
+    let user = await prisma.user.findUnique({
+      where: { telegramId: authData.id },
+    });
 
     const fullName = authData.last_name
       ? `${authData.first_name} ${authData.last_name}`
@@ -54,28 +56,41 @@ export async function GET(request: NextRequest) {
 
     if (!user) {
       // Create new user
-      const newUser: User & { password: string } = {
-        id: `tg_${authData.id}`,
-        name: fullName,
-        email,
-        role: 'customer',
-        authProvider: 'telegram',
-        telegramId: authData.id,
-        avatar: authData.photo_url || undefined,
-        password: 'oauth_user',
-      };
-      usersDB.push(newUser);
-      user = newUser;
+      user = await prisma.user.create({
+        data: {
+          id: `tg_${authData.id}`,
+          name: fullName,
+          email,
+          role: 'CUSTOMER',
+          authProvider: 'telegram',
+          telegramId: authData.id,
+          avatar: authData.photo_url || undefined,
+          password: 'oauth_user',
+        },
+      });
     } else {
       // Update existing user
-      user.name = fullName;
-      user.authProvider = 'telegram';
-      user.telegramId = authData.id;
-      user.avatar = authData.photo_url || undefined;
+      user = await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          name: fullName,
+          authProvider: 'telegram',
+          telegramId: authData.id,
+          avatar: authData.photo_url || undefined,
+        },
+      });
     }
 
-    // Set session
-    setSession(user);
+    // Set session with proper role conversion
+    const userForSession = {
+      ...user,
+      role: user.role.toLowerCase() as 'customer' | 'admin',
+      authProvider: (user.authProvider as 'email' | 'whatsapp' | 'telegram') ?? undefined,
+      telegramId: user.telegramId ?? undefined,
+      whatsappPhone: user.whatsappPhone ?? undefined,
+      avatar: user.avatar ?? undefined,
+    };
+    setSession(userForSession);
 
     // Redirect to success page
     return NextResponse.redirect(`${process.env.NEXTAUTH_URL}/?login=success`);
