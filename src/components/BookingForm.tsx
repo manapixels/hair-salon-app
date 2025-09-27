@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { SALON_SERVICES } from '@/constants';
-import type { Service, TimeSlot, Appointment } from '@/types';
+import type { Service, TimeSlot, Appointment, Stylist } from '@/types';
 import { useBooking } from '@/context/BookingContext';
 import { useAuth } from '@/context/AuthContext';
 
@@ -30,6 +30,132 @@ const ServiceSelector: React.FC<{
     </div>
   </div>
 );
+
+const StylistSelector: React.FC<{
+  selectedServices: Service[];
+  selectedStylist: Stylist | null;
+  onStylistSelect: (stylist: Stylist | null) => void;
+}> = ({ selectedServices, selectedStylist, onStylistSelect }) => {
+  const [stylists, setStylists] = useState<Stylist[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchStylists = async () => {
+      if (selectedServices.length === 0) {
+        setStylists([]);
+        return;
+      }
+
+      setLoading(true);
+      try {
+        const serviceIds = selectedServices.map(s => s.id);
+        const response = await fetch(`/api/stylists?services=${serviceIds.join(',')}`);
+        if (response.ok) {
+          const availableStylists = await response.json();
+          setStylists(availableStylists);
+        }
+      } catch (error) {
+        console.error('Failed to fetch stylists:', error);
+        setStylists([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStylists();
+  }, [selectedServices]);
+
+  if (selectedServices.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="mt-8">
+      <h2 className="text-2xl font-semibold mb-4 text-gray-800 dark:text-gray-200">
+        2. Choose Your Stylist
+      </h2>
+      {loading ? (
+        <div className="text-center p-4">Loading stylists...</div>
+      ) : stylists.length === 0 ? (
+        <div className="text-center p-4 text-gray-500">
+          No stylists available for the selected services.
+        </div>
+      ) : (
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+            {stylists.map(stylist => (
+              <div
+                key={stylist.id}
+                onClick={() => onStylistSelect(stylist)}
+                className={`p-4 border rounded-lg cursor-pointer transition-all duration-200 ${
+                  selectedStylist?.id === stylist.id
+                    ? 'bg-indigo-600 text-white border-indigo-600 shadow-lg scale-105'
+                    : 'bg-white dark:bg-gray-800 hover:shadow-md hover:border-indigo-400 dark:border-gray-700'
+                }`}
+              >
+                <div className="flex items-center mb-3">
+                  {stylist.avatar ? (
+                    <img
+                      src={stylist.avatar}
+                      alt={stylist.name}
+                      className="w-12 h-12 rounded-full mr-3"
+                    />
+                  ) : (
+                    <div className="w-12 h-12 bg-gray-300 dark:bg-gray-600 rounded-full flex items-center justify-center mr-3">
+                      <i className="fas fa-user text-gray-600 dark:text-gray-400"></i>
+                    </div>
+                  )}
+                  <div>
+                    <h3 className="font-bold">{stylist.name}</h3>
+                    <p className="text-sm opacity-80">{stylist.email}</p>
+                  </div>
+                </div>
+                {stylist.bio && <p className="text-sm opacity-90 mb-2">{stylist.bio}</p>}
+                <div className="flex flex-wrap gap-1">
+                  {stylist.specialties.slice(0, 3).map(service => (
+                    <span
+                      key={service.id}
+                      className={`text-xs px-2 py-1 rounded ${
+                        selectedStylist?.id === stylist.id
+                          ? 'bg-indigo-500 text-white'
+                          : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+                      }`}
+                    >
+                      {service.name}
+                    </span>
+                  ))}
+                  {stylist.specialties.length > 3 && (
+                    <span
+                      className={`text-xs px-2 py-1 rounded ${
+                        selectedStylist?.id === stylist.id
+                          ? 'bg-indigo-500 text-white'
+                          : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+                      }`}
+                    >
+                      +{stylist.specialties.length - 3}
+                    </span>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="flex justify-center">
+            <button
+              onClick={() => onStylistSelect(null)}
+              className={`px-4 py-2 rounded-md transition-colors ${
+                selectedStylist === null
+                  ? 'bg-indigo-600 text-white'
+                  : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
+              }`}
+            >
+              No Preference
+            </button>
+          </div>
+        </>
+      )}
+    </div>
+  );
+};
 
 const DateTimePicker: React.FC<{
   selectedDate: Date;
@@ -62,7 +188,7 @@ const DateTimePicker: React.FC<{
   return (
     <div className="mt-8">
       <h2 className="text-2xl font-semibold mb-4 text-gray-800 dark:text-gray-200">
-        2. Select Date & Time
+        3. Select Date & Time
       </h2>
       <input
         type="date"
@@ -131,7 +257,7 @@ const ConfirmationForm: React.FC<{
   return (
     <div className="mt-8">
       <h2 className="text-2xl font-semibold mb-4 text-gray-800 dark:text-gray-200">
-        3. Confirm Your Booking
+        4. Confirm Your Booking
       </h2>
       <form onSubmit={handleSubmit} className="space-y-4 max-w-md">
         <div>
@@ -183,12 +309,21 @@ const ConfirmationForm: React.FC<{
 
 const BookingSummary: React.FC<{
   selectedServices: Service[];
+  selectedStylist: Stylist | null;
   selectedDate: Date;
   selectedTime: string | null;
   totalPrice: number;
   totalDuration: number;
   onClear: () => void;
-}> = ({ selectedServices, selectedDate, selectedTime, totalPrice, totalDuration, onClear }) => {
+}> = ({
+  selectedServices,
+  selectedStylist,
+  selectedDate,
+  selectedTime,
+  totalPrice,
+  totalDuration,
+  onClear,
+}) => {
   const whatsAppNumber = '15551234567'; // Replace with your salon's WhatsApp Business number
   const message = `Hi! I'd like to book an appointment for ${selectedServices.map(s => s.name).join(' and ')} on ${selectedDate.toLocaleDateString()}. Can you help me find a time?`;
   const whatsappUrl = `https://wa.me/${whatsAppNumber}?text=${encodeURIComponent(message)}`;
@@ -219,6 +354,11 @@ const BookingSummary: React.FC<{
               <span>${totalPrice}</span>
             </div>
             <p className="text-xs text-gray-500">Duration: {totalDuration} mins</p>
+            {selectedStylist && (
+              <p className="text-sm">
+                Stylist: <span className="font-medium">{selectedStylist.name}</span>
+              </p>
+            )}
             {selectedDate && <p className="text-sm">Date: {selectedDate.toLocaleDateString()}</p>}
             {selectedTime && (
               <p className="text-sm font-bold text-indigo-500">Time: {selectedTime}</p>
@@ -242,6 +382,7 @@ const BookingSummary: React.FC<{
 
 const BookingForm: React.FC = () => {
   const [selectedServices, setSelectedServices] = useState<Service[]>([]);
+  const [selectedStylist, setSelectedStylist] = useState<Stylist | null>(null);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -250,6 +391,7 @@ const BookingForm: React.FC = () => {
 
   useEffect(() => {
     setSelectedTime(null);
+    setSelectedStylist(null);
   }, [selectedServices, selectedDate]);
 
   const { totalPrice, totalDuration } = useMemo(() => {
@@ -286,6 +428,7 @@ const BookingForm: React.FC = () => {
         date: selectedDate,
         time: selectedTime,
         services: selectedServices,
+        stylistId: selectedStylist?.id,
         customerName: name,
         customerEmail: email,
       });
@@ -299,6 +442,7 @@ const BookingForm: React.FC = () => {
 
   const handleReset = () => {
     setSelectedServices([]);
+    setSelectedStylist(null);
     setSelectedDate(new Date());
     setSelectedTime(null);
     setBookingConfirmed(null);
@@ -320,6 +464,11 @@ const BookingForm: React.FC = () => {
           <p>
             <strong>Services:</strong> {bookingConfirmed.services.map(s => s.name).join(', ')}
           </p>
+          {bookingConfirmed.stylist && (
+            <p>
+              <strong>Stylist:</strong> {bookingConfirmed.stylist.name}
+            </p>
+          )}
           <p>
             <strong>Date:</strong> {new Date(bookingConfirmed.date).toLocaleDateString()}
           </p>
@@ -352,6 +501,14 @@ const BookingForm: React.FC = () => {
         />
 
         {selectedServices.length > 0 && (
+          <StylistSelector
+            selectedServices={selectedServices}
+            selectedStylist={selectedStylist}
+            onStylistSelect={setSelectedStylist}
+          />
+        )}
+
+        {selectedServices.length > 0 && (
           <DateTimePicker
             selectedDate={selectedDate}
             onDateChange={setSelectedDate}
@@ -368,6 +525,7 @@ const BookingForm: React.FC = () => {
       <div className="lg:col-span-1">
         <BookingSummary
           selectedServices={selectedServices}
+          selectedStylist={selectedStylist}
           selectedDate={selectedDate}
           selectedTime={selectedTime}
           totalPrice={totalPrice}

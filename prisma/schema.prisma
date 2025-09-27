@@ -45,11 +45,29 @@ model Service {
   @@map("services")
 }
 
+model Stylist {
+  id           String       @id @default(cuid())
+  name         String
+  email        String       @unique
+  bio          String?
+  avatar       String?
+  specialties  Json         // Array of service IDs this stylist can perform
+  workingHours Json         // Working hours for each day of week
+  isActive     Boolean      @default(true)
+  appointments Appointment[]
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  @@map("stylists")
+}
+
 model Appointment {
   id              String   @id @default(cuid())
   date            DateTime
   time            String
   services        Json     // Array of services
+  stylistId       String?  // The assigned stylist
+  stylist         Stylist? @relation(fields: [stylistId], references: [id], onDelete: SetNull)
   customerName    String
   customerEmail   String
   totalPrice      Int

@@ -1,4 +1,4 @@
-import type { Appointment, AdminSettings, Service, User } from '../types';
+import type { Appointment, AdminSettings, Service, User, Stylist } from '../types';
 import { SALON_SERVICES } from '../constants';
 import { prisma } from './prisma';
 
@@ -127,12 +127,31 @@ export const getServices = async (): Promise<Service[]> => {
 // Appointment Management
 export const getAppointments = async (): Promise<Appointment[]> => {
   const appointments = await prisma.appointment.findMany({
+    include: {
+      stylist: true,
+    },
     orderBy: { date: 'asc' },
   });
+
+  const allServices = await getServices();
 
   return appointments.map(apt => ({
     ...apt,
     services: Array.isArray(apt.services) ? (apt.services as unknown as Service[]) : [],
+    stylistId: apt.stylistId ?? undefined,
+    stylist: apt.stylist
+      ? {
+          ...apt.stylist,
+          bio: apt.stylist.bio ?? undefined,
+          avatar: apt.stylist.avatar ?? undefined,
+          specialties: Array.isArray(apt.stylist.specialties)
+            ? ((apt.stylist.specialties as number[])
+                .map(id => allServices.find(s => s.id === id))
+                .filter(Boolean) as Service[])
+            : [],
+          workingHours: (apt.stylist.workingHours as any) || getDefaultWorkingHours(),
+        }
+      : undefined,
     calendarEventId: apt.calendarEventId ?? undefined,
   }));
 };
@@ -238,7 +257,9 @@ export const getAvailability = async (date: Date): Promise<string[]> => {
 };
 
 export const bookNewAppointment = async (
-  appointmentData: Omit<Appointment, 'id' | 'totalPrice' | 'totalDuration'>,
+  appointmentData: Omit<Appointment, 'id' | 'totalPrice' | 'totalDuration'> & {
+    stylistId?: string;
+  },
 ): Promise<Appointment> => {
   const availableSlots = await getAvailability(appointmentData.date);
   const { totalPrice, totalDuration } = appointmentData.services.reduce(
@@ -267,18 +288,38 @@ export const bookNewAppointment = async (
       date: appointmentData.date,
       time: appointmentData.time,
       services: appointmentData.services as any,
+      stylistId: appointmentData.stylistId,
       customerName: appointmentData.customerName,
       customerEmail: appointmentData.customerEmail,
       totalPrice,
       totalDuration,
     },
+    include: {
+      stylist: true,
+    },
   });
+
+  const allServices = await getServices();
 
   return {
     ...newAppointment,
     services: Array.isArray(newAppointment.services)
       ? (newAppointment.services as unknown as Service[])
       : [],
+    stylistId: newAppointment.stylistId ?? undefined,
+    stylist: newAppointment.stylist
+      ? {
+          ...newAppointment.stylist,
+          bio: newAppointment.stylist.bio ?? undefined,
+          avatar: newAppointment.stylist.avatar ?? undefined,
+          specialties: Array.isArray(newAppointment.stylist.specialties)
+            ? ((newAppointment.stylist.specialties as number[])
+                .map(id => allServices.find(s => s.id === id))
+                .filter(Boolean) as Service[])
+            : [],
+          workingHours: (newAppointment.stylist.workingHours as any) || getDefaultWorkingHours(),
+        }
+      : undefined,
     calendarEventId: newAppointment.calendarEventId ?? undefined,
   };
 };
@@ -314,6 +355,7 @@ export const cancelAppointment = async (details: {
     services: Array.isArray(appointment.services)
       ? (appointment.services as unknown as Service[])
       : [],
+    stylistId: appointment.stylistId ?? undefined,
     calendarEventId: appointment.calendarEventId ?? undefined,
   };
 };
@@ -375,6 +417,7 @@ export const findAppointmentById = async (id: string): Promise<Appointment | nul
     services: Array.isArray(appointment.services)
       ? (appointment.services as unknown as Service[])
       : [],
+    stylistId: appointment.stylistId ?? undefined,
     calendarEventId: appointment.calendarEventId ?? undefined,
   };
 };
@@ -393,6 +436,7 @@ export const findAppointmentsByEmail = async (customerEmail: string): Promise<Ap
     services: Array.isArray(appointment.services)
       ? (appointment.services as unknown as Service[])
       : [],
+    stylistId: appointment.stylistId ?? undefined,
     calendarEventId: appointment.calendarEventId ?? undefined,
   }));
 };
@@ -465,6 +509,197 @@ export const updateAppointment = async (
     services: Array.isArray(updatedAppointment.services)
       ? (updatedAppointment.services as unknown as Service[])
       : [],
+    stylistId: updatedAppointment.stylistId ?? undefined,
     calendarEventId: updatedAppointment.calendarEventId ?? undefined,
   };
 };
+
+// Stylist Management
+export const getStylists = async (): Promise<Stylist[]> => {
+  const stylists = await prisma.stylist.findMany({
+    where: { isActive: true },
+    orderBy: { name: 'asc' },
+  });
+
+  const allServices = await getServices();
+
+  return stylists.map(stylist => ({
+    ...stylist,
+    bio: stylist.bio ?? undefined,
+    avatar: stylist.avatar ?? undefined,
+    specialties: Array.isArray(stylist.specialties)
+      ? ((stylist.specialties as number[])
+          .map(id => allServices.find(s => s.id === id))
+          .filter(Boolean) as Service[])
+      : [],
+    workingHours: (stylist.workingHours as any) || getDefaultWorkingHours(),
+  }));
+};
+
+export const getStylistById = async (id: string): Promise<Stylist | null> => {
+  const stylist = await prisma.stylist.findUnique({
+    where: { id },
+  });
+
+  if (!stylist) return null;
+
+  const allServices = await getServices();
+
+  return {
+    ...stylist,
+    bio: stylist.bio ?? undefined,
+    avatar: stylist.avatar ?? undefined,
+    specialties: Array.isArray(stylist.specialties)
+      ? ((stylist.specialties as number[])
+          .map(id => allServices.find(s => s.id === id))
+          .filter(Boolean) as Service[])
+      : [],
+    workingHours: (stylist.workingHours as any) || getDefaultWorkingHours(),
+  };
+};
+
+export const createStylist = async (stylistData: {
+  name: string;
+  email: string;
+  bio?: string;
+  avatar?: string;
+  specialtyIds: number[];
+  workingHours?: Stylist['workingHours'];
+}): Promise<Stylist> => {
+  const defaultHours = getDefaultWorkingHours();
+
+  const newStylist = await prisma.stylist.create({
+    data: {
+      name: stylistData.name,
+      email: stylistData.email,
+      bio: stylistData.bio,
+      avatar: stylistData.avatar,
+      specialties: stylistData.specialtyIds,
+      workingHours: stylistData.workingHours || defaultHours,
+    },
+  });
+
+  const allServices = await getServices();
+
+  return {
+    ...newStylist,
+    bio: newStylist.bio ?? undefined,
+    avatar: newStylist.avatar ?? undefined,
+    specialties: stylistData.specialtyIds
+      .map(id => allServices.find(s => s.id === id))
+      .filter(Boolean) as Service[],
+    workingHours: (newStylist.workingHours as any) || defaultHours,
+  };
+};
+
+export const updateStylist = async (
+  id: string,
+  updateData: {
+    name?: string;
+    email?: string;
+    bio?: string;
+    avatar?: string;
+    specialtyIds?: number[];
+    workingHours?: Stylist['workingHours'];
+    isActive?: boolean;
+  },
+): Promise<Stylist> => {
+  const updatePayload: any = {};
+
+  if (updateData.name !== undefined) updatePayload.name = updateData.name;
+  if (updateData.email !== undefined) updatePayload.email = updateData.email;
+  if (updateData.bio !== undefined) updatePayload.bio = updateData.bio;
+  if (updateData.avatar !== undefined) updatePayload.avatar = updateData.avatar;
+  if (updateData.specialtyIds !== undefined) updatePayload.specialties = updateData.specialtyIds;
+  if (updateData.workingHours !== undefined) updatePayload.workingHours = updateData.workingHours;
+  if (updateData.isActive !== undefined) updatePayload.isActive = updateData.isActive;
+
+  const updatedStylist = await prisma.stylist.update({
+    where: { id },
+    data: updatePayload,
+  });
+
+  const allServices = await getServices();
+
+  return {
+    ...updatedStylist,
+    bio: updatedStylist.bio ?? undefined,
+    avatar: updatedStylist.avatar ?? undefined,
+    specialties: Array.isArray(updatedStylist.specialties)
+      ? ((updatedStylist.specialties as number[])
+          .map(id => allServices.find(s => s.id === id))
+          .filter(Boolean) as Service[])
+      : [],
+    workingHours: (updatedStylist.workingHours as any) || getDefaultWorkingHours(),
+  };
+};
+
+export const deleteStylist = async (id: string): Promise<void> => {
+  await prisma.stylist.update({
+    where: { id },
+    data: { isActive: false },
+  });
+};
+
+export const getStylistsForServices = async (serviceIds: number[]): Promise<Stylist[]> => {
+  const stylists = await getStylists();
+
+  return stylists.filter(stylist =>
+    serviceIds.every(serviceId =>
+      stylist.specialties.some(specialty => specialty.id === serviceId),
+    ),
+  );
+};
+
+export const getStylistAvailability = async (stylistId: string, date: Date): Promise<string[]> => {
+  const stylist = await getStylistById(stylistId);
+  if (!stylist) return [];
+
+  const dayName = date.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
+  const daySchedule = stylist.workingHours[dayName];
+
+  if (!daySchedule || !daySchedule.isWorking) return [];
+
+  // Get all time slots for this stylist's working hours
+  const allSlots = generateTimeSlots(daySchedule.start, daySchedule.end);
+  const dateKey = dateToKey(date);
+
+  // Get booked appointments for this stylist on this date
+  const appointments = await prisma.appointment.findMany({
+    where: {
+      stylistId: stylistId,
+      date: {
+        gte: new Date(dateKey + 'T00:00:00.000Z'),
+        lt: new Date(dateKey + 'T23:59:59.999Z'),
+      },
+    },
+  });
+
+  const bookedSlots = new Set<string>();
+  appointments.forEach(app => {
+    let appTime = new Date(`1970-01-01T${app.time}:00`);
+    const numSlots = Math.ceil(app.totalDuration / 30);
+    for (let i = 0; i < numSlots; i++) {
+      bookedSlots.add(appTime.toTimeString().substring(0, 5));
+      appTime.setMinutes(appTime.getMinutes() + 30);
+    }
+  });
+
+  // Get admin blocked slots
+  const settings = await getAdminSettings();
+  const blockedByAdmin = new Set<string>(settings.blockedSlots[dateKey] || []);
+
+  return allSlots.filter(slot => !bookedSlots.has(slot) && !blockedByAdmin.has(slot));
+};
+
+function getDefaultWorkingHours(): Stylist['workingHours'] {
+  return {
+    monday: { start: '09:00', end: '17:00', isWorking: true },
+    tuesday: { start: '09:00', end: '17:00', isWorking: true },
+    wednesday: { start: '09:00', end: '17:00', isWorking: true },
+    thursday: { start: '09:00', end: '17:00', isWorking: true },
+    friday: { start: '09:00', end: '17:00', isWorking: true },
+    saturday: { start: '09:00', end: '15:00', isWorking: true },
+    sunday: { start: '10:00', end: '14:00', isWorking: false },
+  };
+}

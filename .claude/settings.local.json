@@ -14,7 +14,8 @@
       "Bash(npm run check:*)",
       "Bash(curl:*)",
       "Bash(npx prisma:*)",
-      "Bash(npx dotenv -e .env.local -- npx prisma db push:*)"
+      "Bash(npx dotenv -e .env.local -- npx prisma db push:*)",
+      "Bash(npx prettier:*)"
     ],
     "deny": [],
     "ask": []

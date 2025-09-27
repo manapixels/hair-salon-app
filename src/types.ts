@@ -11,11 +11,33 @@ export interface TimeSlot {
   available: boolean;
 }
 
+export interface Stylist {
+  id: string;
+  name: string;
+  email: string;
+  bio?: string;
+  avatar?: string;
+  specialties: Service[]; // Services this stylist can perform
+  workingHours: {
+    [day: string]: {
+      // e.g., 'monday', 'tuesday'
+      start: string; // "09:00"
+      end: string; // "17:00"
+      isWorking: boolean;
+    };
+  };
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export interface Appointment {
   id: string;
   date: Date;
   time: string;
   services: Service[];
+  stylistId?: string; // The assigned stylist
+  stylist?: Stylist; // Populated stylist data
   customerName: string;
   customerEmail: string;
   totalPrice: number;
