@@ -99,6 +99,9 @@ Required environment variables in `.env.local`:
 
 ```
 GEMINI_API_KEY=your_gemini_api_key_here
+WHATSAPP_VERIFY_TOKEN=your_chosen_verify_token_here
+WHATSAPP_PHONE_NUMBER_ID=your_whatsapp_phone_number_id
+WHATSAPP_ACCESS_TOKEN=your_whatsapp_access_token
 ```
 
 ## Important Implementation Details

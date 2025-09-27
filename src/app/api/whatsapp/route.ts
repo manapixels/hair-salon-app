@@ -7,6 +7,22 @@
  */
 import { handleWhatsAppMessage } from '../../../services/geminiService';
 
+// GET handler for webhook verification
+export async function GET(request: Request) {
+  const url = new URL(request.url);
+  const mode = url.searchParams.get('hub.mode');
+  const token = url.searchParams.get('hub.verify_token');
+  const challenge = url.searchParams.get('hub.challenge');
+
+  const verifyToken = process.env.WHATSAPP_VERIFY_TOKEN;
+
+  if (mode === 'subscribe' && token === verifyToken) {
+    return new Response(challenge, { status: 200 });
+  } else {
+    return new Response('Forbidden', { status: 403 });
+  }
+}
+
 /**
  * Sends a reply to the user via the official Meta Graph API for WhatsApp.
  * @param to The recipient's phone number in international format.
@@ -61,6 +77,45 @@ async function sendWhatsAppReply(to: string, text: string): Promise<void> {
     console.log('WhatsApp API Response:', responseData);
   } catch (error) {
     console.error('Exception when trying to send WhatsApp reply:', error);
+  }
+}
+
+// POST handler for receiving WhatsApp messages
+export async function POST(request: Request) {
+  const requestBody = await request.json();
+
+  // The structure of requestBody will depend on your WhatsApp provider.
+  // This is a simplified example based on Meta's format for text messages.
+  // In a real app, you need to handle various message types and edge cases.
+  console.log('Received WhatsApp webhook payload:', JSON.stringify(requestBody, null, 2));
+
+  const message = requestBody.entry?.[0]?.changes?.[0]?.value?.messages?.[0];
+
+  if (message && message.type === 'text') {
+    const from = message.from; // The user's phone number
+    const incomingMessage = message.text.body;
+
+    try {
+      // We're not using chat history here for simplicity, but you could store
+      // and retrieve conversation history from a database based on the `from` number.
+      const replyText = await handleWhatsAppMessage(incomingMessage, []);
+
+      // Send the generated reply back to the user via the WhatsApp API.
+      await sendWhatsAppReply(from, replyText);
+
+      // Respond to the webhook request to acknowledge receipt.
+      return Response.json({ success: true }, { status: 200 });
+    } catch (error: any) {
+      console.error('Error in WhatsApp webhook:', error);
+      return Response.json({ message: 'Failed to process WhatsApp message.' }, { status: 500 });
+    }
+  } else {
+    // This is not a text message we can process. Acknowledge it so Meta doesn't resend.
+    console.log('Received a non-text message or an unhandled payload type.');
+    return Response.json(
+      { success: true, message: 'Payload received but not a user text message.' },
+      { status: 200 },
+    );
   }
 }
 
