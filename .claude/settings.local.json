@@ -11,7 +11,8 @@
       "Bash(npm run lint)",
       "Bash(npm run format:*)",
       "Bash(mkdir:*)",
-      "Bash(npm run check:*)"
+      "Bash(npm run check:*)",
+      "Bash(curl:*)"
     ],
     "deny": [],
     "ask": []

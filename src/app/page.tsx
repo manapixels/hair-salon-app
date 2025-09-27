@@ -65,9 +65,10 @@ export default function HomePage() {
     const error = urlParams.get('error');
 
     if (loginStatus === 'success') {
-      // Clear URL parameters and refresh to update auth state
+      // Clear URL parameters and trigger auth state refresh
       window.history.replaceState({}, document.title, window.location.pathname);
-      window.location.reload();
+      // Force AuthContext to re-check session without full page reload
+      window.dispatchEvent(new Event('auth-refresh'));
     } else if (error) {
       // Handle OAuth errors
       const errorMessages: { [key: string]: string } = {

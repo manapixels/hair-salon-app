@@ -31,6 +31,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   useEffect(() => {
     checkSession();
+
+    // Listen for auth refresh events (from OAuth redirects)
+    const handleAuthRefresh = () => {
+      checkSession();
+    };
+
+    window.addEventListener('auth-refresh', handleAuthRefresh);
+    return () => window.removeEventListener('auth-refresh', handleAuthRefresh);
   }, [checkSession]);
 
   const login = async (email: string, password: string) => {
