@@ -4,7 +4,11 @@
  * App Router API handler for appointments
  */
 import { NextRequest, NextResponse } from 'next/server';
-import { bookNewAppointment, getAppointments } from '../../../lib/database';
+import {
+  bookNewAppointment,
+  getAppointments,
+  updateAppointmentCalendarId,
+} from '../../../lib/database';
 import { createCalendarEvent } from '../../../lib/google';
 
 export async function GET(request: NextRequest) {
@@ -40,7 +44,13 @@ export async function POST(request: NextRequest) {
 
     // After successfully creating the appointment in our DB,
     // create a corresponding event in Google Calendar.
-    createCalendarEvent(newAppointment);
+    const calendarEventId = await createCalendarEvent(newAppointment);
+
+    // Update the appointment with the calendar event ID if successful
+    if (calendarEventId) {
+      await updateAppointmentCalendarId(newAppointment.id, calendarEventId);
+      newAppointment.calendarEventId = calendarEventId;
+    }
 
     return NextResponse.json(newAppointment, { status: 201 });
   } catch (error: any) {
@@ -82,7 +92,13 @@ export async function handlePost(requestBody: any) {
     };
 
     const newAppointment = await bookNewAppointment(appointmentData);
-    createCalendarEvent(newAppointment);
+
+    // Create calendar event and store the event ID
+    const calendarEventId = await createCalendarEvent(newAppointment);
+    if (calendarEventId) {
+      await updateAppointmentCalendarId(newAppointment.id, calendarEventId);
+      newAppointment.calendarEventId = calendarEventId;
+    }
 
     return { status: 201, body: newAppointment };
   } catch (error: any) {

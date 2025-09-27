@@ -34,7 +34,7 @@ npm run check         # Run all checks (lint + format + typecheck)
 - **Framework**: Next.js 14 with App Router (src/app directory)
 - **Styling**: TailwindCSS with custom design system colors
 - **State Management**: React Context (AuthContext, BookingContext)
-- **Database**: In-memory mock database (`src/lib/database.ts`)
+- **Database**: PostgreSQL with Prisma ORM (`src/lib/database.ts`, Neon hosting)
 - **Authentication**: Custom session-based auth with role-based access
 - **AI Integration**: Google Gemini API for WhatsApp chat functionality
 
@@ -49,7 +49,9 @@ src/
 ├── components/         # React components
 ├── context/           # React Context providers
 ├── lib/               # Utilities and core logic
-│   ├── database.ts    # In-memory database
+│   ├── database.ts    # Database functions (Prisma)
+│   ├── prisma.ts      # Prisma client configuration
+│   ├── google.ts      # Google Calendar integration
 │   ├── apiMock.ts     # API mocking system
 │   └── apiClient.ts   # Fetch wrapper
 ├── services/          # External service integrations
@@ -98,10 +100,28 @@ src/
 Required environment variables in `.env.local`:
 
 ```
+# Database
+DATABASE_URL=your_neon_database_url_here
+
+# AI Integration
 GEMINI_API_KEY=your_gemini_api_key_here
+
+# WhatsApp Integration
 WHATSAPP_VERIFY_TOKEN=your_chosen_verify_token_here
 WHATSAPP_PHONE_NUMBER_ID=your_whatsapp_phone_number_id
 WHATSAPP_ACCESS_TOKEN=your_whatsapp_access_token
+
+# Google Calendar Integration
+GOOGLE_SERVICE_ACCOUNT_KEY={"type":"service_account","project_id":"your-project",...}
+GOOGLE_CALENDAR_ID=your-calendar-id@group.calendar.google.com
+GOOGLE_CALENDAR_TIMEZONE=America/Los_Angeles
+
+# OAuth Integration
+TELEGRAM_BOT_TOKEN=your_telegram_bot_token
+WHATSAPP_CLIENT_ID=your_whatsapp_client_id
+WHATSAPP_CLIENT_SECRET=your_whatsapp_client_secret
+WHATSAPP_REDIRECT_URI=your_whatsapp_redirect_uri
+NEXTAUTH_URL=your_app_url
 ```
 
 ## Important Implementation Details
@@ -147,7 +167,42 @@ When modifying authentication:
 - Modify `src/lib/sessionStore.ts` for session management
 - Check role-based access in components and API routes
 
-The mock database (`src/lib/database.ts`) resets on server restart - this is intentional for development.
+## Google Calendar Setup
+
+To enable Google Calendar integration:
+
+1. **Create a Google Cloud Project**
+   - Go to [Google Cloud Console](https://console.cloud.google.com/)
+   - Create a new project or select existing one
+
+2. **Enable Google Calendar API**
+   - Navigate to "APIs & Services" > "Library"
+   - Search for "Google Calendar API" and enable it
+
+3. **Create Service Account**
+   - Go to "APIs & Services" > "Credentials"
+   - Click "Create Credentials" > "Service Account"
+   - Download the JSON key file
+
+4. **Share Calendar with Service Account**
+   - Open Google Calendar, find your calendar
+   - Share with the service account email (from JSON file)
+   - Grant "Make changes to events" permission
+
+5. **Configure Environment Variables**
+
+   ```bash
+   # Copy the entire JSON content as a string
+   GOOGLE_SERVICE_ACCOUNT_KEY={"type":"service_account",...}
+
+   # Your calendar ID (found in Google Calendar settings)
+   GOOGLE_CALENDAR_ID=your-calendar-id@group.calendar.google.com
+
+   # Your timezone
+   GOOGLE_CALENDAR_TIMEZONE=America/Los_Angeles
+   ```
+
+**Note**: If Google Calendar credentials are not configured, the app will continue to work normally but appointments won't be synced to Google Calendar.
 
 # Feature Analysis & Current State
 
@@ -225,8 +280,12 @@ The mock database (`src/lib/database.ts`) resets on server restart - this is int
 ### **🔗 External Integrations**
 
 - **Google Calendar Integration**
-  - Automatic calendar event creation for new appointments
-  - Google API integration setup
+  - ✅ Automatic calendar event creation for new appointments
+  - ✅ Calendar event updates for appointment changes
+  - ✅ Calendar event deletion for cancelled appointments
+  - ✅ Service Account authentication with Google APIs
+  - ✅ Configurable timezone and calendar settings
+  - ✅ Error handling with graceful fallbacks
 
 - **Alternative Booking Options**
   - WhatsApp direct messaging for bookings
@@ -250,7 +309,8 @@ The mock database (`src/lib/database.ts`) resets on server restart - this is int
 
 ### **High Priority Missing Features**
 
-- No real database (currently in-memory only)
+- ✅ Real database (PostgreSQL with Neon hosting) - **COMPLETED**
+- ✅ Google Calendar integration for appointments - **COMPLETED**
 - No appointment modification/rescheduling
 - No comprehensive appointment management for admins
 - No email confirmation system (only simulated)

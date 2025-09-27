@@ -133,6 +133,7 @@ export const getAppointments = async (): Promise<Appointment[]> => {
   return appointments.map(apt => ({
     ...apt,
     services: Array.isArray(apt.services) ? (apt.services as unknown as Service[]) : [],
+    calendarEventId: apt.calendarEventId ?? undefined,
   }));
 };
 
@@ -278,6 +279,7 @@ export const bookNewAppointment = async (
     services: Array.isArray(newAppointment.services)
       ? (newAppointment.services as unknown as Service[])
       : [],
+    calendarEventId: newAppointment.calendarEventId ?? undefined,
   };
 };
 
@@ -312,6 +314,7 @@ export const cancelAppointment = async (details: {
     services: Array.isArray(appointment.services)
       ? (appointment.services as unknown as Service[])
       : [],
+    calendarEventId: appointment.calendarEventId ?? undefined,
   };
 };
 
@@ -348,4 +351,14 @@ export const unblockSlot = async (
 
   await updateAdminSettings({ blockedSlots: updatedBlockedSlots });
   return updatedBlockedSlots;
+};
+
+export const updateAppointmentCalendarId = async (
+  appointmentId: string,
+  calendarEventId: string,
+): Promise<void> => {
+  await prisma.appointment.update({
+    where: { id: appointmentId },
+    data: { calendarEventId },
+  });
 };

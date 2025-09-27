@@ -20,6 +20,7 @@ export interface Appointment {
   customerEmail: string;
   totalPrice: number;
   totalDuration: number;
+  calendarEventId?: string; // Google Calendar event ID
 }
 
 export interface AdminSettings {

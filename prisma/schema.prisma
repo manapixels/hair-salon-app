@@ -46,18 +46,19 @@ model Service {
 }
 
 model Appointment {
-  id            String   @id @default(cuid())
-  date          DateTime
-  time          String
-  services      Json     // Array of services
-  customerName  String
-  customerEmail String
-  totalPrice    Int
-  totalDuration Int
-  userId        String?
-  user          User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id              String   @id @default(cuid())
+  date            DateTime
+  time            String
+  services        Json     // Array of services
+  customerName    String
+  customerEmail   String
+  totalPrice      Int
+  totalDuration   Int
+  calendarEventId String?  // Google Calendar event ID
+  userId          String?
+  user            User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
   @@map("appointments")
 }
