@@ -2,13 +2,14 @@
  * API Route: /api/auth/session
  * Checks if there is an active session.
  */
+import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '../../../../lib/sessionStore';
 
-export async function handleGet() {
+export async function GET(request: NextRequest) {
   const session = getSession();
   if (session) {
-    return { status: 200, body: session };
+    return NextResponse.json(session, { status: 200 });
   } else {
-    return { status: 401, body: { message: 'Not authenticated' } };
+    return NextResponse.json({ message: 'Not authenticated' }, { status: 401 });
   }
 }

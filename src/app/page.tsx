@@ -6,7 +6,6 @@ import AdminDashboard from '../components/AdminDashboard';
 import LoginModal from '../components/LoginModal';
 import RegisterModal from '../components/RegisterModal';
 import { useAuth } from '../context/AuthContext';
-import { startApiMock } from '../lib/apiMock';
 
 type View = 'booking' | 'admin';
 
@@ -56,9 +55,6 @@ export default function HomePage() {
   const [isRegisterOpen, setRegisterOpen] = useState(false);
 
   useEffect(() => {
-    // Start the API mock when the app loads in the browser
-    startApiMock();
-
     // Handle OAuth redirect results
     const urlParams = new URLSearchParams(window.location.search);
     const loginStatus = urlParams.get('login');

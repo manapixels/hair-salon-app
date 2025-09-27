@@ -8,8 +8,10 @@ import {
   bookNewAppointment,
   getAppointments,
   updateAppointmentCalendarId,
+  findUserByEmail,
 } from '../../../lib/database';
 import { createCalendarEvent } from '../../../lib/google';
+import { sendAppointmentConfirmation } from '../../../services/messagingService';
 
 export async function GET(request: NextRequest) {
   try {
@@ -52,56 +54,35 @@ export async function POST(request: NextRequest) {
       newAppointment.calendarEventId = calendarEventId;
     }
 
+    // Send appointment confirmation via WhatsApp/Telegram
+    try {
+      const dbUser = await findUserByEmail(newAppointment.customerEmail);
+      let user = null;
+      if (dbUser) {
+        // Convert Prisma types to app types
+        user = {
+          ...dbUser,
+          role: dbUser.role.toLowerCase() as 'customer' | 'admin',
+          authProvider: (dbUser.authProvider as 'email' | 'whatsapp' | 'telegram') ?? undefined,
+          telegramId: dbUser.telegramId ?? undefined,
+          whatsappPhone: dbUser.whatsappPhone ?? undefined,
+          avatar: dbUser.avatar ?? undefined,
+        };
+      }
+      const messageSent = await sendAppointmentConfirmation(user, newAppointment, 'confirmation');
+      if (messageSent) {
+        console.log(`✅ Appointment confirmation sent to ${newAppointment.customerEmail}`);
+      }
+    } catch (error) {
+      console.error('Failed to send appointment confirmation:', error);
+      // Don't fail the appointment creation if messaging fails
+    }
+
     return NextResponse.json(newAppointment, { status: 201 });
   } catch (error: any) {
     return NextResponse.json(
       { message: error.message || 'An error occurred during booking.' },
       { status: 409 },
     );
-  }
-}
-
-// This is for compatibility with the mock API
-export async function handleGet() {
-  try {
-    const appointments = getAppointments();
-    return { status: 200, body: appointments };
-  } catch (error: any) {
-    return { status: 500, body: { message: error.message || 'Failed to fetch appointments.' } };
-  }
-}
-
-export async function handlePost(requestBody: any) {
-  if (!requestBody) {
-    return { status: 400, body: { message: 'Bad Request: Missing request body.' } };
-  }
-
-  try {
-    const { date, time, services, customerName, customerEmail } = requestBody;
-
-    if (!date || !time || !services || !customerName || !customerEmail) {
-      return { status: 400, body: { message: 'Missing required appointment data.' } };
-    }
-
-    const appointmentData = {
-      date: new Date(date),
-      time,
-      services,
-      customerName,
-      customerEmail,
-    };
-
-    const newAppointment = await bookNewAppointment(appointmentData);
-
-    // Create calendar event and store the event ID
-    const calendarEventId = await createCalendarEvent(newAppointment);
-    if (calendarEventId) {
-      await updateAppointmentCalendarId(newAppointment.id, calendarEventId);
-      newAppointment.calendarEventId = calendarEventId;
-    }
-
-    return { status: 201, body: newAppointment };
-  } catch (error: any) {
-    return { status: 409, body: { message: error.message || 'An error occurred during booking.' } };
   }
 }

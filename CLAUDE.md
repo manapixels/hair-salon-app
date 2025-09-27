@@ -55,6 +55,8 @@ src/
 │   ├── apiMock.ts     # API mocking system
 │   └── apiClient.ts   # Fetch wrapper
 ├── services/          # External service integrations
+│   ├── geminiService.ts     # Google Gemini AI integration
+│   └── messagingService.ts  # WhatsApp/Telegram messaging
 ├── styles/           # Global CSS and Tailwind
 ├── constants.ts      # Application constants
 └── types.ts         # TypeScript type definitions
@@ -76,11 +78,11 @@ src/
 - Admin controls for blocking time slots
 - Google Calendar integration for appointment scheduling
 
-**API Mock System**:
+**API System**:
 
-- Development environment uses `src/lib/apiMock.ts` to intercept fetch calls
-- Routes requests to mock handlers that simulate real API responses
-- Enables full-stack development without backend dependencies
+- Real Next.js API routes in `src/app/api/` directories
+- PostgreSQL database with Prisma ORM
+- No mocking - all APIs are production-ready
 
 **Admin Dashboard**:
 
@@ -106,7 +108,7 @@ DATABASE_URL=your_neon_database_url_here
 # AI Integration
 GEMINI_API_KEY=your_gemini_api_key_here
 
-# WhatsApp Integration
+# WhatsApp Integration (for notifications & chatbot)
 WHATSAPP_VERIFY_TOKEN=your_chosen_verify_token_here
 WHATSAPP_PHONE_NUMBER_ID=your_whatsapp_phone_number_id
 WHATSAPP_ACCESS_TOKEN=your_whatsapp_access_token
@@ -117,7 +119,7 @@ GOOGLE_CALENDAR_ID=your-calendar-id@group.calendar.google.com
 GOOGLE_CALENDAR_TIMEZONE=America/Los_Angeles
 
 # OAuth Integration
-TELEGRAM_BOT_TOKEN=your_telegram_bot_token
+TELEGRAM_BOT_TOKEN=your_telegram_bot_token  # Also used for notifications
 WHATSAPP_CLIENT_ID=your_whatsapp_client_id
 WHATSAPP_CLIENT_SECRET=your_whatsapp_client_secret
 WHATSAPP_REDIRECT_URI=your_whatsapp_redirect_uri
@@ -133,12 +135,13 @@ NEXTAUTH_URL=your_app_url
 **API Route Structure**:
 
 - App Router format: each endpoint is a `route.ts` file in its own directory
-- Dual compatibility: exports both Next.js handlers (GET/POST) and mock handlers (handleGet/handlePost)
+- Standard Next.js handlers (GET/POST/DELETE) with proper HTTP methods
 
-**Mock API System**:
+**Real API Routes**:
 
-- The `startApiMock()` function must be called on app initialization to enable API interception
-- All API routes have corresponding mock implementations for development
+- All endpoints are real Next.js API routes using App Router format
+- Direct database integration with PostgreSQL via Prisma
+- Production-ready with proper error handling and validation
 
 **Styling System**:
 
@@ -157,9 +160,9 @@ NEXTAUTH_URL=your_app_url
 When adding new API endpoints:
 
 1. Create directory in `src/app/api/` with `route.ts` file
-2. Implement both Next.js handlers and mock handlers for development
-3. Update `src/lib/apiMock.ts` to route the new endpoint
-4. Ensure proper TypeScript types are defined
+2. Implement Next.js handlers (GET, POST, DELETE as needed)
+3. Add proper Prisma database operations
+4. Ensure proper TypeScript types and error handling
 
 When modifying authentication:
 
@@ -203,6 +206,33 @@ To enable Google Calendar integration:
    ```
 
 **Note**: If Google Calendar credentials are not configured, the app will continue to work normally but appointments won't be synced to Google Calendar.
+
+## Messaging Setup (WhatsApp & Telegram)
+
+The app automatically sends appointment confirmations via WhatsApp or Telegram based on how users authenticated:
+
+### **WhatsApp Notifications**
+
+- Uses Meta Graph API for WhatsApp Business
+- Requires: `WHATSAPP_PHONE_NUMBER_ID` and `WHATSAPP_ACCESS_TOKEN`
+- Sends to users who authenticated via WhatsApp OAuth
+- Fallback for users with WhatsApp phone numbers
+
+### **Telegram Notifications**
+
+- Uses Telegram Bot API
+- Requires: `TELEGRAM_BOT_TOKEN` (same token used for login)
+- Sends to users who authenticated via Telegram
+- Users must have started a chat with your bot to receive messages
+
+### **Notification Logic**
+
+1. **WhatsApp Users**: Send via WhatsApp to their phone number
+2. **Telegram Users**: Send via Telegram to their chat ID
+3. **Email Users**: Try WhatsApp first, then Telegram (if available)
+4. **Graceful Fallback**: App continues normally if messaging fails
+
+**Note**: Messaging is optional - if credentials aren't configured, appointments still work but without notifications.
 
 # Feature Analysis & Current State
 
@@ -287,7 +317,12 @@ To enable Google Calendar integration:
   - ✅ Configurable timezone and calendar settings
   - ✅ Error handling with graceful fallbacks
 
-- **Alternative Booking Options**
+- **Messaging & Notifications**
+  - ✅ WhatsApp appointment confirmations and cancellations
+  - ✅ Telegram appointment confirmations and cancellations
+  - ✅ Smart provider detection based on user auth method
+  - ✅ Rich formatted messages with appointment details
+  - ✅ Graceful fallbacks when messaging fails
   - WhatsApp direct messaging for bookings
   - Pre-filled message templates
 
@@ -311,6 +346,7 @@ To enable Google Calendar integration:
 
 - ✅ Real database (PostgreSQL with Neon hosting) - **COMPLETED**
 - ✅ Google Calendar integration for appointments - **COMPLETED**
+- ✅ Appointment confirmations via WhatsApp/Telegram - **COMPLETED**
 - No appointment modification/rescheduling
 - No comprehensive appointment management for admins
 - No email confirmation system (only simulated)
