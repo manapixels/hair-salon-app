@@ -362,3 +362,91 @@ export const updateAppointmentCalendarId = async (
     data: { calendarEventId },
   });
 };
+
+export const findAppointmentById = async (id: string): Promise<Appointment | null> => {
+  const appointment = await prisma.appointment.findUnique({
+    where: { id },
+  });
+
+  if (!appointment) return null;
+
+  return {
+    ...appointment,
+    services: Array.isArray(appointment.services)
+      ? (appointment.services as unknown as Service[])
+      : [],
+    calendarEventId: appointment.calendarEventId ?? undefined,
+  };
+};
+
+export const updateAppointment = async (
+  id: string,
+  appointmentData: {
+    customerName: string;
+    customerEmail: string;
+    date: Date;
+    time: string;
+    services: Service[];
+    totalPrice: number;
+    totalDuration: number;
+  },
+): Promise<Appointment> => {
+  // Check if the updated time slot is available (excluding the current appointment)
+  const availableSlots = await getAvailability(appointmentData.date);
+  const numSlotsRequired = Math.ceil(appointmentData.totalDuration / 30);
+
+  // Get existing appointments for this date excluding the current one
+  const dateKey = dateToKey(appointmentData.date);
+  const existingAppointments = await prisma.appointment.findMany({
+    where: {
+      date: {
+        gte: new Date(dateKey + 'T00:00:00.000Z'),
+        lt: new Date(dateKey + 'T23:59:59.999Z'),
+      },
+      id: { not: id }, // Exclude current appointment
+    },
+  });
+
+  const bookedSlots = new Set<string>();
+  existingAppointments.forEach(app => {
+    let appTime = new Date(`1970-01-01T${app.time}:00`);
+    const numSlots = Math.ceil(app.totalDuration / 30);
+    for (let i = 0; i < numSlots; i++) {
+      bookedSlots.add(appTime.toTimeString().substring(0, 5));
+      appTime.setMinutes(appTime.getMinutes() + 30);
+    }
+  });
+
+  // Check if the new time slots are available
+  for (let i = 0; i < numSlotsRequired; i++) {
+    const slotToCheck = new Date(`1970-01-01T${appointmentData.time}:00`);
+    slotToCheck.setMinutes(slotToCheck.getMinutes() + i * 30);
+    const timeString = slotToCheck.toTimeString().substring(0, 5);
+    if (bookedSlots.has(timeString)) {
+      throw new Error(
+        `Booking conflict. Time slot ${timeString} is already booked for the selected date.`,
+      );
+    }
+  }
+
+  const updatedAppointment = await prisma.appointment.update({
+    where: { id },
+    data: {
+      customerName: appointmentData.customerName,
+      customerEmail: appointmentData.customerEmail,
+      date: appointmentData.date,
+      time: appointmentData.time,
+      services: appointmentData.services as any,
+      totalPrice: appointmentData.totalPrice,
+      totalDuration: appointmentData.totalDuration,
+    },
+  });
+
+  return {
+    ...updatedAppointment,
+    services: Array.isArray(updatedAppointment.services)
+      ? (updatedAppointment.services as unknown as Service[])
+      : [],
+    calendarEventId: updatedAppointment.calendarEventId ?? undefined,
+  };
+};

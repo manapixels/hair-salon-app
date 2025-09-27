@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useBooking } from '../context/BookingContext';
-import type { TimeSlot } from '../types';
+import type { TimeSlot, Appointment } from '../types';
+import EditAppointmentModal from './EditAppointmentModal';
 
 const AdminDashboard: React.FC = () => {
   const {
@@ -18,6 +19,9 @@ const AdminDashboard: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [openingTime, setOpeningTime] = useState(adminSettings.openingTime);
   const [closingTime, setClosingTime] = useState(adminSettings.closingTime);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     // FIX: `fetchAndSetAdminSettings` returns `Promise<void>`, so its resolved value cannot be used.
@@ -97,6 +101,77 @@ const AdminDashboard: React.FC = () => {
     }
   };
 
+  const handleEditAppointment = (appointment: Appointment) => {
+    setSelectedAppointment(appointment);
+    setEditModalOpen(true);
+  };
+
+  const handleCancelAppointment = async (appointment: Appointment) => {
+    if (
+      window.confirm(
+        `Are you sure you want to cancel the appointment for ${appointment.customerName}?`,
+      )
+    ) {
+      try {
+        const response = await fetch('/api/appointments/cancel', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            customerEmail: appointment.customerEmail,
+            date: appointment.date.toISOString().split('T')[0],
+            time: appointment.time,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to cancel appointment');
+        }
+
+        await fetchAndSetAppointments();
+        alert('Appointment cancelled successfully');
+      } catch (error) {
+        alert('Failed to cancel appointment');
+        console.error('Error cancelling appointment:', error);
+      }
+    }
+  };
+
+  const handleSaveAppointment = async (updatedData: Partial<Appointment>) => {
+    if (!selectedAppointment) return;
+
+    try {
+      const response = await fetch('/api/appointments/edit', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: selectedAppointment.id,
+          ...updatedData,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to update appointment');
+      }
+
+      await fetchAndSetAppointments();
+      setEditModalOpen(false);
+      setSelectedAppointment(null);
+    } catch (error) {
+      throw error; // Re-throw for modal to handle
+    }
+  };
+
+  const filteredAppointments = appointments.filter(appointment => {
+    if (!searchTerm) return true;
+    const term = searchTerm.toLowerCase();
+    return (
+      appointment.customerName.toLowerCase().includes(term) ||
+      appointment.customerEmail.toLowerCase().includes(term) ||
+      appointment.services.some(s => s.name.toLowerCase().includes(term))
+    );
+  });
+
   return (
     <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg">
       <h2 className="text-3xl font-bold mb-6 text-gray-800 dark:text-gray-200">Admin Dashboard</h2>
@@ -159,10 +234,31 @@ const AdminDashboard: React.FC = () => {
 
       {/* Appointments Management Section */}
       <div className="mb-8">
-        <h3 className="text-xl font-semibold mb-4">All Appointments</h3>
-        {appointments.length === 0 ? (
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-xl font-semibold">All Appointments</h3>
+          <div className="flex items-center space-x-4">
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Search appointments..."
+                value={searchTerm}
+                onChange={e => setSearchTerm(e.target.value)}
+                className="pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-yellow-500 focus:border-yellow-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+              />
+              <i className="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+            </div>
+            <div className="text-sm text-gray-500 dark:text-gray-400">
+              {filteredAppointments.length} of {appointments.length} appointments
+            </div>
+          </div>
+        </div>
+        {filteredAppointments.length === 0 ? (
           <div className="bg-gray-50 dark:bg-gray-700 p-6 rounded-lg text-center">
-            <p className="text-gray-500 dark:text-gray-400">No appointments booked yet.</p>
+            <p className="text-gray-500 dark:text-gray-400">
+              {appointments.length === 0
+                ? 'No appointments booked yet.'
+                : 'No appointments match your search.'}
+            </p>
           </div>
         ) : (
           <div className="bg-white dark:bg-gray-700 rounded-lg shadow overflow-hidden">
@@ -185,10 +281,13 @@ const AdminDashboard: React.FC = () => {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                       Price
                     </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                      Actions
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200 dark:divide-gray-600">
-                  {appointments
+                  {filteredAppointments
                     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
                     .map(appointment => (
                       <tr key={appointment.id} className="hover:bg-gray-50 dark:hover:bg-gray-600">
@@ -218,6 +317,24 @@ const AdminDashboard: React.FC = () => {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
                           ${appointment.totalPrice}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                          <div className="flex space-x-2">
+                            <button
+                              onClick={() => handleEditAppointment(appointment)}
+                              className="text-yellow-600 hover:text-yellow-900 dark:text-yellow-400 dark:hover:text-yellow-300 transition-colors"
+                              title="Edit appointment"
+                            >
+                              <i className="fas fa-edit"></i>
+                            </button>
+                            <button
+                              onClick={() => handleCancelAppointment(appointment)}
+                              className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 transition-colors"
+                              title="Cancel appointment"
+                            >
+                              <i className="fas fa-trash"></i>
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -278,6 +395,17 @@ const AdminDashboard: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Edit Appointment Modal */}
+      <EditAppointmentModal
+        isOpen={editModalOpen}
+        onClose={() => {
+          setEditModalOpen(false);
+          setSelectedAppointment(null);
+        }}
+        appointment={selectedAppointment}
+        onSave={handleSaveAppointment}
+      />
     </div>
   );
 };
