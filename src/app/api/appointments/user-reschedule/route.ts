@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/sessionStore';
 import { getUserAppointmentById, rescheduleAppointment } from '@/lib/database';
+import { updateCalendarEvent } from '@/lib/google';
+import { sendAppointmentConfirmation } from '@/services/messagingService';
 
 export async function PATCH(request: NextRequest) {
   try {
@@ -39,6 +41,30 @@ export async function PATCH(request: NextRequest) {
       new Date(newDate),
       newTime,
     );
+
+    // Update Google Calendar event if exists
+    if (updatedAppointment.calendarEventId) {
+      try {
+        await updateCalendarEvent(updatedAppointment.calendarEventId, updatedAppointment);
+        console.log(`📅 Calendar event updated for rescheduled appointment ${appointmentId}`);
+      } catch (error) {
+        console.error('Failed to update calendar event:', error);
+        // Don't fail the reschedule if calendar update fails
+      }
+    }
+
+    // Send reschedule notification
+    try {
+      await sendAppointmentConfirmation(
+        updatedAppointment.user || null,
+        updatedAppointment,
+        'reschedule',
+      );
+      console.log(`✅ Reschedule confirmation sent to ${updatedAppointment.customerEmail}`);
+    } catch (error) {
+      console.error('Failed to send reschedule notification:', error);
+      // Don't fail the reschedule if messaging fails
+    }
 
     return NextResponse.json(
       {

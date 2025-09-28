@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import RescheduleModal from './RescheduleModal';
 import type { Appointment } from '@/types';
 
 export default function CustomerDashboard() {
@@ -13,6 +14,8 @@ export default function CustomerDashboard() {
   const [newName, setNewName] = useState('');
   const [cancellingId, setCancellingId] = useState<string | null>(null);
   const [reschedulingId, setReschedulingId] = useState<string | null>(null);
+  const [rescheduleModalOpen, setRescheduleModalOpen] = useState(false);
+  const [appointmentToReschedule, setAppointmentToReschedule] = useState<Appointment | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -101,12 +104,21 @@ export default function CustomerDashboard() {
   };
 
   const handleRescheduleAppointment = (appointmentId: string) => {
-    setReschedulingId(appointmentId);
-    // For now, just show an alert. Later we can add a proper reschedule modal
-    alert(
-      'Reschedule functionality will be available soon. Please contact the salon to reschedule your appointment.',
-    );
-    setReschedulingId(null);
+    const appointment = appointments.find(apt => apt.id === appointmentId);
+    if (appointment) {
+      setAppointmentToReschedule(appointment);
+      setRescheduleModalOpen(true);
+    }
+  };
+
+  const handleRescheduleSuccess = () => {
+    // Refresh appointments list after successful reschedule
+    fetchUserAppointments();
+  };
+
+  const handleRescheduleClose = () => {
+    setRescheduleModalOpen(false);
+    setAppointmentToReschedule(null);
   };
 
   if (!user) {
@@ -345,6 +357,16 @@ export default function CustomerDashboard() {
           </div>
         </div>
       </div>
+
+      {/* Reschedule Modal */}
+      {appointmentToReschedule && (
+        <RescheduleModal
+          appointment={appointmentToReschedule}
+          isOpen={rescheduleModalOpen}
+          onClose={handleRescheduleClose}
+          onSuccess={handleRescheduleSuccess}
+        />
+      )}
     </div>
   );
 }
