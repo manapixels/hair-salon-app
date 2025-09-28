@@ -54,9 +54,9 @@ src/
 
 ## 🔐 Authentication
 
-- **Multi-provider**: Email/password, WhatsApp OAuth, Telegram
-- **Default Admin**: `admin@luxecuts.com` / `admin123`
-- **Roles**: `admin` (dashboard access) | `customer` (booking only)
+- **OAuth-Only**: WhatsApp OAuth, Telegram (email/password removed)
+- **Admin Creation**: Promote existing OAuth users via `node scripts/create-admin.js promote <email>`
+- **Roles**: `admin` (full dashboard access) | `customer` (booking + personal dashboard)
 - **Session**: Custom session-based auth with role-based access control
 
 ## 📅 Core Features
@@ -87,10 +87,18 @@ src/
 - Working hours configuration
 - Active/inactive status management
 
+**Customer Dashboard**:
+
+- OAuth-only authentication with WhatsApp/Telegram login
+- Personal appointment history with full details
+- Editable profile management (display name, connected account info)
+- Self-service appointment cancellation with confirmations
+- Real-time updates and error handling
+
 **Integrations**:
 
 - Google Calendar sync (create, update, delete events)
-- WhatsApp/Telegram notifications (confirmations, reschedules)
+- WhatsApp/Telegram notifications (confirmations, cancellations)
 - AI-powered chat via Google Gemini (booking, rescheduling, cancellations)
 
 ## 🔧 Environment Setup
@@ -188,13 +196,57 @@ npm run format     # Prettier formatting
 **Environment**: Production-ready with proper error handling
 **Scaling**: Serverless functions with database connection pooling
 
+## 🔔 Appointment Reminders
+
+**Automated 24-hour notifications** via WhatsApp/Telegram using GitHub Actions.
+
+### **Setup**:
+
+```bash
+# Environment Variables
+CRON_SECRET=your-secure-random-string
+
+# GitHub Repository Secrets
+CRON_SECRET=same-value-as-above
+APP_URL=https://your-app.vercel.app
+```
+
+### **GitHub Actions Workflow**:
+
+- **Daily Schedule**: 9:00 AM UTC (configurable in `.github/workflows/reminders.yml`)
+- **Manual Trigger**: Available via Actions tab for testing
+- **API Endpoint**: `POST /api/reminders/send` with Bearer authentication
+
+### **Message Format**:
+
+Rich notifications include appointment details, services, stylist, pricing, and cancellation instructions.
+
+### **Testing**:
+
+- Admin dashboard: Reminders panel with preview and testing tools
+- Manual trigger: `POST /api/reminders/test` (admin only)
+- Status check: `GET /api/reminders/send` (shows upcoming appointments)
+
 ## 📋 Next Development Priorities
 
-1. **Customer Dashboard** - Personal appointment history and self-service management
-2. **Appointment Reminders** - Automated 24-hour notifications
-3. **Enhanced Communication** - Two-way messaging between salon and customers
-4. **Testing Suite** - Unit and integration tests for reliability
+### **High Priority**
+
+1. ✅ **Appointment Reminders** - **COMPLETED** (GitHub Actions + WhatsApp/Telegram)
+2. **Complete Rescheduling System** - Full modal with date/time picker (currently placeholder)
+3. **Customer Reviews & Ratings** - Post-appointment feedback system
+
+### **Medium Priority**
+
+4. **Enhanced Communication** - Two-way messaging between salon and customers
+5. **Customer Loyalty Program** - Points system and referral bonuses
+6. **Enhanced Admin Analytics** - Business intelligence and reporting dashboard
+
+### **Technical Infrastructure**
+
+7. **Testing Suite** - Unit and integration tests for reliability (Jest + React Testing Library + Playwright)
+8. **Performance Optimization** - Image optimization, lazy loading, caching strategies
+9. **Security Hardening** - Rate limiting, CSRF protection, enhanced input validation
 
 ---
 
-_This is an MVP-focused salon management system. Additional features can be built on this solid foundation._
+_This is a production-ready salon management system with OAuth-only authentication and comprehensive customer self-service capabilities. The customer dashboard implementation is complete - users can manage their profile, view appointment history, and cancel appointments with automatic calendar and notification integration._

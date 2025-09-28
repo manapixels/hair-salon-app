@@ -8,7 +8,7 @@ import type { Appointment, User } from '../types';
 /**
  * Sends a WhatsApp message using Meta Graph API
  */
-async function sendWhatsAppMessage(to: string, text: string): Promise<boolean> {
+export async function sendWhatsAppMessage(to: string, text: string): Promise<boolean> {
   const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
   const accessToken = process.env.WHATSAPP_ACCESS_TOKEN;
 
@@ -57,7 +57,7 @@ async function sendWhatsAppMessage(to: string, text: string): Promise<boolean> {
 /**
  * Sends a Telegram message using Bot API
  */
-async function sendTelegramMessage(chatId: number, text: string): Promise<boolean> {
+export async function sendTelegramMessage(chatId: number, text: string): Promise<boolean> {
   const botToken = process.env.TELEGRAM_BOT_TOKEN;
 
   if (!botToken) {

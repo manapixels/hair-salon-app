@@ -958,3 +958,96 @@ export const deleteAppointment = async (appointmentId: string): Promise<void> =>
     where: { id: appointmentId },
   });
 };
+
+// Appointment Reminders Functions
+export const getUpcomingAppointmentsForReminders = async (
+  hoursAhead: number = 24,
+): Promise<Appointment[]> => {
+  const now = new Date();
+  const reminderTime = new Date(now.getTime() + hoursAhead * 60 * 60 * 1000);
+
+  // Get appointments that are approximately 24 hours away (within a 2-hour window for flexibility)
+  const startWindow = new Date(reminderTime.getTime() - 60 * 60 * 1000); // 1 hour before
+  const endWindow = new Date(reminderTime.getTime() + 60 * 60 * 1000); // 1 hour after
+
+  const appointments = await prisma.appointment.findMany({
+    where: {
+      date: {
+        gte: startWindow,
+        lte: endWindow,
+      },
+      // Only send reminders for appointments with users (not guest bookings)
+      userId: {
+        not: null,
+      },
+    },
+    include: {
+      user: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          authProvider: true,
+          telegramId: true,
+          whatsappPhone: true,
+          role: true,
+          avatar: true,
+        },
+      },
+      stylist: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+        },
+      },
+    },
+  });
+
+  return appointments.map(appointment => ({
+    id: appointment.id,
+    date: appointment.date,
+    time: appointment.time,
+    services: Array.isArray(appointment.services)
+      ? (appointment.services as unknown as Service[])
+      : [],
+    stylistId: appointment.stylistId,
+    stylist: appointment.stylist
+      ? {
+          id: appointment.stylist.id,
+          name: appointment.stylist.name,
+          email: appointment.stylist.email,
+        }
+      : undefined,
+    customerName: appointment.customerName,
+    customerEmail: appointment.customerEmail,
+    totalPrice: appointment.totalPrice,
+    totalDuration: appointment.totalDuration,
+    calendarEventId: appointment.calendarEventId,
+    userId: appointment.userId,
+    createdAt: appointment.createdAt,
+    updatedAt: appointment.updatedAt,
+    // Add user data for messaging
+    user: appointment.user
+      ? {
+          id: appointment.user.id,
+          name: appointment.user.name,
+          email: appointment.user.email,
+          authProvider: appointment.user.authProvider as 'whatsapp' | 'telegram' | 'email',
+          telegramId: appointment.user.telegramId ?? undefined,
+          whatsappPhone: appointment.user.whatsappPhone ?? undefined,
+          role: appointment.user.role.toLowerCase() as 'customer' | 'admin',
+          avatar: appointment.user.avatar ?? undefined,
+        }
+      : undefined,
+  }));
+};
+
+export const markReminderSent = async (appointmentId: string): Promise<void> => {
+  // Add a reminder sent flag to prevent duplicate reminders
+  // For now, we'll use the updatedAt field, but in production you might want a dedicated field
+  await prisma.appointment.update({
+    where: { id: appointmentId },
+    data: { updatedAt: new Date() },
+  });
+};

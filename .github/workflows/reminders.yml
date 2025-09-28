@@ -1,0 +1,47 @@
+name: Send Appointment Reminders
+
+on:
+  schedule:
+    # Run daily at 9:00 AM UTC (adjust timezone as needed)
+    # This is 1:00 AM PST / 2:00 AM PDT
+    - cron: '0 9 * * *'
+
+  # Allow manual trigger for testing
+  workflow_dispatch:
+
+jobs:
+  send-reminders:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Send Appointment Reminders
+        run: |
+          echo "🔔 Sending appointment reminders..."
+
+          # Make API call to send reminders
+          response=$(curl -s -w "\n%{http_code}" -X POST "${{ vars.APP_URL }}/api/reminders/send" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            -H "Content-Type: application/json")
+
+          # Extract response body and status code
+          http_code=$(echo "$response" | tail -n1)
+          response_body=$(echo "$response" | head -n -1)
+
+          echo "Response: $response_body"
+          echo "HTTP Status: $http_code"
+
+          # Check if request was successful
+          if [ "$http_code" -eq 200 ]; then
+            echo "✅ Reminders sent successfully"
+          else
+            echo "❌ Failed to send reminders (HTTP $http_code)"
+            echo "Response: $response_body"
+            exit 1
+          fi
+
+      - name: Log Results
+        if: always()
+        run: |
+          echo "Reminder job completed at $(date)"
+          echo "Timezone: $(date +%Z)"
+          echo "Next scheduled run: $(date -d 'tomorrow 9:00 UTC' '+%Y-%m-%d %H:%M:%S %Z')"

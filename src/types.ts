@@ -44,6 +44,7 @@ export interface Appointment {
   totalDuration: number;
   calendarEventId?: string | null; // Google Calendar event ID
   userId?: string | null; // User who booked the appointment
+  user?: User; // Populated user data (for reminders)
   createdAt: Date;
   updatedAt: Date;
 }
