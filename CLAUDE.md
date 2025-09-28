@@ -207,6 +207,117 @@ To enable Google Calendar integration:
 
 **Note**: If Google Calendar credentials are not configured, the app will continue to work normally but appointments won't be synced to Google Calendar.
 
+## Google Calendar Integration with Stylists
+
+### **Current Implementation: Single Calendar**
+
+The app currently uses **one shared Google Calendar** for all appointments across all stylists. This approach has benefits and limitations:
+
+**✅ Benefits:**
+- Simple setup - only requires one calendar configuration
+- Easy for salon administrators to see all appointments in one view
+- Centralized scheduling prevents double-booking across stylists
+- Minimal Google API complexity
+
+**⚠️ Limitations:**
+- No stylist-specific calendar views
+- Stylists can't manage their own calendars independently
+- Cannot set stylist-specific availability/working hours in Google Calendar
+- Limited ability to share individual stylist schedules with clients
+
+### **Stylist Information in Calendar Events**
+
+With the new stylist system, calendar events now include:
+- **Event Title**: "Luxe Cuts Appointment: [Customer Name] ([Stylist Name])"
+- **Event Description**: Includes stylist name along with services, customer info, and pricing
+- **Event Details**: Services, customer contact, stylist assignment, duration, and pricing
+
+Example calendar event:
+```
+Title: Luxe Cuts Appointment: John Doe (Sarah Wilson)
+Description:
+Services: Men's Haircut, Beard Trim
+Customer: John Doe
+Email: john@example.com
+Stylist: Sarah Wilson
+Total Price: $45
+Duration: 60 minutes
+```
+
+### **Scaling Options for Multiple Stylists**
+
+As your salon grows, you have several options for calendar management:
+
+#### **Option 1: Keep Single Calendar (Current)**
+- **Best for**: Small salons (1-3 stylists), simple management
+- **Pros**: Easy setup, centralized view, prevents conflicts
+- **Cons**: No individual stylist calendar management
+
+#### **Option 2: Separate Calendar per Stylist**
+- **Best for**: Medium salons (3-8 stylists), stylist autonomy
+- **Implementation**: Each stylist gets their own Google Calendar
+- **Environment variables needed**:
+  ```bash
+  # Stylist-specific calendars
+  GOOGLE_CALENDAR_SARAH_ID=sarah-calendar@group.calendar.google.com
+  GOOGLE_CALENDAR_MIKE_ID=mike-calendar@group.calendar.google.com
+  ```
+- **Pros**: Individual stylist management, specific sharing options
+- **Cons**: More complex setup, requires calendar coordination
+
+#### **Option 3: Hybrid Approach**
+- **Best for**: Larger salons (8+ stylists), enterprise management
+- **Implementation**: Master calendar + individual stylist calendars
+- **Features**: Events created on both master and stylist-specific calendars
+- **Pros**: Both centralized and individual views
+- **Cons**: Most complex setup, higher API usage
+
+#### **Option 4: Google Workspace Integration**
+- **Best for**: Full salon management with Google Workspace
+- **Implementation**: Resource calendars for each stylist
+- **Features**: Built-in conflict detection, advanced scheduling
+- **Pros**: Professional calendar management, team collaboration
+- **Cons**: Requires Google Workspace subscription
+
+### **Recommended Approach**
+
+For most salons, we recommend:
+
+1. **Start with Single Calendar** (current implementation)
+   - Proven, simple, works well for small to medium salons
+   - Easy to manage and troubleshoot
+
+2. **Upgrade to Stylist Calendars** when you have:
+   - 4+ stylists who want calendar independence
+   - Client requests for stylist-specific scheduling links
+   - Need for individual stylist availability management
+
+3. **Implementation Path**:
+   ```bash
+   # Phase 1: Current single calendar
+   GOOGLE_CALENDAR_ID=salon-main@group.calendar.google.com
+
+   # Phase 2: Add stylist calendars (optional)
+   GOOGLE_CALENDAR_MAIN_ID=salon-main@group.calendar.google.com
+   GOOGLE_CALENDAR_STYLISTS_CONFIG='{"sarah":"sarah-cal@group.calendar.google.com","mike":"mike-cal@group.calendar.google.com"}'
+   ```
+
+### **Current Calendar Features**
+
+✅ **Implemented:**
+- Automatic event creation for new appointments
+- Stylist information included in event details
+- Event updates when appointments are modified
+- Event deletion when appointments are cancelled
+- Timezone support and proper scheduling
+- Customer email invitations to calendar events
+
+🔄 **Future Enhancements:**
+- Stylist-specific calendar options
+- Individual stylist availability sync
+- Calendar-based booking integration
+- Advanced recurring appointment support
+
 ## Messaging Setup (WhatsApp & Telegram)
 
 The app automatically sends appointment confirmations via WhatsApp or Telegram based on how users authenticated:
@@ -267,17 +378,40 @@ The app automatically sends appointment confirmations via WhatsApp or Telegram b
   - Guest booking (without authentication) with manual form entry
 
 - **Booking Flow**
-  - 3-step booking process: Service Selection → Date/Time → Confirmation
-  - Dynamic booking summary with pricing calculations
+  - 4-step booking process: Service Selection → Stylist Selection → Date/Time → Confirmation
+  - Smart stylist filtering based on service specializations
+  - Optional stylist selection with "No Preference" option
+  - Dynamic booking summary with pricing calculations and stylist info
   - Real-time availability checking
-  - Confirmation with appointment details
+  - Confirmation with appointment details including stylist assignment
   - Email notification simulation
+
+### **👥 Stylist Management System**
+
+- **Stylist Profiles**
+  - Complete stylist information (name, email, bio, avatar)
+  - Service specialization management with checkbox selection
+  - Working hours configuration for each day of the week
+  - Active/inactive status control
+
+- **Service Specializations**
+  - Dynamic filtering of stylists based on selected services
+  - Only shows stylists who can perform ALL requested services
+  - Visual representation of stylist expertise
+  - Easy management of which services each stylist offers
+
+- **Integration Features**
+  - Automatic stylist filtering in booking flow
+  - Stylist information included in appointments and calendar events
+  - Admin dashboard with tabbed interface for easy management
+  - CRUD operations (Create, Read, Update, Delete) for all stylist data
 
 ### **🛠️ Admin Dashboard**
 
 - **Appointment Management**
-  - View daily appointment counts
-  - Real-time appointment tracking
+  - View daily appointment counts with stylist assignments
+  - Real-time appointment tracking with stylist information
+  - Tabbed interface: Appointments | Stylist Management | Availability & Settings
 
 - **Availability Management**
   - Manual time slot blocking/unblocking
@@ -356,7 +490,7 @@ The app automatically sends appointment confirmations via WhatsApp or Telegram b
 
 ### **Medium Priority Gaps**
 
-- No staff/stylist management
+- ✅ Staff/stylist management - **COMPLETED**
 - No SMS notifications or reminders
 - No review/rating system
 - No service management interface for admins

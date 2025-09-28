@@ -65,9 +65,10 @@ export const createCalendarEvent = async (appointment: Appointment): Promise<str
   );
   const eventEndTime = new Date(eventStartTime.getTime() + appointment.totalDuration * 60000);
 
+  const stylistInfo = appointment.stylist ? `\nStylist: ${appointment.stylist.name}` : '';
   const event = {
-    summary: `Luxe Cuts Appointment: ${appointment.customerName}`,
-    description: `Services: ${appointment.services.map(s => s.name).join(', ')}\nCustomer: ${appointment.customerName}\nEmail: ${appointment.customerEmail}\nTotal Price: $${appointment.totalPrice}\nDuration: ${appointment.totalDuration} minutes`,
+    summary: `Luxe Cuts Appointment: ${appointment.customerName}${appointment.stylist ? ` (${appointment.stylist.name})` : ''}`,
+    description: `Services: ${appointment.services.map(s => s.name).join(', ')}\nCustomer: ${appointment.customerName}\nEmail: ${appointment.customerEmail}${stylistInfo}\nTotal Price: $${appointment.totalPrice}\nDuration: ${appointment.totalDuration} minutes`,
     start: {
       dateTime: eventStartTime.toISOString(),
       timeZone: process.env.GOOGLE_CALENDAR_TIMEZONE || 'America/Los_Angeles',
@@ -125,9 +126,10 @@ export const updateCalendarEvent = async (
   );
   const eventEndTime = new Date(eventStartTime.getTime() + appointment.totalDuration * 60000);
 
+  const stylistInfo = appointment.stylist ? `\nStylist: ${appointment.stylist.name}` : '';
   const event = {
-    summary: `Luxe Cuts Appointment: ${appointment.customerName}`,
-    description: `Services: ${appointment.services.map(s => s.name).join(', ')}\nCustomer: ${appointment.customerName}\nEmail: ${appointment.customerEmail}\nTotal Price: $${appointment.totalPrice}\nDuration: ${appointment.totalDuration} minutes`,
+    summary: `Luxe Cuts Appointment: ${appointment.customerName}${appointment.stylist ? ` (${appointment.stylist.name})` : ''}`,
+    description: `Services: ${appointment.services.map(s => s.name).join(', ')}\nCustomer: ${appointment.customerName}\nEmail: ${appointment.customerEmail}${stylistInfo}\nTotal Price: $${appointment.totalPrice}\nDuration: ${appointment.totalDuration} minutes`,
     start: {
       dateTime: eventStartTime.toISOString(),
       timeZone: process.env.GOOGLE_CALENDAR_TIMEZONE || 'America/Los_Angeles',

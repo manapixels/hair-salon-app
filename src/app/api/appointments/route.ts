@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { date, time, services, customerName, customerEmail } = body;
+    const { date, time, services, stylistId, customerName, customerEmail } = body;
 
     if (!date || !time || !services || !customerName || !customerEmail) {
       return NextResponse.json({ message: 'Missing required appointment data.' }, { status: 400 });
@@ -38,6 +38,7 @@ export async function POST(request: NextRequest) {
       date: new Date(date),
       time,
       services,
+      stylistId,
       customerName,
       customerEmail,
     };
