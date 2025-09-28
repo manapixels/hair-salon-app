@@ -163,7 +163,15 @@ const DateTimePicker: React.FC<{
   selectedTime: string | null;
   onTimeSelect: (time: string) => void;
   totalDuration: number;
-}> = ({ selectedDate, onDateChange, selectedTime, onTimeSelect, totalDuration }) => {
+  selectedStylist: Stylist | null;
+}> = ({
+  selectedDate,
+  onDateChange,
+  selectedTime,
+  onTimeSelect,
+  totalDuration,
+  selectedStylist,
+}) => {
   const { getAvailableSlots } = useBooking();
   const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
   const [loading, setLoading] = useState(false);
@@ -172,7 +180,7 @@ const DateTimePicker: React.FC<{
     const fetchSlots = async () => {
       setLoading(true);
       try {
-        const availableSlots = await getAvailableSlots(selectedDate);
+        const availableSlots = await getAvailableSlots(selectedDate, selectedStylist?.id);
         const slots = availableSlots.map(slot => ({ time: slot, available: true }));
         setTimeSlots(slots);
       } catch (error) {
@@ -183,7 +191,7 @@ const DateTimePicker: React.FC<{
       }
     };
     fetchSlots();
-  }, [selectedDate, getAvailableSlots]);
+  }, [selectedDate, selectedStylist, getAvailableSlots]);
 
   return (
     <div className="mt-8">
@@ -515,6 +523,7 @@ const BookingForm: React.FC = () => {
             selectedTime={selectedTime}
             onTimeSelect={setSelectedTime}
             totalDuration={totalDuration}
+            selectedStylist={selectedStylist}
           />
         )}
 

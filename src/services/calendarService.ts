@@ -7,9 +7,12 @@ const dateToKey = (date: Date) => date.toISOString().split('T')[0];
 
 /**
  * Fetches available time slots for a given date from the backend API.
+ * If stylistId is provided, returns stylist-specific availability.
  */
-export const getAvailableSlots = (date: Date): Promise<string[]> => {
-  return apiClient.get(`/api/availability?date=${dateToKey(date)}`);
+export const getAvailableSlots = (date: Date, stylistId?: string): Promise<string[]> => {
+  const dateParam = `date=${dateToKey(date)}`;
+  const stylistParam = stylistId ? `&stylistId=${stylistId}` : '';
+  return apiClient.get(`/api/availability?${dateParam}${stylistParam}`);
 };
 
 /**

@@ -1,26 +1,37 @@
 /**
  * API Route: /api/availability
  *
- * This file would be a serverless function in a Next.js/Vercel environment.
- * It handles GET requests to fetch available slots for a given date.
- *
- * NOTE: IN THIS SANDBOX ENVIRONMENT, THIS FILE IS FOR DEMONSTRATION ONLY
- * AND IS NOT ACTUALLY RUNNING ON A SERVER.
+ * Handles availability checking for general salon or specific stylists
  */
-import { getAvailability } from '../../../lib/database';
+import { NextRequest, NextResponse } from 'next/server';
+import { getAvailability, getStylistAvailability } from '../../../lib/database';
 
-// This is a mock handler. In Next.js, this would be `export default async function handler(req, res) { ... }`
-export async function handleGet(requestQuery: { date?: string }) {
-  const { date } = requestQuery;
-
-  if (!date) {
-    return { status: 400, body: { message: 'Date query parameter is required.' } };
-  }
-
+export async function GET(request: NextRequest) {
   try {
-    const slots = getAvailability(new Date(date));
-    return { status: 200, body: slots };
+    const { searchParams } = new URL(request.url);
+    const date = searchParams.get('date');
+    const stylistId = searchParams.get('stylistId');
+
+    if (!date) {
+      return NextResponse.json({ message: 'Date query parameter is required.' }, { status: 400 });
+    }
+
+    const targetDate = new Date(date);
+
+    // Check if we need stylist-specific availability
+    if (stylistId) {
+      const slots = await getStylistAvailability(targetDate, stylistId);
+      return NextResponse.json(slots, { status: 200 });
+    } else {
+      // Return general salon availability
+      const slots = await getAvailability(targetDate);
+      return NextResponse.json(slots, { status: 200 });
+    }
   } catch (error: any) {
-    return { status: 500, body: { message: 'Failed to get availability.', error: error.message } };
+    console.error('Error fetching availability:', error);
+    return NextResponse.json(
+      { message: 'Failed to get availability.', error: error.message },
+      { status: 500 },
+    );
   }
 }

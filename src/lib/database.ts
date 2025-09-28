@@ -256,6 +256,55 @@ export const getAvailability = async (date: Date): Promise<string[]> => {
   return allSlots.filter(slot => !bookedSlots.has(slot) && !blockedByAdmin.has(slot));
 };
 
+export const getStylistAvailability = async (date: Date, stylistId: string): Promise<string[]> => {
+  const dateKey = dateToKey(date);
+  const dayOfWeek = date.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
+
+  // Get stylist information including working hours
+  const stylist = await getStylistById(stylistId);
+  if (!stylist || !stylist.isActive) {
+    return []; // Inactive stylist has no availability
+  }
+
+  // Check if stylist is working on this day
+  const workingHours = stylist.workingHours[dayOfWeek];
+  if (!workingHours || !workingHours.isWorking) {
+    return []; // Stylist doesn't work on this day
+  }
+
+  // Generate time slots based on stylist's working hours
+  const stylistSlots = generateTimeSlots(workingHours.start, workingHours.end);
+
+  // Get appointments for this stylist on this date
+  const stylistAppointments = await prisma.appointment.findMany({
+    where: {
+      stylistId: stylistId,
+      date: {
+        gte: new Date(dateKey + 'T00:00:00.000Z'),
+        lt: new Date(dateKey + 'T23:59:59.999Z'),
+      },
+    },
+  });
+
+  // Calculate booked slots for this stylist
+  const bookedSlots = new Set<string>();
+  stylistAppointments.forEach(app => {
+    let appTime = new Date(`1970-01-01T${app.time}:00`);
+    const numSlots = Math.ceil(app.totalDuration / 30);
+    for (let i = 0; i < numSlots; i++) {
+      bookedSlots.add(appTime.toTimeString().substring(0, 5));
+      appTime.setMinutes(appTime.getMinutes() + 30);
+    }
+  });
+
+  // Get admin blocked slots for this date
+  const settings = await getAdminSettings();
+  const blockedByAdmin = new Set<string>(settings.blockedSlots[dateKey] || []);
+
+  // Return available slots for this stylist
+  return stylistSlots.filter(slot => !bookedSlots.has(slot) && !blockedByAdmin.has(slot));
+};
+
 export const bookNewAppointment = async (
   appointmentData: Omit<Appointment, 'id' | 'totalPrice' | 'totalDuration'> & {
     stylistId?: string;
@@ -649,47 +698,6 @@ export const getStylistsForServices = async (serviceIds: number[]): Promise<Styl
       stylist.specialties.some(specialty => specialty.id === serviceId),
     ),
   );
-};
-
-export const getStylistAvailability = async (stylistId: string, date: Date): Promise<string[]> => {
-  const stylist = await getStylistById(stylistId);
-  if (!stylist) return [];
-
-  const dayName = date.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
-  const daySchedule = stylist.workingHours[dayName];
-
-  if (!daySchedule || !daySchedule.isWorking) return [];
-
-  // Get all time slots for this stylist's working hours
-  const allSlots = generateTimeSlots(daySchedule.start, daySchedule.end);
-  const dateKey = dateToKey(date);
-
-  // Get booked appointments for this stylist on this date
-  const appointments = await prisma.appointment.findMany({
-    where: {
-      stylistId: stylistId,
-      date: {
-        gte: new Date(dateKey + 'T00:00:00.000Z'),
-        lt: new Date(dateKey + 'T23:59:59.999Z'),
-      },
-    },
-  });
-
-  const bookedSlots = new Set<string>();
-  appointments.forEach(app => {
-    let appTime = new Date(`1970-01-01T${app.time}:00`);
-    const numSlots = Math.ceil(app.totalDuration / 30);
-    for (let i = 0; i < numSlots; i++) {
-      bookedSlots.add(appTime.toTimeString().substring(0, 5));
-      appTime.setMinutes(appTime.getMinutes() + 30);
-    }
-  });
-
-  // Get admin blocked slots
-  const settings = await getAdminSettings();
-  const blockedByAdmin = new Set<string>(settings.blockedSlots[dateKey] || []);
-
-  return allSlots.filter(slot => !bookedSlots.has(slot) && !blockedByAdmin.has(slot));
 };
 
 function getDefaultWorkingHours(): Stylist['workingHours'] {

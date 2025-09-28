@@ -214,12 +214,14 @@ To enable Google Calendar integration:
 The app currently uses **one shared Google Calendar** for all appointments across all stylists. This approach has benefits and limitations:
 
 **✅ Benefits:**
+
 - Simple setup - only requires one calendar configuration
 - Easy for salon administrators to see all appointments in one view
 - Centralized scheduling prevents double-booking across stylists
 - Minimal Google API complexity
 
 **⚠️ Limitations:**
+
 - No stylist-specific calendar views
 - Stylists can't manage their own calendars independently
 - Cannot set stylist-specific availability/working hours in Google Calendar
@@ -228,11 +230,13 @@ The app currently uses **one shared Google Calendar** for all appointments acros
 ### **Stylist Information in Calendar Events**
 
 With the new stylist system, calendar events now include:
+
 - **Event Title**: "Luxe Cuts Appointment: [Customer Name] ([Stylist Name])"
 - **Event Description**: Includes stylist name along with services, customer info, and pricing
 - **Event Details**: Services, customer contact, stylist assignment, duration, and pricing
 
 Example calendar event:
+
 ```
 Title: Luxe Cuts Appointment: John Doe (Sarah Wilson)
 Description:
@@ -249,11 +253,13 @@ Duration: 60 minutes
 As your salon grows, you have several options for calendar management:
 
 #### **Option 1: Keep Single Calendar (Current)**
+
 - **Best for**: Small salons (1-3 stylists), simple management
 - **Pros**: Easy setup, centralized view, prevents conflicts
 - **Cons**: No individual stylist calendar management
 
 #### **Option 2: Separate Calendar per Stylist**
+
 - **Best for**: Medium salons (3-8 stylists), stylist autonomy
 - **Implementation**: Each stylist gets their own Google Calendar
 - **Environment variables needed**:
@@ -266,6 +272,7 @@ As your salon grows, you have several options for calendar management:
 - **Cons**: More complex setup, requires calendar coordination
 
 #### **Option 3: Hybrid Approach**
+
 - **Best for**: Larger salons (8+ stylists), enterprise management
 - **Implementation**: Master calendar + individual stylist calendars
 - **Features**: Events created on both master and stylist-specific calendars
@@ -273,6 +280,7 @@ As your salon grows, you have several options for calendar management:
 - **Cons**: Most complex setup, higher API usage
 
 #### **Option 4: Google Workspace Integration**
+
 - **Best for**: Full salon management with Google Workspace
 - **Implementation**: Resource calendars for each stylist
 - **Features**: Built-in conflict detection, advanced scheduling
@@ -293,6 +301,7 @@ For most salons, we recommend:
    - Need for individual stylist availability management
 
 3. **Implementation Path**:
+
    ```bash
    # Phase 1: Current single calendar
    GOOGLE_CALENDAR_ID=salon-main@group.calendar.google.com
@@ -305,6 +314,7 @@ For most salons, we recommend:
 ### **Current Calendar Features**
 
 ✅ **Implemented:**
+
 - Automatic event creation for new appointments
 - Stylist information included in event details
 - Event updates when appointments are modified
@@ -313,6 +323,7 @@ For most salons, we recommend:
 - Customer email invitations to calendar events
 
 🔄 **Future Enhancements:**
+
 - Stylist-specific calendar options
 - Individual stylist availability sync
 - Calendar-based booking integration

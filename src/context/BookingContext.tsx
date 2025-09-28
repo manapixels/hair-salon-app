@@ -17,7 +17,7 @@ interface BookingContextType {
   setAdminSettings: React.Dispatch<React.SetStateAction<AdminSettings>>;
   fetchAndSetAppointments: () => Promise<void>;
   fetchAndSetAdminSettings: () => Promise<void>;
-  getAvailableSlots: (date: Date) => Promise<string[]>;
+  getAvailableSlots: (date: Date, stylistId?: string) => Promise<string[]>;
   createAppointment: (
     appointment: Omit<Appointment, 'id' | 'totalPrice' | 'totalDuration'>,
   ) => Promise<Appointment>;
@@ -53,8 +53,8 @@ export const BookingProvider: React.FC<{ children: ReactNode }> = ({ children })
     setAdminSettings(settings);
   }, []);
 
-  const getAvailableSlots = useCallback(async (date: Date) => {
-    return apiGetAvailableSlots(date);
+  const getAvailableSlots = useCallback(async (date: Date, stylistId?: string) => {
+    return apiGetAvailableSlots(date, stylistId);
   }, []);
 
   const createAppointment = useCallback(
