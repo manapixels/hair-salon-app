@@ -27,6 +27,21 @@ const AdminDashboard: React.FC = () => {
     'appointments',
   );
   const [showStylistManagement, setShowStylistManagement] = useState(false);
+  const [dateFilter, setDateFilter] = useState<'all' | 'today' | 'week' | 'month' | 'custom'>(
+    'all',
+  );
+  const [customFromDate, setCustomFromDate] = useState('');
+  const [customToDate, setCustomToDate] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'upcoming' | 'past' | 'today'>('all');
+  const [sortField, setSortField] = useState<
+    'date' | 'customer' | 'stylist' | 'price' | 'duration'
+  >('date');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(25);
+  const [selectedAppointments, setSelectedAppointments] = useState<Set<string>>(new Set());
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
 
   useEffect(() => {
     // FIX: `fetchAndSetAdminSettings` returns `Promise<void>`, so its resolved value cannot be used.
@@ -167,15 +182,234 @@ const AdminDashboard: React.FC = () => {
     }
   };
 
+  // Helper function to get date range based on filter
+  const getDateRange = () => {
+    const today = new Date();
+    const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59);
+
+    switch (dateFilter) {
+      case 'today':
+        return { from: startOfDay, to: endOfDay };
+      case 'week':
+        const startOfWeek = new Date(today);
+        startOfWeek.setDate(today.getDate() - today.getDay());
+        startOfWeek.setHours(0, 0, 0, 0);
+        const endOfWeek = new Date(startOfWeek);
+        endOfWeek.setDate(startOfWeek.getDate() + 6);
+        endOfWeek.setHours(23, 59, 59, 999);
+        return { from: startOfWeek, to: endOfWeek };
+      case 'month':
+        const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+        const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0, 23, 59, 59);
+        return { from: startOfMonth, to: endOfMonth };
+      case 'custom':
+        if (customFromDate && customToDate) {
+          const from = new Date(customFromDate);
+          from.setHours(0, 0, 0, 0);
+          const to = new Date(customToDate);
+          to.setHours(23, 59, 59, 999);
+          return { from, to };
+        }
+        return null;
+      default:
+        return null;
+    }
+  };
+
   const filteredAppointments = appointments.filter(appointment => {
-    if (!searchTerm) return true;
-    const term = searchTerm.toLowerCase();
-    return (
-      appointment.customerName.toLowerCase().includes(term) ||
-      appointment.customerEmail.toLowerCase().includes(term) ||
-      appointment.services.some(s => s.name.toLowerCase().includes(term))
-    );
+    // Enhanced text search filter
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
+      const matchesSearch =
+        // Customer information
+        appointment.customerName.toLowerCase().includes(term) ||
+        appointment.customerEmail.toLowerCase().includes(term) ||
+        // Services
+        appointment.services.some(s => s.name.toLowerCase().includes(term)) ||
+        appointment.services.some(s => s.description.toLowerCase().includes(term)) ||
+        // Appointment details
+        appointment.id.toLowerCase().includes(term) ||
+        appointment.time.includes(term) ||
+        // Stylist information
+        (appointment.stylist && appointment.stylist.name.toLowerCase().includes(term)) ||
+        (appointment.stylist && appointment.stylist.email.toLowerCase().includes(term)) ||
+        // Price and duration
+        appointment.totalPrice.toString().includes(term) ||
+        appointment.totalDuration.toString().includes(term);
+      if (!matchesSearch) return false;
+    }
+
+    // Date range filter
+    const dateRange = getDateRange();
+    if (dateRange) {
+      const appointmentDate = new Date(appointment.date);
+      if (appointmentDate < dateRange.from || appointmentDate > dateRange.to) {
+        return false;
+      }
+    }
+
+    // Status-based filter
+    if (statusFilter !== 'all') {
+      const appointmentDate = new Date(appointment.date);
+      const today = new Date();
+      const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+      const endOfToday = new Date(
+        today.getFullYear(),
+        today.getMonth(),
+        today.getDate(),
+        23,
+        59,
+        59,
+      );
+
+      switch (statusFilter) {
+        case 'today':
+          if (appointmentDate < startOfToday || appointmentDate > endOfToday) {
+            return false;
+          }
+          break;
+        case 'upcoming':
+          if (appointmentDate <= endOfToday) {
+            return false;
+          }
+          break;
+        case 'past':
+          if (appointmentDate >= startOfToday) {
+            return false;
+          }
+          break;
+      }
+    }
+
+    return true;
   });
+
+  // Sort filtered appointments
+  const sortedAppointments = [...filteredAppointments].sort((a, b) => {
+    let comparison = 0;
+
+    switch (sortField) {
+      case 'date':
+        comparison = new Date(a.date).getTime() - new Date(b.date).getTime();
+        if (comparison === 0) {
+          // If dates are the same, sort by time
+          comparison = a.time.localeCompare(b.time);
+        }
+        break;
+      case 'customer':
+        comparison = a.customerName.localeCompare(b.customerName);
+        break;
+      case 'stylist':
+        const stylistA = a.stylist?.name || 'No stylist assigned';
+        const stylistB = b.stylist?.name || 'No stylist assigned';
+        comparison = stylistA.localeCompare(stylistB);
+        break;
+      case 'price':
+        comparison = a.totalPrice - b.totalPrice;
+        break;
+      case 'duration':
+        comparison = a.totalDuration - b.totalDuration;
+        break;
+      default:
+        comparison = 0;
+    }
+
+    return sortDirection === 'asc' ? comparison : -comparison;
+  });
+
+  // Pagination logic
+  const totalPages = Math.ceil(sortedAppointments.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedAppointments = sortedAppointments.slice(startIndex, endIndex);
+
+  // Handle sort column click
+  const handleSort = (field: typeof sortField) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+    setCurrentPage(1); // Reset to first page when sorting
+  };
+
+  // Bulk selection functions
+  const handleSelectAll = () => {
+    if (selectedAppointments.size === paginatedAppointments.length) {
+      setSelectedAppointments(new Set());
+    } else {
+      setSelectedAppointments(new Set(paginatedAppointments.map(apt => apt.id)));
+    }
+  };
+
+  const handleSelectAppointment = (appointmentId: string) => {
+    const newSelected = new Set(selectedAppointments);
+    if (newSelected.has(appointmentId)) {
+      newSelected.delete(appointmentId);
+    } else {
+      newSelected.add(appointmentId);
+    }
+    setSelectedAppointments(newSelected);
+  };
+
+  // Clear selection when filters change
+  useEffect(() => {
+    setSelectedAppointments(new Set());
+  }, [dateFilter, statusFilter, searchTerm, currentPage]);
+
+  // Manual refresh function
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      await fetchAndSetAppointments();
+      setLastRefresh(new Date());
+    } catch (error) {
+      console.error('Failed to refresh appointments:', error);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
+  // Auto-refresh every 2 minutes
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (!isRefreshing) {
+        handleRefresh();
+      }
+    }, 120000); // 2 minutes
+
+    return () => clearInterval(interval);
+  }, [isRefreshing]);
+
+  // Sortable header component
+  const SortableHeader = ({
+    field,
+    children,
+    className = '',
+  }: {
+    field: typeof sortField;
+    children: React.ReactNode;
+    className?: string;
+  }) => (
+    <th
+      className={`px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${className}`}
+      onClick={() => handleSort(field)}
+    >
+      <div className="flex items-center space-x-1">
+        <span>{children}</span>
+        <div className="flex flex-col">
+          <i
+            className={`fas fa-caret-up text-xs ${sortField === field && sortDirection === 'asc' ? 'text-yellow-500' : 'text-gray-400'}`}
+          ></i>
+          <i
+            className={`fas fa-caret-down text-xs -mt-1 ${sortField === field && sortDirection === 'desc' ? 'text-yellow-500' : 'text-gray-400'}`}
+          ></i>
+        </div>
+      </div>
+    </th>
+  );
 
   return (
     <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg">
@@ -225,21 +459,172 @@ const AdminDashboard: React.FC = () => {
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-xl font-semibold">All Appointments</h3>
               <div className="flex items-center space-x-4">
-                <div className="relative">
-                  <input
-                    type="text"
-                    placeholder="Search appointments..."
-                    value={searchTerm}
-                    onChange={e => setSearchTerm(e.target.value)}
-                    className="pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-yellow-500 focus:border-yellow-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                  />
-                  <i className="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-                </div>
                 <div className="text-sm text-gray-500 dark:text-gray-400">
-                  {filteredAppointments.length} of {appointments.length} appointments
+                  Showing {startIndex + 1}-{Math.min(endIndex, sortedAppointments.length)} of{' '}
+                  {sortedAppointments.length} appointments
+                  {filteredAppointments.length !== appointments.length && (
+                    <span className="ml-1">({appointments.length} total)</span>
+                  )}
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div className="text-xs text-gray-400">
+                    Last updated: {lastRefresh.toLocaleTimeString()}
+                  </div>
+                  <button
+                    onClick={handleRefresh}
+                    disabled={isRefreshing}
+                    className="px-2 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    title="Refresh appointments"
+                  >
+                    <i className={`fas fa-sync-alt ${isRefreshing ? 'animate-spin' : ''}`}></i>
+                  </button>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <label className="text-sm text-gray-600 dark:text-gray-400">Per page:</label>
+                  <select
+                    value={itemsPerPage}
+                    onChange={e => {
+                      setItemsPerPage(Number(e.target.value));
+                      setCurrentPage(1);
+                    }}
+                    className="px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-yellow-500 focus:border-yellow-500 dark:bg-gray-600 dark:border-gray-500 dark:text-white"
+                  >
+                    <option value={10}>10</option>
+                    <option value={25}>25</option>
+                    <option value={50}>50</option>
+                    <option value={100}>100</option>
+                  </select>
                 </div>
               </div>
             </div>
+
+            {/* Date Filter Controls */}
+            <div className="mb-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+              <div className="flex flex-wrap items-center gap-4">
+                <div className="flex items-center space-x-2">
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    <i className="fas fa-calendar-alt mr-1"></i>
+                    Date Filter:
+                  </label>
+                  <select
+                    value={dateFilter}
+                    onChange={e => setDateFilter(e.target.value as any)}
+                    className="px-3 py-1 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-yellow-500 focus:border-yellow-500 dark:bg-gray-600 dark:border-gray-500 dark:text-white"
+                  >
+                    <option value="all">All Dates</option>
+                    <option value="today">Today</option>
+                    <option value="week">This Week</option>
+                    <option value="month">This Month</option>
+                    <option value="custom">Custom Range</option>
+                  </select>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    <i className="fas fa-filter mr-1"></i>
+                    Status:
+                  </label>
+                  <select
+                    value={statusFilter}
+                    onChange={e => setStatusFilter(e.target.value as any)}
+                    className="px-3 py-1 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-yellow-500 focus:border-yellow-500 dark:bg-gray-600 dark:border-gray-500 dark:text-white"
+                  >
+                    <option value="all">All Status</option>
+                    <option value="today">Today</option>
+                    <option value="upcoming">Upcoming</option>
+                    <option value="past">Past</option>
+                  </select>
+                </div>
+
+                {dateFilter === 'custom' && (
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="date"
+                      value={customFromDate}
+                      onChange={e => setCustomFromDate(e.target.value)}
+                      className="px-3 py-1 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-yellow-500 focus:border-yellow-500 dark:bg-gray-600 dark:border-gray-500 dark:text-white"
+                      placeholder="From date"
+                    />
+                    <span className="text-gray-500 dark:text-gray-400">to</span>
+                    <input
+                      type="date"
+                      value={customToDate}
+                      onChange={e => setCustomToDate(e.target.value)}
+                      className="px-3 py-1 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-yellow-500 focus:border-yellow-500 dark:bg-gray-600 dark:border-gray-500 dark:text-white"
+                      placeholder="To date"
+                    />
+                  </div>
+                )}
+
+                <div className="flex items-center space-x-2">
+                  <div className="relative">
+                    <input
+                      type="text"
+                      placeholder="Search by name, email, service, stylist, ID..."
+                      value={searchTerm}
+                      onChange={e => setSearchTerm(e.target.value)}
+                      className="pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-yellow-500 focus:border-yellow-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                    />
+                    <i className="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                  </div>
+                </div>
+
+                {(dateFilter !== 'all' || statusFilter !== 'all' || searchTerm) && (
+                  <button
+                    onClick={() => {
+                      setDateFilter('all');
+                      setStatusFilter('all');
+                      setCustomFromDate('');
+                      setCustomToDate('');
+                      setSearchTerm('');
+                    }}
+                    className="px-3 py-1 text-sm text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
+                    title="Clear all filters"
+                  >
+                    <i className="fas fa-times mr-1"></i>
+                    Clear Filters
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Bulk Actions Toolbar */}
+            {selectedAppointments.size > 0 && (
+              <div className="mb-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+                <div className="flex items-center justify-between">
+                  <div className="text-sm font-medium text-yellow-800 dark:text-yellow-200">
+                    {selectedAppointments.size} appointment
+                    {selectedAppointments.size > 1 ? 's' : ''} selected
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <button
+                      onClick={() => {
+                        if (
+                          window.confirm(
+                            `Are you sure you want to cancel ${selectedAppointments.size} appointment${selectedAppointments.size > 1 ? 's' : ''}?`,
+                          )
+                        ) {
+                          // Bulk cancel logic would go here
+                          console.log('Bulk cancel:', Array.from(selectedAppointments));
+                          setSelectedAppointments(new Set());
+                        }
+                      }}
+                      className="px-3 py-1 text-sm bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+                    >
+                      <i className="fas fa-trash mr-1"></i>
+                      Cancel Selected
+                    </button>
+                    <button
+                      onClick={() => setSelectedAppointments(new Set())}
+                      className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                    >
+                      Clear Selection
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {filteredAppointments.length === 0 ? (
               <div className="bg-gray-50 dark:bg-gray-700 p-6 rounded-lg text-center">
                 <p className="text-gray-500 dark:text-gray-400">
@@ -255,93 +640,215 @@ const AdminDashboard: React.FC = () => {
                     <thead className="bg-gray-50 dark:bg-gray-800">
                       <tr>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                          Date & Time
+                          <input
+                            type="checkbox"
+                            checked={
+                              selectedAppointments.size === paginatedAppointments.length &&
+                              paginatedAppointments.length > 0
+                            }
+                            onChange={handleSelectAll}
+                            className="rounded border-gray-300 text-yellow-600 focus:ring-yellow-500"
+                          />
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                          Customer
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                          Stylist
-                        </th>
+                        <SortableHeader field="date">Date & Time</SortableHeader>
+                        <SortableHeader field="customer">Customer</SortableHeader>
+                        <SortableHeader field="stylist">Stylist</SortableHeader>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                           Services
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                          Duration
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                          Price
-                        </th>
+                        <SortableHeader field="duration">Duration</SortableHeader>
+                        <SortableHeader field="price">Price</SortableHeader>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                           Actions
                         </th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200 dark:divide-gray-600">
-                      {filteredAppointments
-                        .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-                        .map(appointment => (
-                          <tr
-                            key={appointment.id}
-                            className="hover:bg-gray-50 dark:hover:bg-gray-600"
-                          >
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                {new Date(appointment.date).toLocaleDateString()}
+                      {paginatedAppointments.map(appointment => (
+                        <tr
+                          key={appointment.id}
+                          className={`hover:bg-gray-50 dark:hover:bg-gray-600 ${selectedAppointments.has(appointment.id) ? 'bg-yellow-50 dark:bg-yellow-900/20' : ''}`}
+                        >
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <input
+                              type="checkbox"
+                              checked={selectedAppointments.has(appointment.id)}
+                              onChange={() => handleSelectAppointment(appointment.id)}
+                              className="rounded border-gray-300 text-yellow-600 focus:ring-yellow-500"
+                            />
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="flex items-center space-x-2">
+                              <div>
+                                <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                  {new Date(appointment.date).toLocaleDateString()}
+                                </div>
+                                <div className="text-sm text-gray-500 dark:text-gray-400">
+                                  {appointment.time}
+                                </div>
                               </div>
-                              <div className="text-sm text-gray-500 dark:text-gray-400">
-                                {appointment.time}
+                              <div className="flex-shrink-0">
+                                {(() => {
+                                  const appointmentDate = new Date(appointment.date);
+                                  const today = new Date();
+                                  const startOfToday = new Date(
+                                    today.getFullYear(),
+                                    today.getMonth(),
+                                    today.getDate(),
+                                  );
+                                  const endOfToday = new Date(
+                                    today.getFullYear(),
+                                    today.getMonth(),
+                                    today.getDate(),
+                                    23,
+                                    59,
+                                    59,
+                                  );
+
+                                  if (
+                                    appointmentDate >= startOfToday &&
+                                    appointmentDate <= endOfToday
+                                  ) {
+                                    return (
+                                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                                        <i className="fas fa-clock mr-1"></i>
+                                        Today
+                                      </span>
+                                    );
+                                  } else if (appointmentDate > endOfToday) {
+                                    return (
+                                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                                        <i className="fas fa-calendar-plus mr-1"></i>
+                                        Upcoming
+                                      </span>
+                                    );
+                                  } else {
+                                    return (
+                                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300">
+                                        <i className="fas fa-history mr-1"></i>
+                                        Past
+                                      </span>
+                                    );
+                                  }
+                                })()}
                               </div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                {appointment.customerName}
-                              </div>
-                              <div className="text-sm text-gray-500 dark:text-gray-400">
-                                {appointment.customerEmail}
-                              </div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm text-gray-900 dark:text-gray-100">
-                                {appointment.stylist
-                                  ? appointment.stylist.name
-                                  : 'No stylist assigned'}
-                              </div>
-                            </td>
-                            <td className="px-6 py-4">
-                              <div className="text-sm text-gray-900 dark:text-gray-100">
-                                {appointment.services.map(s => s.name).join(', ')}
-                              </div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                              {appointment.totalDuration} mins
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
-                              ${appointment.totalPrice}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                              <div className="flex space-x-2">
-                                <button
-                                  onClick={() => handleEditAppointment(appointment)}
-                                  className="text-yellow-600 hover:text-yellow-900 dark:text-yellow-400 dark:hover:text-yellow-300 transition-colors"
-                                  title="Edit appointment"
-                                >
-                                  <i className="fas fa-edit"></i>
-                                </button>
-                                <button
-                                  onClick={() => handleCancelAppointment(appointment)}
-                                  className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 transition-colors"
-                                  title="Cancel appointment"
-                                >
-                                  <i className="fas fa-trash"></i>
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                              {appointment.customerName}
+                            </div>
+                            <div className="text-sm text-gray-500 dark:text-gray-400">
+                              {appointment.customerEmail}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm text-gray-900 dark:text-gray-100">
+                              {appointment.stylist
+                                ? appointment.stylist.name
+                                : 'No stylist assigned'}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="text-sm text-gray-900 dark:text-gray-100">
+                              {appointment.services.map(s => s.name).join(', ')}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                            {appointment.totalDuration} mins
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
+                            ${appointment.totalPrice}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <div className="flex space-x-2">
+                              <button
+                                onClick={() => handleEditAppointment(appointment)}
+                                className="text-yellow-600 hover:text-yellow-900 dark:text-yellow-400 dark:hover:text-yellow-300 transition-colors"
+                                title="Edit appointment"
+                              >
+                                <i className="fas fa-edit"></i>
+                              </button>
+                              <button
+                                onClick={() => handleCancelAppointment(appointment)}
+                                className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 transition-colors"
+                                title="Cancel appointment"
+                              >
+                                <i className="fas fa-trash"></i>
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
                     </tbody>
                   </table>
                 </div>
+
+                {/* Pagination Controls */}
+                {totalPages > 1 && (
+                  <div className="px-6 py-3 border-t border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-800">
+                    <div className="flex items-center justify-between">
+                      <div className="text-sm text-gray-700 dark:text-gray-300">
+                        Page {currentPage} of {totalPages}
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <button
+                          onClick={() => setCurrentPage(1)}
+                          disabled={currentPage === 1}
+                          className="px-2 py-1 text-sm border rounded hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                          title="First page"
+                        >
+                          <i className="fas fa-angle-double-left"></i>
+                        </button>
+                        <button
+                          onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                          disabled={currentPage === 1}
+                          className="px-2 py-1 text-sm border rounded hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                          title="Previous page"
+                        >
+                          <i className="fas fa-angle-left"></i>
+                        </button>
+
+                        {/* Page numbers */}
+                        {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                          const pageNum =
+                            Math.max(1, Math.min(totalPages - 4, currentPage - 2)) + i;
+                          if (pageNum > totalPages) return null;
+                          return (
+                            <button
+                              key={pageNum}
+                              onClick={() => setCurrentPage(pageNum)}
+                              className={`px-3 py-1 text-sm border rounded ${
+                                currentPage === pageNum
+                                  ? 'bg-yellow-500 text-white border-yellow-500'
+                                  : 'hover:bg-gray-100 dark:hover:bg-gray-700'
+                              }`}
+                            >
+                              {pageNum}
+                            </button>
+                          );
+                        })}
+
+                        <button
+                          onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                          disabled={currentPage === totalPages}
+                          className="px-2 py-1 text-sm border rounded hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                          title="Next page"
+                        >
+                          <i className="fas fa-angle-right"></i>
+                        </button>
+                        <button
+                          onClick={() => setCurrentPage(totalPages)}
+                          disabled={currentPage === totalPages}
+                          className="px-2 py-1 text-sm border rounded hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                          title="Last page"
+                        >
+                          <i className="fas fa-angle-double-right"></i>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -461,60 +968,115 @@ const AdminDashboard: React.FC = () => {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200 dark:divide-gray-600">
-                      {filteredAppointments
-                        .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-                        .map(appointment => (
-                          <tr
-                            key={appointment.id}
-                            className="hover:bg-gray-50 dark:hover:bg-gray-600"
-                          >
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                {new Date(appointment.date).toLocaleDateString()}
+                      {paginatedAppointments.map(appointment => (
+                        <tr
+                          key={appointment.id}
+                          className={`hover:bg-gray-50 dark:hover:bg-gray-600 ${selectedAppointments.has(appointment.id) ? 'bg-yellow-50 dark:bg-yellow-900/20' : ''}`}
+                        >
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <input
+                              type="checkbox"
+                              checked={selectedAppointments.has(appointment.id)}
+                              onChange={() => handleSelectAppointment(appointment.id)}
+                              className="rounded border-gray-300 text-yellow-600 focus:ring-yellow-500"
+                            />
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="flex items-center space-x-2">
+                              <div>
+                                <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                  {new Date(appointment.date).toLocaleDateString()}
+                                </div>
+                                <div className="text-sm text-gray-500 dark:text-gray-400">
+                                  {appointment.time}
+                                </div>
                               </div>
-                              <div className="text-sm text-gray-500 dark:text-gray-400">
-                                {appointment.time}
+                              <div className="flex-shrink-0">
+                                {(() => {
+                                  const appointmentDate = new Date(appointment.date);
+                                  const today = new Date();
+                                  const startOfToday = new Date(
+                                    today.getFullYear(),
+                                    today.getMonth(),
+                                    today.getDate(),
+                                  );
+                                  const endOfToday = new Date(
+                                    today.getFullYear(),
+                                    today.getMonth(),
+                                    today.getDate(),
+                                    23,
+                                    59,
+                                    59,
+                                  );
+
+                                  if (
+                                    appointmentDate >= startOfToday &&
+                                    appointmentDate <= endOfToday
+                                  ) {
+                                    return (
+                                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                                        <i className="fas fa-clock mr-1"></i>
+                                        Today
+                                      </span>
+                                    );
+                                  } else if (appointmentDate > endOfToday) {
+                                    return (
+                                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                                        <i className="fas fa-calendar-plus mr-1"></i>
+                                        Upcoming
+                                      </span>
+                                    );
+                                  } else {
+                                    return (
+                                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300">
+                                        <i className="fas fa-history mr-1"></i>
+                                        Past
+                                      </span>
+                                    );
+                                  }
+                                })()}
                               </div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                {appointment.customerName}
-                              </div>
-                              <div className="text-sm text-gray-500 dark:text-gray-400">
-                                {appointment.customerEmail}
-                              </div>
-                            </td>
-                            <td className="px-6 py-4">
-                              <div className="text-sm text-gray-900 dark:text-gray-100">
-                                {appointment.services.map(s => s.name).join(', ')}
-                              </div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                              {appointment.totalDuration} mins
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
-                              ${appointment.totalPrice}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                              <div className="flex space-x-2">
-                                <button
-                                  onClick={() => handleEditAppointment(appointment)}
-                                  className="text-yellow-600 hover:text-yellow-900 dark:text-yellow-400 dark:hover:text-yellow-300 transition-colors"
-                                  title="Edit appointment"
-                                >
-                                  <i className="fas fa-edit"></i>
-                                </button>
-                                <button
-                                  onClick={() => handleCancelAppointment(appointment)}
-                                  className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 transition-colors"
-                                  title="Cancel appointment"
-                                >
-                                  <i className="fas fa-trash"></i>
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                              {appointment.customerName}
+                            </div>
+                            <div className="text-sm text-gray-500 dark:text-gray-400">
+                              {appointment.customerEmail}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="text-sm text-gray-900 dark:text-gray-100">
+                              {appointment.services.map(s => s.name).join(', ')}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                            {appointment.totalDuration} mins
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
+                            ${appointment.totalPrice}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <div className="flex space-x-2">
+                              <button
+                                onClick={() => handleEditAppointment(appointment)}
+                                className="text-yellow-600 hover:text-yellow-900 dark:text-yellow-400 dark:hover:text-yellow-300 transition-colors"
+                                title="Edit appointment"
+                              >
+                                <i className="fas fa-edit"></i>
+                              </button>
+                              <button
+                                onClick={() => handleCancelAppointment(appointment)}
+                                className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 transition-colors"
+                                title="Cancel appointment"
+                              >
+                                <i className="fas fa-trash"></i>
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
                     </tbody>
                   </table>
                 </div>
