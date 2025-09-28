@@ -17,7 +17,8 @@
       "Bash(npx dotenv -e .env.local -- npx prisma db push:*)",
       "Bash(npx prettier:*)",
       "Bash(npx tsc:*)",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "Bash(pkill:*)"
     ],
     "deny": [],
     "ask": []

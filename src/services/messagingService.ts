@@ -102,7 +102,7 @@ async function sendTelegramMessage(chatId: number, text: string): Promise<boolea
  */
 function formatAppointmentMessage(
   appointment: Appointment,
-  messageType: 'confirmation' | 'reminder' | 'cancellation',
+  messageType: 'confirmation' | 'reminder' | 'cancellation' | 'reschedule',
 ): string {
   const date = new Date(appointment.date).toLocaleDateString('en-US', {
     weekday: 'long',
@@ -155,6 +155,24 @@ Your appointment has been cancelled:
 
 We hope to see you again soon! Book anytime through our website or chat.`;
 
+    case 'reschedule':
+      return `🔄 *Appointment Rescheduled!*
+
+*Luxe Cuts Hair Salon*
+
+Your appointment has been successfully rescheduled:
+
+📅 *New Date:* ${date}
+🕐 *New Time:* ${appointment.time}
+✂️ *Services:* ${services}
+💰 *Total:* $${appointment.totalPrice}
+⏱️ *Duration:* ${appointment.totalDuration} minutes
+${appointment.stylist ? `👤 *Stylist:* ${appointment.stylist.name}` : ''}
+
+Thank you for choosing Luxe Cuts! We look forward to seeing you at your new appointment time.
+
+💡 *Tip:* Please arrive 5-10 minutes early for your appointment.`;
+
     default:
       return 'Appointment update from Luxe Cuts Hair Salon';
   }
@@ -166,7 +184,7 @@ We hope to see you again soon! Book anytime through our website or chat.`;
 export async function sendAppointmentConfirmation(
   user: User | null,
   appointment: Appointment,
-  messageType: 'confirmation' | 'reminder' | 'cancellation' = 'confirmation',
+  messageType: 'confirmation' | 'reminder' | 'cancellation' | 'reschedule' = 'confirmation',
 ): Promise<boolean> {
   // If no user or user has no messaging info, skip notification
   if (!user || (!user.whatsappPhone && !user.telegramId)) {

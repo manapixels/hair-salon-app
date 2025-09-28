@@ -5,6 +5,7 @@ import {
   getAvailability,
   bookNewAppointment,
   cancelAppointment as dbCancelAppointment,
+  rescheduleAppointment,
   findAppointmentsByEmail,
   updateAppointment,
   findAppointmentById,

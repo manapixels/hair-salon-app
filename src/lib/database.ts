@@ -700,6 +700,103 @@ export const getStylistsForServices = async (serviceIds: number[]): Promise<Styl
   );
 };
 
+export const rescheduleAppointment = async (
+  appointmentId: string,
+  newDate: Date,
+  newTime: string,
+): Promise<Appointment> => {
+  // Get the existing appointment
+  const existingAppointment = await prisma.appointment.findUnique({
+    where: { id: appointmentId },
+    include: { stylist: true },
+  });
+
+  if (!existingAppointment) {
+    throw new Error('Appointment not found');
+  }
+
+  // Validate minimum advance notice (2 hours)
+  const now = new Date();
+  const appointmentDateTime = new Date(`${newDate.toISOString().split('T')[0]}T${newTime}:00`);
+  const hoursUntilAppointment = (appointmentDateTime.getTime() - now.getTime()) / (1000 * 60 * 60);
+
+  if (hoursUntilAppointment < 2) {
+    throw new Error('Please provide at least 2 hours advance notice for rescheduling');
+  }
+
+  // Check if new time is during business hours
+  const settings = await getAdminSettings();
+  if (newTime < settings.openingTime || newTime >= settings.closingTime) {
+    throw new Error(
+      `Appointments are only available between ${settings.openingTime} and ${settings.closingTime}`,
+    );
+  }
+
+  // Check stylist availability for the new time
+  if (existingAppointment.stylistId) {
+    const stylistAvailability = await getStylistAvailability(
+      newDate,
+      existingAppointment.stylistId,
+    );
+
+    // Check if enough consecutive slots are available
+    const requiredSlots = Math.ceil(existingAppointment.totalDuration / 30);
+    const timeSlots = stylistAvailability;
+    const startIndex = timeSlots.indexOf(newTime);
+
+    if (startIndex === -1) {
+      throw new Error('Selected time slot is not available');
+    }
+
+    // Check consecutive availability
+    for (let i = 0; i < requiredSlots; i++) {
+      const neededTime = new Date(`1970-01-01T${newTime}:00`);
+      neededTime.setMinutes(neededTime.getMinutes() + i * 30);
+      const neededTimeStr = neededTime.toTimeString().substring(0, 5);
+
+      if (!timeSlots.includes(neededTimeStr)) {
+        throw new Error(
+          `Not enough consecutive time slots available. Need ${requiredSlots * 30} minutes.`,
+        );
+      }
+    }
+  } else {
+    // Check general availability if no specific stylist
+    const generalAvailability = await getAvailability(newDate);
+    const requiredSlots = Math.ceil(existingAppointment.totalDuration / 30);
+    const startIndex = generalAvailability.indexOf(newTime);
+
+    if (startIndex === -1) {
+      throw new Error('Selected time slot is not available');
+    }
+
+    for (let i = 0; i < requiredSlots; i++) {
+      const neededTime = new Date(`1970-01-01T${newTime}:00`);
+      neededTime.setMinutes(neededTime.getMinutes() + i * 30);
+      const neededTimeStr = neededTime.toTimeString().substring(0, 5);
+
+      if (!generalAvailability.includes(neededTimeStr)) {
+        throw new Error(
+          `Not enough consecutive time slots available. Need ${requiredSlots * 30} minutes.`,
+        );
+      }
+    }
+  }
+
+  // Update the appointment
+  const updatedAppointment = await updateAppointment(appointmentId, {
+    date: newDate,
+    time: newTime,
+    customerName: existingAppointment.customerName,
+    customerEmail: existingAppointment.customerEmail,
+    services: existingAppointment.services as any,
+    totalPrice: existingAppointment.totalPrice,
+    totalDuration: existingAppointment.totalDuration,
+  });
+
+  return updatedAppointment;
+};
+
 function getDefaultWorkingHours(): Stylist['workingHours'] {
   return {
     monday: { start: '09:00', end: '17:00', isWorking: true },
