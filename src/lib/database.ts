@@ -1,4 +1,12 @@
-import type { Appointment, AdminSettings, Service, User, Stylist } from '../types';
+import type {
+  Appointment,
+  AdminSettings,
+  Service,
+  User,
+  Stylist,
+  CreateAppointmentInput,
+  StylistSummary,
+} from '../types';
 import { SALON_SERVICES } from '../constants';
 import { prisma } from './prisma';
 
@@ -10,22 +18,16 @@ import { prisma } from './prisma';
 // Initialize default admin user and settings on first run
 async function initializeDatabase() {
   try {
-    // Check if admin user exists
-    const adminUser = await prisma.user.findUnique({
-      where: { email: 'admin@luxecuts.com' },
+    // Check if any admin user exists
+    const adminUser = await prisma.user.findFirst({
+      where: { role: 'ADMIN' },
     });
 
     if (!adminUser) {
-      // Create default admin user
-      await prisma.user.create({
-        data: {
-          id: 'user-admin-01',
-          name: 'Admin',
-          email: 'admin@luxecuts.com',
-          password: 'admin123', // In production, this should be hashed
-          role: 'ADMIN',
-        },
-      });
+      console.log('⚠️  No admin user found. To create an admin:');
+      console.log('1. Login via WhatsApp/Telegram OAuth first');
+      console.log('2. Run: npm run create-admin <your-email>');
+      console.log('3. This will promote your user to admin role');
     }
 
     // Check if admin settings exist
@@ -84,19 +86,35 @@ export const findUserByEmail = async (email: string) => {
   });
 };
 
-export const createUser = async (
-  userData: Omit<User, 'id' | 'role'> & { password: string },
-): Promise<User> => {
+export const createUserFromOAuth = async (userData: Omit<User, 'id' | 'role'>): Promise<User> => {
   const existingUser = await findUserByEmail(userData.email);
   if (existingUser) {
-    throw new Error('User with this email already exists.');
+    // Update existing user with OAuth data
+    const updatedUser = await prisma.user.update({
+      where: { email: userData.email.toLowerCase() },
+      data: {
+        name: userData.name,
+        authProvider: userData.authProvider,
+        telegramId: userData.telegramId,
+        whatsappPhone: userData.whatsappPhone,
+        avatar: userData.avatar,
+      },
+    });
+
+    return {
+      ...updatedUser,
+      role: updatedUser.role.toLowerCase() as 'customer' | 'admin',
+      authProvider: updatedUser.authProvider as 'whatsapp' | 'telegram' | undefined,
+      telegramId: updatedUser.telegramId ?? undefined,
+      whatsappPhone: updatedUser.whatsappPhone ?? undefined,
+      avatar: updatedUser.avatar ?? undefined,
+    };
   }
 
   const newUser = await prisma.user.create({
     data: {
       name: userData.name,
       email: userData.email.toLowerCase(),
-      password: userData.password,
       role: 'CUSTOMER',
       authProvider: userData.authProvider,
       telegramId: userData.telegramId,
@@ -105,14 +123,37 @@ export const createUser = async (
     },
   });
 
-  const { password, ...userToReturn } = newUser;
   return {
-    ...userToReturn,
+    ...newUser,
     role: newUser.role.toLowerCase() as 'customer' | 'admin',
-    authProvider: newUser.authProvider as 'email' | 'whatsapp' | 'telegram' | undefined,
+    authProvider: newUser.authProvider as 'whatsapp' | 'telegram' | undefined,
     telegramId: newUser.telegramId ?? undefined,
     whatsappPhone: newUser.whatsappPhone ?? undefined,
     avatar: newUser.avatar ?? undefined,
+  };
+};
+
+export const promoteUserToAdmin = async (email: string): Promise<User | null> => {
+  const user = await prisma.user.findUnique({
+    where: { email: email.toLowerCase() },
+  });
+
+  if (!user) {
+    throw new Error('User not found. Please login via WhatsApp/Telegram first.');
+  }
+
+  const updatedUser = await prisma.user.update({
+    where: { email: email.toLowerCase() },
+    data: { role: 'ADMIN' },
+  });
+
+  return {
+    ...updatedUser,
+    role: updatedUser.role.toLowerCase() as 'customer' | 'admin',
+    authProvider: updatedUser.authProvider as 'whatsapp' | 'telegram' | undefined,
+    telegramId: updatedUser.telegramId ?? undefined,
+    whatsappPhone: updatedUser.whatsappPhone ?? undefined,
+    avatar: updatedUser.avatar ?? undefined,
   };
 };
 
@@ -306,9 +347,7 @@ export const getStylistAvailability = async (date: Date, stylistId: string): Pro
 };
 
 export const bookNewAppointment = async (
-  appointmentData: Omit<Appointment, 'id' | 'totalPrice' | 'totalDuration'> & {
-    stylistId?: string;
-  },
+  appointmentData: CreateAppointmentInput,
 ): Promise<Appointment> => {
   const availableSlots = await getAvailability(appointmentData.date);
   const { totalPrice, totalDuration } = appointmentData.services.reduce(
@@ -358,15 +397,9 @@ export const bookNewAppointment = async (
     stylistId: newAppointment.stylistId ?? undefined,
     stylist: newAppointment.stylist
       ? {
-          ...newAppointment.stylist,
-          bio: newAppointment.stylist.bio ?? undefined,
-          avatar: newAppointment.stylist.avatar ?? undefined,
-          specialties: Array.isArray(newAppointment.stylist.specialties)
-            ? ((newAppointment.stylist.specialties as number[])
-                .map(id => allServices.find(s => s.id === id))
-                .filter(Boolean) as Service[])
-            : [],
-          workingHours: (newAppointment.stylist.workingHours as any) || getDefaultWorkingHours(),
+          id: newAppointment.stylist.id,
+          name: newAppointment.stylist.name,
+          email: newAppointment.stylist.email,
         }
       : undefined,
     calendarEventId: newAppointment.calendarEventId ?? undefined,
@@ -808,3 +841,120 @@ function getDefaultWorkingHours(): Stylist['workingHours'] {
     sunday: { start: '10:00', end: '14:00', isWorking: false },
   };
 }
+
+// Customer dashboard functions
+export const updateUserProfile = async (
+  userId: string,
+  updates: { name?: string },
+): Promise<User> => {
+  const updatedUser = await prisma.user.update({
+    where: { id: userId },
+    data: updates,
+  });
+
+  return {
+    id: updatedUser.id,
+    name: updatedUser.name,
+    email: updatedUser.email,
+    role: updatedUser.role.toLowerCase() as 'customer' | 'admin',
+    authProvider: (updatedUser.authProvider as 'email' | 'whatsapp' | 'telegram') ?? undefined,
+    telegramId: updatedUser.telegramId ?? undefined,
+    whatsappPhone: updatedUser.whatsappPhone ?? undefined,
+    avatar: updatedUser.avatar ?? undefined,
+  };
+};
+
+export const getUserAppointments = async (userId: string): Promise<Appointment[]> => {
+  const appointments = await prisma.appointment.findMany({
+    where: { userId },
+    include: {
+      stylist: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+        },
+      },
+    },
+    orderBy: [{ date: 'desc' }, { time: 'desc' }],
+  });
+
+  return appointments.map(appointment => ({
+    id: appointment.id,
+    date: appointment.date,
+    time: appointment.time,
+    services: Array.isArray(appointment.services)
+      ? (appointment.services as unknown as Service[])
+      : [],
+    stylistId: appointment.stylistId,
+    stylist: appointment.stylist
+      ? {
+          id: appointment.stylist.id,
+          name: appointment.stylist.name,
+          email: appointment.stylist.email,
+        }
+      : undefined,
+    customerName: appointment.customerName,
+    customerEmail: appointment.customerEmail,
+    totalPrice: appointment.totalPrice,
+    totalDuration: appointment.totalDuration,
+    calendarEventId: appointment.calendarEventId,
+    userId: appointment.userId,
+    createdAt: appointment.createdAt,
+    updatedAt: appointment.updatedAt,
+  }));
+};
+
+export const getUserAppointmentById = async (
+  appointmentId: string,
+  userId: string,
+): Promise<Appointment | null> => {
+  const appointment = await prisma.appointment.findFirst({
+    where: {
+      id: appointmentId,
+      userId: userId,
+    },
+    include: {
+      stylist: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+        },
+      },
+    },
+  });
+
+  if (!appointment) return null;
+
+  return {
+    id: appointment.id,
+    date: appointment.date,
+    time: appointment.time,
+    services: Array.isArray(appointment.services)
+      ? (appointment.services as unknown as Service[])
+      : [],
+    stylistId: appointment.stylistId,
+    stylist: appointment.stylist
+      ? {
+          id: appointment.stylist.id,
+          name: appointment.stylist.name,
+          email: appointment.stylist.email,
+        }
+      : undefined,
+    customerName: appointment.customerName,
+    customerEmail: appointment.customerEmail,
+    totalPrice: appointment.totalPrice,
+    totalDuration: appointment.totalDuration,
+    calendarEventId: appointment.calendarEventId,
+    userId: appointment.userId,
+    createdAt: appointment.createdAt,
+    updatedAt: appointment.updatedAt,
+  };
+};
+
+export const deleteAppointment = async (appointmentId: string): Promise<void> => {
+  await prisma.appointment.delete({
+    where: { id: appointmentId },
+  });
+};

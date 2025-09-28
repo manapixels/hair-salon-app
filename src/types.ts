@@ -36,14 +36,30 @@ export interface Appointment {
   date: Date;
   time: string;
   services: Service[];
-  stylistId?: string; // The assigned stylist
-  stylist?: Stylist; // Populated stylist data
+  stylistId?: string | null; // The assigned stylist
+  stylist?: StylistSummary; // Populated stylist data
   customerName: string;
   customerEmail: string;
   totalPrice: number;
   totalDuration: number;
-  calendarEventId?: string; // Google Calendar event ID
+  calendarEventId?: string | null; // Google Calendar event ID
+  userId?: string | null; // User who booked the appointment
+  createdAt: Date;
+  updatedAt: Date;
 }
+
+export type CreateAppointmentInput = Omit<
+  Appointment,
+  'id' | 'totalPrice' | 'totalDuration' | 'createdAt' | 'updatedAt'
+> & {
+  stylistId?: string;
+};
+
+export type StylistSummary = {
+  id: string;
+  name: string;
+  email: string;
+};
 
 export interface AdminSettings {
   openingTime: string; // "HH:MM"

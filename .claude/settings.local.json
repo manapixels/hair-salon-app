@@ -18,7 +18,8 @@
       "Bash(npx prettier:*)",
       "Bash(npx tsc:*)",
       "Bash(node:*)",
-      "Bash(pkill:*)"
+      "Bash(pkill:*)",
+      "Bash(npm run lint:*)"
     ],
     "deny": [],
     "ask": []

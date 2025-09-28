@@ -1,4 +1,4 @@
-import type { Appointment, AdminSettings } from '../types';
+import type { Appointment, AdminSettings, CreateAppointmentInput } from '../types';
 import { apiClient } from '../lib/apiClient';
 
 // This file now acts as an API client for the frontend.
@@ -19,7 +19,7 @@ export const getAvailableSlots = (date: Date, stylistId?: string): Promise<strin
  * Sends a new appointment to the backend to be created.
  */
 export const createAppointment = (
-  appointmentData: Omit<Appointment, 'id' | 'totalPrice' | 'totalDuration'>,
+  appointmentData: CreateAppointmentInput,
 ): Promise<Appointment> => {
   return apiClient.post('/api/appointments', appointmentData);
 };

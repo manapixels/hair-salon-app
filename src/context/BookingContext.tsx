@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useState, useContext, ReactNode, useCallback } from 'react';
-import type { Appointment, AdminSettings } from '@/types';
+import type { Appointment, AdminSettings, CreateAppointmentInput } from '@/types';
 import {
   getAvailableSlots as apiGetAvailableSlots,
   createAppointment as apiCreateAppointment,
@@ -18,9 +18,7 @@ interface BookingContextType {
   fetchAndSetAppointments: () => Promise<void>;
   fetchAndSetAdminSettings: () => Promise<void>;
   getAvailableSlots: (date: Date, stylistId?: string) => Promise<string[]>;
-  createAppointment: (
-    appointment: Omit<Appointment, 'id' | 'totalPrice' | 'totalDuration'>,
-  ) => Promise<Appointment>;
+  createAppointment: (appointment: CreateAppointmentInput) => Promise<Appointment>;
   blockTimeSlot: (date: Date, time: string) => Promise<void>;
   unblockTimeSlot: (date: Date, time: string) => Promise<void>;
   saveAdminSettings: (settings: AdminSettings) => Promise<void>;
@@ -57,14 +55,11 @@ export const BookingProvider: React.FC<{ children: ReactNode }> = ({ children })
     return apiGetAvailableSlots(date, stylistId);
   }, []);
 
-  const createAppointment = useCallback(
-    async (appointmentData: Omit<Appointment, 'id' | 'totalPrice' | 'totalDuration'>) => {
-      const newAppointment = await apiCreateAppointment(appointmentData);
-      setAppointments(prev => [...prev, newAppointment]);
-      return newAppointment;
-    },
-    [],
-  );
+  const createAppointment = useCallback(async (appointmentData: CreateAppointmentInput) => {
+    const newAppointment = await apiCreateAppointment(appointmentData);
+    setAppointments(prev => [...prev, newAppointment]);
+    return newAppointment;
+  }, []);
 
   const blockTimeSlot = useCallback(async (date: Date, time: string) => {
     const newBlockedSlots = await apiBlockTimeSlot(date, time);

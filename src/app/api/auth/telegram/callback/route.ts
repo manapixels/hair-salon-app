@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createHash, createHmac } from 'crypto';
 import { setSession } from '@/lib/sessionStore';
-import { prisma } from '@/lib/prisma';
+import { createUserFromOAuth } from '@/lib/database';
 import type { User } from '@/types';
 
 // Handle Telegram Login Widget callback
@@ -42,11 +42,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(`${process.env.NEXTAUTH_URL}/?error=invalid_telegram_auth`);
     }
 
-    // Find or create user
-    let user = await prisma.user.findUnique({
-      where: { telegramId: authData.id },
-    });
-
+    // Create or update user using OAuth data
     const fullName = authData.last_name
       ? `${authData.first_name} ${authData.last_name}`
       : authData.first_name;
@@ -54,32 +50,13 @@ export async function GET(request: NextRequest) {
       ? `${authData.username}@telegram.local`
       : `${authData.id}@telegram.local`;
 
-    if (!user) {
-      // Create new user
-      user = await prisma.user.create({
-        data: {
-          id: `tg_${authData.id}`,
-          name: fullName,
-          email,
-          role: 'CUSTOMER',
-          authProvider: 'telegram',
-          telegramId: authData.id,
-          avatar: authData.photo_url || undefined,
-          password: 'oauth_user',
-        },
-      });
-    } else {
-      // Update existing user
-      user = await prisma.user.update({
-        where: { id: user.id },
-        data: {
-          name: fullName,
-          authProvider: 'telegram',
-          telegramId: authData.id,
-          avatar: authData.photo_url || undefined,
-        },
-      });
-    }
+    const user = await createUserFromOAuth({
+      name: fullName,
+      email,
+      authProvider: 'telegram',
+      telegramId: authData.id,
+      avatar: authData.photo_url || undefined,
+    });
 
     // Set session with proper role conversion
     const userForSession = {

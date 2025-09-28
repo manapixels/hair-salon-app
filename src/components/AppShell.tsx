@@ -3,19 +3,18 @@
 import { useState, useEffect } from 'react';
 import BookingForm from './BookingForm';
 import AdminDashboard from './AdminDashboard';
-import LoginModal from './LoginModal';
-import RegisterModal from './RegisterModal';
+import CustomerDashboard from './CustomerDashboard';
 import AppHeader from './AppHeader';
 import AppFooter from './AppFooter';
+import OAuthLoginModal from './OAuthLoginModal';
 import { useAuth } from '../context/AuthContext';
 
-type View = 'booking' | 'admin';
+type View = 'booking' | 'admin' | 'dashboard';
 
 export default function AppShell() {
   const [view, setView] = useState<View>('booking');
+  const [isLoginOpen, setIsLoginOpen] = useState(false);
   const { user } = useAuth();
-  const [isLoginOpen, setLoginOpen] = useState(false);
-  const [isRegisterOpen, setRegisterOpen] = useState(false);
 
   useEffect(() => {
     // Handle OAuth redirect results
@@ -55,6 +54,8 @@ export default function AppShell() {
         return <BookingForm />;
       case 'admin':
         return user?.role === 'admin' ? <AdminDashboard /> : <p>Access Denied.</p>;
+      case 'dashboard':
+        return user ? <CustomerDashboard /> : <p>Please sign in to access your dashboard.</p>;
       default:
         return <BookingForm />;
     }
@@ -63,31 +64,11 @@ export default function AppShell() {
   return (
     <>
       <div className="min-h-screen bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-sans">
-        <AppHeader
-          view={view}
-          onViewChange={setView}
-          onLoginClick={() => setLoginOpen(true)}
-          onRegisterClick={() => setRegisterOpen(true)}
-        />
+        <AppHeader view={view} onViewChange={setView} onLoginClick={() => setIsLoginOpen(true)} />
         <main className="container mx-auto p-4 sm:p-6 lg:p-8">{renderView()}</main>
         <AppFooter />
       </div>
-      <LoginModal
-        isOpen={isLoginOpen}
-        onClose={() => setLoginOpen(false)}
-        onSwitchToRegister={() => {
-          setLoginOpen(false);
-          setRegisterOpen(true);
-        }}
-      />
-      <RegisterModal
-        isOpen={isRegisterOpen}
-        onClose={() => setRegisterOpen(false)}
-        onSwitchToLogin={() => {
-          setRegisterOpen(false);
-          setLoginOpen(true);
-        }}
-      />
+      <OAuthLoginModal isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
     </>
   );
 }

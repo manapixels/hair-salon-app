@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { setSession } from '@/lib/sessionStore';
-import { prisma } from '@/lib/prisma';
+import { createUserFromOAuth } from '@/lib/database';
 import type { User } from '@/types';
 
 export async function GET(request: NextRequest) {
@@ -36,36 +36,14 @@ export async function GET(request: NextRequest) {
     // Get user profile information from WhatsApp Business API
     const userProfile = await getWhatsAppProfile(access_token);
 
-    // Find or create user
-    let user = await prisma.user.findFirst({
-      where: { whatsappPhone: userProfile.phone_number },
+    // Create or update user using OAuth data
+    const user = await createUserFromOAuth({
+      name: userProfile.name,
+      email: `${userProfile.phone_number}@whatsapp.local`,
+      authProvider: 'whatsapp',
+      whatsappPhone: userProfile.phone_number,
+      avatar: userProfile.profile_picture_url,
     });
-
-    if (!user) {
-      // Create new user
-      user = await prisma.user.create({
-        data: {
-          id: `wa_${Date.now()}`,
-          name: userProfile.name,
-          email: `${userProfile.phone_number}@whatsapp.local`,
-          role: 'CUSTOMER',
-          authProvider: 'whatsapp',
-          whatsappPhone: userProfile.phone_number,
-          avatar: userProfile.profile_picture_url,
-          password: 'oauth_user',
-        },
-      });
-    } else {
-      // Update existing user
-      user = await prisma.user.update({
-        where: { id: user.id },
-        data: {
-          name: userProfile.name,
-          authProvider: 'whatsapp',
-          avatar: userProfile.profile_picture_url,
-        },
-      });
-    }
 
     // Set session with proper role conversion
     const userForSession = {

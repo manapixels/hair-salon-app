@@ -2,13 +2,12 @@
 
 import { useAuth } from '../context/AuthContext';
 
-type View = 'booking' | 'admin';
+type View = 'booking' | 'admin' | 'dashboard';
 
 interface AppHeaderProps {
   view: View;
   onViewChange: (view: View) => void;
-  onLoginClick: () => void;
-  onRegisterClick: () => void;
+  onLoginClick?: () => void;
 }
 
 const NavButton: React.FC<{
@@ -50,12 +49,7 @@ const AuthButton: React.FC<{
   </button>
 );
 
-export default function AppHeader({
-  view,
-  onViewChange,
-  onLoginClick,
-  onRegisterClick,
-}: AppHeaderProps) {
+export default function AppHeader({ view, onViewChange, onLoginClick }: AppHeaderProps) {
   const { user, logout } = useAuth();
 
   return (
@@ -76,6 +70,15 @@ export default function AppHeader({
             >
               <i className="fa-solid fa-calendar-check mr-2"></i> Book Online
             </NavButton>
+            {user && user.role === 'customer' && (
+              <NavButton
+                currentView={view}
+                targetView="dashboard"
+                onClick={() => onViewChange('dashboard')}
+              >
+                <i className="fa-solid fa-user mr-2"></i> Dashboard
+              </NavButton>
+            )}
             {user?.role === 'admin' && (
               <NavButton
                 currentView={view}
@@ -94,10 +97,12 @@ export default function AppHeader({
               </>
             ) : (
               <>
-                <AuthButton onClick={onLoginClick}>Login</AuthButton>
-                <AuthButton onClick={onRegisterClick} primary>
-                  Sign Up
-                </AuthButton>
+                {onLoginClick && (
+                  <AuthButton onClick={onLoginClick} primary>
+                    <i className="fa-solid fa-sign-in-alt mr-2"></i>
+                    Sign In
+                  </AuthButton>
+                )}
               </>
             )}
           </div>
