@@ -40,6 +40,7 @@ src/
 ## ✅ Current Features
 
 ### **Customer Experience**
+
 - Multi-service booking with stylist selection
 - Personal dashboard (appointments, profile, cancellation, rescheduling)
 - Real-time availability checking
@@ -47,6 +48,7 @@ src/
 - AI chat for booking assistance
 
 ### **Admin Management**
+
 - Advanced appointment dashboard (filtering, search, bulk operations)
 - Stylist management (profiles, specializations, schedules)
 - Availability controls and time blocking
@@ -54,6 +56,7 @@ src/
 - Business settings configuration
 
 ### **Integrations**
+
 - **Google Calendar**: Auto-sync appointments
 - **WhatsApp/Telegram**: Confirmations, reminders, AI chat
 - **Automated Reminders**: 24-hour notifications via GitHub Actions
@@ -61,14 +64,17 @@ src/
 ## 🎯 Development Priorities
 
 ### **High Priority**
+
 1. **Rate Limiting** - API protection (100 req/min per IP)
 2. **Input Validation** - Zod schema implementation
 3. **Security Headers** - CSP, HSTS implementation
 
 ### **Medium Priority**
+
 4. **Performance Optimization** - Image optimization, caching
 
 ### **Technical Infrastructure**
+
 7. **Testing Suite** - Jest + React Testing Library + Playwright
 8. **Request Sanitization** - Enhanced input cleaning
 

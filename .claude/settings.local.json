@@ -20,7 +20,8 @@
       "Bash(node:*)",
       "Bash(pkill:*)",
       "Bash(npm run lint:*)",
-      "Bash(tsc --noEmit)"
+      "Bash(tsc --noEmit)",
+      "WebFetch(domain:business.whatsapp.com)"
     ],
     "deny": [],
     "ask": []

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import TelegramLoginWidget from './TelegramLoginWidget';
+import WhatsAppOTPLogin from './WhatsAppOTPLogin';
 
 interface OAuthLoginModalProps {
   isOpen: boolean;
@@ -11,6 +12,7 @@ interface OAuthLoginModalProps {
 export default function OAuthLoginModal({ isOpen, onClose }: OAuthLoginModalProps) {
   const [telegramBotUsername, setTelegramBotUsername] = useState<string | null>(null);
   const [showTelegramWidget, setShowTelegramWidget] = useState(false);
+  const [showWhatsAppOTP, setShowWhatsAppOTP] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -39,8 +41,7 @@ export default function OAuthLoginModal({ isOpen, onClose }: OAuthLoginModalProp
   }, [isOpen, telegramBotUsername]);
 
   const handleWhatsAppLogin = () => {
-    // Redirect to server-side WhatsApp OAuth initiation
-    window.location.href = '/api/auth/whatsapp';
+    setShowWhatsAppOTP(true);
   };
 
   const handleTelegramLogin = () => {
@@ -64,7 +65,9 @@ export default function OAuthLoginModal({ isOpen, onClose }: OAuthLoginModalProp
           </div>
 
           <div className="space-y-4">
-            {showTelegramWidget ? (
+            {showWhatsAppOTP ? (
+              <WhatsAppOTPLogin onSuccess={onClose} onBack={() => setShowWhatsAppOTP(false)} />
+            ) : showTelegramWidget ? (
               <div className="text-center">
                 <p className="text-gray-600 dark:text-gray-400 mb-4">
                   Click the Telegram button below to sign in:
