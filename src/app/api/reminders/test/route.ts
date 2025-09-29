@@ -1,16 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getSession } from '@/lib/sessionStore';
+import { withAdminAuth } from '@/lib/sessionMiddleware';
 import { getUserAppointments } from '@/lib/database';
 import { sendAppointmentReminder } from '@/services/reminderService';
 
-export async function POST(request: NextRequest) {
+export const POST = withAdminAuth(async (request: NextRequest, { user }) => {
   try {
-    // Check if user is authenticated and is admin
-    const session = getSession();
-    if (!session || session.role !== 'admin') {
-      return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
-    }
-
     const body = await request.json();
     const { appointmentId, userId } = body;
 
@@ -121,4 +115,4 @@ export async function POST(request: NextRequest) {
       { status: 500 },
     );
   }
-}
+});

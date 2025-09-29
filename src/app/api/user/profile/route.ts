@@ -1,15 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getSession } from '@/lib/sessionStore';
+import { withAuth } from '@/lib/sessionMiddleware';
 import { updateUserProfile } from '@/lib/database';
+import { setSessionCookie } from '@/lib/secureSession';
 
-export async function PATCH(request: NextRequest) {
+export const PATCH = withAuth(async (request: NextRequest, { user }) => {
   try {
-    // Check if user is authenticated
-    const session = getSession();
-    if (!session) {
-      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
-    }
-
     const body = await request.json();
     const { name } = body;
 
@@ -23,9 +18,12 @@ export async function PATCH(request: NextRequest) {
     }
 
     // Update user profile
-    const updatedUser = await updateUserProfile(session.id, {
+    const updatedUser = await updateUserProfile(user.id, {
       name: name.trim(),
     });
+
+    // Update session with new user data
+    await setSessionCookie(updatedUser);
 
     return NextResponse.json(
       {
@@ -38,4 +36,4 @@ export async function PATCH(request: NextRequest) {
     console.error('Error updating user profile:', error);
     return NextResponse.json({ error: 'Failed to update profile' }, { status: 500 });
   }
-}
+});

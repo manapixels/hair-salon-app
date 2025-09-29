@@ -1,10 +1,10 @@
 /**
  * API Route: /api/auth/logout
+ * Clears secure session cookies.
  */
-import { clearSession } from '../../../../lib/sessionStore';
+import { NextRequest } from 'next/server';
+import { logoutUser } from '@/lib/sessionMiddleware';
 
-export async function handlePost() {
-  // Clear the "session"
-  clearSession();
-  return { status: 200, body: { message: 'Logged out successfully' } };
+export async function POST(request: NextRequest) {
+  return logoutUser();
 }

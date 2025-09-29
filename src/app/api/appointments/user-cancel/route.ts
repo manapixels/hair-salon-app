@@ -1,17 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getSession } from '@/lib/sessionStore';
+import { withAuth } from '@/lib/sessionMiddleware';
 import { getUserAppointmentById, deleteAppointment } from '@/lib/database';
 import { deleteCalendarEvent } from '@/lib/google';
 import { sendAppointmentCancellation } from '@/services/messagingService';
 
-export async function DELETE(request: NextRequest) {
+export const DELETE = withAuth(async (request: NextRequest, { user }) => {
   try {
-    // Check if user is authenticated
-    const session = getSession();
-    if (!session) {
-      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
-    }
-
     const body = await request.json();
     const { appointmentId } = body;
 
@@ -20,7 +14,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Get the appointment first to verify ownership
-    const appointment = await getUserAppointmentById(appointmentId, session.id);
+    const appointment = await getUserAppointmentById(appointmentId, user.id);
     if (!appointment) {
       return NextResponse.json(
         { error: 'Appointment not found or access denied' },
@@ -44,9 +38,9 @@ export async function DELETE(request: NextRequest) {
 
     // Send cancellation notification
     try {
-      const messageSent = await sendAppointmentCancellation(session, appointment);
+      const messageSent = await sendAppointmentCancellation(user, appointment);
       if (messageSent) {
-        console.log(`✅ Cancellation notification sent to ${session.email}`);
+        console.log(`✅ Cancellation notification sent to ${user.email}`);
       }
     } catch (error) {
       console.error('Failed to send cancellation notification:', error);
@@ -63,4 +57,4 @@ export async function DELETE(request: NextRequest) {
     console.error('Error cancelling appointment:', error);
     return NextResponse.json({ error: 'Failed to cancel appointment' }, { status: 500 });
   }
-}
+});

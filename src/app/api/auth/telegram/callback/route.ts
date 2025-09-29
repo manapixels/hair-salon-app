@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createHash, createHmac } from 'crypto';
-import { setSession } from '@/lib/sessionStore';
+import { setSessionCookie } from '@/lib/secureSession';
 import { createUserFromOAuth } from '@/lib/database';
 import type { User } from '@/types';
 
@@ -67,7 +67,7 @@ export async function GET(request: NextRequest) {
       whatsappPhone: user.whatsappPhone ?? undefined,
       avatar: user.avatar ?? undefined,
     };
-    setSession(userForSession);
+    await setSessionCookie(userForSession);
 
     // Redirect to success page
     return NextResponse.redirect(`${process.env.NEXTAUTH_URL}/?login=success`);

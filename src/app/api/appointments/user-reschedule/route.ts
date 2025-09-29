@@ -1,17 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getSession } from '@/lib/sessionStore';
+import { withAuth } from '@/lib/sessionMiddleware';
 import { getUserAppointmentById, rescheduleAppointment } from '@/lib/database';
 import { updateCalendarEvent } from '@/lib/google';
 import { sendAppointmentConfirmation } from '@/services/messagingService';
 
-export async function PATCH(request: NextRequest) {
+export const PATCH = withAuth(async (request: NextRequest, { user }) => {
   try {
-    // Check if user is authenticated
-    const session = getSession();
-    if (!session) {
-      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
-    }
-
     const body = await request.json();
     const { appointmentId, newDate, newTime } = body;
 
@@ -25,7 +19,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     // Verify the appointment belongs to the user
-    const appointment = await getUserAppointmentById(appointmentId, session.id);
+    const appointment = await getUserAppointmentById(appointmentId, user.id);
     if (!appointment) {
       return NextResponse.json(
         {
@@ -80,4 +74,4 @@ export async function PATCH(request: NextRequest) {
       { status: 500 },
     );
   }
-}
+});
