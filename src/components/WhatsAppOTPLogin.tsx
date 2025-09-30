@@ -34,6 +34,11 @@ export default function WhatsAppOTPLogin({ onSuccess, onBack }: WhatsAppOTPLogin
         throw new Error(data.error || 'Failed to send OTP');
       }
 
+      // Show test OTP if available (for development when WhatsApp fails)
+      if (data.testOtp) {
+        alert(`Development: Your OTP is ${data.testOtp}\n\n${data.note || ''}`);
+      }
+
       setExpiresAt(Date.now() + data.expiresIn * 1000);
       setStep('otp');
     } catch (error) {
