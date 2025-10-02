@@ -8,6 +8,12 @@ import type { User } from '@/types';
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
 
+  // Log all query params for debugging
+  console.log(
+    'Telegram callback received with params:',
+    Object.fromEntries(searchParams.entries()),
+  );
+
   // Extract Telegram auth data from URL parameters
   const authData = {
     id: parseInt(searchParams.get('id') || '0'),
