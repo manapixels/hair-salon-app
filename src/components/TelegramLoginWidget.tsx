@@ -34,24 +34,6 @@ const TelegramLoginWidget: React.FC<TelegramLoginWidgetProps> = ({
   useEffect(() => {
     if (!botUsername || !ref.current) return;
 
-    // Create callback function
-    const callbackName = `telegramCallback_${Date.now()}`;
-    (window as any)[callbackName] = (user: any) => {
-      // Send to our backend for verification
-      const params = new URLSearchParams({
-        id: user.id.toString(),
-        first_name: user.first_name,
-        last_name: user.last_name || '',
-        username: user.username || '',
-        photo_url: user.photo_url || '',
-        auth_date: user.auth_date.toString(),
-        hash: user.hash,
-      });
-
-      // Redirect to callback endpoint
-      window.location.href = `/api/auth/telegram/callback?${params.toString()}`;
-    };
-
     // Clear existing content
     ref.current.innerHTML = '';
 
@@ -60,7 +42,11 @@ const TelegramLoginWidget: React.FC<TelegramLoginWidgetProps> = ({
     script.src = 'https://telegram.org/js/telegram-widget.js?22';
     script.setAttribute('data-telegram-login', botUsername);
     script.setAttribute('data-size', buttonSize);
-    script.setAttribute('data-onauth', callbackName);
+
+    // Use redirect mode instead of callback mode
+    // This constructs the full callback URL for Telegram to redirect to
+    const callbackUrl = `${window.location.origin}/api/auth/telegram/callback`;
+    script.setAttribute('data-auth-url', callbackUrl);
 
     if (cornerRadius !== undefined) {
       script.setAttribute('data-radius', cornerRadius.toString());
@@ -76,13 +62,6 @@ const TelegramLoginWidget: React.FC<TelegramLoginWidgetProps> = ({
 
     // Append script to container
     ref.current.appendChild(script);
-
-    // Cleanup
-    return () => {
-      if ((window as any)[callbackName]) {
-        delete (window as any)[callbackName];
-      }
-    };
   }, [botUsername, buttonSize, cornerRadius, requestAccess, usePic]);
 
   return <div ref={ref} className={className} />;
