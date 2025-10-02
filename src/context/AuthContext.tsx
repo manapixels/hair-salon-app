@@ -47,21 +47,27 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     window.addEventListener('auth-refresh', handleAuthRefresh);
 
+    return () => {
+      window.removeEventListener('auth-refresh', handleAuthRefresh);
+    };
+  }, [checkSession]);
+
+  // Separate effect for auto-refresh interval to avoid dependency issues
+  useEffect(() => {
     // Auto-refresh session every 30 minutes if user is logged in
+    if (!user) return;
+
     const sessionRefreshInterval = setInterval(
       () => {
-        if (user) {
-          checkSession();
-        }
+        checkSession();
       },
       30 * 60 * 1000,
     ); // 30 minutes
 
     return () => {
-      window.removeEventListener('auth-refresh', handleAuthRefresh);
       clearInterval(sessionRefreshInterval);
     };
-  }, [checkSession, user]);
+  }, [user, checkSession]);
 
   const logout = async () => {
     try {

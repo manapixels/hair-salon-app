@@ -4,7 +4,6 @@ import { useEffect, useRef } from 'react';
 
 interface TelegramLoginWidgetProps {
   botUsername: string;
-  onAuth?: (user: any) => void;
   buttonSize?: 'large' | 'medium' | 'small';
   cornerRadius?: number;
   requestAccess?: 'write';
@@ -12,17 +11,8 @@ interface TelegramLoginWidgetProps {
   className?: string;
 }
 
-declare global {
-  interface Window {
-    TelegramLoginWidget?: {
-      dataOnauth: (user: any) => void;
-    };
-  }
-}
-
 const TelegramLoginWidget: React.FC<TelegramLoginWidgetProps> = ({
   botUsername,
-  onAuth,
   buttonSize = 'large',
   cornerRadius,
   requestAccess,
