@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { toast } from 'sonner';
 import type { WhatsAppMessage } from '../types';
 
 const WhatsAppChat: React.FC = () => {
@@ -57,6 +58,7 @@ const WhatsAppChat: React.FC = () => {
       setMessages(prev => [...prev.filter(m => m.id !== 'loading'), botMessage]);
     } catch (error) {
       console.error('Error handling WhatsApp message:', error);
+      toast.error('Failed to get response from chat assistant. Please try again.');
       const errorMessage: WhatsAppMessage = {
         id: (Date.now() + 1).toString(),
         text: 'Sorry, I encountered an error. Please try again.',

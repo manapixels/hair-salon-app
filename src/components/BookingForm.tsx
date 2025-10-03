@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
+import { toast } from 'sonner';
 import { SALON_SERVICES } from '@/constants';
 import type { Service, TimeSlot, Appointment, Stylist } from '@/types';
 import { useBooking } from '@/context/BookingContext';
@@ -56,6 +57,7 @@ const StylistSelector: React.FC<{
         }
       } catch (error) {
         console.error('Failed to fetch stylists:', error);
+        toast.error('Unable to load stylists. Please refresh the page.');
         setStylists([]);
       } finally {
         setLoading(false);
@@ -185,6 +187,7 @@ const DateTimePicker: React.FC<{
         setTimeSlots(slots);
       } catch (error) {
         console.error('Failed to fetch time slots:', error);
+        toast.error('Unable to load available times. Please try another date.');
         setTimeSlots([]);
       } finally {
         setLoading(false);
@@ -426,11 +429,12 @@ const BookingForm: React.FC = () => {
 
   const handleConfirmBooking = async (name: string, email: string) => {
     if (!selectedTime || selectedServices.length === 0) {
-      alert('Please select services, a date, and a time.');
+      toast.error('Please select services, a date, and a time before booking.');
       return;
     }
     setIsSubmitting(true);
 
+    const toastId = toast.loading('Booking your appointment...');
     try {
       const confirmedAppt = await createAppointment({
         date: selectedDate,
@@ -441,8 +445,11 @@ const BookingForm: React.FC = () => {
         customerEmail: email,
       });
       setBookingConfirmed(confirmedAppt);
+      toast.success('Appointment booked successfully! Confirmation sent to your email.', {
+        id: toastId,
+      });
     } catch (error: any) {
-      alert(`Booking failed: ${error.message}`);
+      toast.error(`Booking failed: ${error.message}`, { id: toastId });
     } finally {
       setIsSubmitting(false);
     }

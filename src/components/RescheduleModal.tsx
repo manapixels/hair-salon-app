@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import type { Appointment, TimeSlot } from '@/types';
 import { useBooking } from '@/context/BookingContext';
 
@@ -52,6 +53,7 @@ export default function RescheduleModal({
       setTimeSlots(slots);
     } catch (error) {
       console.error('Failed to fetch time slots:', error);
+      toast.error('Unable to load available times');
       setTimeSlots([]);
     } finally {
       setLoading(false);
@@ -60,7 +62,7 @@ export default function RescheduleModal({
 
   const handleReschedule = async () => {
     if (!selectedDate || !selectedTime) {
-      alert('Please select both a date and time');
+      toast.error('Please select both a date and time');
       return;
     }
 
@@ -69,11 +71,13 @@ export default function RescheduleModal({
     const newDateTime = `${selectedDate.toISOString().split('T')[0]} ${selectedTime}`;
 
     if (currentDateTime === newDateTime) {
-      alert('Please select a different date and time');
+      toast.warning('Please select a different date and time');
       return;
     }
 
     setIsRescheduling(true);
+    const toastId = toast.loading('Rescheduling appointment...');
+
     try {
       const response = await fetch('/api/appointments/user-reschedule', {
         method: 'PATCH',
@@ -90,7 +94,7 @@ export default function RescheduleModal({
       const data = await response.json();
 
       if (response.ok) {
-        alert('Appointment rescheduled successfully!');
+        toast.success('Appointment rescheduled successfully!', { id: toastId });
         onSuccess();
         onClose();
       } else {
@@ -98,7 +102,9 @@ export default function RescheduleModal({
       }
     } catch (error) {
       console.error('Error rescheduling appointment:', error);
-      alert(error instanceof Error ? error.message : 'Failed to reschedule appointment');
+      toast.error(error instanceof Error ? error.message : 'Failed to reschedule appointment', {
+        id: toastId,
+      });
     } finally {
       setIsRescheduling(false);
     }

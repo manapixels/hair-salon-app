@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
 import type { Appointment, Service } from '../types';
@@ -78,19 +79,23 @@ export default function EditAppointmentModal({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    setIsLoading(true);
 
     if (!formData.customerName || !formData.customerEmail || !formData.date || !formData.time) {
-      setError('Please fill in all required fields');
-      setIsLoading(false);
+      const errorMsg = 'Please fill in all required fields';
+      setError(errorMsg);
+      toast.error(errorMsg);
       return;
     }
 
     if (formData.services.length === 0) {
-      setError('Please select at least one service');
-      setIsLoading(false);
+      const errorMsg = 'Please select at least one service';
+      setError(errorMsg);
+      toast.error(errorMsg);
       return;
     }
+
+    setIsLoading(true);
+    const toastId = toast.loading('Updating appointment...');
 
     try {
       const { totalPrice, totalDuration } = calculateTotals();
@@ -103,9 +108,12 @@ export default function EditAppointmentModal({
         totalPrice,
         totalDuration,
       });
+      toast.success('Appointment updated successfully!', { id: toastId });
       onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update appointment');
+      const errorMsg = err instanceof Error ? err.message : 'Failed to update appointment';
+      setError(errorMsg);
+      toast.error(errorMsg, { id: toastId });
     } finally {
       setIsLoading(false);
     }

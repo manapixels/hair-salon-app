@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Stylist, Service } from '../types';
 import { SALON_SERVICES } from '../constants';
@@ -25,31 +26,62 @@ export default function StylistManagement({ onClose }: StylistManagementProps) {
       if (response.ok) {
         const data = await response.json();
         setStylists(data);
+      } else {
+        toast.error('Failed to load stylists');
       }
     } catch (error) {
       console.error('Failed to fetch stylists:', error);
+      toast.error('Failed to load stylists');
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleDeleteStylist = async (stylistId: string) => {
-    if (window.confirm('Are you sure you want to delete this stylist?')) {
-      try {
-        const response = await fetch(`/api/stylists/${stylistId}`, {
-          method: 'DELETE',
-        });
+    toast.custom(
+      (t: string | number) => (
+        <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700">
+          <div className="flex flex-col gap-3">
+            <p className="font-medium text-gray-900 dark:text-white">
+              Are you sure you want to delete this stylist?
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={async () => {
+                  toast.dismiss(t);
+                  const toastId = toast.loading('Deleting stylist...');
+                  try {
+                    const response = await fetch(`/api/stylists/${stylistId}`, {
+                      method: 'DELETE',
+                    });
 
-        if (response.ok) {
-          await fetchStylists();
-        } else {
-          alert('Failed to delete stylist');
-        }
-      } catch (error) {
-        alert('Failed to delete stylist');
-        console.error('Error deleting stylist:', error);
-      }
-    }
+                    if (response.ok) {
+                      await fetchStylists();
+                      toast.success('Stylist deleted successfully', { id: toastId });
+                    } else {
+                      toast.error('Failed to delete stylist', { id: toastId });
+                    }
+                  } catch (error) {
+                    toast.error('Failed to delete stylist', { id: toastId });
+                    console.error('Error deleting stylist:', error);
+                  }
+                }}
+                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+              >
+                Yes
+              </button>
+              <button
+                onClick={() => toast.dismiss(t)}
+                className="px-4 py-2 bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-white rounded hover:bg-gray-400 dark:hover:bg-gray-500 transition-colors"
+              >
+                No
+              </button>
+            </div>
+          </div>
+        </div>
+      ),
+      { duration: Infinity },
+    );
   };
 
   if (isLoading) {
@@ -240,13 +272,17 @@ function StylistModal({ isOpen, onClose, stylist, onSave }: StylistModalProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    setIsLoading(true);
 
     if (!formData.name || !formData.email || formData.specialtyIds.length === 0) {
-      setError('Please fill in all required fields and select at least one specialty');
-      setIsLoading(false);
+      const errorMsg = 'Please fill in all required fields and select at least one specialty';
+      setError(errorMsg);
+      toast.error(errorMsg);
       return;
     }
+
+    setIsLoading(true);
+    const action = stylist ? 'Updating' : 'Creating';
+    const toastId = toast.loading(`${action} stylist...`);
 
     try {
       const url = stylist ? `/api/stylists/${stylist.id}` : '/api/stylists';
@@ -263,9 +299,15 @@ function StylistModal({ isOpen, onClose, stylist, onSave }: StylistModalProps) {
         throw new Error(errorData.message || 'Failed to save stylist');
       }
 
+      const successMsg = stylist
+        ? 'Stylist updated successfully!'
+        : 'Stylist created successfully!';
+      toast.success(successMsg, { id: toastId });
       onSave();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save stylist');
+      const errorMsg = err instanceof Error ? err.message : 'Failed to save stylist';
+      setError(errorMsg);
+      toast.error(errorMsg, { id: toastId });
     } finally {
       setIsLoading(false);
     }

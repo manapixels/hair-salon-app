@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { AuthProvider } from '../context/AuthContext';
 import { BookingProvider } from '../context/BookingContext';
+import { Toaster } from 'sonner';
 import '../styles/globals.css';
 import 'dotenv/config';
 
@@ -20,6 +21,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <AuthProvider>
           <BookingProvider>{children}</BookingProvider>
         </AuthProvider>
+        <Toaster position="top-right" richColors closeButton />
       </body>
     </html>
   );

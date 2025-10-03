@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import { useAuth } from '../context/AuthContext';
 import RescheduleModal from './RescheduleModal';
 import type { Appointment } from '@/types';
@@ -34,7 +35,9 @@ export default function CustomerDashboard() {
         throw new Error('Failed to fetch appointments');
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      const errorMessage = err instanceof Error ? err.message : 'An error occurred';
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -60,11 +63,12 @@ export default function CustomerDashboard() {
       if (response.ok) {
         await refreshSession(); // Refresh user data
         setIsEditingName(false);
+        toast.success('Display name updated successfully!');
       } else {
         throw new Error('Failed to update name');
       }
     } catch (err) {
-      alert('Failed to update name. Please try again.');
+      toast.error('Failed to update name. Please try again.');
     }
   };
 
@@ -74,33 +78,61 @@ export default function CustomerDashboard() {
   };
 
   const handleCancelAppointment = async (appointmentId: string) => {
-    if (!confirm('Are you sure you want to cancel this appointment?')) {
-      return;
-    }
+    toast.custom(
+      (t: string | number) => (
+        <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700">
+          <div className="flex flex-col gap-3">
+            <p className="font-medium text-gray-900 dark:text-white">
+              Are you sure you want to cancel this appointment?
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={async () => {
+                  toast.dismiss(t);
+                  setCancellingId(appointmentId);
+                  try {
+                    const response = await fetch('/api/appointments/user-cancel', {
+                      method: 'DELETE',
+                      headers: {
+                        'Content-Type': 'application/json',
+                      },
+                      body: JSON.stringify({ appointmentId }),
+                    });
 
-    setCancellingId(appointmentId);
-    try {
-      const response = await fetch('/api/appointments/user-cancel', {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ appointmentId }),
-      });
-
-      if (response.ok) {
-        // Remove the cancelled appointment from the list
-        setAppointments(prev => prev.filter(apt => apt.id !== appointmentId));
-        alert('Appointment cancelled successfully');
-      } else {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to cancel appointment');
-      }
-    } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to cancel appointment');
-    } finally {
-      setCancellingId(null);
-    }
+                    if (response.ok) {
+                      // Remove the cancelled appointment from the list
+                      setAppointments(prev => prev.filter(apt => apt.id !== appointmentId));
+                      toast.success('Appointment cancelled successfully');
+                    } else {
+                      const errorData = await response.json();
+                      throw new Error(errorData.error || 'Failed to cancel appointment');
+                    }
+                  } catch (err) {
+                    toast.error(
+                      err instanceof Error ? err.message : 'Failed to cancel appointment',
+                    );
+                  } finally {
+                    setCancellingId(null);
+                  }
+                }}
+                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+              >
+                Yes, cancel it
+              </button>
+              <button
+                onClick={() => toast.dismiss(t)}
+                className="px-4 py-2 bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-white rounded hover:bg-gray-400 dark:hover:bg-gray-500 transition-colors"
+              >
+                No, keep it
+              </button>
+            </div>
+          </div>
+        </div>
+      ),
+      {
+        duration: Infinity,
+      },
+    );
   };
 
   const handleRescheduleAppointment = (appointmentId: string) => {

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { toast } from 'sonner';
 
 interface WhatsAppOTPLoginProps {
   onSuccess: () => void;
@@ -36,13 +37,16 @@ export default function WhatsAppOTPLogin({ onSuccess, onBack }: WhatsAppOTPLogin
 
       // Show test OTP if available (for development when WhatsApp fails)
       if (data.testOtp) {
-        alert(`Development: Your OTP is ${data.testOtp}\n\n${data.note || ''}`);
+        toast.info(`Development mode: Your OTP is ${data.testOtp}`, { duration: 10000 });
       }
 
       setExpiresAt(Date.now() + data.expiresIn * 1000);
       setStep('otp');
+      toast.success('Verification code sent to your WhatsApp');
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Failed to send OTP');
+      const errorMsg = error instanceof Error ? error.message : 'Failed to send OTP';
+      setError(errorMsg);
+      toast.error(errorMsg);
     } finally {
       setLoading(false);
     }
@@ -68,9 +72,12 @@ export default function WhatsAppOTPLogin({ onSuccess, onBack }: WhatsAppOTPLogin
 
       // Trigger auth refresh
       window.dispatchEvent(new Event('auth-refresh'));
+      toast.success('Login successful! Welcome to Luxe Cuts.');
       onSuccess();
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Verification failed');
+      const errorMsg = error instanceof Error ? error.message : 'Verification failed';
+      setError(errorMsg);
+      toast.error(errorMsg);
     } finally {
       setLoading(false);
     }
@@ -211,10 +218,11 @@ export default function WhatsAppOTPLogin({ onSuccess, onBack }: WhatsAppOTPLogin
 
           <button
             type="button"
-            onClick={() => {
+            onClick={async () => {
               setOtp('');
               setError('');
-              handlePhoneSubmit(new Event('submit') as any);
+              await handlePhoneSubmit(new Event('submit') as any);
+              toast.info('New verification code sent');
             }}
             disabled={loading}
             className="w-full text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300 text-sm"

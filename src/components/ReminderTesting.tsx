@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { toast } from 'sonner';
 
 interface ReminderResult {
   appointmentId: string;
@@ -27,6 +28,7 @@ export default function ReminderTesting() {
     setLoading(true);
     setError(null);
     setTestResult(null);
+    const toastId = toast.loading('Testing message format...');
 
     try {
       const response = await fetch('/api/reminders/test', {
@@ -41,11 +43,16 @@ export default function ReminderTesting() {
 
       if (response.ok) {
         setTestResult(data);
+        toast.success('Message format test completed', { id: toastId });
       } else {
-        setError(data.error || 'Failed to test message format');
+        const errorMsg = data.error || 'Failed to test message format';
+        setError(errorMsg);
+        toast.error(errorMsg, { id: toastId });
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error occurred');
+      const errorMsg = err instanceof Error ? err.message : 'Unknown error occurred';
+      setError(errorMsg);
+      toast.error(errorMsg, { id: toastId });
     } finally {
       setLoading(false);
     }
@@ -55,6 +62,7 @@ export default function ReminderTesting() {
     setLoading(true);
     setError(null);
     setTestResult(null);
+    const toastId = toast.loading('Checking upcoming reminders...');
 
     try {
       const response = await fetch('/api/reminders/send');
@@ -62,45 +70,85 @@ export default function ReminderTesting() {
 
       if (response.ok) {
         setTestResult(data);
+        toast.info(`Found ${data.appointmentsProcessed || 0} upcoming appointments`, {
+          id: toastId,
+        });
       } else {
-        setError(data.error || 'Failed to check upcoming reminders');
+        const errorMsg = data.error || 'Failed to check upcoming reminders';
+        setError(errorMsg);
+        toast.error(errorMsg, { id: toastId });
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error occurred');
+      const errorMsg = err instanceof Error ? err.message : 'Unknown error occurred';
+      setError(errorMsg);
+      toast.error(errorMsg, { id: toastId });
     } finally {
       setLoading(false);
     }
   };
 
   const handleSendTestReminders = async () => {
-    if (!confirm('This will send actual reminder messages to customers. Are you sure?')) {
-      return;
-    }
+    toast.custom(
+      (t: string | number) => (
+        <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700">
+          <div className="flex flex-col gap-3">
+            <p className="font-medium text-gray-900 dark:text-white">
+              This will send actual reminder messages to customers. Are you sure?
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={async () => {
+                  toast.dismiss(t);
+                  setLoading(true);
+                  setError(null);
+                  setTestResult(null);
+                  const toastId = toast.loading('Sending reminders...');
 
-    setLoading(true);
-    setError(null);
-    setTestResult(null);
+                  try {
+                    const response = await fetch('/api/reminders/send', {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                      },
+                    });
 
-    try {
-      const response = await fetch('/api/reminders/send', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+                    const data = await response.json();
 
-      const data = await response.json();
-
-      if (response.ok) {
-        setTestResult(data);
-      } else {
-        setError(data.error || 'Failed to send reminders');
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error occurred');
-    } finally {
-      setLoading(false);
-    }
+                    if (response.ok) {
+                      setTestResult(data);
+                      toast.success(
+                        `Reminders sent successfully! ${data.successful || 0} sent, ${data.failed || 0} failed`,
+                        { id: toastId },
+                      );
+                    } else {
+                      const errorMsg = data.error || 'Failed to send reminders';
+                      setError(errorMsg);
+                      toast.error(errorMsg, { id: toastId });
+                    }
+                  } catch (err) {
+                    const errorMsg = err instanceof Error ? err.message : 'Unknown error occurred';
+                    setError(errorMsg);
+                    toast.error(errorMsg, { id: toastId });
+                  } finally {
+                    setLoading(false);
+                  }
+                }}
+                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+              >
+                Yes
+              </button>
+              <button
+                onClick={() => toast.dismiss(t)}
+                className="px-4 py-2 bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-white rounded hover:bg-gray-400 dark:hover:bg-gray-500 transition-colors"
+              >
+                No
+              </button>
+            </div>
+          </div>
+        </div>
+      ),
+      { duration: Infinity },
+    );
   };
 
   return (

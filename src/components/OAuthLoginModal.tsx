@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 import TelegramLoginWidget from './TelegramLoginWidget';
 import WhatsAppOTPLogin from './WhatsAppOTPLogin';
 
@@ -36,7 +37,10 @@ export default function OAuthLoginModal({ isOpen, onClose }: OAuthLoginModalProp
             setTelegramBotUsername(data.botUsername);
           }
         })
-        .catch(err => console.error('Failed to fetch Telegram bot info:', err));
+        .catch(err => {
+          console.error('Failed to fetch Telegram bot info:', err);
+          toast.error('Failed to load Telegram login. Please try again.');
+        });
     }
   }, [isOpen, telegramBotUsername]);
 

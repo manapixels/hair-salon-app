@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { toast, type ExternalToast } from 'sonner';
 import { useBooking } from '../context/BookingContext';
 import type { TimeSlot, Appointment } from '../types';
 import EditAppointmentModal from './EditAppointmentModal';
@@ -97,7 +98,7 @@ const AdminDashboard: React.FC = () => {
       setTimeSlots(prev =>
         prev.map(slot => (slot.time === time ? { ...slot, available: isAvailable } : slot)),
       );
-      alert('Failed to update slot.');
+      toast.error('Failed to update slot.');
     }
   };
 
@@ -113,11 +114,12 @@ const AdminDashboard: React.FC = () => {
   };
 
   const handleSettingsSave = async () => {
+    const toastId = toast.loading('Saving settings...');
     try {
       await saveAdminSettings({ ...adminSettings, openingTime, closingTime });
-      alert('Settings saved!');
+      toast.success('Settings saved successfully!', { id: toastId });
     } catch (error) {
-      alert('Failed to save settings.');
+      toast.error('Failed to save settings.', { id: toastId });
     }
   };
 
@@ -127,33 +129,56 @@ const AdminDashboard: React.FC = () => {
   };
 
   const handleCancelAppointment = async (appointment: Appointment) => {
-    if (
-      window.confirm(
-        `Are you sure you want to cancel the appointment for ${appointment.customerName}?`,
-      )
-    ) {
-      try {
-        const response = await fetch('/api/appointments/cancel', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            customerEmail: appointment.customerEmail,
-            date: appointment.date.toISOString().split('T')[0],
-            time: appointment.time,
-          }),
-        });
+    toast.custom(
+      (t: string | number) => (
+        <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700">
+          <div className="flex flex-col gap-3">
+            <p className="font-medium text-gray-900 dark:text-white">
+              Are you sure you want to cancel the appointment for {appointment.customerName}?
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={async () => {
+                  toast.dismiss(t);
+                  const toastId = toast.loading('Cancelling appointment...');
+                  try {
+                    const response = await fetch('/api/appointments/cancel', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                        customerEmail: appointment.customerEmail,
+                        date: appointment.date.toISOString().split('T')[0],
+                        time: appointment.time,
+                      }),
+                    });
 
-        if (!response.ok) {
-          throw new Error('Failed to cancel appointment');
-        }
+                    if (!response.ok) {
+                      throw new Error('Failed to cancel appointment');
+                    }
 
-        await fetchAndSetAppointments();
-        alert('Appointment cancelled successfully');
-      } catch (error) {
-        alert('Failed to cancel appointment');
-        console.error('Error cancelling appointment:', error);
-      }
-    }
+                    await fetchAndSetAppointments();
+                    toast.success('Appointment cancelled successfully', { id: toastId });
+                  } catch (error) {
+                    toast.error('Failed to cancel appointment', { id: toastId });
+                    console.error('Error cancelling appointment:', error);
+                  }
+                }}
+                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+              >
+                Yes
+              </button>
+              <button
+                onClick={() => toast.dismiss(t)}
+                className="px-4 py-2 bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-white rounded hover:bg-gray-400 dark:hover:bg-gray-500 transition-colors"
+              >
+                No
+              </button>
+            </div>
+          </div>
+        </div>
+      ),
+      { duration: Infinity },
+    );
   };
 
   const handleSaveAppointment = async (updatedData: Partial<Appointment>) => {
@@ -365,8 +390,10 @@ const AdminDashboard: React.FC = () => {
     try {
       await fetchAndSetAppointments();
       setLastRefresh(new Date());
+      toast.success('Appointments refreshed', { duration: 2000 });
     } catch (error) {
       console.error('Failed to refresh appointments:', error);
+      toast.error('Failed to refresh appointments');
     } finally {
       setIsRefreshing(false);
     }
@@ -374,14 +401,23 @@ const AdminDashboard: React.FC = () => {
 
   // Auto-refresh every 2 minutes
   useEffect(() => {
-    const interval = setInterval(() => {
+    const interval = setInterval(async () => {
       if (!isRefreshing) {
-        handleRefresh();
+        setIsRefreshing(true);
+        try {
+          await fetchAndSetAppointments();
+          setLastRefresh(new Date());
+          toast.info('Appointments refreshed', { duration: 2000 });
+        } catch (error) {
+          console.error('Failed to auto-refresh appointments:', error);
+        } finally {
+          setIsRefreshing(false);
+        }
       }
     }, 120000); // 2 minutes
 
     return () => clearInterval(interval);
-  }, [isRefreshing]);
+  }, [isRefreshing, fetchAndSetAppointments]);
 
   // Sortable header component
   const SortableHeader = ({
@@ -599,15 +635,41 @@ const AdminDashboard: React.FC = () => {
                   <div className="flex items-center space-x-2">
                     <button
                       onClick={() => {
-                        if (
-                          window.confirm(
-                            `Are you sure you want to cancel ${selectedAppointments.size} appointment${selectedAppointments.size > 1 ? 's' : ''}?`,
-                          )
-                        ) {
-                          // Bulk cancel logic would go here
-                          console.log('Bulk cancel:', Array.from(selectedAppointments));
-                          setSelectedAppointments(new Set());
-                        }
+                        toast.custom(
+                          (t: string | number) => (
+                            <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700">
+                              <div className="flex flex-col gap-3">
+                                <p className="font-medium text-gray-900 dark:text-white">
+                                  Are you sure you want to cancel {selectedAppointments.size}{' '}
+                                  appointment{selectedAppointments.size > 1 ? 's' : ''}?
+                                </p>
+                                <div className="flex gap-2">
+                                  <button
+                                    onClick={() => {
+                                      toast.dismiss(t);
+                                      // Bulk cancel logic would go here
+                                      console.log('Bulk cancel:', Array.from(selectedAppointments));
+                                      setSelectedAppointments(new Set());
+                                      toast.success(
+                                        `${selectedAppointments.size} appointment${selectedAppointments.size > 1 ? 's' : ''} cancelled`,
+                                      );
+                                    }}
+                                    className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+                                  >
+                                    Yes
+                                  </button>
+                                  <button
+                                    onClick={() => toast.dismiss(t)}
+                                    className="px-4 py-2 bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-white rounded hover:bg-gray-400 dark:hover:bg-gray-500 transition-colors"
+                                  >
+                                    No
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          ),
+                          { duration: Infinity },
+                        );
                       }}
                       className="px-3 py-1 text-sm bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
                     >
