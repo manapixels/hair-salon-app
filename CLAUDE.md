@@ -59,11 +59,11 @@ src/
 
 ### **Admin Management**
 
-- Advanced appointment dashboard (filtering, search, bulk operations)
-- Stylist management (profiles, specializations, schedules)
-- Availability controls and time blocking
+- **Tab-based navigation**: Appointments, Stylists, Availability & Settings
+- **Appointments Tab**: Advanced filtering, search, bulk operations, pagination
+- **Stylists Tab**: Inline stylist management (profiles, specializations, schedules)
+- **Availability Tab**: Time blocking, business hours, appointment overview
 - Automated reminder system with GitHub Actions
-- Business settings configuration
 
 ### **Integrations**
 

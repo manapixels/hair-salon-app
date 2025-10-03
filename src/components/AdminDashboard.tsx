@@ -27,7 +27,6 @@ const AdminDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'appointments' | 'stylists' | 'availability'>(
     'appointments',
   );
-  const [showStylistManagement, setShowStylistManagement] = useState(false);
   const [dateFilter, setDateFilter] = useState<'all' | 'today' | 'week' | 'month' | 'custom'>(
     'all',
   );
@@ -43,12 +42,17 @@ const AdminDashboard: React.FC = () => {
   const [selectedAppointments, setSelectedAppointments] = useState<Set<string>>(new Set());
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
+  const [previousAppointmentIds, setPreviousAppointmentIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     // FIX: `fetchAndSetAdminSettings` returns `Promise<void>`, so its resolved value cannot be used.
     // This call triggers a context update, and another `useEffect` syncs the local state.
     fetchAndSetAdminSettings();
     fetchAndSetAppointments();
+
+    // Initialize previous appointment IDs to prevent false positives on first load
+    const initialIds = new Set(appointments.map(apt => apt.id));
+    setPreviousAppointmentIds(initialIds);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -407,12 +411,30 @@ const AdminDashboard: React.FC = () => {
   // Auto-refresh every 2 minutes
   useEffect(() => {
     const interval = setInterval(async () => {
+      // Only auto-refresh if user is on appointments tab and page is visible
+      if (activeTab !== 'appointments') return;
+      if (document.visibilityState !== 'visible') return;
+
       if (!isRefreshing) {
         setIsRefreshing(true);
         try {
           await fetchAndSetAppointments();
           setLastRefresh(new Date());
-          toast.info('Appointments refreshed', { duration: 2000 });
+
+          // Only show toast if there are NEW appointments
+          const currentIds = new Set(appointments.map(apt => apt.id));
+          const newAppointments = Array.from(currentIds).filter(
+            id => !previousAppointmentIds.has(id),
+          );
+
+          if (newAppointments.length > 0) {
+            toast.success(
+              `${newAppointments.length} new appointment${newAppointments.length > 1 ? 's' : ''} received`,
+              { duration: 4000 },
+            );
+          }
+
+          setPreviousAppointmentIds(currentIds);
         } catch (error) {
           console.error('Failed to auto-refresh appointments:', error);
         } finally {
@@ -422,7 +444,7 @@ const AdminDashboard: React.FC = () => {
     }, 120000); // 2 minutes
 
     return () => clearInterval(interval);
-  }, [isRefreshing, fetchAndSetAppointments]);
+  }, [isRefreshing, fetchAndSetAppointments, activeTab, appointments, previousAppointmentIds]);
 
   // Sortable header component
   const SortableHeader = ({
@@ -454,16 +476,7 @@ const AdminDashboard: React.FC = () => {
 
   return (
     <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-3xl font-bold text-gray-800 dark:text-gray-200">Admin Dashboard</h2>
-        <button
-          onClick={() => setShowStylistManagement(true)}
-          className="bg-yellow-600 text-white px-4 py-2 rounded-md hover:bg-yellow-700 transition-colors flex items-center"
-        >
-          <i className="fas fa-users mr-2"></i>
-          Manage Stylists
-        </button>
-      </div>
+      <h2 className="text-3xl font-bold text-gray-800 dark:text-gray-200 mb-6">Admin Dashboard</h2>
 
       {/* Tab Navigation */}
       <div className="border-b border-gray-200 dark:border-gray-600 mb-6">
@@ -478,6 +491,17 @@ const AdminDashboard: React.FC = () => {
           >
             <i className="fas fa-calendar-alt mr-2"></i>
             Appointments
+          </button>
+          <button
+            onClick={() => setActiveTab('stylists')}
+            className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
+              activeTab === 'stylists'
+                ? 'border-yellow-500 text-yellow-600 dark:text-yellow-400'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
+            }`}
+          >
+            <i className="fas fa-users mr-2"></i>
+            Stylists
           </button>
           <button
             onClick={() => setActiveTab('availability')}
@@ -922,6 +946,12 @@ const AdminDashboard: React.FC = () => {
         </div>
       )}
 
+      {activeTab === 'stylists' && (
+        <div>
+          <StylistManagement onClose={() => {}} />
+        </div>
+      )}
+
       {activeTab === 'availability' && (
         <div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
@@ -1214,11 +1244,6 @@ const AdminDashboard: React.FC = () => {
         appointment={selectedAppointment}
         onSave={handleSaveAppointment}
       />
-
-      {/* Stylist Management Modal */}
-      {showStylistManagement && (
-        <StylistManagement onClose={() => setShowStylistManagement(false)} />
-      )}
     </div>
   );
 };
