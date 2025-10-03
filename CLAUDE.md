@@ -22,13 +22,23 @@ npm run typecheck && npm run lint
 
 ```
 src/
-├── app/api/          # API routes (appointments, auth, admin)
+├── app/
+│   ├── api/          # API routes (appointments, auth, admin)
+│   ├── admin/        # Admin dashboard page (/admin)
+│   ├── dashboard/    # Customer dashboard page (/dashboard)
+│   └── page.tsx      # Home page (booking)
 ├── components/       # React components (booking, dashboard, admin)
 ├── context/         # Auth & booking contexts
 ├── lib/             # Core utilities (database, session, calendar)
 ├── services/        # External integrations (AI, messaging)
 └── types.ts         # TypeScript definitions
 ```
+
+## 🌐 Routes
+
+- **`/`** - Home page with booking form
+- **`/dashboard`** - Customer dashboard (requires auth)
+- **`/admin`** - Admin dashboard (requires ADMIN role)
 
 ## 🔐 Authentication & Security
 

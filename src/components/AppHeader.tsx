@@ -1,6 +1,7 @@
 'use client';
 
 import { useAuth } from '../context/AuthContext';
+import { usePathname, useRouter } from 'next/navigation';
 
 type View = 'booking' | 'admin' | 'dashboard';
 
@@ -11,12 +12,14 @@ interface AppHeaderProps {
 }
 
 const NavButton: React.FC<{
-  currentView: View;
-  targetView: View;
+  href?: string;
+  currentView?: View;
+  targetView?: View;
   children: React.ReactNode;
   onClick: () => void;
-}> = ({ currentView, targetView, children, onClick }) => {
-  const isActive = currentView === targetView;
+  isActive?: boolean;
+}> = ({ href, currentView, targetView, children, onClick, isActive: isActiveProp }) => {
+  const isActive = isActiveProp ?? currentView === targetView;
   return (
     <button
       onClick={onClick}
@@ -51,6 +54,8 @@ const AuthButton: React.FC<{
 
 export default function AppHeader({ view, onViewChange, onLoginClick }: AppHeaderProps) {
   const { user, logout } = useAuth();
+  const router = useRouter();
+  const pathname = usePathname();
 
   return (
     <header className="bg-white dark:bg-gray-900 shadow-md">
@@ -72,19 +77,14 @@ export default function AppHeader({ view, onViewChange, onLoginClick }: AppHeade
             </NavButton>
             {user && user.role === 'CUSTOMER' && (
               <NavButton
-                currentView={view}
-                targetView="dashboard"
-                onClick={() => onViewChange('dashboard')}
+                isActive={pathname === '/dashboard'}
+                onClick={() => router.push('/dashboard')}
               >
                 <i className="fa-solid fa-user mr-2"></i> Dashboard
               </NavButton>
             )}
             {user?.role === 'ADMIN' && (
-              <NavButton
-                currentView={view}
-                targetView="admin"
-                onClick={() => onViewChange('admin')}
-              >
+              <NavButton isActive={pathname === '/admin'} onClick={() => router.push('/admin')}>
                 <i className="fa-solid fa-user-shield mr-2"></i> Admin
               </NavButton>
             )}
