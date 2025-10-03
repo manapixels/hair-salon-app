@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import { toast } from 'sonner';
+import PhoneInput from 'react-phone-number-input';
+import 'react-phone-number-input/style.css';
 
 interface WhatsAppOTPLoginProps {
   onSuccess: () => void;
@@ -10,12 +12,40 @@ interface WhatsAppOTPLoginProps {
 
 export default function WhatsAppOTPLogin({ onSuccess, onBack }: WhatsAppOTPLoginProps) {
   const [step, setStep] = useState<'phone' | 'otp'>('phone');
-  const [phoneNumber, setPhoneNumber] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState<string>('');
   const [otp, setOtp] = useState('');
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [expiresAt, setExpiresAt] = useState<number | null>(null);
+  const [isReturningUser, setIsReturningUser] = useState(false);
+  const [existingName, setExistingName] = useState('');
+
+  const checkUserExists = async (phone: string) => {
+    if (!phone || phone.length < 10) return;
+
+    try {
+      const response = await fetch('/api/auth/whatsapp/check-user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phoneNumber: phone }),
+      });
+
+      const data = await response.json();
+
+      if (data.exists) {
+        setIsReturningUser(true);
+        setExistingName(data.name || 'User');
+      } else {
+        setIsReturningUser(false);
+        setExistingName('');
+      }
+    } catch (error) {
+      console.error('Failed to check user:', error);
+      // Don't block login flow on error
+      setIsReturningUser(false);
+    }
+  };
 
   const handlePhoneSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -104,44 +134,55 @@ export default function WhatsAppOTPLogin({ onSuccess, onBack }: WhatsAppOTPLogin
 
         <form onSubmit={handlePhoneSubmit} className="space-y-4">
           <div>
-            <label
-              htmlFor="phone"
-              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-            >
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Phone Number
             </label>
-            <input
-              id="phone"
-              type="tel"
+            <PhoneInput
+              international
+              defaultCountry="SG"
               value={phoneNumber}
-              onChange={e => setPhoneNumber(formatPhoneNumber(e.target.value))}
-              placeholder="+1234567890"
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent dark:bg-gray-800 dark:text-white"
-              required
+              onChange={value => {
+                setPhoneNumber(value || '');
+                if (value && value.length >= 10) {
+                  checkUserExists(value);
+                }
+              }}
+              placeholder="Enter phone number"
+              className="phone-input-wrapper"
               disabled={loading}
+              required
             />
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-              Include your country code (e.g., +1 for US, +65 for Singapore)
-            </p>
           </div>
 
-          <div>
-            <label
-              htmlFor="name"
-              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-            >
-              Your Name (Optional)
-            </label>
-            <input
-              id="name"
-              type="text"
-              value={name}
-              onChange={e => setName(e.target.value)}
-              placeholder="Enter your name"
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent dark:bg-gray-800 dark:text-white"
-              disabled={loading}
-            />
-          </div>
+          {isReturningUser && (
+            <div className="p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+              <p className="text-sm text-green-700 dark:text-green-300 flex items-center gap-2">
+                <span>👋</span>
+                <span>Welcome back, {existingName}!</span>
+              </p>
+            </div>
+          )}
+
+          {!isReturningUser && phoneNumber && phoneNumber.length >= 10 && (
+            <div>
+              <label
+                htmlFor="name"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+              >
+                Your Name
+              </label>
+              <input
+                id="name"
+                type="text"
+                value={name}
+                onChange={e => setName(e.target.value)}
+                placeholder="Enter your name"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent dark:bg-gray-800 dark:text-white"
+                disabled={loading}
+                required
+              />
+            </div>
+          )}
 
           {error && <div className="text-red-600 dark:text-red-400 text-sm">{error}</div>}
 

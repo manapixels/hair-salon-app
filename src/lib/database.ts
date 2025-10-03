@@ -87,18 +87,55 @@ export const findUserByEmail = async (email: string) => {
 };
 
 export const createUserFromOAuth = async (userData: Omit<User, 'id' | 'role'>): Promise<User> => {
-  const existingUser = await findUserByEmail(userData.email);
+  // First, check by whatsappPhone if it's a WhatsApp login
+  let existingUser = null;
+
+  if (userData.authProvider === 'whatsapp' && userData.whatsappPhone) {
+    existingUser = await prisma.user.findFirst({
+      where: { whatsappPhone: userData.whatsappPhone },
+    });
+  } else if (userData.authProvider === 'telegram' && userData.telegramId) {
+    existingUser = await prisma.user.findFirst({
+      where: { telegramId: userData.telegramId },
+    });
+  }
+
+  // Fallback to email check
+  if (!existingUser) {
+    existingUser = await findUserByEmail(userData.email);
+  }
+
   if (existingUser) {
-    // Update existing user with OAuth data
+    // For returning users: only update fields that should change
+    const updateData: any = {
+      authProvider: userData.authProvider,
+    };
+
+    // Update phone/telegram ID if provided
+    if (userData.whatsappPhone) {
+      updateData.whatsappPhone = userData.whatsappPhone;
+    }
+    if (userData.telegramId) {
+      updateData.telegramId = userData.telegramId;
+    }
+    if (userData.avatar) {
+      updateData.avatar = userData.avatar;
+    }
+
+    // Only update name if:
+    // 1. User provided a new name AND
+    // 2. It's not the fallback name pattern (WhatsApp User XXXX or User XXXX)
+    const isFallbackName =
+      userData.name &&
+      (userData.name.startsWith('WhatsApp User') || userData.name.startsWith('User '));
+
+    if (userData.name && !isFallbackName) {
+      updateData.name = userData.name;
+    }
+
     const updatedUser = await prisma.user.update({
-      where: { email: userData.email.toLowerCase() },
-      data: {
-        name: userData.name,
-        authProvider: userData.authProvider,
-        telegramId: userData.telegramId,
-        whatsappPhone: userData.whatsappPhone,
-        avatar: userData.avatar,
-      },
+      where: { id: existingUser.id },
+      data: updateData,
     });
 
     return {
@@ -111,9 +148,10 @@ export const createUserFromOAuth = async (userData: Omit<User, 'id' | 'role'>): 
     };
   }
 
+  // New user creation
   const newUser = await prisma.user.create({
     data: {
-      name: userData.name,
+      name: userData.name || `User ${userData.whatsappPhone?.slice(-4) || 'Unknown'}`,
       email: userData.email.toLowerCase(),
       role: 'CUSTOMER',
       authProvider: userData.authProvider,

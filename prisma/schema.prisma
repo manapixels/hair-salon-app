@@ -23,12 +23,13 @@ model User {
   role          Role    @default(CUSTOMER)
   authProvider  String?
   telegramId    Int?    @unique
-  whatsappPhone String?
+  whatsappPhone String? @unique
   avatar        String?
   appointments  Appointment[]
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
+  @@index([whatsappPhone])
   @@map("users")
 }
 
