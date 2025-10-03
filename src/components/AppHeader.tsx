@@ -68,11 +68,7 @@ export default function AppHeader({ view, onViewChange, onLoginClick }: AppHeade
         </div>
         <div className="flex items-center space-x-4">
           <div className="hidden sm:flex items-center space-x-1 bg-gray-100 dark:bg-gray-800 p-1 rounded-lg">
-            <NavButton
-              currentView={view}
-              targetView="booking"
-              onClick={() => onViewChange('booking')}
-            >
+            <NavButton isActive={pathname === '/'} onClick={() => router.push('/')}>
               <i className="fa-solid fa-calendar-check mr-2"></i> Book Online
             </NavButton>
             {user && user.role === 'CUSTOMER' && (
