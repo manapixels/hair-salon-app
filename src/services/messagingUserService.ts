@@ -18,7 +18,7 @@ export async function findUserByWhatsAppPhone(phone: string): Promise<User | nul
 
   return {
     ...dbUser,
-    role: dbUser.role.toLowerCase() as 'customer' | 'admin',
+    role: dbUser.role as 'CUSTOMER' | 'ADMIN',
     authProvider: (dbUser.authProvider as 'email' | 'whatsapp' | 'telegram') ?? undefined,
     telegramId: dbUser.telegramId ?? undefined,
     whatsappPhone: dbUser.whatsappPhone ?? undefined,
@@ -38,7 +38,7 @@ export async function findUserByTelegramId(telegramId: number): Promise<User | n
 
   return {
     ...dbUser,
-    role: dbUser.role.toLowerCase() as 'customer' | 'admin',
+    role: dbUser.role as 'CUSTOMER' | 'ADMIN',
     authProvider: (dbUser.authProvider as 'email' | 'whatsapp' | 'telegram') ?? undefined,
     telegramId: dbUser.telegramId ?? undefined,
     whatsappPhone: dbUser.whatsappPhone ?? undefined,

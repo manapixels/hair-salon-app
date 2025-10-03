@@ -63,9 +63,12 @@ const AdminDashboard: React.FC = () => {
       const availableSlotsList = await getAvailableSlots(selectedDate);
       const allSlots = generateAllTimeSlots(adminSettings.openingTime, adminSettings.closingTime);
 
-      const apptTimes = appointments
-        .filter(a => new Date(a.date).toDateString() === selectedDate.toDateString())
-        .map(a => a.time);
+      // Validate appointments is an array before filtering
+      const apptTimes = Array.isArray(appointments)
+        ? appointments
+            .filter(a => new Date(a.date).toDateString() === selectedDate.toDateString())
+            .map(a => a.time)
+        : [];
 
       const processedSlots = allSlots.map(slot => {
         let isAvailable = availableSlotsList.includes(slot.time) && !apptTimes.includes(slot.time);
@@ -242,73 +245,75 @@ const AdminDashboard: React.FC = () => {
     }
   };
 
-  const filteredAppointments = appointments.filter(appointment => {
-    // Enhanced text search filter
-    if (searchTerm) {
-      const term = searchTerm.toLowerCase();
-      const matchesSearch =
-        // Customer information
-        appointment.customerName.toLowerCase().includes(term) ||
-        appointment.customerEmail.toLowerCase().includes(term) ||
-        // Services
-        appointment.services.some(s => s.name.toLowerCase().includes(term)) ||
-        appointment.services.some(s => s.description.toLowerCase().includes(term)) ||
-        // Appointment details
-        appointment.id.toLowerCase().includes(term) ||
-        appointment.time.includes(term) ||
-        // Stylist information
-        (appointment.stylist && appointment.stylist.name.toLowerCase().includes(term)) ||
-        (appointment.stylist && appointment.stylist.email.toLowerCase().includes(term)) ||
-        // Price and duration
-        appointment.totalPrice.toString().includes(term) ||
-        appointment.totalDuration.toString().includes(term);
-      if (!matchesSearch) return false;
-    }
-
-    // Date range filter
-    const dateRange = getDateRange();
-    if (dateRange) {
-      const appointmentDate = new Date(appointment.date);
-      if (appointmentDate < dateRange.from || appointmentDate > dateRange.to) {
-        return false;
+  const filteredAppointments = (Array.isArray(appointments) ? appointments : []).filter(
+    appointment => {
+      // Enhanced text search filter
+      if (searchTerm) {
+        const term = searchTerm.toLowerCase();
+        const matchesSearch =
+          // Customer information
+          appointment.customerName.toLowerCase().includes(term) ||
+          appointment.customerEmail.toLowerCase().includes(term) ||
+          // Services
+          appointment.services.some(s => s.name.toLowerCase().includes(term)) ||
+          appointment.services.some(s => s.description.toLowerCase().includes(term)) ||
+          // Appointment details
+          appointment.id.toLowerCase().includes(term) ||
+          appointment.time.includes(term) ||
+          // Stylist information
+          (appointment.stylist && appointment.stylist.name.toLowerCase().includes(term)) ||
+          (appointment.stylist && appointment.stylist.email.toLowerCase().includes(term)) ||
+          // Price and duration
+          appointment.totalPrice.toString().includes(term) ||
+          appointment.totalDuration.toString().includes(term);
+        if (!matchesSearch) return false;
       }
-    }
 
-    // Status-based filter
-    if (statusFilter !== 'all') {
-      const appointmentDate = new Date(appointment.date);
-      const today = new Date();
-      const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-      const endOfToday = new Date(
-        today.getFullYear(),
-        today.getMonth(),
-        today.getDate(),
-        23,
-        59,
-        59,
-      );
-
-      switch (statusFilter) {
-        case 'today':
-          if (appointmentDate < startOfToday || appointmentDate > endOfToday) {
-            return false;
-          }
-          break;
-        case 'upcoming':
-          if (appointmentDate <= endOfToday) {
-            return false;
-          }
-          break;
-        case 'past':
-          if (appointmentDate >= startOfToday) {
-            return false;
-          }
-          break;
+      // Date range filter
+      const dateRange = getDateRange();
+      if (dateRange) {
+        const appointmentDate = new Date(appointment.date);
+        if (appointmentDate < dateRange.from || appointmentDate > dateRange.to) {
+          return false;
+        }
       }
-    }
 
-    return true;
-  });
+      // Status-based filter
+      if (statusFilter !== 'all') {
+        const appointmentDate = new Date(appointment.date);
+        const today = new Date();
+        const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+        const endOfToday = new Date(
+          today.getFullYear(),
+          today.getMonth(),
+          today.getDate(),
+          23,
+          59,
+          59,
+        );
+
+        switch (statusFilter) {
+          case 'today':
+            if (appointmentDate < startOfToday || appointmentDate > endOfToday) {
+              return false;
+            }
+            break;
+          case 'upcoming':
+            if (appointmentDate <= endOfToday) {
+              return false;
+            }
+            break;
+          case 'past':
+            if (appointmentDate >= startOfToday) {
+              return false;
+            }
+            break;
+        }
+      }
+
+      return true;
+    },
+  );
 
   // Sort filtered appointments
   const sortedAppointments = [...filteredAppointments].sort((a, b) => {
@@ -967,7 +972,7 @@ const AdminDashboard: React.FC = () => {
               <h3 className="text-xl font-semibold mb-3">Appointments Today</h3>
               <p className="text-4xl font-bold text-indigo-600">
                 {
-                  appointments.filter(
+                  (Array.isArray(appointments) ? appointments : []).filter(
                     a => new Date(a.date).toDateString() === new Date().toDateString(),
                   ).length
                 }

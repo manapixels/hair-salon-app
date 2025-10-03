@@ -252,7 +252,7 @@ export async function findUserForAppointment(appointment: Appointment): Promise<
   // Convert Prisma types to app types
   return {
     ...user,
-    role: user.role.toLowerCase() as 'customer' | 'admin',
+    role: user.role as 'CUSTOMER' | 'ADMIN',
     authProvider: (user.authProvider as 'email' | 'whatsapp' | 'telegram') ?? undefined,
     telegramId: user.telegramId ?? undefined,
     whatsappPhone: user.whatsappPhone ?? undefined,

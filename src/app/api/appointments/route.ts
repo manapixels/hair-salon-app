@@ -15,7 +15,7 @@ import { sendAppointmentConfirmation } from '../../../services/messagingService'
 
 export async function GET(request: NextRequest) {
   try {
-    const appointments = getAppointments();
+    const appointments = await getAppointments();
     return NextResponse.json(appointments, { status: 200 });
   } catch (error: any) {
     return NextResponse.json(
@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
         // Convert Prisma types to app types
         user = {
           ...dbUser,
-          role: dbUser.role.toLowerCase() as 'customer' | 'admin',
+          role: dbUser.role as 'CUSTOMER' | 'ADMIN',
           authProvider: (dbUser.authProvider as 'email' | 'whatsapp' | 'telegram') ?? undefined,
           telegramId: dbUser.telegramId ?? undefined,
           whatsappPhone: dbUser.whatsappPhone ?? undefined,

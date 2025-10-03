@@ -80,7 +80,7 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  role: 'customer' | 'admin';
+  role: 'CUSTOMER' | 'ADMIN';
   authProvider?: 'email' | 'whatsapp' | 'telegram';
   telegramId?: number;
   whatsappPhone?: string;

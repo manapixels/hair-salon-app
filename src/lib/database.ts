@@ -140,7 +140,7 @@ export const createUserFromOAuth = async (userData: Omit<User, 'id' | 'role'>): 
 
     return {
       ...updatedUser,
-      role: updatedUser.role.toLowerCase() as 'customer' | 'admin',
+      role: updatedUser.role as 'CUSTOMER' | 'ADMIN',
       authProvider: updatedUser.authProvider as 'whatsapp' | 'telegram' | undefined,
       telegramId: updatedUser.telegramId ?? undefined,
       whatsappPhone: updatedUser.whatsappPhone ?? undefined,
@@ -163,7 +163,7 @@ export const createUserFromOAuth = async (userData: Omit<User, 'id' | 'role'>): 
 
   return {
     ...newUser,
-    role: newUser.role.toLowerCase() as 'customer' | 'admin',
+    role: newUser.role as 'CUSTOMER' | 'ADMIN',
     authProvider: newUser.authProvider as 'whatsapp' | 'telegram' | undefined,
     telegramId: newUser.telegramId ?? undefined,
     whatsappPhone: newUser.whatsappPhone ?? undefined,
@@ -187,7 +187,7 @@ export const promoteUserToAdmin = async (email: string): Promise<User | null> =>
 
   return {
     ...updatedUser,
-    role: updatedUser.role.toLowerCase() as 'customer' | 'admin',
+    role: updatedUser.role as 'CUSTOMER' | 'ADMIN',
     authProvider: updatedUser.authProvider as 'whatsapp' | 'telegram' | undefined,
     telegramId: updatedUser.telegramId ?? undefined,
     whatsappPhone: updatedUser.whatsappPhone ?? undefined,
@@ -894,7 +894,7 @@ export const updateUserProfile = async (
     id: updatedUser.id,
     name: updatedUser.name,
     email: updatedUser.email,
-    role: updatedUser.role.toLowerCase() as 'customer' | 'admin',
+    role: updatedUser.role as 'CUSTOMER' | 'ADMIN',
     authProvider: (updatedUser.authProvider as 'email' | 'whatsapp' | 'telegram') ?? undefined,
     telegramId: updatedUser.telegramId ?? undefined,
     whatsappPhone: updatedUser.whatsappPhone ?? undefined,
@@ -1074,7 +1074,7 @@ export const getUpcomingAppointmentsForReminders = async (
           authProvider: appointment.user.authProvider as 'whatsapp' | 'telegram' | 'email',
           telegramId: appointment.user.telegramId ?? undefined,
           whatsappPhone: appointment.user.whatsappPhone ?? undefined,
-          role: appointment.user.role.toLowerCase() as 'customer' | 'admin',
+          role: appointment.user.role as 'CUSTOMER' | 'ADMIN',
           avatar: appointment.user.avatar ?? undefined,
         }
       : undefined,

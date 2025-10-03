@@ -70,7 +70,7 @@ export default function AppHeader({ view, onViewChange, onLoginClick }: AppHeade
             >
               <i className="fa-solid fa-calendar-check mr-2"></i> Book Online
             </NavButton>
-            {user && user.role === 'customer' && (
+            {user && user.role === 'CUSTOMER' && (
               <NavButton
                 currentView={view}
                 targetView="dashboard"
@@ -79,7 +79,7 @@ export default function AppHeader({ view, onViewChange, onLoginClick }: AppHeade
                 <i className="fa-solid fa-user mr-2"></i> Dashboard
               </NavButton>
             )}
-            {user?.role === 'admin' && (
+            {user?.role === 'ADMIN' && (
               <NavButton
                 currentView={view}
                 targetView="admin"

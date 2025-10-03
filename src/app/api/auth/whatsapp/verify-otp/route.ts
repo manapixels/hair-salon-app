@@ -81,7 +81,7 @@ export async function POST(request: NextRequest) {
     // Set session cookie
     const userForSession = {
       ...user,
-      role: user.role.toLowerCase() as 'customer' | 'admin',
+      role: user.role as 'CUSTOMER' | 'ADMIN',
       authProvider: (user.authProvider as 'email' | 'whatsapp' | 'telegram') ?? undefined,
       telegramId: user.telegramId ?? undefined,
       whatsappPhone: user.whatsappPhone ?? undefined,
@@ -97,7 +97,7 @@ export async function POST(request: NextRequest) {
         id: user.id,
         name: user.name,
         email: user.email,
-        role: user.role.toLowerCase(),
+        role: user.role,
         authProvider: user.authProvider,
         whatsappPhone: user.whatsappPhone,
       },

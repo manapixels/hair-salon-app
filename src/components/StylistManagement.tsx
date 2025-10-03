@@ -23,15 +23,23 @@ export default function StylistManagement({ onClose }: StylistManagementProps) {
   const fetchStylists = async () => {
     try {
       const response = await fetch('/api/stylists');
-      if (response.ok) {
-        const data = await response.json();
-        setStylists(data);
-      } else {
-        toast.error('Failed to load stylists');
+      if (!response.ok) {
+        throw new Error('Failed to load stylists');
       }
+
+      const data = await response.json();
+
+      // Validate response is an array
+      if (!Array.isArray(data)) {
+        console.error('Invalid response format:', data);
+        throw new Error('Invalid response format from server');
+      }
+
+      setStylists(data);
     } catch (error) {
       console.error('Failed to fetch stylists:', error);
       toast.error('Failed to load stylists');
+      setStylists([]);
     } finally {
       setIsLoading(false);
     }

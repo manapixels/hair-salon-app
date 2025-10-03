@@ -51,10 +51,20 @@ const StylistSelector: React.FC<{
       try {
         const serviceIds = selectedServices.map(s => s.id);
         const response = await fetch(`/api/stylists?services=${serviceIds.join(',')}`);
-        if (response.ok) {
-          const availableStylists = await response.json();
-          setStylists(availableStylists);
+
+        if (!response.ok) {
+          throw new Error(`Failed to fetch stylists: ${response.status}`);
         }
+
+        const availableStylists = await response.json();
+
+        // Validate response is an array
+        if (!Array.isArray(availableStylists)) {
+          console.error('Invalid response format:', availableStylists);
+          throw new Error('Invalid response format from server');
+        }
+
+        setStylists(availableStylists);
       } catch (error) {
         console.error('Failed to fetch stylists:', error);
         toast.error('Unable to load stylists. Please refresh the page.');

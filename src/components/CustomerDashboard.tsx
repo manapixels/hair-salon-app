@@ -28,16 +28,24 @@ export default function CustomerDashboard() {
     try {
       setIsLoading(true);
       const response = await fetch('/api/appointments/user');
-      if (response.ok) {
-        const data = await response.json();
-        setAppointments(data);
-      } else {
+      if (!response.ok) {
         throw new Error('Failed to fetch appointments');
       }
+
+      const data = await response.json();
+
+      // Validate response is an array
+      if (!Array.isArray(data)) {
+        console.error('Invalid response format:', data);
+        throw new Error('Invalid response format from server');
+      }
+
+      setAppointments(data);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'An error occurred';
       setError(errorMessage);
       toast.error(errorMessage);
+      setAppointments([]);
     } finally {
       setIsLoading(false);
     }
@@ -101,7 +109,9 @@ export default function CustomerDashboard() {
 
                     if (response.ok) {
                       // Remove the cancelled appointment from the list
-                      setAppointments(prev => prev.filter(apt => apt.id !== appointmentId));
+                      setAppointments(prev =>
+                        Array.isArray(prev) ? prev.filter(apt => apt.id !== appointmentId) : [],
+                      );
                       toast.success('Appointment cancelled successfully');
                     } else {
                       const errorData = await response.json();

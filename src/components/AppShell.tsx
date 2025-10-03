@@ -53,7 +53,7 @@ export default function AppShell() {
       case 'booking':
         return <BookingForm />;
       case 'admin':
-        return user?.role === 'admin' ? <AdminDashboard /> : <p>Access Denied.</p>;
+        return user?.role === 'ADMIN' ? <AdminDashboard /> : <p>Access Denied.</p>;
       case 'dashboard':
         return user ? <CustomerDashboard /> : <p>Please sign in to access your dashboard.</p>;
       default:

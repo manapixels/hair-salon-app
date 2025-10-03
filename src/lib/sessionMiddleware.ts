@@ -89,7 +89,7 @@ export function withAdminAuth(
   handler: (request: NextRequest, context: { user: User }) => Promise<NextResponse>,
 ) {
   return withAuth(async (request: NextRequest, context: { user: User }) => {
-    if (context.user.role !== 'admin') {
+    if (context.user.role !== 'ADMIN') {
       return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
     }
 

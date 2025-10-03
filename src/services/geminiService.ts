@@ -352,7 +352,7 @@ ${servicesListString}
             if (dbUser) {
               user = {
                 ...dbUser,
-                role: dbUser.role.toLowerCase() as 'customer' | 'admin',
+                role: dbUser.role as 'CUSTOMER' | 'ADMIN',
                 authProvider:
                   (dbUser.authProvider as 'email' | 'whatsapp' | 'telegram') ?? undefined,
                 telegramId: dbUser.telegramId ?? undefined,

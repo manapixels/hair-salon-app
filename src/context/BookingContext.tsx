@@ -37,12 +37,25 @@ export const BookingProvider: React.FC<{ children: ReactNode }> = ({ children })
   const fetchAndSetAppointments = useCallback(async () => {
     try {
       const response = await fetch('/api/appointments');
-      if (response.ok) {
-        const fetchedAppointments = await response.json();
-        setAppointments(fetchedAppointments);
+      if (!response.ok) {
+        console.error('Failed to fetch appointments:', response.status, response.statusText);
+        setAppointments([]);
+        return;
       }
+
+      const fetchedAppointments = await response.json();
+
+      // Validate response is an array
+      if (!Array.isArray(fetchedAppointments)) {
+        console.error('Invalid appointments response format:', fetchedAppointments);
+        setAppointments([]);
+        return;
+      }
+
+      setAppointments(fetchedAppointments);
     } catch (error) {
       console.error('Failed to fetch appointments:', error);
+      setAppointments([]);
     }
   }, []);
 
