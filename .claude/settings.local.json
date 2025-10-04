@@ -22,7 +22,8 @@
       "Bash(npm run lint:*)",
       "Bash(tsc --noEmit)",
       "WebFetch(domain:business.whatsapp.com)",
-      "Bash(timeout 30 npm run build:*)"
+      "Bash(timeout 30 npm run build:*)",
+      "Bash(cat:*)"
     ],
     "deny": [],
     "ask": []

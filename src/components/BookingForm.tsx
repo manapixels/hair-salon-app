@@ -6,6 +6,14 @@ import { useBooking } from '@/context/BookingContext';
 import { useAuth } from '@/context/AuthContext';
 import { toZonedTime } from 'date-fns-tz';
 import { format } from 'date-fns';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
+import {
+  calculateEndTime,
+  formatDuration,
+  getDurationColor,
+  getDurationPercentage,
+} from '@/lib/timeUtils';
 
 // Get the salon's timezone from environment variable or default to Asia/Singapore
 const SALON_TIMEZONE = process.env.NEXT_PUBLIC_GOOGLE_CALENDAR_TIMEZONE || 'Asia/Singapore';
@@ -180,6 +188,81 @@ const StylistSelector: React.FC<{
   );
 };
 
+const TimeSlotCard: React.FC<{
+  time: string;
+  duration: number;
+  isSelected: boolean;
+  isAvailable: boolean;
+  onClick: () => void;
+}> = ({ time, duration, isSelected, isAvailable, onClick }) => {
+  const endTime = calculateEndTime(time, duration);
+  const durationText = formatDuration(duration);
+
+  return (
+    <button
+      disabled={!isAvailable}
+      onClick={onClick}
+      className={`
+        relative p-4 rounded-lg text-left transition-all duration-200
+        ${
+          isSelected
+            ? 'bg-indigo-600 text-white ring-2 ring-indigo-400 shadow-lg scale-105'
+            : isAvailable
+              ? 'bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 hover:border-indigo-400 hover:shadow-md'
+              : 'bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 opacity-50 cursor-not-allowed'
+        }
+      `}
+      aria-label={`${time} to ${endTime}, ${durationText}`}
+      aria-pressed={isSelected}
+    >
+      <div className="flex flex-col gap-1">
+        {/* Start time - prominent */}
+        <span className="text-sm font-bold">{time}</span>
+
+        {/* Duration bar */}
+        <div
+          className={`mb-1 rounded-full h-1.5 overflow-hidden ${
+            isSelected ? 'bg-indigo-400' : 'bg-gray-200 dark:bg-gray-700'
+          }`}
+        >
+          <div
+            className={`h-full transition-all ${
+              isSelected ? 'bg-white' : getDurationColor(duration)
+            }`}
+            style={{ width: `${getDurationPercentage(duration)}%` }}
+          />
+        </div>
+
+        {/* End time */}
+        <span
+          className={`text-xs ${
+            isSelected ? 'text-indigo-100' : 'text-gray-600 dark:text-gray-400'
+          }`}
+        >
+          to {endTime}
+        </span>
+
+        {/* Duration label */}
+        <div
+          className={`flex items-center gap-1 text-xs ${
+            isSelected ? 'text-indigo-200' : 'text-gray-500 dark:text-gray-500'
+          }`}
+        >
+          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+          <span>{durationText}</span>
+        </div>
+      </div>
+    </button>
+  );
+};
+
 const DateTimePicker: React.FC<{
   selectedDate: Date;
   onDateChange: (date: Date) => void;
@@ -217,48 +300,81 @@ const DateTimePicker: React.FC<{
     fetchSlots();
   }, [selectedDate, selectedStylist, getAvailableSlots]);
 
-  const minDate = format(getTodayInSalonTimezone(), 'yyyy-MM-dd');
-
   return (
     <div className="mt-8">
-      <h2 className="text-2xl font-semibold mb-4 text-gray-800 dark:text-gray-200">
+      <h2 className="text-2xl font-semibold mb-6 text-gray-800 dark:text-gray-200">
         3. Select Date & Time
       </h2>
-      <input
-        type="date"
-        value={selectedDate.toISOString().split('T')[0]}
-        min={minDate}
-        onChange={e => onDateChange(new Date(e.target.value))}
-        className="w-full md:w-auto p-2 border rounded-md bg-white dark:bg-gray-800 dark:border-gray-600 mb-4"
-        aria-label="Select a date"
-      />
+
+      {/* Date Picker */}
+      <div className="mb-6">
+        <DatePicker
+          selected={selectedDate}
+          onChange={date => date && onDateChange(date)}
+          inline
+          minDate={getTodayInSalonTimezone()}
+          calendarClassName="!bg-white dark:!bg-gray-800 !border-gray-200 dark:!border-gray-700 rounded-lg shadow-lg"
+          dayClassName={() =>
+            'hover:bg-indigo-100 dark:hover:bg-indigo-900 rounded-lg transition-colors'
+          }
+        />
+      </div>
+
+      {/* Time Slots */}
       {loading ? (
-        <div className="text-center p-4">Loading time slots...</div>
+        <div className="flex items-center justify-center p-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600" />
+          <span className="ml-3 text-gray-600 dark:text-gray-400">Finding available times...</span>
+        </div>
       ) : (
-        <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-3">
-          {timeSlots.length > 0 ? (
-            timeSlots.map(({ time, available }) => (
-              <button
-                key={time}
-                disabled={!available}
-                onClick={() => onTimeSelect(time)}
-                className={`p-3 rounded-md text-sm font-medium transition-colors ${selectedTime === time ? 'bg-indigo-600 text-white ring-2 ring-indigo-400' : available ? 'bg-gray-200 dark:bg-gray-700 hover:bg-indigo-200 dark:hover:bg-indigo-500' : 'bg-gray-100 text-gray-400 cursor-not-allowed'}`}
-                aria-pressed={selectedTime === time}
-              >
-                {time}
-              </button>
-            ))
-          ) : (
-            <p className="col-span-full text-gray-500">
-              No available slots for this day. Please try another date.
-            </p>
-          )}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">
+              Available Times
+            </h3>
+            <span className="text-sm text-gray-500 dark:text-gray-400">
+              {timeSlots.length} slot{timeSlots.length !== 1 ? 's' : ''} available
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+            {timeSlots.length > 0 ? (
+              timeSlots.map(({ time, available }) => (
+                <TimeSlotCard
+                  key={time}
+                  time={time}
+                  duration={totalDuration}
+                  isSelected={selectedTime === time}
+                  isAvailable={available}
+                  onClick={() => onTimeSelect(time)}
+                />
+              ))
+            ) : (
+              <div className="col-span-full text-center p-8 bg-gray-50 dark:bg-gray-800 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-700">
+                <svg
+                  className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                  />
+                </svg>
+                <p className="mt-2 text-gray-600 dark:text-gray-400 font-medium">
+                  No available slots on {format(selectedDate, 'MMMM d, yyyy')}
+                </p>
+                <p className="text-sm text-gray-500 dark:text-gray-500 mt-1">
+                  Try selecting a different date, or contact us for assistance
+                </p>
+              </div>
+            )}
+          </div>
         </div>
       )}
-      <p className="text-sm text-gray-500 mt-2">
-        Total duration: {totalDuration} minutes. The system will ensure enough consecutive slots are
-        free.
-      </p>
     </div>
   );
 };
