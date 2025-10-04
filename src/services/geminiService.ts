@@ -13,6 +13,7 @@ import {
 } from '../lib/database';
 import { updateCalendarEvent } from '../lib/google';
 import { sendAppointmentConfirmation } from './messagingService';
+import { formatDisplayDate } from '@/lib/timeUtils';
 
 // This function is now designed to be run on the server.
 // The API KEY should be set as an environment variable on the server.
@@ -154,7 +155,7 @@ export const handleWhatsAppMessage = async (
 
   const systemInstruction = `You are a friendly and efficient AI assistant for 'Luxe Cuts' hair salon.
 Your goal is to help users inquire about services, book appointments, cancel them, view their appointments, and modify existing bookings.
-Today's date is ${new Date().toLocaleDateString()}.
+Today's date is ${formatDisplayDate(new Date())}.
 Do not ask for information you can derive, like the year if the user says "next Tuesday".
 Be conversational and helpful.
 
@@ -211,9 +212,9 @@ ${servicesListString}
         const utcDate = new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
         const slots = await getAvailability(utcDate);
         if (slots.length > 0) {
-          return `On ${utcDate.toLocaleDateString()}, the following time slots are available:\n${slots.join(', ')}`;
+          return `On ${formatDisplayDate(utcDate)}, the following time slots are available:\n${slots.join(', ')}`;
         } else {
-          return `Sorry, there are no available slots on ${utcDate.toLocaleDateString()}. Please try another date.`;
+          return `Sorry, there are no available slots on ${formatDisplayDate(utcDate)}. Please try another date.`;
         }
       }
 
@@ -269,7 +270,7 @@ ${servicesListString}
           let appointmentsList = `Here are your upcoming appointments:\n\n`;
           appointments.forEach((apt, index) => {
             const services = apt.services.map(s => s.name).join(', ');
-            const date = new Date(apt.date).toLocaleDateString();
+            const date = formatDisplayDate(apt.date);
             appointmentsList += `${index + 1}. **${date} at ${apt.time}**\n`;
             appointmentsList += `   Services: ${services}\n`;
             appointmentsList += `   Duration: ${apt.totalDuration} minutes\n`;
@@ -366,11 +367,11 @@ ${servicesListString}
           }
 
           const changes = [];
-          if (newDate) changes.push(`date to ${new Date(newDate).toLocaleDateString()}`);
+          if (newDate) changes.push(`date to ${formatDisplayDate(newDate)}`);
           if (newTime) changes.push(`time to ${newTime}`);
           if (newServices) changes.push(`services to ${newServices.join(', ')}`);
 
-          return `Great! Your appointment has been successfully updated. Changes: ${changes.join(', ')}.\n\nNew appointment details:\n📅 Date: ${new Date(updatedAppointment.date).toLocaleDateString()}\n🕐 Time: ${updatedAppointment.time}\n✂️ Services: ${updatedAppointment.services.map(s => s.name).join(', ')}\n💰 Total: $${updatedAppointment.totalPrice}`;
+          return `Great! Your appointment has been successfully updated. Changes: ${changes.join(', ')}.\n\nNew appointment details:\n📅 Date: ${formatDisplayDate(updatedAppointment.date)}\n🕐 Time: ${updatedAppointment.time}\n✂️ Services: ${updatedAppointment.services.map(s => s.name).join(', ')}\n💰 Total: $${updatedAppointment.totalPrice}`;
         } catch (e: any) {
           return `I'm sorry, I couldn't modify that appointment. Reason: ${e.message}. Please try again or contact the salon directly.`;
         }

@@ -4,6 +4,7 @@ import { useBooking } from '../context/BookingContext';
 import type { TimeSlot, Appointment } from '../types';
 import EditAppointmentModal from './EditAppointmentModal';
 import StylistManagement from './StylistManagement';
+import { formatDisplayDate } from '@/lib/timeUtils';
 
 const AdminDashboard: React.FC = () => {
   const {
@@ -779,7 +780,7 @@ const AdminDashboard: React.FC = () => {
                             <div className="flex items-center space-x-2">
                               <div>
                                 <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                  {new Date(appointment.date).toLocaleDateString()}
+                                  {formatDisplayDate(appointment.date)}
                                 </div>
                                 <div className="text-sm text-gray-500 dark:text-gray-400">
                                   {appointment.time}
@@ -1089,7 +1090,7 @@ const AdminDashboard: React.FC = () => {
                             <div className="flex items-center space-x-2">
                               <div>
                                 <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                  {new Date(appointment.date).toLocaleDateString()}
+                                  {formatDisplayDate(appointment.date)}
                                 </div>
                                 <div className="text-sm text-gray-500 dark:text-gray-400">
                                   {appointment.time}

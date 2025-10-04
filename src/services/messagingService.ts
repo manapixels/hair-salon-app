@@ -1,4 +1,5 @@
 import type { Appointment, User } from '../types';
+import { formatLongDate } from '@/lib/timeUtils';
 
 /**
  * Messaging Service for appointment confirmations
@@ -104,12 +105,7 @@ function formatAppointmentMessage(
   appointment: Appointment,
   messageType: 'confirmation' | 'reminder' | 'cancellation' | 'reschedule',
 ): string {
-  const date = new Date(appointment.date).toLocaleDateString('en-US', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
+  const date = formatLongDate(appointment.date);
 
   const services = appointment.services.map(s => s.name).join(', ');
 

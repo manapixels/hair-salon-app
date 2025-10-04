@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import type { Appointment, TimeSlot } from '@/types';
 import { useBooking } from '@/context/BookingContext';
+import { formatDisplayDate } from '@/lib/timeUtils';
 
 interface RescheduleModalProps {
   appointment: Appointment;
@@ -141,7 +142,7 @@ export default function RescheduleModal({
             <div>
               <span className="font-medium text-gray-700 dark:text-gray-300">Date: </span>
               <span className="text-gray-900 dark:text-white">
-                {appointment.date.toLocaleDateString()}
+                {formatDisplayDate(appointment.date)}
               </span>
             </div>
             <div>

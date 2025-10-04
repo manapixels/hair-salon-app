@@ -1,5 +1,6 @@
 import type { Appointment, User } from '@/types';
 import { sendWhatsAppMessage, sendTelegramMessage } from './messagingService';
+import { formatLongDate } from '@/lib/timeUtils';
 
 export interface ReminderResult {
   appointmentId: string;
@@ -84,13 +85,7 @@ export const sendAppointmentReminder = async (
  * Formats the reminder message for an appointment
  */
 export const formatReminderMessage = (appointment: Appointment): string => {
-  const appointmentDate = new Date(appointment.date);
-  const formattedDate = appointmentDate.toLocaleDateString('en-US', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
+  const formattedDate = formatLongDate(appointment.date);
 
   const serviceNames = appointment.services.map(s => s.name).join(', ');
   const stylistInfo = appointment.stylist ? ` with ${appointment.stylist.name}` : '';

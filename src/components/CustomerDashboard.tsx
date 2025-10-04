@@ -8,6 +8,7 @@ import { LoadingSpinner } from './loaders/LoadingSpinner';
 import { ErrorState } from './ErrorState';
 import { EmptyState } from './EmptyState';
 import { useDelayedLoading } from '../hooks/useDelayedLoading';
+import { formatDisplayDate } from '@/lib/timeUtils';
 import type { Appointment } from '@/types';
 
 export default function CustomerDashboard() {
@@ -346,7 +347,7 @@ export default function CustomerDashboard() {
                         <div className="flex items-center space-x-2 mb-2">
                           <i className="fa-solid fa-calendar text-indigo-600"></i>
                           <span className="font-medium text-gray-900 dark:text-white">
-                            {new Date(appointment.date).toLocaleDateString()}
+                            {formatDisplayDate(appointment.date)}
                           </span>
                           <span className="text-gray-600 dark:text-gray-400">
                             at {appointment.time}

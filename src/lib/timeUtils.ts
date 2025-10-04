@@ -115,3 +115,47 @@ export function groupSlotsByPeriod<T extends { time: string }>(
     { morning: [] as T[], afternoon: [] as T[], evening: [] as T[] },
   );
 }
+
+/**
+ * Format a date in the universal "18 Oct 2025" format
+ * @param date - Date object or string to format
+ * @returns Formatted date string like "18 Oct 2025"
+ */
+export function formatDisplayDate(date: Date | string): string {
+  const dateObj = typeof date === 'string' ? new Date(date) : date;
+
+  // Validate date
+  if (isNaN(dateObj.getTime())) {
+    console.error('Invalid date provided to formatDisplayDate:', date);
+    return 'Invalid Date';
+  }
+
+  const day = dateObj.getDate();
+  const month = dateObj.toLocaleDateString('en-US', { month: 'short' });
+  const year = dateObj.getFullYear();
+
+  return `${day} ${month} ${year}`;
+}
+
+/**
+ * Format a date in long format with day of week
+ * For messages and confirmations: "Monday, 18 Oct 2025"
+ * @param date - Date object or string to format
+ * @returns Formatted date string like "Monday, 18 Oct 2025"
+ */
+export function formatLongDate(date: Date | string): string {
+  const dateObj = typeof date === 'string' ? new Date(date) : date;
+
+  // Validate date
+  if (isNaN(dateObj.getTime())) {
+    console.error('Invalid date provided to formatLongDate:', date);
+    return 'Invalid Date';
+  }
+
+  const dayOfWeek = dateObj.toLocaleDateString('en-US', { weekday: 'long' });
+  const day = dateObj.getDate();
+  const month = dateObj.toLocaleDateString('en-US', { month: 'short' });
+  const year = dateObj.getFullYear();
+
+  return `${dayOfWeek}, ${day} ${month} ${year}`;
+}

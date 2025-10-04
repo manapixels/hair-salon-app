@@ -13,6 +13,7 @@ import {
   formatDuration,
   getDurationColor,
   getDurationPercentage,
+  formatDisplayDate,
 } from '@/lib/timeUtils';
 import CalendlyStyleDateTimePicker from './booking/CalendlyStyleDateTimePicker';
 import { LoadingSpinner } from './loaders/LoadingSpinner';
@@ -623,7 +624,7 @@ const BookingSummary: React.FC<{
                 Stylist: <span className="font-medium">{selectedStylist.name}</span>
               </p>
             )}
-            {selectedDate && <p className="text-sm">Date: {selectedDate.toLocaleDateString()}</p>}
+            {selectedDate && <p className="text-sm">Date: {formatDisplayDate(selectedDate)}</p>}
             {selectedTime && (
               <p className="text-sm font-bold text-indigo-500">Time: {selectedTime}</p>
             )}
@@ -744,7 +745,7 @@ Please confirm availability. Thank you!`;
             </p>
           )}
           <p>
-            <strong>Date:</strong> {new Date(bookingConfirmed.date).toLocaleDateString()}
+            <strong>Date:</strong> {formatDisplayDate(bookingConfirmed.date)}
           </p>
           <p>
             <strong>Time:</strong> {bookingConfirmed.time}
