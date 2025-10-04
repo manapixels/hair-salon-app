@@ -4,6 +4,17 @@ import { SALON_SERVICES } from '@/constants';
 import type { Service, TimeSlot, Appointment, Stylist } from '@/types';
 import { useBooking } from '@/context/BookingContext';
 import { useAuth } from '@/context/AuthContext';
+import { toZonedTime } from 'date-fns-tz';
+import { format } from 'date-fns';
+
+// Get the salon's timezone from environment variable or default to Asia/Singapore
+const SALON_TIMEZONE = process.env.NEXT_PUBLIC_GOOGLE_CALENDAR_TIMEZONE || 'Asia/Singapore';
+
+// Helper function to get the current date in the salon's timezone
+const getTodayInSalonTimezone = (): Date => {
+  const now = new Date();
+  return toZonedTime(now, SALON_TIMEZONE);
+};
 
 const ServiceSelector: React.FC<{
   selectedServices: Service[];
@@ -206,6 +217,8 @@ const DateTimePicker: React.FC<{
     fetchSlots();
   }, [selectedDate, selectedStylist, getAvailableSlots]);
 
+  const minDate = format(getTodayInSalonTimezone(), 'yyyy-MM-dd');
+
   return (
     <div className="mt-8">
       <h2 className="text-2xl font-semibold mb-4 text-gray-800 dark:text-gray-200">
@@ -214,7 +227,7 @@ const DateTimePicker: React.FC<{
       <input
         type="date"
         value={selectedDate.toISOString().split('T')[0]}
-        min={new Date().toISOString().split('T')[0]}
+        min={minDate}
         onChange={e => onDateChange(new Date(e.target.value))}
         className="w-full md:w-auto p-2 border rounded-md bg-white dark:bg-gray-800 dark:border-gray-600 mb-4"
         aria-label="Select a date"
@@ -404,7 +417,7 @@ const BookingSummary: React.FC<{
 const BookingForm: React.FC = () => {
   const [selectedServices, setSelectedServices] = useState<Service[]>([]);
   const [selectedStylist, setSelectedStylist] = useState<Stylist | null>(null);
-  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState(getTodayInSalonTimezone());
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [bookingConfirmed, setBookingConfirmed] = useState<Appointment | null>(null);
@@ -468,7 +481,7 @@ const BookingForm: React.FC = () => {
   const handleReset = () => {
     setSelectedServices([]);
     setSelectedStylist(null);
-    setSelectedDate(new Date());
+    setSelectedDate(getTodayInSalonTimezone());
     setSelectedTime(null);
     setBookingConfirmed(null);
   };
