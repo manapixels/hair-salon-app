@@ -22,9 +22,6 @@ import { ErrorState } from './ErrorState';
 import { EmptyState } from './EmptyState';
 import { useDelayedLoading } from '@/hooks/useDelayedLoading';
 
-// Feature flag for Calendly-style date/time picker
-const USE_CALENDLY_STYLE = process.env.NEXT_PUBLIC_USE_CALENDLY_STYLE === 'true';
-
 // Get the salon's timezone from environment variable or default to Asia/Singapore
 const SALON_TIMEZONE = process.env.NEXT_PUBLIC_GOOGLE_CALENDAR_TIMEZONE || 'Asia/Singapore';
 
@@ -783,26 +780,16 @@ Please confirm availability. Thank you!`;
           />
         )}
 
-        {selectedServices.length > 0 &&
-          (USE_CALENDLY_STYLE ? (
-            <CalendlyStyleDateTimePicker
-              selectedDate={selectedDate}
-              onDateChange={setSelectedDate}
-              selectedTime={selectedTime}
-              onTimeSelect={setSelectedTime}
-              totalDuration={totalDuration}
-              selectedStylist={selectedStylist}
-            />
-          ) : (
-            <DateTimePicker
-              selectedDate={selectedDate}
-              onDateChange={setSelectedDate}
-              selectedTime={selectedTime}
-              onTimeSelect={setSelectedTime}
-              totalDuration={totalDuration}
-              selectedStylist={selectedStylist}
-            />
-          ))}
+        {selectedServices.length > 0 && (
+          <CalendlyStyleDateTimePicker
+            selectedDate={selectedDate}
+            onDateChange={setSelectedDate}
+            selectedTime={selectedTime}
+            onTimeSelect={setSelectedTime}
+            totalDuration={totalDuration}
+            selectedStylist={selectedStylist}
+          />
+        )}
 
         {selectedTime && (
           <ConfirmationForm
