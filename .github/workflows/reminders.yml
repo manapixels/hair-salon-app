@@ -18,6 +18,19 @@ jobs:
         run: |
           echo "🔔 Sending appointment reminders..."
 
+          # Validate required variables
+          if [ -z "${{ vars.APP_URL }}" ]; then
+            echo "❌ ERROR: APP_URL variable is not set"
+            echo "Please configure APP_URL in your repository variables"
+            exit 1
+          fi
+
+          if [ -z "${{ secrets.CRON_SECRET }}" ]; then
+            echo "⚠️  WARNING: CRON_SECRET is not set - API may reject request"
+          fi
+
+          echo "📡 Target URL: ${{ vars.APP_URL }}/api/reminders/send"
+
           # Make API call to send reminders
           response=$(curl -s -w "\n%{http_code}" -X POST "${{ vars.APP_URL }}/api/reminders/send" \
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
@@ -25,14 +38,22 @@ jobs:
 
           # Extract response body and status code
           http_code=$(echo "$response" | tail -n1)
-          response_body=$(echo "$response" | head -n -1)
+          response_body=$(echo "$response" | sed '$d')
 
-          echo "Response: $response_body"
+          echo "Response Body: $response_body"
           echo "HTTP Status: $http_code"
 
           # Check if request was successful
-          if [ "$http_code" -eq 200 ]; then
+          if [ "$http_code" = "200" ]; then
             echo "✅ Reminders sent successfully"
+          elif [ "$http_code" = "401" ]; then
+            echo "❌ Authentication failed (HTTP 401)"
+            echo "Please verify CRON_SECRET is correctly configured"
+            exit 1
+          elif [ -z "$http_code" ]; then
+            echo "❌ Failed to get response from server"
+            echo "Please check if APP_URL is correct and server is accessible"
+            exit 1
           else
             echo "❌ Failed to send reminders (HTTP $http_code)"
             echo "Response: $response_body"
