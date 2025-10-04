@@ -23,7 +23,8 @@
       "Bash(tsc --noEmit)",
       "WebFetch(domain:business.whatsapp.com)",
       "Bash(timeout 30 npm run build:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "WebFetch(domain:calendly.com)"
     ],
     "deny": [],
     "ask": []
