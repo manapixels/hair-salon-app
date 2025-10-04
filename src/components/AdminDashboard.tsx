@@ -476,7 +476,14 @@ const AdminDashboard: React.FC = () => {
 
   return (
     <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg">
-      <h2 className="text-3xl font-bold text-gray-800 dark:text-gray-200 mb-6">Admin Dashboard</h2>
+      <div className="flex items-center gap-3 mb-6">
+        <h2 className="text-3xl font-bold text-gray-800 dark:text-gray-200">
+          Salon Management Dashboard
+        </h2>
+        <span className="px-3 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
+          Admin Mode
+        </span>
+      </div>
 
       {/* Tab Navigation */}
       <div className="border-b border-gray-200 dark:border-gray-600 mb-6">
@@ -522,7 +529,7 @@ const AdminDashboard: React.FC = () => {
           {/* Appointments Management Section */}
           <div className="mb-8">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xl font-semibold">All Appointments</h3>
+              <h3 className="text-xl font-semibold">Customer Appointment Management</h3>
               <div className="flex items-center space-x-4">
                 <div className="text-sm text-gray-500 dark:text-gray-400">
                   Showing {startIndex + 1}-{Math.min(endIndex, sortedAppointments.length)} of{' '}
@@ -1013,7 +1020,7 @@ const AdminDashboard: React.FC = () => {
           {/* Appointments Management Section */}
           <div className="mb-8">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xl font-semibold">All Appointments</h3>
+              <h3 className="text-xl font-semibold">Customer Appointment Management</h3>
               <div className="flex items-center space-x-4">
                 <div className="relative">
                   <input
