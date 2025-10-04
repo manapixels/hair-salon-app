@@ -4,12 +4,17 @@ import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { useAuth } from '../context/AuthContext';
 import RescheduleModal from './RescheduleModal';
+import { LoadingSpinner } from './loaders/LoadingSpinner';
+import { ErrorState } from './ErrorState';
+import { EmptyState } from './EmptyState';
+import { useDelayedLoading } from '../hooks/useDelayedLoading';
 import type { Appointment } from '@/types';
 
 export default function CustomerDashboard() {
   const { user, refreshSession } = useAuth();
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const showLoader = useDelayedLoading(isLoading);
   const [error, setError] = useState<string | null>(null);
   const [isEditingName, setIsEditingName] = useState(false);
   const [newName, setNewName] = useState('');
@@ -299,27 +304,36 @@ export default function CustomerDashboard() {
               Your Appointments
             </h2>
 
-            {isLoading ? (
-              <div className="text-center py-8">
-                <div className="text-gray-600 dark:text-gray-400">Loading appointments...</div>
+            {showLoader ? (
+              <div className="flex flex-col items-center justify-center py-8 space-y-3">
+                <LoadingSpinner size="md" message="Loading your appointments..." />
               </div>
             ) : error ? (
-              <div className="text-center py-8">
-                <div className="text-red-600 dark:text-red-400">{error}</div>
-                <button
-                  onClick={fetchUserAppointments}
-                  className="mt-2 text-indigo-600 hover:text-indigo-700 dark:text-indigo-400"
-                >
-                  Try again
-                </button>
-              </div>
+              <ErrorState
+                title="Failed to Load Appointments"
+                message={error}
+                onRetry={fetchUserAppointments}
+              />
             ) : appointments.length === 0 ? (
-              <div className="text-center py-8">
-                <div className="text-gray-600 dark:text-gray-400 mb-4">No appointments found</div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Book your first appointment to get started!
-                </p>
-              </div>
+              <EmptyState
+                icon={
+                  <svg
+                    className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                    />
+                  </svg>
+                }
+                title="No appointments found"
+                description="Book your first appointment to get started!"
+              />
             ) : (
               <div className="space-y-4">
                 {appointments.map(appointment => (

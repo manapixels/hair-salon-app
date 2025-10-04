@@ -132,6 +132,138 @@ node scripts/create-admin.js promote <email>  # Promote user to admin
 3. **Database operations** go in `src/lib/database.ts`
 4. **API routes** use App Router format with middleware
 5. **Security first** - always use session middleware for protected routes
+6. **Loading states** - use standardized components (see Loading States section below)
+
+---
+
+## 🔄 Loading States & UX Patterns
+
+### **Standardized Loading Components**
+
+All loading indicators use reusable components from `/src/components/loaders/`:
+
+```tsx
+import { LoadingSpinner } from '@/components/loaders/LoadingSpinner';
+import { LoadingButton } from '@/components/loaders/LoadingButton';
+import { SkeletonLoader } from '@/components/loaders/SkeletonLoader';
+import { StylistCardSkeleton } from '@/components/loaders/StylistCardSkeleton';
+import { ErrorState } from '@/components/ErrorState';
+import { EmptyState } from '@/components/EmptyState';
+import { useDelayedLoading } from '@/hooks/useDelayedLoading';
+```
+
+### **When to Use Each Loader**
+
+| Loader Type          | Use Case                  | Example                    |
+| -------------------- | ------------------------- | -------------------------- |
+| **LoadingSpinner**   | Single items, small areas | API calls, inline loading  |
+| **SkeletonLoader**   | Known layout, lists       | Card grids, repeated items |
+| **LoadingButton**    | Button actions            | Form submissions, actions  |
+| **Domain Skeletons** | Complex layouts           | StylistCardSkeleton        |
+
+### **Quick Start Examples**
+
+**1. Basic Spinner with Message**
+
+```tsx
+{
+  loading && <LoadingSpinner size="md" message="Loading data..." />;
+}
+```
+
+**2. Delayed Loading (Prevents Flash)**
+
+```tsx
+const showLoader = useDelayedLoading(loading, { delay: 150, minDuration: 300 });
+
+{
+  showLoader && <LoadingSpinner message="Finding stylists..." />;
+}
+```
+
+**3. Skeleton Loader for Lists**
+
+```tsx
+{
+  loading ? (
+    <div className="grid grid-cols-3 gap-4">
+      <StylistCardSkeleton count={3} />
+    </div>
+  ) : (
+    <div className="grid grid-cols-3 gap-4">
+      {items.map(item => (
+        <Card key={item.id} {...item} />
+      ))}
+    </div>
+  );
+}
+```
+
+**4. Loading Button**
+
+```tsx
+<LoadingButton
+  loading={submitting}
+  loadingText="Saving..."
+  onClick={handleSubmit}
+  className="bg-indigo-600 text-white px-4 py-2 rounded-lg"
+>
+  Save Changes
+</LoadingButton>
+```
+
+**5. Error State with Retry**
+
+```tsx
+{
+  error && <ErrorState title="Failed to Load" message={error} onRetry={refetch} />;
+}
+```
+
+**6. Empty State**
+
+```tsx
+{
+  !loading && items.length === 0 && (
+    <EmptyState title="No Results" description="Try adjusting your filters" />
+  );
+}
+```
+
+### **Timing Guidelines**
+
+- **< 100ms**: No loader (feels instant)
+- **100-300ms**: Use `useDelayedLoading` with 150ms delay
+- **> 300ms**: Show loader immediately
+- **Minimum display**: 300ms (prevents jarring flash)
+
+### **Accessibility Requirements**
+
+All loading states MUST include:
+
+```tsx
+// ARIA live region for screen readers
+<div className="sr-only" aria-live="polite" aria-atomic="true">
+  {loading && 'Loading data'}
+  {!loading && `${items.length} items loaded`}
+</div>
+
+// Proper ARIA attributes on loaders
+<div role="status" aria-label="Loading">
+  <LoadingSpinner />
+</div>
+```
+
+### **Best Practices**
+
+1. ✅ **Always use delayed loading** for API calls to prevent flash
+2. ✅ **Match skeleton to actual content** (same layout, proper count)
+3. ✅ **Provide contextual messages** ("Finding stylists who can perform Haircut...")
+4. ✅ **Include retry buttons** in error states
+5. ✅ **Add ARIA live regions** for screen readers
+6. ✅ **Disable form inputs** during submission, don't hide them
+7. ❌ **Don't use color alone** for loading indicators
+8. ❌ **Don't block entire UI** unless absolutely necessary
 
 ---
 

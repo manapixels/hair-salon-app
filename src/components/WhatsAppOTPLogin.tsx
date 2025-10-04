@@ -1,9 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import PhoneInput from 'react-phone-number-input';
 import 'react-phone-number-input/style.css';
+import { LoadingButton } from './loaders/LoadingButton';
+import { LoadingSpinner } from './loaders/LoadingSpinner';
 
 interface WhatsAppOTPLoginProps {
   onSuccess: () => void;
@@ -20,10 +22,32 @@ export default function WhatsAppOTPLogin({ onSuccess, onBack }: WhatsAppOTPLogin
   const [expiresAt, setExpiresAt] = useState<number | null>(null);
   const [isReturningUser, setIsReturningUser] = useState(false);
   const [existingName, setExistingName] = useState('');
+  const [checkingUser, setCheckingUser] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(0);
+
+  // Countdown timer for OTP expiration
+  useEffect(() => {
+    if (!expiresAt) {
+      setTimeLeft(0);
+      return;
+    }
+
+    const interval = setInterval(() => {
+      const remaining = Math.max(0, Math.floor((expiresAt - Date.now()) / 1000));
+      setTimeLeft(remaining);
+
+      if (remaining === 0) {
+        clearInterval(interval);
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [expiresAt]);
 
   const checkUserExists = async (phone: string) => {
     if (!phone || phone.length < 10) return;
 
+    setCheckingUser(true);
     try {
       const response = await fetch('/api/auth/whatsapp/check-user', {
         method: 'POST',
@@ -44,6 +68,8 @@ export default function WhatsAppOTPLogin({ onSuccess, onBack }: WhatsAppOTPLogin
       console.error('Failed to check user:', error);
       // Don't block login flow on error
       setIsReturningUser(false);
+    } finally {
+      setCheckingUser(false);
     }
   };
 
@@ -152,9 +178,17 @@ export default function WhatsAppOTPLogin({ onSuccess, onBack }: WhatsAppOTPLogin
               disabled={loading}
               required
             />
+
+            {/* User check loading state */}
+            {checkingUser && (
+              <div className="flex items-center gap-2 mt-2 text-sm text-gray-500">
+                <LoadingSpinner size="sm" />
+                <span>Checking account...</span>
+              </div>
+            )}
           </div>
 
-          {isReturningUser && (
+          {isReturningUser && !checkingUser && (
             <div className="p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
               <p className="text-sm text-green-700 dark:text-green-300 flex items-center gap-2">
                 <span>👋</span>
@@ -186,13 +220,15 @@ export default function WhatsAppOTPLogin({ onSuccess, onBack }: WhatsAppOTPLogin
 
           {error && <div className="text-red-600 dark:text-red-400 text-sm">{error}</div>}
 
-          <button
+          <LoadingButton
             type="submit"
-            disabled={loading || !phoneNumber}
-            className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white font-medium py-2 px-4 rounded-lg transition-colors"
+            disabled={!phoneNumber || checkingUser}
+            loading={loading}
+            loadingText="Sending code..."
+            className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-medium py-2 px-4 rounded-lg transition-colors"
           >
-            {loading ? 'Sending...' : 'Send Verification Code'}
-          </button>
+            Send Verification Code
+          </LoadingButton>
 
           <button
             type="button"
@@ -236,17 +272,27 @@ export default function WhatsAppOTPLogin({ onSuccess, onBack }: WhatsAppOTPLogin
             disabled={loading}
             autoComplete="one-time-code"
           />
+
+          {/* Countdown timer */}
+          {timeLeft > 0 && (
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 text-center">
+              Code expires in {Math.floor(timeLeft / 60)}:
+              {(timeLeft % 60).toString().padStart(2, '0')}
+            </p>
+          )}
         </div>
 
         {error && <div className="text-red-600 dark:text-red-400 text-sm">{error}</div>}
 
-        <button
+        <LoadingButton
           type="submit"
-          disabled={loading || otp.length !== 6}
-          className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white font-medium py-2 px-4 rounded-lg transition-colors"
+          disabled={otp.length !== 6}
+          loading={loading}
+          loadingText="Verifying..."
+          className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-medium py-2 px-4 rounded-lg transition-colors"
         >
-          {loading ? 'Verifying...' : 'Verify Code'}
-        </button>
+          Verify Code
+        </LoadingButton>
 
         <div className="space-y-2">
           <button

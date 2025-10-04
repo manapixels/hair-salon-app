@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
 import type { Appointment, Service } from '../types';
 import { SALON_SERVICES } from '../constants';
+import { LoadingButton } from './loaders/LoadingButton';
 
 interface EditAppointmentModalProps {
   isOpen: boolean;
@@ -294,20 +295,15 @@ export default function EditAppointmentModal({
                   >
                     Cancel
                   </button>
-                  <button
+                  <LoadingButton
                     type="submit"
-                    disabled={isLoading || formData.services.length === 0}
+                    disabled={formData.services.length === 0}
+                    loading={isLoading}
+                    loadingText="Updating..."
                     className="flex-1 px-4 py-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {isLoading ? (
-                      <span className="flex items-center justify-center">
-                        <i className="fas fa-spinner fa-spin mr-2"></i>
-                        Updating...
-                      </span>
-                    ) : (
-                      'Update Appointment'
-                    )}
-                  </button>
+                    Update Appointment
+                  </LoadingButton>
                 </div>
               </form>
             </div>

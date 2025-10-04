@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import TelegramLoginWidget from './TelegramLoginWidget';
 import WhatsAppOTPLogin from './WhatsAppOTPLogin';
+import { LoadingButton } from './loaders/LoadingButton';
+import { ErrorState } from './ErrorState';
 
 interface OAuthLoginModalProps {
   isOpen: boolean;
@@ -14,6 +16,8 @@ export default function OAuthLoginModal({ isOpen, onClose }: OAuthLoginModalProp
   const [telegramBotUsername, setTelegramBotUsername] = useState<string | null>(null);
   const [showTelegramWidget, setShowTelegramWidget] = useState(false);
   const [showWhatsAppOTP, setShowWhatsAppOTP] = useState(false);
+  const [loadingTelegram, setLoadingTelegram] = useState(false);
+  const [telegramError, setTelegramError] = useState<string | null>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -28,21 +32,34 @@ export default function OAuthLoginModal({ isOpen, onClose }: OAuthLoginModalProp
   }, [isOpen]);
 
   useEffect(() => {
-    if (isOpen && !telegramBotUsername) {
+    if (isOpen && !telegramBotUsername && !loadingTelegram) {
       // Fetch Telegram bot info when modal opens
+      setLoadingTelegram(true);
+      setTelegramError(null);
+
       fetch('/api/auth/telegram')
-        .then(res => res.json())
+        .then(res => {
+          if (!res.ok) throw new Error('Failed to load Telegram configuration');
+          return res.json();
+        })
         .then(data => {
           if (data.botUsername) {
             setTelegramBotUsername(data.botUsername);
+          } else {
+            throw new Error('Telegram bot not configured');
           }
         })
         .catch(err => {
           console.error('Failed to fetch Telegram bot info:', err);
-          toast.error('Failed to load Telegram login. Please try again.');
+          const errorMsg = err instanceof Error ? err.message : 'Failed to load Telegram login';
+          setTelegramError(errorMsg);
+          toast.error(errorMsg);
+        })
+        .finally(() => {
+          setLoadingTelegram(false);
         });
     }
-  }, [isOpen, telegramBotUsername]);
+  }, [isOpen, telegramBotUsername, loadingTelegram]);
 
   const handleWhatsAppLogin = () => {
     setShowWhatsAppOTP(true);
@@ -106,14 +123,45 @@ export default function OAuthLoginModal({ isOpen, onClose }: OAuthLoginModalProp
                 </button>
 
                 {/* Telegram Login Button */}
-                <button
+                <LoadingButton
                   onClick={handleTelegramLogin}
-                  className="w-full flex items-center justify-center space-x-3 bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-colors"
-                  disabled={!telegramBotUsername}
+                  disabled={!telegramBotUsername || !!telegramError}
+                  loading={loadingTelegram}
+                  loadingText="Loading Telegram..."
+                  className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-medium py-3 px-4 rounded-lg transition-colors"
                 >
                   <i className="fa-brands fa-telegram text-xl"></i>
                   <span>Continue with Telegram</span>
-                </button>
+                </LoadingButton>
+
+                {/* Telegram Error State */}
+                {telegramError && (
+                  <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+                    <p className="text-sm text-red-700 dark:text-red-300 flex items-center gap-2">
+                      <svg
+                        className="w-4 h-4 flex-shrink-0"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                      <span>{telegramError}</span>
+                    </p>
+                    <button
+                      onClick={() => {
+                        setTelegramError(null);
+                        setTelegramBotUsername(null); // Trigger refetch
+                      }}
+                      className="mt-2 text-sm text-red-600 dark:text-red-400 hover:underline"
+                    >
+                      Retry
+                    </button>
+                  </div>
+                )}
               </>
             )}
           </div>

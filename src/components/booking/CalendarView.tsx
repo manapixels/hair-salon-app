@@ -15,6 +15,7 @@ import {
   startOfWeek,
   endOfWeek,
 } from 'date-fns';
+import { LoadingSpinner } from '../loaders/LoadingSpinner';
 
 interface CalendarViewProps {
   selectedDate: Date;
@@ -107,7 +108,8 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
       <div className="flex items-center justify-between mb-6 px-2">
         <button
           onClick={onPreviousMonth}
-          className="w-10 h-10 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          disabled={loading}
+          className="w-10 h-10 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
           aria-label="Previous month"
         >
           <svg
@@ -125,13 +127,17 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
           </svg>
         </button>
 
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-          {format(currentMonth, 'MMMM yyyy')}
-        </h2>
+        <div className="flex items-center gap-2">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+            {format(currentMonth, 'MMMM yyyy')}
+          </h2>
+          {loading && <LoadingSpinner size="sm" className="text-indigo-600" />}
+        </div>
 
         <button
           onClick={onNextMonth}
-          className="w-10 h-10 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          disabled={loading}
+          className="w-10 h-10 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
           aria-label="Next month"
         >
           <svg
@@ -158,7 +164,11 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
       </div>
 
       {/* Date Grid */}
-      <div className="grid grid-cols-7 gap-1" role="grid">
+      <div
+        className={`grid grid-cols-7 gap-1 transition-opacity ${loading ? 'opacity-50' : 'opacity-100'}`}
+        role="grid"
+        aria-busy={loading}
+      >
         {daysInMonth.map(date => {
           const isSelected = isSameDay(date, selectedDate);
           const isAvailable = isDateAvailable(date);
@@ -198,9 +208,10 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
         })}
       </div>
 
+      {/* Screen reader announcement */}
       {loading && (
-        <div className="absolute inset-0 bg-white/50 dark:bg-gray-800/50 flex items-center justify-center rounded-lg">
-          <div className="animate-spin rounded-full h-8 w-8 border-4 border-gray-200 dark:border-gray-700 border-t-indigo-600"></div>
+        <div className="sr-only" role="status" aria-live="polite">
+          Loading available dates...
         </div>
       )}
     </div>
