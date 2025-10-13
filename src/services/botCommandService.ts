@@ -293,6 +293,16 @@ export async function handleCallbackQuery(
       return handleHoursCommand();
     case 'cmd_help':
       return handleHelpCommand();
+    case 'confirm_booking':
+      return {
+        text: `Perfect! I'll proceed with booking your appointment. Please confirm by saying "Yes, book it!"`,
+        parseMode: 'Markdown',
+      };
+    case 'cancel_booking':
+      return {
+        text: `No problem! What would you like to change? You can tell me:\n• Different date/time\n• Different service\n• Start over`,
+        parseMode: 'Markdown',
+      };
     default:
       return {
         text: `I don't recognize that command. Type /help to see what I can do!`,

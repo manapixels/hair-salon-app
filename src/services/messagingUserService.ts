@@ -56,6 +56,7 @@ export async function handleMessagingWithUserContext(
   platformId: string | number, // phone number for WhatsApp, chat ID for Telegram
 ): Promise<{
   reply: string;
+  buttons?: Array<{ text: string; data: string }>;
   user: User | null;
   suggestedEmail?: string;
 }> {
@@ -93,17 +94,18 @@ export async function handleMessagingWithUserContext(
 
       // Import and use the existing handler with user context
       const { handleWhatsAppMessage } = await import('./geminiService');
-      const reply = await handleWhatsAppMessage(enhancedMessage, chatHistory, {
+      const response = await handleWhatsAppMessage(enhancedMessage, chatHistory, {
         name: user.name,
         email: user.email,
       });
 
       // Store the conversation
       addMessage(platformId.toString(), message, 'user');
-      addMessage(platformId.toString(), reply, 'bot');
+      addMessage(platformId.toString(), response.text, 'bot');
 
       return {
-        reply,
+        reply: response.text,
+        buttons: response.buttons,
         user,
         suggestedEmail: user.email,
       };
@@ -117,11 +119,11 @@ export async function handleMessagingWithUserContext(
   // Get conversation history
   const chatHistory = getHistory(platformId.toString());
 
-  const reply = await handleWhatsAppMessage(message, chatHistory, userContext);
+  const response = await handleWhatsAppMessage(message, chatHistory, userContext);
 
   // Store the conversation
   addMessage(platformId.toString(), message, 'user');
-  addMessage(platformId.toString(), reply, 'bot');
+  addMessage(platformId.toString(), response.text, 'bot');
 
   // If no user found and they're asking about appointments, suggest they provide email
   if (
@@ -131,13 +133,15 @@ export async function handleMessagingWithUserContext(
     const emailHint =
       '\n\n💡 *Tip:* To access your appointment information quickly, please include your email address in your message.';
     return {
-      reply: reply + emailHint,
+      reply: response.text + emailHint,
+      buttons: response.buttons,
       user: null,
     };
   }
 
   return {
-    reply,
+    reply: response.text,
+    buttons: response.buttons,
     user,
   };
 }

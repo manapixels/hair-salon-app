@@ -273,14 +273,22 @@ export async function POST(request: Request) {
       }
 
       // Use enhanced messaging service with user context for natural language
-      const { reply: replyText } = await handleMessagingWithUserContext(
+      const { reply: replyText, buttons } = await handleMessagingWithUserContext(
         incomingMessage,
         'telegram',
         chatId,
       );
 
+      // Build inline keyboard if buttons are provided
+      let keyboard = undefined;
+      if (buttons && buttons.length > 0) {
+        keyboard = {
+          inline_keyboard: [buttons.map(btn => ({ text: btn.text, callback_data: btn.data }))],
+        };
+      }
+
       // Send the generated reply back to the user via the Telegram Bot API
-      await sendTelegramReply(chatId, replyText);
+      await sendTelegramReply(chatId, replyText, keyboard);
 
       // Respond to the webhook request to acknowledge receipt
       return Response.json({ success: true }, { status: 200 });

@@ -140,13 +140,20 @@ const modifyAppointment: FunctionDeclaration = {
   },
 };
 
+export interface MessageResponse {
+  text: string;
+  buttons?: Array<{ text: string; data: string }>;
+}
+
 export const handleWhatsAppMessage = async (
   userInput: string,
   chatHistory: Pick<WhatsAppMessage, 'text' | 'sender'>[],
   userContext?: { name?: string; email?: string } | null,
-): Promise<string> => {
+): Promise<MessageResponse> => {
   if (!API_KEY || !ai) {
-    return "I'm sorry, my connection to my brain is currently offline. Please try again later.";
+    return {
+      text: "I'm sorry, my connection to my brain is currently offline. Please try again later.",
+    };
   }
 
   const allServices = await getServices();
@@ -231,7 +238,7 @@ ${servicesListString}
       const { name, args } = fc;
 
       if (name === 'getServicesList') {
-        return `Here are the services we offer:\n\n${servicesListString}`;
+        return { text: `Here are the services we offer:\n\n${servicesListString}` };
       }
 
       if (name === 'checkAvailability') {
@@ -239,9 +246,13 @@ ${servicesListString}
         const utcDate = new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
         const slots = await getAvailability(utcDate);
         if (slots.length > 0) {
-          return `On ${formatDisplayDate(utcDate)}, the following time slots are available:\n${slots.join(', ')}`;
+          return {
+            text: `On ${formatDisplayDate(utcDate)}, the following time slots are available:\n${slots.join(', ')}`,
+          };
         } else {
-          return `Sorry, there are no available slots on ${formatDisplayDate(utcDate)}. Please try another date.`;
+          return {
+            text: `Sorry, there are no available slots on ${formatDisplayDate(utcDate)}. Please try another date.`,
+          };
         }
       }
 
@@ -250,7 +261,9 @@ ${servicesListString}
         const servicesToBook = allServices.filter(s => requestedServices.includes(s.name));
 
         if (servicesToBook.length !== requestedServices.length) {
-          return `I'm sorry, one or more of the requested services ("${requestedServices.join(', ')}") are not valid. Please choose from our list of services.`;
+          return {
+            text: `I'm sorry, one or more of the requested services ("${requestedServices.join(', ')}") are not valid. Please choose from our list of services.`,
+          };
         }
 
         try {
@@ -261,9 +274,13 @@ ${servicesListString}
             customerName: args?.customerName as string,
             customerEmail: args?.customerEmail as string,
           });
-          return `Great! Your appointment is confirmed for ${args?.date} at ${args?.time} for ${requestedServices.join(', ')}. You'll receive an email confirmation shortly.`;
+          return {
+            text: `Great! Your appointment is confirmed for ${args?.date} at ${args?.time} for ${requestedServices.join(', ')}. You'll receive an email confirmation shortly.`,
+          };
         } catch (e: any) {
-          return `I'm sorry, I couldn't book that appointment. Reason: ${e.message}. Please try a different time or date.`;
+          return {
+            text: `I'm sorry, I couldn't book that appointment. Reason: ${e.message}. Please try a different time or date.`,
+          };
         }
       }
 
@@ -279,9 +296,13 @@ ${servicesListString}
             date: date as string,
             time: time as string,
           });
-          return `Your appointment for ${date} at ${time} has been successfully cancelled. We hope to see you again soon!`;
+          return {
+            text: `Your appointment for ${date} at ${time} has been successfully cancelled. We hope to see you again soon!`,
+          };
         } catch (e: any) {
-          return `I'm sorry, I couldn't cancel that appointment. Reason: ${e.message}. Please ensure the email, date, and time are correct.`;
+          return {
+            text: `I'm sorry, I couldn't cancel that appointment. Reason: ${e.message}. Please ensure the email, date, and time are correct.`,
+          };
         }
       }
 
@@ -291,7 +312,9 @@ ${servicesListString}
           const appointments = await findAppointmentsByEmail(customerEmail);
 
           if (appointments.length === 0) {
-            return `You don't have any upcoming appointments. Would you like to book one?`;
+            return {
+              text: `You don't have any upcoming appointments. Would you like to book one?`,
+            };
           }
 
           let appointmentsList = `Here are your upcoming appointments:\n\n`;
@@ -306,9 +329,11 @@ ${servicesListString}
           });
 
           appointmentsList += `To modify any appointment, just let me know which one and what you'd like to change!`;
-          return appointmentsList;
+          return { text: appointmentsList };
         } catch (e: any) {
-          return `I'm sorry, I couldn't retrieve your appointments. Please ensure you provided the correct email address.`;
+          return {
+            text: `I'm sorry, I couldn't retrieve your appointments. Please ensure you provided the correct email address.`,
+          };
         }
       }
 
@@ -324,7 +349,9 @@ ${servicesListString}
           // Get the current appointment
           const currentAppointment = await findAppointmentById(appointmentId);
           if (!currentAppointment) {
-            return `I couldn't find an appointment with that ID. Please check your appointment list first.`;
+            return {
+              text: `I couldn't find an appointment with that ID. Please check your appointment list first.`,
+            };
           }
 
           // Prepare the update data
@@ -342,7 +369,9 @@ ${servicesListString}
           if (newServices && newServices.length > 0) {
             const servicesToUpdate = allServices.filter(s => newServices.includes(s.name));
             if (servicesToUpdate.length !== newServices.length) {
-              return `I'm sorry, one or more of the requested services ("${newServices.join(', ')}") are not valid. Please choose from our list of services.`;
+              return {
+                text: `I'm sorry, one or more of the requested services ("${newServices.join(', ')}") are not valid. Please choose from our list of services.`,
+              };
             }
             updateData.services = servicesToUpdate;
             updateData.totalPrice = servicesToUpdate.reduce((sum, s) => sum + s.price, 0);
@@ -398,18 +427,47 @@ ${servicesListString}
           if (newTime) changes.push(`time to ${newTime}`);
           if (newServices) changes.push(`services to ${newServices.join(', ')}`);
 
-          return `Great! Your appointment has been successfully updated. Changes: ${changes.join(', ')}.\n\nNew appointment details:\n📅 Date: ${formatDisplayDate(updatedAppointment.date)}\n🕐 Time: ${updatedAppointment.time}\n✂️ Services: ${updatedAppointment.services.map(s => s.name).join(', ')}\n💰 Total: $${updatedAppointment.totalPrice}`;
+          return {
+            text: `Great! Your appointment has been successfully updated. Changes: ${changes.join(', ')}.\n\nNew appointment details:\n📅 Date: ${formatDisplayDate(updatedAppointment.date)}\n🕐 Time: ${updatedAppointment.time}\n✂️ Services: ${updatedAppointment.services.map(s => s.name).join(', ')}\n💰 Total: $${updatedAppointment.totalPrice}`,
+          };
         } catch (e: any) {
-          return `I'm sorry, I couldn't modify that appointment. Reason: ${e.message}. Please try again or contact the salon directly.`;
+          return {
+            text: `I'm sorry, I couldn't modify that appointment. Reason: ${e.message}. Please try again or contact the salon directly.`,
+          };
         }
       }
     } else if (response.text) {
-      return response.text;
+      const text = response.text;
+
+      // Detect if the AI is asking for confirmation (Yes/No questions)
+      const confirmationPatterns = [
+        /does that (all )?sound (correct|good|right)/i,
+        /is (that|this) (correct|okay|alright|fine)/i,
+        /would you like (me )?to (book|confirm|proceed)/i,
+        /shall I (book|confirm|proceed)/i,
+        /ready to (book|confirm)/i,
+      ];
+
+      const isConfirmationQuestion = confirmationPatterns.some(pattern => pattern.test(text));
+
+      if (isConfirmationQuestion) {
+        return {
+          text,
+          buttons: [
+            { text: '✅ Yes, book it!', data: 'confirm_booking' },
+            { text: '❌ No, let me change something', data: 'cancel_booking' },
+          ],
+        };
+      }
+
+      return { text };
     }
 
-    return "I'm not sure how to help with that. Can you try rephrasing?";
+    return { text: "I'm not sure how to help with that. Can you try rephrasing?" };
   } catch (error) {
     console.error('Error calling Gemini API:', error);
-    return "Sorry, I'm having trouble understanding right now. Please try again in a moment.";
+    return {
+      text: "Sorry, I'm having trouble understanding right now. Please try again in a moment.",
+    };
   }
 };
