@@ -128,14 +128,20 @@ export async function handleAppointmentsCommand(user: User | null): Promise<Comm
       text += `\n`;
     });
 
-    text += `\nNeed to make changes? I can help you cancel or reschedule!`;
-
+    // Create per-appointment action buttons
     const keyboard: InlineKeyboard = {
       inline_keyboard: [
-        [
-          { text: '❌ Cancel Booking', callback_data: 'cmd_cancel' },
-          { text: '🔄 Reschedule', callback_data: 'cmd_reschedule' },
-        ],
+        ...appointments.flatMap(apt => {
+          const date = formatDisplayDate(apt.date);
+          const shortService = apt.services[0].name.substring(0, 15);
+          return [
+            [
+              { text: `🔄 ${date} - ${shortService}`, callback_data: `reschedule_apt_${apt.id}` },
+              { text: `❌ Cancel`, callback_data: `cancel_apt_${apt.id}` },
+            ],
+          ];
+        }),
+        [{ text: '📅 Book Another', callback_data: 'cmd_book' }],
       ],
     };
 
