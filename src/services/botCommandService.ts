@@ -3,7 +3,7 @@
  * Handles structured commands and button interactions for both WhatsApp and Telegram
  */
 
-import { getServices, findAppointmentsByEmail, findUserByEmail } from '@/lib/database';
+import { getServices, findAppointmentsByEmail, findUserByEmail, getStylists } from '@/lib/database';
 import { formatDisplayDate } from '@/lib/timeUtils';
 import type { User } from '@/types';
 import { setBookingContext, getBookingContext } from './conversationHistory';
@@ -303,10 +303,47 @@ export async function handleRescheduleCommand(user: User | null): Promise<Comman
  * Handle /hours command - Business hours
  */
 export async function handleHoursCommand(): Promise<CommandResponse> {
-  const text = `🕐 *Business Hours*\n\n*Luxe Cuts Hair Salon*\n\n📍 Location: [Your Address Here]\n📞 Phone: [Your Phone Number]\n\n*Opening Hours:*\nMonday - Friday: 9:00 AM - 6:00 PM\nSaturday: 9:00 AM - 3:00 PM\nSunday: Closed\n\n*Walk-ins welcome* or book your appointment in advance!`;
+  // Get business info from environment variables
+  const businessName = process.env.BUSINESS_NAME || 'Luxe Cuts Hair Salon';
+  const businessAddress = process.env.BUSINESS_ADDRESS || '123 Main St, Your City, ST 12345';
+  const businessPhone = process.env.BUSINESS_PHONE || '(555) 123-4567';
+  const openingTime = process.env.OPENING_TIME || '9:00 AM';
+  const closingTime = process.env.CLOSING_TIME || '6:00 PM';
+  const saturdayClosing = process.env.SATURDAY_CLOSING || '3:00 PM';
 
+  // Check if currently open (basic logic)
+  const now = new Date();
+  const currentDay = now.getDay(); // 0 = Sunday, 6 = Saturday
+  const currentHour = now.getHours();
+  const isWeekday = currentDay >= 1 && currentDay <= 5;
+  const isSaturday = currentDay === 6;
+  const isSunday = currentDay === 0;
+
+  let statusEmoji = '🔴';
+  let statusText = 'Closed';
+
+  if (isWeekday && currentHour >= 9 && currentHour < 18) {
+    statusEmoji = '🟢';
+    statusText = 'Open Now';
+  } else if (isSaturday && currentHour >= 9 && currentHour < 15) {
+    statusEmoji = '🟢';
+    statusText = 'Open Now';
+  }
+
+  const text = `🕐 *Business Hours*\n\n*${businessName}*\n\n${statusEmoji} *${statusText}*\n\n📍 ${businessAddress}\n📞 ${businessPhone}\n\n*Opening Hours:*\nMonday - Friday: ${openingTime} - ${closingTime}\nSaturday: ${openingTime} - ${saturdayClosing}\nSunday: Closed\n\n*Walk-ins welcome* or book your appointment in advance!`;
+
+  // Create keyboard with clickable links
   const keyboard: InlineKeyboard = {
-    inline_keyboard: [[{ text: '📅 Book Appointment', callback_data: 'cmd_book' }]],
+    inline_keyboard: [
+      [
+        { text: '📞 Call Us', url: `tel:${businessPhone.replace(/[^0-9+]/g, '')}` },
+        {
+          text: '📍 Get Directions',
+          url: `https://maps.google.com/?q=${encodeURIComponent(businessAddress)}`,
+        },
+      ],
+      [{ text: '📅 Book Appointment', callback_data: 'cmd_book' }],
+    ],
   };
 
   return { text, keyboard, parseMode: 'Markdown' };
@@ -359,9 +396,66 @@ export async function handleCallbackQuery(
       customerEmail: user?.email,
     });
 
-    const userName = user?.name || 'there';
+    // Get available stylists
+    const stylists = await getStylists();
+    const activeStylists = stylists.filter(s => s.isActive);
+
+    if (activeStylists.length === 0) {
+      // No stylists available, skip to date/time
+      return {
+        text: `Great choice! You've selected:\n\n✂️ *${service.name}*\n💰 $${service.price}\n⏱️ ${service.duration} minutes\n\nNow, please tell me your preferred date and time.\n\nFor example: "October 20th at 2:00 PM"${!user?.email ? "\n\nI'll also need your name and email." : ''}`,
+        parseMode: 'Markdown',
+      };
+    }
+
+    // Show stylist selection
+    const keyboard: InlineKeyboard = {
+      inline_keyboard: [
+        ...activeStylists.map(stylist => [
+          {
+            text: `👤 ${stylist.name}${stylist.bio ? ` - ${stylist.bio.substring(0, 30)}` : ''}`,
+            callback_data: `select_stylist_${stylist.id}`,
+          },
+        ]),
+        [{ text: '🎲 No Preference', callback_data: 'select_stylist_any' }],
+      ],
+    };
+
     return {
-      text: `Great choice! You've selected:\n\n✂️ *${service.name}*\n💰 $${service.price}\n⏱️ ${service.duration} minutes\n\nNow, please tell me your preferred date and time.\n\nFor example: "October 20th at 2:00 PM"${!user?.email ? "\n\nI'll also need your name and email." : ''}`,
+      text: `Great choice! You've selected:\n\n✂️ *${service.name}*\n💰 $${service.price}\n⏱️ ${service.duration} minutes\n\nWho would you like as your stylist?`,
+      keyboard,
+      parseMode: 'Markdown',
+    };
+  }
+
+  // Handle stylist selection
+  if (callbackData.startsWith('select_stylist_')) {
+    const stylistSelection = callbackData.replace('select_stylist_', '');
+
+    if (stylistSelection === 'any') {
+      // No preference - don't store stylist ID
+      setBookingContext(userId, {
+        stylistId: undefined,
+      });
+    } else {
+      // Store selected stylist
+      setBookingContext(userId, {
+        stylistId: stylistSelection,
+      });
+    }
+
+    // Get stylist name for confirmation message
+    let stylistName = 'any available stylist';
+    if (stylistSelection !== 'any') {
+      const stylists = await getStylists();
+      const selectedStylist = stylists.find(s => s.id === stylistSelection);
+      if (selectedStylist) {
+        stylistName = selectedStylist.name;
+      }
+    }
+
+    return {
+      text: `Perfect! ${stylistSelection === 'any' ? "We'll match you with an available stylist" : `You'll be with *${stylistName}*`}.\n\nNow, please tell me your preferred date and time.\n\nFor example: "October 20th at 2:00 PM"${!user?.email ? "\n\nI'll also need your name and email." : ''}`,
       parseMode: 'Markdown',
     };
   }
@@ -476,6 +570,7 @@ export async function handleCallbackQuery(
           services: servicesToBook,
           customerName: bookingContext.customerName,
           customerEmail: bookingContext.customerEmail,
+          stylistId: bookingContext.stylistId,
         });
 
         const { formatDisplayDate } = await import('@/lib/timeUtils');

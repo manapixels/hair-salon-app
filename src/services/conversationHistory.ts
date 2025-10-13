@@ -19,6 +19,7 @@ interface BookingContext {
   customerName?: string;
   customerEmail?: string;
   services?: string[]; // Service names
+  stylistId?: string; // Stylist ID
   date?: string; // YYYY-MM-DD
   time?: string; // HH:MM
   confirmed?: boolean;
