@@ -69,7 +69,7 @@ export async function handleServicesCommand(): Promise<CommandResponse> {
   const services = await getServices();
 
   let text = `✂️ *Our Services*\n\n`;
-  text += `Here's what we offer at Luxe Cuts:\n\n`;
+  text += `Select a service to book:\n\n`;
 
   services.forEach(service => {
     text += `*${service.name}* - $${service.price}\n`;
@@ -77,10 +77,14 @@ export async function handleServicesCommand(): Promise<CommandResponse> {
     text += `${service.description}\n\n`;
   });
 
-  text += `\nReady to book? Just let me know which service you'd like!`;
-
+  // Create booking buttons for each service
   const keyboard: InlineKeyboard = {
-    inline_keyboard: [[{ text: '📅 Book Now', callback_data: 'cmd_book' }]],
+    inline_keyboard: services.map(service => [
+      {
+        text: `📅 Book ${service.name} - $${service.price}`,
+        callback_data: `book_service_${service.id}`,
+      },
+    ]),
   };
 
   return { text, keyboard, parseMode: 'Markdown' };
@@ -148,10 +152,29 @@ export async function handleAppointmentsCommand(user: User | null): Promise<Comm
  * Handle /book command - Start booking flow
  */
 export async function handleBookCommand(): Promise<CommandResponse> {
-  const text = `📅 *Let's Book Your Appointment!*\n\nTo get started, I'll need a few details:\n\n1️⃣ Which service would you like?\n2️⃣ Your preferred date\n3️⃣ Your preferred time\n4️⃣ Your name and email\n\nYou can say something like:\n"I'd like a haircut on January 15th at 2:00 PM. My name is Sarah and my email is sarah@example.com"\n\nOr click below to see our services first!`;
+  const services = await getServices();
+
+  const text = `📅 *Let's Book Your Appointment!*\n\nWhich service would you like?\n\nSelect from our popular services below or view the full menu:`;
+
+  // Show top 4 services as quick select buttons
+  const popularServices = services.slice(0, 4);
 
   const keyboard: InlineKeyboard = {
-    inline_keyboard: [[{ text: '✂️ View Services', callback_data: 'cmd_services' }]],
+    inline_keyboard: [
+      ...popularServices.slice(0, 2).map(s => [
+        {
+          text: `✂️ ${s.name} - $${s.price}`,
+          callback_data: `book_service_${s.id}`,
+        },
+      ]),
+      ...popularServices.slice(2, 4).map(s => [
+        {
+          text: `✂️ ${s.name} - $${s.price}`,
+          callback_data: `book_service_${s.id}`,
+        },
+      ]),
+      [{ text: '💆 View All Services', callback_data: 'cmd_services' }],
+    ],
   };
 
   return { text, keyboard, parseMode: 'Markdown' };
@@ -178,18 +201,33 @@ export async function handleCancelCommand(user: User | null): Promise<CommandRes
       };
     }
 
-    let text = `❌ *Cancel Appointment*\n\nWhich appointment would you like to cancel?\n\n`;
+    let text = `❌ *Cancel Appointment*\n\nSelect the appointment you'd like to cancel:\n\n`;
 
     appointments.forEach((apt, index) => {
       const services = apt.services.map(s => s.name).join(', ');
       const date = formatDisplayDate(apt.date);
       text += `*${index + 1}. ${date} at ${apt.time}*\n`;
-      text += `   ${services}\n\n`;
+      text += `   ${services} - $${apt.totalPrice}\n\n`;
     });
 
-    text += `Please tell me which one you'd like to cancel (e.g., "Cancel appointment #1")`;
+    // Create buttons for each appointment
+    const keyboard: InlineKeyboard = {
+      inline_keyboard: [
+        ...appointments.map(apt => {
+          const date = formatDisplayDate(apt.date);
+          const shortService = apt.services[0].name.substring(0, 20);
+          return [
+            {
+              text: `❌ ${date} at ${apt.time} - ${shortService}`,
+              callback_data: `cancel_apt_${apt.id}`,
+            },
+          ];
+        }),
+        [{ text: '🔙 Back to Menu', callback_data: 'cmd_start' }],
+      ],
+    };
 
-    return { text, parseMode: 'Markdown' };
+    return { text, keyboard, parseMode: 'Markdown' };
   } catch (error) {
     return {
       text: `Sorry, I had trouble fetching your appointments. Please try again.`,
@@ -219,18 +257,33 @@ export async function handleRescheduleCommand(user: User | null): Promise<Comman
       };
     }
 
-    let text = `🔄 *Reschedule Appointment*\n\nWhich appointment would you like to reschedule?\n\n`;
+    let text = `🔄 *Reschedule Appointment*\n\nSelect the appointment you'd like to reschedule:\n\n`;
 
     appointments.forEach((apt, index) => {
       const services = apt.services.map(s => s.name).join(', ');
       const date = formatDisplayDate(apt.date);
       text += `*${index + 1}. ${date} at ${apt.time}*\n`;
-      text += `   ${services}\n\n`;
+      text += `   ${services} - $${apt.totalPrice}\n\n`;
     });
 
-    text += `Please tell me:\n1. Which appointment to reschedule\n2. Your preferred new date and time\n\nFor example: "Reschedule appointment #1 to January 20th at 3:00 PM"`;
+    // Create buttons for each appointment
+    const keyboard: InlineKeyboard = {
+      inline_keyboard: [
+        ...appointments.map(apt => {
+          const date = formatDisplayDate(apt.date);
+          const shortService = apt.services[0].name.substring(0, 20);
+          return [
+            {
+              text: `🔄 ${date} at ${apt.time} - ${shortService}`,
+              callback_data: `reschedule_apt_${apt.id}`,
+            },
+          ];
+        }),
+        [{ text: '🔙 Back to Menu', callback_data: 'cmd_start' }],
+      ],
+    };
 
-    return { text, parseMode: 'Markdown' };
+    return { text, keyboard, parseMode: 'Markdown' };
   } catch (error) {
     return {
       text: `Sorry, I had trouble fetching your appointments. Please try again.`,
@@ -278,7 +331,63 @@ export async function handleCallbackQuery(
   callbackData: string,
   user: User | null,
 ): Promise<CommandResponse> {
+  // Handle service booking
+  if (callbackData.startsWith('book_service_')) {
+    const serviceId = parseInt(callbackData.replace('book_service_', ''));
+    const services = await getServices();
+    const service = services.find(s => s.id === serviceId);
+
+    if (!service) {
+      return {
+        text: `Sorry, I couldn't find that service. Please try again.`,
+        parseMode: 'Markdown',
+      };
+    }
+
+    const userName = user?.name || 'there';
+    return {
+      text: `Great choice! You've selected:\n\n✂️ *${service.name}*\n💰 $${service.price}\n⏱️ ${service.duration} minutes\n\nNow, please tell me your preferred date and time.\n\nFor example: "October 20th at 2:00 PM"${!user?.email ? "\n\nI'll also need your name and email." : ''}`,
+      parseMode: 'Markdown',
+    };
+  }
+
+  // Handle appointment-specific actions
+  if (callbackData.startsWith('cancel_apt_')) {
+    const aptId = callbackData.replace('cancel_apt_', '');
+    return {
+      text: `⚠️ Are you sure you want to cancel this appointment?\n\nThis action cannot be undone.\n\nPlease confirm by saying "Yes, cancel appointment ${aptId}"`,
+      parseMode: 'Markdown',
+      keyboard: {
+        inline_keyboard: [
+          [
+            { text: '✅ Yes, Cancel It', callback_data: `confirm_cancel_${aptId}` },
+            { text: '❌ No, Keep It', callback_data: 'cmd_appointments' },
+          ],
+        ],
+      },
+    };
+  }
+
+  if (callbackData.startsWith('reschedule_apt_')) {
+    const aptId = callbackData.replace('reschedule_apt_', '');
+    return {
+      text: `🔄 *Reschedule Appointment*\n\nPlease tell me your preferred new date and time.\n\nFor example: "January 20th at 3:00 PM"`,
+      parseMode: 'Markdown',
+    };
+  }
+
+  if (callbackData.startsWith('confirm_cancel_')) {
+    const aptId = callbackData.replace('confirm_cancel_', '');
+    // This will be handled by the AI with conversation context
+    return {
+      text: `Confirming cancellation of appointment ${aptId}...`,
+      parseMode: 'Markdown',
+    };
+  }
+
   switch (callbackData) {
+    case 'cmd_start':
+      return handleStartCommand(user);
     case 'cmd_book':
       return handleBookCommand();
     case 'cmd_appointments':
