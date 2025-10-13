@@ -18,10 +18,19 @@ export interface CommandResponse {
 }
 
 /**
+ * Inline keyboard button for Telegram
+ */
+export interface InlineKeyboardButton {
+  text: string;
+  callback_data?: string;
+  url?: string;
+}
+
+/**
  * Inline keyboard structure for Telegram
  */
 export interface InlineKeyboard {
-  inline_keyboard: Array<Array<{ text: string; callback_data: string }>>;
+  inline_keyboard: Array<Array<InlineKeyboardButton>>;
 }
 
 /**
