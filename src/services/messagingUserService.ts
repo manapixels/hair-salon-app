@@ -5,7 +5,7 @@
 import { findUserByEmail, findAppointmentsByEmail } from '../lib/database';
 import { prisma } from '../lib/prisma';
 import type { User } from '../types';
-import { addMessage, getHistory } from './conversationHistory';
+import { addMessage, getHistory, setBookingContext } from './conversationHistory';
 
 /**
  * Find user by WhatsApp phone number
@@ -103,6 +103,11 @@ export async function handleMessagingWithUserContext(
       addMessage(platformId.toString(), message, 'user');
       addMessage(platformId.toString(), response.text, 'bot');
 
+      // Store booking context if present
+      if (response.bookingDetails) {
+        setBookingContext(platformId.toString(), response.bookingDetails);
+      }
+
       return {
         reply: response.text,
         buttons: response.buttons,
@@ -124,6 +129,11 @@ export async function handleMessagingWithUserContext(
   // Store the conversation
   addMessage(platformId.toString(), message, 'user');
   addMessage(platformId.toString(), response.text, 'bot');
+
+  // Store booking context if present
+  if (response.bookingDetails) {
+    setBookingContext(platformId.toString(), response.bookingDetails);
+  }
 
   // If no user found and they're asking about appointments, suggest they provide email
   if (

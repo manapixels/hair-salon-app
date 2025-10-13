@@ -14,6 +14,17 @@ import type { WhatsAppMessage } from '../types';
 // Store conversation history: userId -> messages
 const conversationStore = new Map<string, Pick<WhatsAppMessage, 'text' | 'sender'>[]>();
 
+// Store booking context: userId -> booking details
+interface BookingContext {
+  customerName?: string;
+  customerEmail?: string;
+  services?: string[]; // Service names
+  date?: string; // YYYY-MM-DD
+  time?: string; // HH:MM
+  confirmed?: boolean;
+}
+const bookingContextStore = new Map<string, BookingContext>();
+
 // Maximum messages to keep per conversation (to prevent memory bloat)
 const MAX_MESSAGES_PER_CONVERSATION = 20;
 
@@ -62,7 +73,44 @@ export function getHistory(userId: string): Pick<WhatsAppMessage, 'text' | 'send
 export function clearHistory(userId: string): void {
   conversationStore.delete(userId);
   lastActivityStore.delete(userId);
+  bookingContextStore.delete(userId);
 }
+
+/**
+ * Set booking context for a user
+ */
+export function setBookingContext(userId: string, context: Partial<BookingContext>): void {
+  const existing = bookingContextStore.get(userId) || {};
+  bookingContextStore.set(userId, { ...existing, ...context });
+  lastActivityStore.set(userId, Date.now());
+}
+
+/**
+ * Get booking context for a user
+ */
+export function getBookingContext(userId: string): BookingContext | null {
+  // Check if conversation has timed out
+  const lastActivity = lastActivityStore.get(userId);
+  if (lastActivity && Date.now() - lastActivity > CONVERSATION_TIMEOUT_MS) {
+    // Clear old context
+    bookingContextStore.delete(userId);
+    return null;
+  }
+
+  return bookingContextStore.get(userId) || null;
+}
+
+/**
+ * Clear booking context for a user
+ */
+export function clearBookingContext(userId: string): void {
+  bookingContextStore.delete(userId);
+}
+
+/**
+ * Export BookingContext type for use in other modules
+ */
+export type { BookingContext };
 
 /**
  * Clean up old conversations (should be called periodically)
@@ -74,6 +122,7 @@ export function cleanupOldConversations(): number {
   lastActivityStore.forEach((lastActivity, userId) => {
     if (now - lastActivity > CONVERSATION_TIMEOUT_MS) {
       conversationStore.delete(userId);
+      bookingContextStore.delete(userId);
       lastActivityStore.delete(userId);
       cleaned++;
     }

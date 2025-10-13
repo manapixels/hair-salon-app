@@ -6,6 +6,7 @@
 import { getServices, findAppointmentsByEmail, findUserByEmail } from '@/lib/database';
 import { formatDisplayDate } from '@/lib/timeUtils';
 import type { User } from '@/types';
+import { setBookingContext, getBookingContext } from './conversationHistory';
 
 /**
  * Command response type with optional inline keyboards
@@ -330,6 +331,7 @@ export async function handleHelpCommand(): Promise<CommandResponse> {
 export async function handleCallbackQuery(
   callbackData: string,
   user: User | null,
+  userId: string,
 ): Promise<CommandResponse> {
   // Handle service booking
   if (callbackData.startsWith('book_service_')) {
@@ -343,6 +345,13 @@ export async function handleCallbackQuery(
         parseMode: 'Markdown',
       };
     }
+
+    // Store service selection in booking context
+    setBookingContext(userId, {
+      services: [service.name],
+      customerName: user?.name,
+      customerEmail: user?.email,
+    });
 
     const userName = user?.name || 'there';
     return {
@@ -403,10 +412,93 @@ export async function handleCallbackQuery(
     case 'cmd_help':
       return handleHelpCommand();
     case 'confirm_booking':
-      return {
-        text: `Perfect! I'll proceed with booking your appointment. Please confirm by saying "Yes, book it!"`,
-        parseMode: 'Markdown',
-      };
+      // Retrieve booking context
+      const bookingContext = getBookingContext(userId);
+
+      if (
+        !bookingContext ||
+        !bookingContext.services ||
+        !bookingContext.date ||
+        !bookingContext.time
+      ) {
+        return {
+          text: `I'm sorry, I seem to have lost the booking details. Let's start over. What service would you like to book?`,
+          parseMode: 'Markdown',
+        };
+      }
+
+      if (!bookingContext.customerName || !bookingContext.customerEmail) {
+        return {
+          text: `I need your name and email to complete the booking. Please provide them.`,
+          parseMode: 'Markdown',
+        };
+      }
+
+      // Book the appointment
+      try {
+        const services = await getServices();
+        const servicesToBook = services.filter(s => bookingContext.services?.includes(s.name));
+
+        if (servicesToBook.length === 0) {
+          return {
+            text: `I couldn't find the services you selected. Please try booking again.`,
+            parseMode: 'Markdown',
+          };
+        }
+
+        // Import booking function
+        const { bookNewAppointment } = await import('@/lib/database');
+
+        // Parse date - handle various formats
+        let parsedDate: Date;
+        try {
+          // If date is in format "October 14, 2025" or similar
+          parsedDate = new Date(bookingContext.date);
+          if (isNaN(parsedDate.getTime())) {
+            throw new Error('Invalid date');
+          }
+        } catch {
+          return {
+            text: `I couldn't understand the date format. Please start the booking again.`,
+            parseMode: 'Markdown',
+          };
+        }
+
+        await bookNewAppointment({
+          date: parsedDate,
+          time: bookingContext.time,
+          services: servicesToBook,
+          customerName: bookingContext.customerName,
+          customerEmail: bookingContext.customerEmail,
+        });
+
+        const { formatDisplayDate } = await import('@/lib/timeUtils');
+        const formattedDate = formatDisplayDate(parsedDate);
+
+        // Clear booking context after successful booking
+        const { clearBookingContext } = await import('./conversationHistory');
+        clearBookingContext(userId);
+
+        const keyboard: InlineKeyboard = {
+          inline_keyboard: [
+            [
+              { text: '📋 View My Appointments', callback_data: 'cmd_appointments' },
+              { text: '📅 Book Another', callback_data: 'cmd_book' },
+            ],
+          ],
+        };
+
+        return {
+          text: `✅ *Booking Confirmed!*\n\n${servicesToBook.map(s => `✂️ ${s.name}`).join('\n')}\n📅 ${formattedDate}\n🕐 ${bookingContext.time}\n💰 $${servicesToBook.reduce((sum, s) => sum + s.price, 0)}\n\nYou'll receive a confirmation email at ${bookingContext.customerEmail} shortly.\n\nThank you for choosing Luxe Cuts!`,
+          keyboard,
+          parseMode: 'Markdown',
+        };
+      } catch (error: any) {
+        return {
+          text: `I'm sorry, I couldn't complete the booking. ${error.message}\n\nPlease try again or contact us directly.`,
+          parseMode: 'Markdown',
+        };
+      }
     case 'cancel_booking':
       return {
         text: `No problem! What would you like to change? You can tell me:\n• Different date/time\n• Different service\n• Start over`,

@@ -143,6 +143,13 @@ const modifyAppointment: FunctionDeclaration = {
 export interface MessageResponse {
   text: string;
   buttons?: Array<{ text: string; data: string }>;
+  bookingDetails?: {
+    customerName?: string;
+    customerEmail?: string;
+    services?: string[];
+    date?: string;
+    time?: string;
+  };
 }
 
 export const handleWhatsAppMessage = async (
@@ -276,6 +283,13 @@ ${servicesListString}
           });
           return {
             text: `Great! Your appointment is confirmed for ${args?.date} at ${args?.time} for ${requestedServices.join(', ')}. You'll receive an email confirmation shortly.`,
+            bookingDetails: {
+              customerName: args?.customerName as string,
+              customerEmail: args?.customerEmail as string,
+              services: requestedServices,
+              date: args?.date as string,
+              time: args?.time as string,
+            },
           };
         } catch (e: any) {
           return {
@@ -451,12 +465,46 @@ ${servicesListString}
       const isConfirmationQuestion = confirmationPatterns.some(pattern => pattern.test(text));
 
       if (isConfirmationQuestion) {
+        // Try to extract booking details from the conversation context
+        const bookingDetails: any = {};
+
+        // Extract date (various formats)
+        const dateMatch = text.match(
+          /(?:on|for)\s+([A-Z][a-z]+\s+\d{1,2}(?:st|nd|rd|th)?,?\s+\d{4})/i,
+        );
+        if (dateMatch) {
+          bookingDetails.date = dateMatch[1];
+        }
+
+        // Extract time
+        const timeMatch = text.match(/at\s+(\d{1,2}:\d{2}\s*(?:AM|PM|am|pm)?)/i);
+        if (timeMatch) {
+          bookingDetails.time = timeMatch[1];
+        }
+
+        // Extract service names from available services
+        const mentionedServices = allServices.filter(service => text.includes(service.name));
+        if (mentionedServices.length > 0) {
+          bookingDetails.services = mentionedServices.map(s => s.name);
+        }
+
+        // Extract customer name if mentioned
+        const nameMatch = text.match(/for\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)/);
+        if (nameMatch && !text.includes('for ' + nameMatch[1] + ' minutes')) {
+          bookingDetails.customerName = nameMatch[1];
+        }
+
+        // Add user context if available
+        if (userContext?.name) bookingDetails.customerName = userContext.name;
+        if (userContext?.email) bookingDetails.customerEmail = userContext.email;
+
         return {
           text,
           buttons: [
             { text: '✅ Yes, book it!', data: 'confirm_booking' },
             { text: '❌ No, let me change something', data: 'cancel_booking' },
           ],
+          bookingDetails: Object.keys(bookingDetails).length > 0 ? bookingDetails : undefined,
         };
       }
 

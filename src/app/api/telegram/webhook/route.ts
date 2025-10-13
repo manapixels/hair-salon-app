@@ -308,8 +308,8 @@ export async function POST(request: Request) {
       // Get user context
       const dbUser = await findUserByTelegramId(chatId);
 
-      // Handle the callback
-      const response = await handleCallbackQuery(callbackData, dbUser);
+      // Handle the callback with chatId for context storage
+      const response = await handleCallbackQuery(callbackData, dbUser, chatId.toString());
       await sendCommandResponse(chatId, response);
 
       // Answer the callback query to remove loading state
