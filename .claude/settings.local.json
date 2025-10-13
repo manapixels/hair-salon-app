@@ -32,7 +32,9 @@
       "Bash(git log:*)",
       "Bash(git config:*)",
       "Bash(chmod:*)",
-      "Bash(git restore:*)"
+      "Bash(git restore:*)",
+      "Bash(dos2unix:*)",
+      "Bash(npx eslint:*)"
     ],
     "deny": [],
     "ask": []
