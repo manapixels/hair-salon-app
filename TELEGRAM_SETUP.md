@@ -91,11 +91,13 @@ Users can also just talk naturally - the AI will understand! 💬
 **Is your webhook working?**
 
 Send this in your browser (replace YOUR_BOT_TOKEN):
+
 ```
 https://api.telegram.org/botYOUR_BOT_TOKEN/getWebhookInfo
 ```
 
 You should see:
+
 - `"url": "https://hair-salon-appt.vercel.app/api/telegram/webhook"`
 - `"pending_update_count": 0` (or low number)
 - `"last_error_message": null` or empty

@@ -29,9 +29,11 @@
 ## 🚨 Critical UX Issues
 
 ### 1. **Cancel/Reschedule: No Action Buttons** ⚠️
+
 **Problem:** Users must type "Cancel appointment #1" instead of tapping buttons
 
 **Current Flow:**
+
 ```
 Bot: "Which appointment would you like to cancel?
      1. Oct 14 at 2pm - Men's Haircut
@@ -43,6 +45,7 @@ User: *must type* "Cancel appointment #1"
 ```
 
 **Recommended Fix:**
+
 ```
 Bot: "Which appointment would you like to cancel?"
 
@@ -52,6 +55,7 @@ Bot: "Which appointment would you like to cancel?"
 ```
 
 **Implementation:**
+
 - Add inline buttons with `callback_data: 'cancel_apt_<id>'`
 - Each button represents one appointment
 - Clicking button immediately triggers cancellation confirmation
@@ -59,9 +63,11 @@ Bot: "Which appointment would you like to cancel?"
 ---
 
 ### 2. **Booking Flow: Too Much Text, No Quick Options** ⚠️
+
 **Problem:** /book shows instructions but no quick service selection
 
 **Current Flow:**
+
 ```
 Bot: "📅 Let's Book Your Appointment!
 
@@ -80,6 +86,7 @@ Bot: "📅 Let's Book Your Appointment!
 ```
 
 **Recommended Fix:**
+
 ```
 Bot: "📅 Let's Book Your Appointment!
 
@@ -91,6 +98,7 @@ Bot: "📅 Let's Book Your Appointment!
 ```
 
 **Implementation:**
+
 - Show top 4 most popular services as buttons
 - Add "Full Service Menu" for complete list
 - Each button starts booking flow for that service
@@ -99,9 +107,11 @@ Bot: "📅 Let's Book Your Appointment!
 ---
 
 ### 3. **Service List: No Direct Action** ⚠️
+
 **Problem:** After viewing services, users must manually type to book
 
 **Current Flow:**
+
 ```
 Bot: "✂️ Our Services
 
@@ -121,6 +131,7 @@ Bot: "✂️ Our Services
 ```
 
 **Recommended Fix:**
+
 ```
 Bot: "✂️ Our Services"
 
@@ -132,6 +143,7 @@ Bot: "✂️ Our Services"
 ```
 
 **Implementation:**
+
 - Each service becomes a bookable button
 - Clicking button pre-fills service in booking flow
 - Reduces steps from 2 (view → type service) to 1 (click)
@@ -139,9 +151,11 @@ Bot: "✂️ Our Services"
 ---
 
 ### 4. **Confirmation Flow: Confusing Message** ⚠️
+
 **Problem:** After clicking "Yes, book it!", bot asks them to say it again
 
 **Current Flow:**
+
 ```
 User: *clicks [✅ Yes, book it!]*
 
@@ -153,6 +167,7 @@ User: *confused* "But I just clicked Yes...?"
 
 **Recommended Fix:**
 When user clicks "✅ Yes, book it!":
+
 ```
 Bot: "✅ Booking confirmed!
 
@@ -167,6 +182,7 @@ Bot: "✅ Booking confirmed!
 ```
 
 **Implementation:**
+
 - `confirm_booking` should actually complete the booking
 - Store booking context in conversation history
 - Execute booking immediately when button clicked
@@ -174,9 +190,11 @@ Bot: "✅ Booking confirmed!
 ---
 
 ### 5. **Appointment List: Missing Quick Actions** ⚠️
+
 **Problem:** Users see appointments but can't act on specific ones
 
 **Current Flow:**
+
 ```
 Bot: "📅 Your Upcoming Appointments
 
@@ -194,6 +212,7 @@ Bot: "📅 Your Upcoming Appointments
 ```
 
 **Recommended Fix:**
+
 ```
 Bot: "📅 Your Upcoming Appointments"
 
@@ -207,6 +226,7 @@ Bot: "📅 Your Upcoming Appointments"
 ```
 
 **Implementation:**
+
 - Add action buttons per appointment
 - Use `callback_data: 'reschedule_<apt_id>'` and `'cancel_<apt_id>'`
 - Optional: Add "Get Directions" linking to Maps
@@ -214,15 +234,18 @@ Bot: "📅 Your Upcoming Appointments"
 ---
 
 ### 6. **Business Hours: Static Info** ⚠️
+
 **Problem:** Hardcoded placeholder text, no dynamic data
 
 **Current:**
+
 ```
 📍 Location: [Your Address Here]  ← Placeholder!
 📞 Phone: [Your Phone Number]      ← Placeholder!
 ```
 
 **Recommended Fix:**
+
 - Pull from admin settings or environment variables
 - Add clickable phone number (tel: link)
 - Add map location button
@@ -233,6 +256,7 @@ Bot: "📅 Your Upcoming Appointments"
 ## 💡 Additional UX Enhancements
 
 ### 7. **Add Appointment Reminders Feature**
+
 ```
 [📅 My Appointments] response could include:
 
@@ -244,6 +268,7 @@ Oct 14 at 2pm - Men's Haircut
 ```
 
 ### 8. **Add Favorite Services**
+
 ```
 After booking same service 2+ times:
 
@@ -254,11 +279,13 @@ Bot: "I noticed you book Men's Haircut often.
 ```
 
 Then in /start menu:
+
 ```
 [⭐ Book Men's Haircut (Favorite)]  ← One-click booking
 ```
 
 ### 9. **Add Stylist Selection**
+
 ```
 During booking flow:
 
@@ -271,6 +298,7 @@ Bot: "Great! Who would you like as your stylist?"
 ```
 
 ### 10. **Add Review/Feedback Prompt**
+
 ```
 After appointment (next day):
 
@@ -284,6 +312,7 @@ Bot: "Hi! How was your appointment with Sarah yesterday?
 ```
 
 ### 11. **Add Waitlist Feature**
+
 ```
 When no slots available:
 
@@ -295,6 +324,7 @@ Bot: "Sorry, Oct 14 at 2pm is fully booked.
 ```
 
 ### 12. **Smart Suggestions Based on History**
+
 ```
 Bot: "Welcome back! Based on your last visit 4 weeks ago:
 
@@ -308,16 +338,19 @@ Bot: "Welcome back! Based on your last visit 4 weeks ago:
 ## 🎯 Priority Implementation Order
 
 ### Phase 1: Critical Fixes (This Week)
+
 1. ✅ **Add appointment action buttons** (cancel/reschedule specific appointments)
 2. ✅ **Fix confirmation flow** (clicking Yes should complete booking)
 3. ✅ **Add service selection buttons** in /book command
 
 ### Phase 2: Major Enhancements (Next Week)
+
 4. Add stylist selection buttons
 5. Show dynamic business hours with real data
 6. Add booking context persistence
 
 ### Phase 3: Advanced Features (Later)
+
 7. Appointment reminders
 8. Favorite services
 9. Review/feedback system
@@ -340,6 +373,7 @@ After implementing these changes, monitor:
 ## 🔧 Quick Implementation Snippets
 
 ### Example: Appointment Action Buttons
+
 ```typescript
 appointments.forEach((apt, index) => {
   const date = formatDisplayDate(apt.date);
@@ -352,17 +386,18 @@ const keyboard: InlineKeyboard = {
   inline_keyboard: appointments.map(apt => [
     {
       text: `🔄 Reschedule - ${formatDisplayDate(apt.date)}`,
-      callback_data: `reschedule_${apt.id}`
+      callback_data: `reschedule_${apt.id}`,
     },
     {
       text: `❌ Cancel - ${formatDisplayDate(apt.date)}`,
-      callback_data: `cancel_${apt.id}`
+      callback_data: `cancel_${apt.id}`,
     },
   ]),
 };
 ```
 
 ### Example: Service Quick Select
+
 ```typescript
 const popularServices = await getServices().slice(0, 4); // Top 4
 
@@ -388,4 +423,4 @@ const keyboard: InlineKeyboard = {
 **Current State:** ✅ Functional but requires too much typing
 **Target State:** 🎯 Tap-driven, contextual, minimal friction
 
-**Key Principle:** *Every decision point should have buttons, not instructions to type*
+**Key Principle:** _Every decision point should have buttons, not instructions to type_
