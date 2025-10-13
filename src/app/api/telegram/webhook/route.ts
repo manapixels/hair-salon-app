@@ -142,9 +142,7 @@ async function handleLoginCommand(
 
     // Create or update user
     const fullName = user.last_name ? `${user.first_name} ${user.last_name}` : user.first_name;
-    const email = user.username
-      ? `${user.username}@telegram.local`
-      : `${chatId}@telegram.local`;
+    const email = user.username ? `${user.username}@telegram.local` : `${chatId}@telegram.local`;
 
     const dbUser = await createUserFromOAuth({
       name: fullName,

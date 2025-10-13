@@ -88,7 +88,7 @@ const TelegramLoginWidget: React.FC<TelegramLoginWidgetProps> = ({
 
       {loading && (
         <p className="mt-2 text-sm text-gray-600">
-          📱 Opening Telegram... Click "Start" in the bot chat to complete login.
+          📱 Opening Telegram... Click &quot;Start&quot; in the bot chat to complete login.
         </p>
       )}
     </div>
