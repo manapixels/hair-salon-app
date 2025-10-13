@@ -87,9 +87,12 @@ export async function handleMessagingWithUserContext(
       // Let's enhance their message with their email
       const enhancedMessage = `${message} (my email is ${user.email})`;
 
-      // Import and use the existing handler
+      // Import and use the existing handler with user context
       const { handleWhatsAppMessage } = await import('./geminiService');
-      const reply = await handleWhatsAppMessage(enhancedMessage, []);
+      const reply = await handleWhatsAppMessage(enhancedMessage, [], {
+        name: user.name,
+        email: user.email,
+      });
 
       return {
         reply,
@@ -99,9 +102,10 @@ export async function handleMessagingWithUserContext(
     }
   }
 
-  // For unidentified users or regular queries, use the standard handler
+  // For regular queries, use the standard handler with user context if available
   const { handleWhatsAppMessage } = await import('./geminiService');
-  const reply = await handleWhatsAppMessage(message, []);
+  const userContext = user ? { name: user.name, email: user.email } : null;
+  const reply = await handleWhatsAppMessage(message, [], userContext);
 
   // If no user found and they're asking about appointments, suggest they provide email
   if (
