@@ -31,17 +31,19 @@ const command = process.argv[2] || 'check';
 function makeRequest(path) {
   return new Promise((resolve, reject) => {
     const url = `https://api.telegram.org/bot${BOT_TOKEN}${path}`;
-    https.get(url, (res) => {
-      let data = '';
-      res.on('data', (chunk) => data += chunk);
-      res.on('end', () => {
-        try {
-          resolve(JSON.parse(data));
-        } catch (e) {
-          reject(e);
-        }
-      });
-    }).on('error', reject);
+    https
+      .get(url, res => {
+        let data = '';
+        res.on('data', chunk => (data += chunk));
+        res.on('end', () => {
+          try {
+            resolve(JSON.parse(data));
+          } catch (e) {
+            reject(e);
+          }
+        });
+      })
+      .on('error', reject);
   });
 }
 
@@ -55,7 +57,9 @@ async function checkWebhook() {
     console.log(`   URL: ${info.url || '(not set)'}`);
     console.log(`   Pending Updates: ${info.pending_update_count}`);
     console.log(`   Last Error: ${info.last_error_message || 'None'}`);
-    console.log(`   Last Error Date: ${info.last_error_date ? new Date(info.last_error_date * 1000).toISOString() : 'N/A'}`);
+    console.log(
+      `   Last Error Date: ${info.last_error_date ? new Date(info.last_error_date * 1000).toISOString() : 'N/A'}`,
+    );
 
     if (!info.url) {
       console.log('\n⚠️  No webhook is set! Run: node scripts/setup-telegram-webhook.js set');
