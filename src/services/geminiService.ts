@@ -155,13 +155,14 @@ export const handleWhatsAppMessage = async (
     .join('\n');
 
   // Build user context string
-  const userContextString = userContext?.name && userContext?.email
-    ? `\n\nIMPORTANT - Current User Information:
+  const userContextString =
+    userContext?.name && userContext?.email
+      ? `\n\nIMPORTANT - Current User Information:
 - Customer Name: ${userContext.name}
 - Customer Email: ${userContext.email}
 
 When booking appointments, ALWAYS use this customer's name and email automatically. DO NOT ask them to provide it again - they are already logged in and authenticated.`
-    : '';
+      : '';
 
   const systemInstruction = `You are a friendly and efficient AI assistant for 'Luxe Cuts' hair salon.
 Your goal is to help users inquire about services, book appointments, cancel them, view their appointments, and modify existing bookings.
@@ -169,11 +170,11 @@ Today's date is ${formatDisplayDate(new Date())}.
 Do not ask for information you can derive, like the year if the user says "next Tuesday".
 Be conversational and helpful.${userContextString}
 
-Booking: When booking, confirm all details with the user before calling the bookAppointment function.${userContext?.name && userContext?.email ? ' Use the customer name and email from the user information above.' : ' You must have the customer\'s name, email, desired services, date, and time.'}
+Booking: When booking, confirm all details with the user before calling the bookAppointment function.${userContext?.name && userContext?.email ? ' Use the customer name and email from the user information above.' : " You must have the customer's name, email, desired services, date, and time."}
 
-Canceling: ${userContext?.email ? `Use the customer email from the user information above.` : 'You MUST ask for the customer\'s email address.'} You also need the appointment date and time to uniquely identify the appointment to be cancelled.
+Canceling: ${userContext?.email ? 'Use the customer email from the user information above.' : "You MUST ask for the customer's email address."} You also need the appointment date and time to uniquely identify the appointment to be cancelled.
 
-Viewing Appointments: ${userContext?.email ? `Use the customer email from the user information above to look up appointments.` : 'Use listMyAppointments with the customer\'s email to show their upcoming appointments.'}
+Viewing Appointments: ${userContext?.email ? 'Use the customer email from the user information above to look up appointments.' : "Use listMyAppointments with the customer's email to show their upcoming appointments."}
 
 Modifying Appointments: To modify an appointment:
 1. First use listMyAppointments to find the customer's appointments${userContext?.email ? ' (use the email from user information)' : ''}
