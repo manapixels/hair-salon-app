@@ -170,6 +170,12 @@ Today's date is ${formatDisplayDate(new Date())}.
 Do not ask for information you can derive, like the year if the user says "next Tuesday".
 Be conversational and helpful.${userContextString}
 
+Service Matching: When users refer to services informally (e.g., "men's haircut", "haircut", "color"), match them to the exact service names in the Available Services list below. For example:
+- "men's haircut" or "mens haircut" → "Men's Haircut"
+- "women's haircut" or "womens haircut" → "Women's Haircut"
+- "color" → "Single Process Color"
+- "highlights" → "Partial Highlights" or "Full Highlights" (ask which)
+
 Booking: When booking, confirm all details with the user before calling the bookAppointment function.${userContext?.name && userContext?.email ? ' Use the customer name and email from the user information above.' : " You must have the customer's name, email, desired services, date, and time."}
 
 Canceling: ${userContext?.email ? 'Use the customer email from the user information above.' : "You MUST ask for the customer's email address."} You also need the appointment date and time to uniquely identify the appointment to be cancelled.
@@ -190,9 +196,19 @@ ${servicesListString}
 `;
 
   try {
+    // Build conversation history with context
+    let conversationContext = '';
+    if (chatHistory && chatHistory.length > 0) {
+      conversationContext = chatHistory
+        .map(msg => `${msg.sender === 'user' ? 'User' : 'Assistant'}: ${msg.text}`)
+        .join('\n');
+      conversationContext += '\n';
+    }
+    conversationContext += `User: ${userInput}`;
+
     const response: GenerateContentResponse = await ai.models.generateContent({
       model: 'gemini-2.5-flash',
-      contents: `User: ${userInput}`,
+      contents: conversationContext,
       config: {
         systemInstruction,
         tools: [

@@ -5,6 +5,7 @@
 import { findUserByEmail, findAppointmentsByEmail } from '../lib/database';
 import { prisma } from '../lib/prisma';
 import type { User } from '../types';
+import { addMessage, getHistory } from './conversationHistory';
 
 /**
  * Find user by WhatsApp phone number
@@ -87,12 +88,19 @@ export async function handleMessagingWithUserContext(
       // Let's enhance their message with their email
       const enhancedMessage = `${message} (my email is ${user.email})`;
 
+      // Get conversation history
+      const chatHistory = getHistory(platformId.toString());
+
       // Import and use the existing handler with user context
       const { handleWhatsAppMessage } = await import('./geminiService');
-      const reply = await handleWhatsAppMessage(enhancedMessage, [], {
+      const reply = await handleWhatsAppMessage(enhancedMessage, chatHistory, {
         name: user.name,
         email: user.email,
       });
+
+      // Store the conversation
+      addMessage(platformId.toString(), message, 'user');
+      addMessage(platformId.toString(), reply, 'assistant');
 
       return {
         reply,
@@ -105,7 +113,15 @@ export async function handleMessagingWithUserContext(
   // For regular queries, use the standard handler with user context if available
   const { handleWhatsAppMessage } = await import('./geminiService');
   const userContext = user ? { name: user.name, email: user.email } : null;
-  const reply = await handleWhatsAppMessage(message, [], userContext);
+
+  // Get conversation history
+  const chatHistory = getHistory(platformId.toString());
+
+  const reply = await handleWhatsAppMessage(message, chatHistory, userContext);
+
+  // Store the conversation
+  addMessage(platformId.toString(), message, 'user');
+  addMessage(platformId.toString(), reply, 'assistant');
 
   // If no user found and they're asking about appointments, suggest they provide email
   if (
