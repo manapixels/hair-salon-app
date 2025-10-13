@@ -200,7 +200,7 @@ ${servicesListString}
     let conversationContext = '';
     if (chatHistory && chatHistory.length > 0) {
       conversationContext = chatHistory
-        .map(msg => `${msg.sender === 'user' ? 'User' : 'Assistant'}: ${msg.text}`)
+        .map(msg => `${msg.sender === 'user' ? 'User' : 'Bot'}: ${msg.text}`)
         .join('\n');
       conversationContext += '\n';
     }

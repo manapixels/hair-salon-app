@@ -100,7 +100,7 @@ export async function handleMessagingWithUserContext(
 
       // Store the conversation
       addMessage(platformId.toString(), message, 'user');
-      addMessage(platformId.toString(), reply, 'assistant');
+      addMessage(platformId.toString(), reply, 'bot');
 
       return {
         reply,
@@ -121,7 +121,7 @@ export async function handleMessagingWithUserContext(
 
   // Store the conversation
   addMessage(platformId.toString(), message, 'user');
-  addMessage(platformId.toString(), reply, 'assistant');
+  addMessage(platformId.toString(), reply, 'bot');
 
   // If no user found and they're asking about appointments, suggest they provide email
   if (

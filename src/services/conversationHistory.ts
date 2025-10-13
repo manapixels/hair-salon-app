@@ -26,7 +26,7 @@ const lastActivityStore = new Map<string, number>();
 /**
  * Add a message to the conversation history
  */
-export function addMessage(userId: string, message: string, sender: 'user' | 'assistant'): void {
+export function addMessage(userId: string, message: string, sender: 'user' | 'bot'): void {
   let history = conversationStore.get(userId) || [];
 
   history.push({ text: message, sender });
