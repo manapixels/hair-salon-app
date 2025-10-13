@@ -6,6 +6,7 @@
  * and sends a reply back via the provider's API.
  */
 import { handleMessagingWithUserContext } from '../../../services/messagingUserService';
+import { formatWhatsAppWelcome } from '@/services/botCommandService';
 
 // GET handler for webhook verification
 export async function GET(request: Request) {
@@ -96,7 +97,24 @@ export async function POST(request: Request) {
     const incomingMessage = message.text.body;
 
     try {
-      // Use enhanced messaging service with user context
+      // Handle common command keywords (WhatsApp-friendly)
+      const lowerMessage = incomingMessage.toLowerCase().trim();
+
+      // Check for start/hi/hello keywords
+      if (
+        lowerMessage === 'start' ||
+        lowerMessage === 'hi' ||
+        lowerMessage === 'hello' ||
+        lowerMessage === 'hey'
+      ) {
+        // Use enhanced messaging service to get user context
+        const { user } = await handleMessagingWithUserContext(incomingMessage, 'whatsapp', from);
+        const welcomeMessage = formatWhatsAppWelcome(user?.name);
+        await sendWhatsAppReply(from, welcomeMessage);
+        return Response.json({ success: true }, { status: 200 });
+      }
+
+      // Use enhanced messaging service with user context for natural language
       const { reply: replyText, user } = await handleMessagingWithUserContext(
         incomingMessage,
         'whatsapp',

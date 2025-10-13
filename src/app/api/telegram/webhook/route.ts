@@ -6,8 +6,20 @@
  * and sends a reply back via the Telegram Bot API.
  */
 import { handleMessagingWithUserContext } from '../../../../services/messagingUserService';
-import { createUserFromOAuth } from '@/lib/database';
+import { createUserFromOAuth, findUserByTelegramId } from '@/lib/database';
 import { randomBytes } from 'crypto';
+import {
+  handleStartCommand,
+  handleServicesCommand,
+  handleAppointmentsCommand,
+  handleBookCommand,
+  handleCancelCommand,
+  handleRescheduleCommand,
+  handleHoursCommand,
+  handleHelpCommand,
+  handleCallbackQuery,
+  type CommandResponse,
+} from '@/services/botCommandService';
 
 // Global session store for login tokens
 declare global {
@@ -30,8 +42,14 @@ globalThis.telegramLoginSessions = globalThis.telegramLoginSessions || new Map()
  * Sends a reply to the user via the Telegram Bot API.
  * @param chatId The chat ID where the message should be sent.
  * @param text The message text to send.
+ * @param keyboard Optional inline keyboard for buttons.
  */
-async function sendTelegramReply(chatId: number, text: string): Promise<void> {
+async function sendTelegramReply(
+  chatId: number,
+  text: string,
+  keyboard?: any,
+  parseMode: string = 'Markdown',
+): Promise<void> {
   const botToken = process.env.TELEGRAM_BOT_TOKEN;
 
   if (!botToken) {
@@ -44,11 +62,15 @@ async function sendTelegramReply(chatId: number, text: string): Promise<void> {
 
   const url = `https://api.telegram.org/bot${botToken}/sendMessage`;
 
-  const payload = {
+  const payload: any = {
     chat_id: chatId,
     text: text,
-    parse_mode: 'Markdown',
+    parse_mode: parseMode,
   };
+
+  if (keyboard) {
+    payload.reply_markup = keyboard;
+  }
 
   try {
     const response = await fetch(url, {
@@ -71,6 +93,13 @@ async function sendTelegramReply(chatId: number, text: string): Promise<void> {
   } catch (error) {
     console.error('Exception when trying to send Telegram reply:', error);
   }
+}
+
+/**
+ * Send a command response with proper formatting
+ */
+async function sendCommandResponse(chatId: number, response: CommandResponse): Promise<void> {
+  await sendTelegramReply(chatId, response.text, response.keyboard, response.parseMode);
 }
 
 /**
@@ -193,25 +222,60 @@ export async function POST(request: Request) {
         }
       }
 
-      // Handle regular /start command
+      // Get user context for command handlers
+      const dbUser = await findUserByTelegramId(chatId);
+
+      // Handle slash commands
       if (incomingMessage === '/start') {
-        const welcomeMessage = `👋 Welcome to *Luxe Cuts Hair Salon*!
-
-I'm your personal booking assistant. Here's what I can help you with:
-
-✂️ *Book Appointments* - Schedule your next haircut or styling
-📅 *Manage Bookings* - View, reschedule, or cancel appointments
-💬 *Ask Questions* - Get information about our services and stylists
-🔔 *Reminders* - Receive notifications for upcoming appointments
-
-How can I assist you today?`;
-
-        await sendTelegramReply(chatId, welcomeMessage);
+        const response = await handleStartCommand(dbUser);
+        await sendCommandResponse(chatId, response);
         return Response.json({ success: true }, { status: 200 });
       }
 
-      // Use enhanced messaging service with user context
-      const { reply: replyText, user: dbUser } = await handleMessagingWithUserContext(
+      if (incomingMessage === '/services') {
+        const response = await handleServicesCommand();
+        await sendCommandResponse(chatId, response);
+        return Response.json({ success: true }, { status: 200 });
+      }
+
+      if (incomingMessage === '/appointments') {
+        const response = await handleAppointmentsCommand(dbUser);
+        await sendCommandResponse(chatId, response);
+        return Response.json({ success: true }, { status: 200 });
+      }
+
+      if (incomingMessage === '/book') {
+        const response = await handleBookCommand();
+        await sendCommandResponse(chatId, response);
+        return Response.json({ success: true }, { status: 200 });
+      }
+
+      if (incomingMessage === '/cancel') {
+        const response = await handleCancelCommand(dbUser);
+        await sendCommandResponse(chatId, response);
+        return Response.json({ success: true }, { status: 200 });
+      }
+
+      if (incomingMessage === '/reschedule') {
+        const response = await handleRescheduleCommand(dbUser);
+        await sendCommandResponse(chatId, response);
+        return Response.json({ success: true }, { status: 200 });
+      }
+
+      if (incomingMessage === '/hours') {
+        const response = await handleHoursCommand();
+        await sendCommandResponse(chatId, response);
+        return Response.json({ success: true }, { status: 200 });
+      }
+
+      if (incomingMessage === '/help') {
+        const response = await handleHelpCommand();
+        await sendCommandResponse(chatId, response);
+        return Response.json({ success: true }, { status: 200 });
+      }
+
+      // Use enhanced messaging service with user context for natural language
+      const { reply: replyText } = await handleMessagingWithUserContext(
         incomingMessage,
         'telegram',
         chatId,
@@ -226,12 +290,43 @@ How can I assist you today?`;
       console.error('Error in Telegram webhook:', error);
       return Response.json({ message: 'Failed to process Telegram message.' }, { status: 500 });
     }
-  } else {
-    // This is not a text message we can process. Acknowledge it so Telegram doesn't resend.
-    console.log('Received a non-text message or an unhandled payload type.');
-    return Response.json(
-      { success: true, message: 'Payload received but not a user text message.' },
-      { status: 200 },
-    );
   }
+
+  // Handle callback queries from inline keyboard buttons
+  const callbackQuery = requestBody.callback_query;
+  if (callbackQuery) {
+    const chatId = callbackQuery.message.chat.id;
+    const callbackData = callbackQuery.data;
+
+    try {
+      // Get user context
+      const dbUser = await findUserByTelegramId(chatId);
+
+      // Handle the callback
+      const response = await handleCallbackQuery(callbackData, dbUser);
+      await sendCommandResponse(chatId, response);
+
+      // Answer the callback query to remove loading state
+      const botToken = process.env.TELEGRAM_BOT_TOKEN;
+      if (botToken) {
+        await fetch(`https://api.telegram.org/bot${botToken}/answerCallbackQuery`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ callback_query_id: callbackQuery.id }),
+        });
+      }
+
+      return Response.json({ success: true }, { status: 200 });
+    } catch (error: any) {
+      console.error('Error handling callback query:', error);
+      return Response.json({ message: 'Failed to process button click.' }, { status: 500 });
+    }
+  }
+
+  // This is not a message type we can process. Acknowledge it so Telegram doesn't resend.
+  console.log('Received an unhandled payload type.');
+  return Response.json(
+    { success: true, message: 'Payload received but not a supported message type.' },
+    { status: 200 },
+  );
 }
