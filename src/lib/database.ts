@@ -86,6 +86,23 @@ export const findUserByEmail = async (email: string) => {
   });
 };
 
+export const findUserByTelegramId = async (telegramId: number): Promise<User | null> => {
+  const user = await prisma.user.findFirst({
+    where: { telegramId },
+  });
+
+  if (!user) return null;
+
+  return {
+    ...user,
+    role: user.role as 'CUSTOMER' | 'ADMIN',
+    authProvider: (user.authProvider as 'email' | 'whatsapp' | 'telegram') ?? undefined,
+    telegramId: user.telegramId ?? undefined,
+    whatsappPhone: user.whatsappPhone ?? undefined,
+    avatar: user.avatar ?? undefined,
+  };
+};
+
 export const createUserFromOAuth = async (userData: Omit<User, 'id' | 'role'>): Promise<User> => {
   // First, check by whatsappPhone if it's a WhatsApp login
   let existingUser = null;
