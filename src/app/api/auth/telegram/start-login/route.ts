@@ -29,11 +29,13 @@ export async function POST(request: NextRequest) {
 
     // Clean up expired tokens
     const now = Date.now();
-    for (const [key, value] of loginTokens.entries()) {
+    const keysToDelete: string[] = [];
+    loginTokens.forEach((value, key) => {
       if (value.expiresAt.getTime() < now) {
-        loginTokens.delete(key);
+        keysToDelete.push(key);
       }
-    }
+    });
+    keysToDelete.forEach(key => loginTokens.delete(key));
 
     return NextResponse.json({
       token,
