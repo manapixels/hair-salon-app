@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createHash, createHmac } from 'crypto';
 import { setSessionCookie } from '@/lib/secureSession';
 import { createUserFromOAuth } from '@/lib/database';
+import { sendTelegramMessage } from '@/services/messagingService';
 import type { User } from '@/types';
 
 // Handle Telegram Login Widget callback
@@ -74,6 +75,28 @@ export async function GET(request: NextRequest) {
       avatar: user.avatar ?? undefined,
     };
     await setSessionCookie(userForSession);
+
+    // Send login confirmation message via Telegram
+    if (authData.id) {
+      const welcomeMessage = `🎉 *Welcome to Luxe Cuts!*
+
+You've successfully logged in to our hair salon booking system.
+
+✨ *What you can do:*
+• Book appointments with our professional stylists
+• View and manage your bookings
+• Get reminders for upcoming appointments
+• Chat with our AI assistant for help
+
+Ready to book your next appointment? Visit our website or chat with me anytime!
+
+Thank you for choosing Luxe Cuts! 💇‍♀️`;
+
+      // Send welcome message (non-blocking, don't wait for result)
+      sendTelegramMessage(authData.id, welcomeMessage).catch(error => {
+        console.error('Failed to send Telegram welcome message:', error);
+      });
+    }
 
     // Redirect to success page
     return NextResponse.redirect(`${process.env.NEXTAUTH_URL}/?login=success`);
