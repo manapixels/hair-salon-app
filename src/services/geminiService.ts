@@ -190,7 +190,12 @@ Service Matching: When users refer to services informally (e.g., "men's haircut"
 - "color" → "Single Process Color"
 - "highlights" → "Partial Highlights" or "Full Highlights" (ask which)
 
-Booking: When booking, confirm all details with the user before calling the bookAppointment function.${userContext?.name && userContext?.email ? ' Use the customer name and email from the user information above.' : " You must have the customer's name, email, desired services, date, and time."}
+Booking: When a user provides a date/time for booking:
+1. ALWAYS call checkAvailability first to verify the requested time slot is available
+2. If available, proceed to confirm details with the user before calling bookAppointment
+3. If NOT available, inform the user and suggest alternative times from the available slots
+4. IMPORTANT: Keep the conversation context - if they say "2pm works" after seeing alternatives, you know which date they mean
+5. ${userContext?.name && userContext?.email ? 'Use the customer name and email from the user information above.' : " You must have the customer's name, email, desired services, date, and time."}
 
 Canceling: ${userContext?.email ? 'Use the customer email from the user information above.' : "You MUST ask for the customer's email address."} You also need the appointment date and time to uniquely identify the appointment to be cancelled.
 
@@ -252,14 +257,39 @@ ${servicesListString}
         const date = new Date(args?.date as string);
         const utcDate = new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
         const slots = await getAvailability(utcDate);
+
         if (slots.length > 0) {
           return {
             text: `On ${formatDisplayDate(utcDate)}, the following time slots are available:\n${slots.join(', ')}`,
           };
         } else {
-          return {
-            text: `Sorry, there are no available slots on ${formatDisplayDate(utcDate)}. Please try another date.`,
-          };
+          // No slots available - suggest nearest alternatives
+          const suggestions: string[] = [];
+
+          // Check next 7 days for available slots
+          for (let i = 1; i <= 7; i++) {
+            const nextDate = new Date(utcDate);
+            nextDate.setDate(nextDate.getDate() + i);
+            const nextSlots = await getAvailability(nextDate);
+
+            if (nextSlots.length > 0 && suggestions.length < 3) {
+              // Show up to 3 earliest times for this date
+              const topSlots = nextSlots.slice(0, 3).join(', ');
+              suggestions.push(`• ${formatDisplayDate(nextDate)}: ${topSlots}`);
+            }
+
+            if (suggestions.length >= 3) break;
+          }
+
+          if (suggestions.length > 0) {
+            return {
+              text: `Sorry, ${formatDisplayDate(utcDate)} is fully booked. Here are the nearest available dates:\n\n${suggestions.join('\n')}\n\nWould any of these work for you?`,
+            };
+          } else {
+            return {
+              text: `Sorry, there are no available slots on ${formatDisplayDate(utcDate)} or in the next week. Please try a different date or contact us directly at ${process.env.BUSINESS_PHONE || '(555) 123-4567'}.`,
+            };
+          }
         }
       }
 
@@ -292,9 +322,45 @@ ${servicesListString}
             },
           };
         } catch (e: any) {
-          return {
-            text: `I'm sorry, I couldn't book that appointment. Reason: ${e.message}. Please try a different time or date.`,
-          };
+          // Booking failed - suggest alternatives
+          const requestedDate = new Date(args?.date as string);
+          const utcDate = new Date(
+            requestedDate.getUTCFullYear(),
+            requestedDate.getUTCMonth(),
+            requestedDate.getUTCDate(),
+          );
+          const availableSlots = await getAvailability(utcDate);
+
+          if (availableSlots.length > 0) {
+            return {
+              text: `I'm sorry, ${args?.time} is not available on ${formatDisplayDate(utcDate)}. Here are the available times for that day:\n\n${availableSlots.join(', ')}\n\nWould any of these work for you?`,
+            };
+          } else {
+            // Check next few days
+            const suggestions: string[] = [];
+            for (let i = 1; i <= 7; i++) {
+              const nextDate = new Date(utcDate);
+              nextDate.setDate(nextDate.getDate() + i);
+              const nextSlots = await getAvailability(nextDate);
+
+              if (nextSlots.length > 0 && suggestions.length < 3) {
+                const topSlots = nextSlots.slice(0, 3).join(', ');
+                suggestions.push(`• ${formatDisplayDate(nextDate)}: ${topSlots}`);
+              }
+
+              if (suggestions.length >= 3) break;
+            }
+
+            if (suggestions.length > 0) {
+              return {
+                text: `I'm sorry, ${formatDisplayDate(utcDate)} is fully booked. Here are the nearest available dates:\n\n${suggestions.join('\n')}\n\nWould any of these work for you?`,
+              };
+            } else {
+              return {
+                text: `I'm sorry, I couldn't book that appointment. ${e.message}\n\nPlease try a different date or contact us at ${process.env.BUSINESS_PHONE || '(555) 123-4567'}.`,
+              };
+            }
+          }
         }
       }
 
