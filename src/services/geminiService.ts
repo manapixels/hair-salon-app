@@ -191,11 +191,14 @@ Service Matching: When users refer to services informally (e.g., "men's haircut"
 - "highlights" → "Partial Highlights" or "Full Highlights" (ask which)
 
 Booking: When a user provides a date/time for booking:
-1. ALWAYS call checkAvailability first to verify the requested time slot is available
-2. If available, proceed to confirm details with the user before calling bookAppointment
-3. If NOT available, inform the user and suggest alternative times from the available slots
-4. IMPORTANT: Keep the conversation context - if they say "2pm works" after seeing alternatives, you know which date they mean
-5. ${userContext?.name && userContext?.email ? 'Use the customer name and email from the user information above.' : " You must have the customer's name, email, desired services, date, and time."}
+1. If the user provides BOTH date AND time (e.g., "October 20th at 3pm"):
+   - Proceed directly to confirm the booking details with the user
+   - DO NOT call checkAvailability - we'll validate during booking
+   - Ask: "Does that sound correct?" and show confirmation buttons
+2. If the user only provides a DATE (e.g., "October 20th"):
+   - Call checkAvailability to show them available times for that day
+3. IMPORTANT: Keep the conversation context - if they say "2pm works" after seeing alternatives, you know which date they mean
+4. ${userContext?.name && userContext?.email ? 'Use the customer name and email from the user information above.' : " You must have the customer's name, email, desired services, date, and time."}
 
 Canceling: ${userContext?.email ? 'Use the customer email from the user information above.' : "You MUST ask for the customer's email address."} You also need the appointment date and time to uniquely identify the appointment to be cancelled.
 
