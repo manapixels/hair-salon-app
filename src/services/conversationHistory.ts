@@ -23,6 +23,10 @@ interface BookingContext {
   date?: string; // YYYY-MM-DD
   time?: string; // HH:MM
   confirmed?: boolean;
+  // Favorite/last booking tracking for quick rebooking
+  lastServiceBooked?: string; // Last service name
+  lastStylistBooked?: string; // Last stylist ID
+  lastBookingDate?: number; // Timestamp of last successful booking
 }
 const bookingContextStore = new Map<string, BookingContext>();
 

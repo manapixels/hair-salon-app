@@ -137,6 +137,10 @@ export async function handleAppointmentsCommand(user: User | null): Promise<Comm
       text += `\n`;
     });
 
+    // Check if user has a favorite service (most recent appointment)
+    const context = getBookingContext(user?.email || user?.telegramId?.toString() || '');
+    const hasFavorite = context?.lastServiceBooked && context?.lastStylistBooked;
+
     // Create per-appointment action buttons
     const keyboard: InlineKeyboard = {
       inline_keyboard: [
@@ -150,7 +154,18 @@ export async function handleAppointmentsCommand(user: User | null): Promise<Comm
             ],
           ];
         }),
-        [{ text: '📅 Book Another', callback_data: 'cmd_book' }],
+        // Add "Book Again" button if user has a favorite
+        ...(hasFavorite
+          ? [
+              [
+                {
+                  text: `⭐ Book ${context.lastServiceBooked} Again`,
+                  callback_data: `quick_rebook`,
+                },
+              ],
+            ]
+          : []),
+        [{ text: '📅 Book New Service', callback_data: 'cmd_book' }],
       ],
     };
 
@@ -503,6 +518,85 @@ export async function handleCallbackQuery(
     };
   }
 
+  // Handle quick rebooking
+  if (callbackData === 'quick_rebook') {
+    const context = getBookingContext(userId);
+
+    if (!context?.lastServiceBooked) {
+      return {
+        text: `I couldn't find your previous booking. Let's book a new appointment!`,
+        parseMode: 'Markdown',
+        keyboard: {
+          inline_keyboard: [[{ text: '📅 Book Appointment', callback_data: 'cmd_book' }]],
+        },
+      };
+    }
+
+    // Pre-fill service and stylist in context
+    setBookingContext(userId, {
+      services: [context.lastServiceBooked],
+      stylistId: context.lastStylistBooked,
+      customerName: user?.name,
+      customerEmail: user?.email,
+    });
+
+    // Get stylist name for display
+    let stylistText = 'any available stylist';
+    if (context.lastStylistBooked) {
+      const stylists = await getStylists();
+      const stylist = stylists.find(s => s.id === context.lastStylistBooked);
+      if (stylist) {
+        stylistText = `*${stylist.name}*`;
+      }
+    }
+
+    return {
+      text: `⭐ *Quick Rebooking*\n\nGreat! You'd like to book:\n✂️ ${context.lastServiceBooked}\n👤 With: ${stylistText}\n\nWhat date and time would you like?\n\nFor example: "October 20th at 2:00 PM"`,
+      parseMode: 'Markdown',
+    };
+  }
+
+  // Handle reminder confirmation buttons
+  if (callbackData.startsWith('confirm_reminder_')) {
+    const aptId = callbackData.replace('confirm_reminder_', '');
+    return {
+      text: `✅ *Thank You!*\n\nYour appointment is confirmed. We look forward to seeing you!\n\nIf you need to make any changes, you can use /reschedule or /cancel commands.`,
+      parseMode: 'Markdown',
+      keyboard: {
+        inline_keyboard: [
+          [
+            { text: '📋 View My Appointments', callback_data: 'cmd_appointments' },
+            { text: '❓ Help', callback_data: 'cmd_help' },
+          ],
+        ],
+      },
+    };
+  }
+
+  if (callbackData.startsWith('reschedule_reminder_')) {
+    const aptId = callbackData.replace('reschedule_reminder_', '');
+    return {
+      text: `🔄 *Reschedule Appointment*\n\nNo problem! Please tell me your preferred new date and time.\n\nFor example: "January 20th at 3:00 PM"`,
+      parseMode: 'Markdown',
+    };
+  }
+
+  if (callbackData.startsWith('cancel_reminder_')) {
+    const aptId = callbackData.replace('cancel_reminder_', '');
+    return {
+      text: `⚠️ *Cancel Appointment*\n\nAre you sure you want to cancel this appointment?\n\nThis action cannot be undone.`,
+      parseMode: 'Markdown',
+      keyboard: {
+        inline_keyboard: [
+          [
+            { text: '✅ Yes, Cancel It', callback_data: `confirm_cancel_${aptId}` },
+            { text: '❌ No, Keep It', callback_data: 'cmd_appointments' },
+          ],
+        ],
+      },
+    };
+  }
+
   switch (callbackData) {
     case 'cmd_start':
       return handleStartCommand(user);
@@ -585,9 +679,12 @@ export async function handleCallbackQuery(
         const { formatDisplayDate } = await import('@/lib/timeUtils');
         const formattedDate = formatDisplayDate(parsedDate);
 
-        // Clear booking context after successful booking
-        const { clearBookingContext } = await import('./conversationHistory');
-        clearBookingContext(userId);
+        // Store favorite booking details for quick rebooking
+        setBookingContext(userId, {
+          lastServiceBooked: servicesToBook[0].name, // Primary service
+          lastStylistBooked: bookingContext.stylistId,
+          lastBookingDate: Date.now(),
+        });
 
         const keyboard: InlineKeyboard = {
           inline_keyboard: [

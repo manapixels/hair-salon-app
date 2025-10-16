@@ -99,6 +99,57 @@ export async function sendTelegramMessage(chatId: number, text: string): Promise
 }
 
 /**
+ * Sends a Telegram message with inline keyboard buttons
+ */
+export async function sendTelegramMessageWithKeyboard(
+  chatId: number,
+  text: string,
+  keyboard: any, // InlineKeyboard type from botCommandService
+): Promise<boolean> {
+  const botToken = process.env.TELEGRAM_BOT_TOKEN;
+
+  if (!botToken) {
+    console.warn('Telegram bot token not configured, simulating message send with keyboard');
+    console.log(`[Telegram Simulation] Chat ID: ${chatId}, Message: ${text}`);
+    return false;
+  }
+
+  const url = `https://api.telegram.org/bot${botToken}/sendMessage`;
+
+  const payload = {
+    chat_id: chatId,
+    text: text,
+    parse_mode: 'Markdown',
+    reply_markup: keyboard,
+  };
+
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error(
+        'Failed to send Telegram message with keyboard:',
+        JSON.stringify(errorData, null, 2),
+      );
+      return false;
+    }
+
+    console.log(`✅ Telegram message with keyboard sent to chat ${chatId}`);
+    return true;
+  } catch (error) {
+    console.error('Exception when sending Telegram message with keyboard:', error);
+    return false;
+  }
+}
+
+/**
  * Formats appointment details into a user-friendly message
  */
 function formatAppointmentMessage(
