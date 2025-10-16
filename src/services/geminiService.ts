@@ -156,6 +156,12 @@ export const handleWhatsAppMessage = async (
   userInput: string,
   chatHistory: Pick<WhatsAppMessage, 'text' | 'sender'>[],
   userContext?: { name?: string; email?: string } | null,
+  bookingContext?: {
+    services?: string[];
+    stylistId?: string;
+    date?: string;
+    time?: string;
+  } | null,
 ): Promise<MessageResponse> => {
   if (!API_KEY || !ai) {
     return {
@@ -183,6 +189,13 @@ Your goal is to help users inquire about services, book appointments, cancel the
 Today's date is ${formatDisplayDate(new Date())}.
 Do not ask for information you can derive, like the year if the user says "next Tuesday".
 Be conversational and helpful.${userContextString}
+
+IMPORTANT - Conversation Context:
+If you see messages in the conversation history that start with "System Context:", these contain information the user already provided via button clicks:
+- "User has selected service: X" means the user ALREADY chose service X by clicking a button
+- "User has selected stylist ID: Y" means the user ALREADY chose a stylist by clicking a button
+
+ALWAYS use this information when building bookings. NEVER ask the user for information that is already present in System Context messages. If you see "System Context: User has selected service: Men's Haircut", treat it as if the user said "I want Men's Haircut" and proceed to the next step (asking for date/time).
 
 Service Matching: When users refer to services informally (e.g., "men's haircut", "haircut", "color"), match them to the exact service names in the Available Services list below. For example:
 - "men's haircut" or "mens haircut" → "Men's Haircut"
@@ -534,27 +547,54 @@ ${servicesListString}
       const isConfirmationQuestion = confirmationPatterns.some(pattern => pattern.test(text));
 
       if (isConfirmationQuestion) {
-        // Try to extract booking details from the conversation context
+        // CRITICAL: Only show confirmation buttons if booking is actually complete
+        // Check if we have the required information from booking context
+        const hasService = bookingContext?.services && bookingContext.services.length > 0;
+        const hasDateTime = bookingContext?.date && bookingContext?.time;
+
+        if (!hasService || !hasDateTime) {
+          // Booking is incomplete - don't show confirmation buttons yet
+          // AI is asking a question but we're missing critical information
+          return { text };
+        }
+
+        // Booking appears complete - extract details for confirmation
         const bookingDetails: any = {};
 
-        // Extract date (various formats)
-        const dateMatch = text.match(
-          /(?:on|for)\s+([A-Z][a-z]+\s+\d{1,2}(?:st|nd|rd|th)?,?\s+\d{4})/i,
-        );
-        if (dateMatch) {
-          bookingDetails.date = dateMatch[1];
+        // Use booking context as source of truth
+        if (bookingContext?.services) {
+          bookingDetails.services = bookingContext.services;
+        }
+        if (bookingContext?.date) {
+          bookingDetails.date = bookingContext.date;
+        }
+        if (bookingContext?.time) {
+          bookingDetails.time = bookingContext.time;
         }
 
-        // Extract time
-        const timeMatch = text.match(/at\s+(\d{1,2}:\d{2}\s*(?:AM|PM|am|pm)?)/i);
-        if (timeMatch) {
-          bookingDetails.time = timeMatch[1];
+        // Also try to extract from AI response text as fallback
+        if (!bookingDetails.date) {
+          const dateMatch = text.match(
+            /(?:on|for)\s+([A-Z][a-z]+\s+\d{1,2}(?:st|nd|rd|th)?,?\s+\d{4})/i,
+          );
+          if (dateMatch) {
+            bookingDetails.date = dateMatch[1];
+          }
         }
 
-        // Extract service names from available services
-        const mentionedServices = allServices.filter(service => text.includes(service.name));
-        if (mentionedServices.length > 0) {
-          bookingDetails.services = mentionedServices.map(s => s.name);
+        if (!bookingDetails.time) {
+          const timeMatch = text.match(/at\s+(\d{1,2}:\d{2}\s*(?:AM|PM|am|pm)?)/i);
+          if (timeMatch) {
+            bookingDetails.time = timeMatch[1];
+          }
+        }
+
+        // Extract service names from available services if not in context
+        if (!bookingDetails.services) {
+          const mentionedServices = allServices.filter(service => text.includes(service.name));
+          if (mentionedServices.length > 0) {
+            bookingDetails.services = mentionedServices.map(s => s.name);
+          }
         }
 
         // Extract customer name if mentioned

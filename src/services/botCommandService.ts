@@ -49,6 +49,15 @@ I'm your personal booking assistant. I can help you with:
 🔄 *Manage bookings* - Cancel or reschedule
 💬 *Ask questions* - I'm here to help!
 
+*Quick Commands:*
+/book - Start booking
+/appointments - View your bookings
+/services - Browse services
+/cancel - Cancel a booking
+/reschedule - Reschedule a booking
+/hours - Business hours & location
+/help - Show all commands
+
 What would you like to do today?`;
 
   const keyboard: InlineKeyboard = {

@@ -116,10 +116,15 @@ export async function handleMessagingWithUserContext(
 
       // Import and use the existing handler with user context
       const { handleWhatsAppMessage } = await import('./geminiService');
-      const response = await handleWhatsAppMessage(enhancedMessage, enhancedChatHistory, {
-        name: user.name,
-        email: user.email,
-      });
+      const response = await handleWhatsAppMessage(
+        enhancedMessage,
+        enhancedChatHistory,
+        {
+          name: user.name,
+          email: user.email,
+        },
+        bookingContext, // Pass booking context for validation
+      );
 
       // Store the conversation
       addMessage(platformId.toString(), message, 'user');
@@ -165,7 +170,12 @@ export async function handleMessagingWithUserContext(
     enhancedChatHistory.push({ text: contextMessage, sender: 'bot' });
   }
 
-  const response = await handleWhatsAppMessage(message, enhancedChatHistory, userContext);
+  const response = await handleWhatsAppMessage(
+    message,
+    enhancedChatHistory,
+    userContext,
+    bookingContext, // Pass booking context for validation
+  );
 
   // Store the conversation
   addMessage(platformId.toString(), message, 'user');
