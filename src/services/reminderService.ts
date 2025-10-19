@@ -1,6 +1,7 @@
 import type { Appointment, User } from '@/types';
 import { sendWhatsAppMessage, sendTelegramMessage } from './messagingService';
 import { formatLongDate } from '@/lib/timeUtils';
+import type { InlineKeyboard } from './botCommandService';
 
 export interface ReminderResult {
   appointmentId: string;
@@ -25,7 +26,7 @@ export const sendAppointmentReminder = async (
   }
 
   const user = appointment.user;
-  const reminderMessage = formatReminderMessage(appointment);
+  const { message: reminderMessage, keyboard } = formatReminderMessage(appointment);
 
   // Determine the best method to send reminder based on user's auth provider
   try {
@@ -38,7 +39,13 @@ export const sendAppointmentReminder = async (
         error: success ? undefined : 'Failed to send WhatsApp reminder',
       };
     } else if (user.authProvider === 'telegram' && user.telegramId) {
-      const success = await sendTelegramMessage(user.telegramId, reminderMessage);
+      // Import Telegram send function with keyboard support
+      const { sendTelegramMessageWithKeyboard } = await import('./messagingService');
+      const success = await sendTelegramMessageWithKeyboard(
+        user.telegramId,
+        reminderMessage,
+        keyboard,
+      );
       return {
         appointmentId: appointment.id,
         success,
@@ -55,7 +62,12 @@ export const sendAppointmentReminder = async (
       }
 
       if (user.telegramId) {
-        const success = await sendTelegramMessage(user.telegramId, reminderMessage);
+        const { sendTelegramMessageWithKeyboard } = await import('./messagingService');
+        const success = await sendTelegramMessageWithKeyboard(
+          user.telegramId,
+          reminderMessage,
+          keyboard,
+        );
         return {
           appointmentId: appointment.id,
           success,
@@ -82,32 +94,40 @@ export const sendAppointmentReminder = async (
 };
 
 /**
- * Formats the reminder message for an appointment
+ * Formats the reminder message for an appointment with interactive buttons
  */
-export const formatReminderMessage = (appointment: Appointment): string => {
+export const formatReminderMessage = (
+  appointment: Appointment,
+): { message: string; keyboard: InlineKeyboard } => {
   const formattedDate = formatLongDate(appointment.date);
 
   const serviceNames = appointment.services.map(s => s.name).join(', ');
   const stylistInfo = appointment.stylist ? ` with ${appointment.stylist.name}` : '';
 
-  return `🔔 *Appointment Reminder*
+  const message = `🔔 *Appointment Reminder*
 
-📅 Tomorrow at ${appointment.time}
-📍 Luxe Cuts Hair Salon
+Hi ${appointment.user?.name || appointment.customerName}! Your appointment is tomorrow at ${appointment.time} 📅
 
 ✂️ *Services:* ${serviceNames}
-👩‍💇 *Stylist:* ${appointment.stylist?.name || 'To be assigned'}${stylistInfo}
+👩‍💇 *Stylist:* ${appointment.stylist?.name || 'To be assigned'}
 💰 *Total:* $${appointment.totalPrice}
 ⏱️ *Duration:* ${appointment.totalDuration} minutes
+📍 *Location:* Luxe Cuts Hair Salon
 
-Hi ${appointment.user?.name || appointment.customerName}! This is a friendly reminder about your appointment tomorrow.
+Looking forward to seeing you! ✨`;
 
-If you need to reschedule or cancel, please contact us as soon as possible or use our customer dashboard.
+  // Create interactive keyboard with action buttons
+  const keyboard: InlineKeyboard = {
+    inline_keyboard: [
+      [
+        { text: "✅ I'll Be There", callback_data: `confirm_reminder_${appointment.id}` },
+        { text: '🔄 Reschedule', callback_data: `reschedule_reminder_${appointment.id}` },
+      ],
+      [{ text: '❌ Cancel Appointment', callback_data: `cancel_reminder_${appointment.id}` }],
+    ],
+  };
 
-See you tomorrow! ✨
-
----
-*Luxe Cuts Hair Salon*`;
+  return { message, keyboard };
 };
 
 /**

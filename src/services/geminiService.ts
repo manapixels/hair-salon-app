@@ -143,12 +143,25 @@ const modifyAppointment: FunctionDeclaration = {
 export interface MessageResponse {
   text: string;
   buttons?: Array<{ text: string; data: string }>;
+  bookingDetails?: {
+    customerName?: string;
+    customerEmail?: string;
+    services?: string[];
+    date?: string;
+    time?: string;
+  };
 }
 
 export const handleWhatsAppMessage = async (
   userInput: string,
   chatHistory: Pick<WhatsAppMessage, 'text' | 'sender'>[],
   userContext?: { name?: string; email?: string } | null,
+  bookingContext?: {
+    services?: string[];
+    stylistId?: string;
+    date?: string;
+    time?: string;
+  } | null,
 ): Promise<MessageResponse> => {
   if (!API_KEY || !ai) {
     return {
@@ -177,13 +190,28 @@ Today's date is ${formatDisplayDate(new Date())}.
 Do not ask for information you can derive, like the year if the user says "next Tuesday".
 Be conversational and helpful.${userContextString}
 
+IMPORTANT - Conversation Context:
+If you see messages in the conversation history that start with "System Context:", these contain information the user already provided via button clicks:
+- "User has selected service: X" means the user ALREADY chose service X by clicking a button
+- "User has selected stylist ID: Y" means the user ALREADY chose a stylist by clicking a button
+
+ALWAYS use this information when building bookings. NEVER ask the user for information that is already present in System Context messages. If you see "System Context: User has selected service: Men's Haircut", treat it as if the user said "I want Men's Haircut" and proceed to the next step (asking for date/time).
+
 Service Matching: When users refer to services informally (e.g., "men's haircut", "haircut", "color"), match them to the exact service names in the Available Services list below. For example:
 - "men's haircut" or "mens haircut" → "Men's Haircut"
 - "women's haircut" or "womens haircut" → "Women's Haircut"
 - "color" → "Single Process Color"
 - "highlights" → "Partial Highlights" or "Full Highlights" (ask which)
 
-Booking: When booking, confirm all details with the user before calling the bookAppointment function.${userContext?.name && userContext?.email ? ' Use the customer name and email from the user information above.' : " You must have the customer's name, email, desired services, date, and time."}
+Booking: When a user provides a date/time for booking:
+1. If the user provides BOTH date AND time (e.g., "October 20th at 3pm"):
+   - Proceed directly to confirm the booking details with the user
+   - DO NOT call checkAvailability - we'll validate during booking
+   - Ask: "Does that sound correct?" and show confirmation buttons
+2. If the user only provides a DATE (e.g., "October 20th"):
+   - Call checkAvailability to show them available times for that day
+3. IMPORTANT: Keep the conversation context - if they say "2pm works" after seeing alternatives, you know which date they mean
+4. ${userContext?.name && userContext?.email ? 'Use the customer name and email from the user information above.' : " You must have the customer's name, email, desired services, date, and time."}
 
 Canceling: ${userContext?.email ? 'Use the customer email from the user information above.' : "You MUST ask for the customer's email address."} You also need the appointment date and time to uniquely identify the appointment to be cancelled.
 
@@ -245,14 +273,39 @@ ${servicesListString}
         const date = new Date(args?.date as string);
         const utcDate = new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
         const slots = await getAvailability(utcDate);
+
         if (slots.length > 0) {
           return {
             text: `On ${formatDisplayDate(utcDate)}, the following time slots are available:\n${slots.join(', ')}`,
           };
         } else {
-          return {
-            text: `Sorry, there are no available slots on ${formatDisplayDate(utcDate)}. Please try another date.`,
-          };
+          // No slots available - suggest nearest alternatives
+          const suggestions: string[] = [];
+
+          // Check next 7 days for available slots
+          for (let i = 1; i <= 7; i++) {
+            const nextDate = new Date(utcDate);
+            nextDate.setDate(nextDate.getDate() + i);
+            const nextSlots = await getAvailability(nextDate);
+
+            if (nextSlots.length > 0 && suggestions.length < 3) {
+              // Show up to 3 earliest times for this date
+              const topSlots = nextSlots.slice(0, 3).join(', ');
+              suggestions.push(`• ${formatDisplayDate(nextDate)}: ${topSlots}`);
+            }
+
+            if (suggestions.length >= 3) break;
+          }
+
+          if (suggestions.length > 0) {
+            return {
+              text: `Sorry, ${formatDisplayDate(utcDate)} is fully booked. Here are the nearest available dates:\n\n${suggestions.join('\n')}\n\nWould any of these work for you?`,
+            };
+          } else {
+            return {
+              text: `Sorry, there are no available slots on ${formatDisplayDate(utcDate)} or in the next week. Please try a different date or contact us directly at ${process.env.BUSINESS_PHONE || '(555) 123-4567'}.`,
+            };
+          }
         }
       }
 
@@ -276,11 +329,54 @@ ${servicesListString}
           });
           return {
             text: `Great! Your appointment is confirmed for ${args?.date} at ${args?.time} for ${requestedServices.join(', ')}. You'll receive an email confirmation shortly.`,
+            bookingDetails: {
+              customerName: args?.customerName as string,
+              customerEmail: args?.customerEmail as string,
+              services: requestedServices,
+              date: args?.date as string,
+              time: args?.time as string,
+            },
           };
         } catch (e: any) {
-          return {
-            text: `I'm sorry, I couldn't book that appointment. Reason: ${e.message}. Please try a different time or date.`,
-          };
+          // Booking failed - suggest alternatives
+          const requestedDate = new Date(args?.date as string);
+          const utcDate = new Date(
+            requestedDate.getUTCFullYear(),
+            requestedDate.getUTCMonth(),
+            requestedDate.getUTCDate(),
+          );
+          const availableSlots = await getAvailability(utcDate);
+
+          if (availableSlots.length > 0) {
+            return {
+              text: `I'm sorry, ${args?.time} is not available on ${formatDisplayDate(utcDate)}. Here are the available times for that day:\n\n${availableSlots.join(', ')}\n\nWould any of these work for you?`,
+            };
+          } else {
+            // Check next few days
+            const suggestions: string[] = [];
+            for (let i = 1; i <= 7; i++) {
+              const nextDate = new Date(utcDate);
+              nextDate.setDate(nextDate.getDate() + i);
+              const nextSlots = await getAvailability(nextDate);
+
+              if (nextSlots.length > 0 && suggestions.length < 3) {
+                const topSlots = nextSlots.slice(0, 3).join(', ');
+                suggestions.push(`• ${formatDisplayDate(nextDate)}: ${topSlots}`);
+              }
+
+              if (suggestions.length >= 3) break;
+            }
+
+            if (suggestions.length > 0) {
+              return {
+                text: `I'm sorry, ${formatDisplayDate(utcDate)} is fully booked. Here are the nearest available dates:\n\n${suggestions.join('\n')}\n\nWould any of these work for you?`,
+              };
+            } else {
+              return {
+                text: `I'm sorry, I couldn't book that appointment. ${e.message}\n\nPlease try a different date or contact us at ${process.env.BUSINESS_PHONE || '(555) 123-4567'}.`,
+              };
+            }
+          }
         }
       }
 
@@ -451,12 +547,73 @@ ${servicesListString}
       const isConfirmationQuestion = confirmationPatterns.some(pattern => pattern.test(text));
 
       if (isConfirmationQuestion) {
+        // CRITICAL: Only show confirmation buttons if booking is actually complete
+        // Check if we have the required information from booking context
+        const hasService = bookingContext?.services && bookingContext.services.length > 0;
+        const hasDateTime = bookingContext?.date && bookingContext?.time;
+
+        if (!hasService || !hasDateTime) {
+          // Booking is incomplete - don't show confirmation buttons yet
+          // AI is asking a question but we're missing critical information
+          return { text };
+        }
+
+        // Booking appears complete - extract details for confirmation
+        const bookingDetails: any = {};
+
+        // Use booking context as source of truth
+        if (bookingContext?.services) {
+          bookingDetails.services = bookingContext.services;
+        }
+        if (bookingContext?.date) {
+          bookingDetails.date = bookingContext.date;
+        }
+        if (bookingContext?.time) {
+          bookingDetails.time = bookingContext.time;
+        }
+
+        // Also try to extract from AI response text as fallback
+        if (!bookingDetails.date) {
+          const dateMatch = text.match(
+            /(?:on|for)\s+([A-Z][a-z]+\s+\d{1,2}(?:st|nd|rd|th)?,?\s+\d{4})/i,
+          );
+          if (dateMatch) {
+            bookingDetails.date = dateMatch[1];
+          }
+        }
+
+        if (!bookingDetails.time) {
+          const timeMatch = text.match(/at\s+(\d{1,2}:\d{2}\s*(?:AM|PM|am|pm)?)/i);
+          if (timeMatch) {
+            bookingDetails.time = timeMatch[1];
+          }
+        }
+
+        // Extract service names from available services if not in context
+        if (!bookingDetails.services) {
+          const mentionedServices = allServices.filter(service => text.includes(service.name));
+          if (mentionedServices.length > 0) {
+            bookingDetails.services = mentionedServices.map(s => s.name);
+          }
+        }
+
+        // Extract customer name if mentioned
+        const nameMatch = text.match(/for\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)/);
+        if (nameMatch && !text.includes('for ' + nameMatch[1] + ' minutes')) {
+          bookingDetails.customerName = nameMatch[1];
+        }
+
+        // Add user context if available
+        if (userContext?.name) bookingDetails.customerName = userContext.name;
+        if (userContext?.email) bookingDetails.customerEmail = userContext.email;
+
         return {
           text,
           buttons: [
             { text: '✅ Yes, book it!', data: 'confirm_booking' },
             { text: '❌ No, let me change something', data: 'cancel_booking' },
           ],
+          bookingDetails: Object.keys(bookingDetails).length > 0 ? bookingDetails : undefined,
         };
       }
 
