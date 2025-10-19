@@ -5,7 +5,12 @@
 import { findUserByEmail, findAppointmentsByEmail } from '../lib/database';
 import { prisma } from '../lib/prisma';
 import type { User } from '../types';
-import { addMessage, getHistory } from './conversationHistory';
+import {
+  addMessage,
+  getHistory,
+  setBookingContext,
+  getBookingContext,
+} from './conversationHistory';
 
 /**
  * Find user by WhatsApp phone number
@@ -92,16 +97,43 @@ export async function handleMessagingWithUserContext(
       // Get conversation history
       const chatHistory = getHistory(platformId.toString());
 
+      // Get booking context to inject into conversation
+      const bookingContext = getBookingContext(platformId.toString());
+
+      // If we have booking context, inject it into the conversation
+      let enhancedChatHistory = [...chatHistory];
+      if (bookingContext && (bookingContext.services || bookingContext.stylistId)) {
+        let contextMessage = 'System Context: ';
+        if (bookingContext.services && bookingContext.services.length > 0) {
+          contextMessage += `User has selected service: ${bookingContext.services.join(', ')}. `;
+        }
+        if (bookingContext.stylistId) {
+          contextMessage += `User has selected stylist ID: ${bookingContext.stylistId}. `;
+        }
+        contextMessage += 'Continue with the booking flow using this information.';
+        enhancedChatHistory.push({ text: contextMessage, sender: 'bot' });
+      }
+
       // Import and use the existing handler with user context
       const { handleWhatsAppMessage } = await import('./geminiService');
-      const response = await handleWhatsAppMessage(enhancedMessage, chatHistory, {
-        name: user.name,
-        email: user.email,
-      });
+      const response = await handleWhatsAppMessage(
+        enhancedMessage,
+        enhancedChatHistory,
+        {
+          name: user.name,
+          email: user.email,
+        },
+        bookingContext, // Pass booking context for validation
+      );
 
       // Store the conversation
       addMessage(platformId.toString(), message, 'user');
       addMessage(platformId.toString(), response.text, 'bot');
+
+      // Store booking context if present
+      if (response.bookingDetails) {
+        setBookingContext(platformId.toString(), response.bookingDetails);
+      }
 
       return {
         reply: response.text,
@@ -119,11 +151,40 @@ export async function handleMessagingWithUserContext(
   // Get conversation history
   const chatHistory = getHistory(platformId.toString());
 
-  const response = await handleWhatsAppMessage(message, chatHistory, userContext);
+  // Get booking context to inject into conversation
+  const bookingContext = getBookingContext(platformId.toString());
+
+  // If we have booking context (service/stylist from button clicks), inject it into the conversation
+  let enhancedChatHistory = [...chatHistory];
+  if (bookingContext && (bookingContext.services || bookingContext.stylistId)) {
+    // Add a system message to remind the AI about the current booking context
+    let contextMessage = 'System Context: ';
+    if (bookingContext.services && bookingContext.services.length > 0) {
+      contextMessage += `User has selected service: ${bookingContext.services.join(', ')}. `;
+    }
+    if (bookingContext.stylistId) {
+      contextMessage += `User has selected stylist ID: ${bookingContext.stylistId}. `;
+    }
+    contextMessage += 'Continue with the booking flow using this information.';
+
+    enhancedChatHistory.push({ text: contextMessage, sender: 'bot' });
+  }
+
+  const response = await handleWhatsAppMessage(
+    message,
+    enhancedChatHistory,
+    userContext,
+    bookingContext, // Pass booking context for validation
+  );
 
   // Store the conversation
   addMessage(platformId.toString(), message, 'user');
   addMessage(platformId.toString(), response.text, 'bot');
+
+  // Store booking context if present
+  if (response.bookingDetails) {
+    setBookingContext(platformId.toString(), response.bookingDetails);
+  }
 
   // If no user found and they're asking about appointments, suggest they provide email
   if (
