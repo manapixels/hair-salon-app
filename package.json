@@ -20,6 +20,9 @@
     "db:seed": "prisma db seed",
     "admin:create": "node -e \"require('./scripts/create-admin.js')\"",
     "data:backup": "node -e \"console.log('Manual backup: Use Neon dashboard or pg_dump')\"",
+    "test:messaging": "node scripts/test-messaging.js",
+    "test:messaging:env": "node scripts/check-messaging-env.js",
+    "test:appointments:create": "node scripts/create-test-appointments.js",
     "postinstall": "prisma generate"
   },
   "prisma": {
