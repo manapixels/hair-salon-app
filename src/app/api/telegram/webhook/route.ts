@@ -43,13 +43,14 @@ globalThis.telegramLoginSessions = globalThis.telegramLoginSessions || new Map()
  * @param chatId The chat ID where the message should be sent.
  * @param text The message text to send.
  * @param keyboard Optional inline keyboard for buttons.
+ * @returns The sent message object with message_id, or null on error
  */
 async function sendTelegramReply(
   chatId: number,
   text: string,
   keyboard?: any,
   parseMode: string = 'Markdown',
-): Promise<void> {
+): Promise<{ message_id: number } | null> {
   const botToken = process.env.TELEGRAM_BOT_TOKEN;
 
   if (!botToken) {
@@ -57,7 +58,7 @@ async function sendTelegramReply(
     console.log(
       `SIMULATING sending Telegram reply to ${chatId}: "${text}" (because bot token is not set)`,
     );
-    return;
+    return null;
   }
 
   const url = `https://api.telegram.org/bot${botToken}/sendMessage`;
@@ -90,16 +91,98 @@ async function sendTelegramReply(
     console.log(`Successfully sent Telegram reply to chat ${chatId}`);
     const responseData = await response.json();
     console.log('Telegram API Response:', responseData);
+
+    return responseData.result; // Contains message_id
   } catch (error) {
     console.error('Exception when trying to send Telegram reply:', error);
+    return null;
+  }
+}
+
+/**
+ * Edits an existing Telegram message
+ * @param chatId The chat ID where the message is
+ * @param messageId The ID of the message to edit
+ * @param text The new text for the message
+ * @param keyboard Optional new inline keyboard (null to remove buttons)
+ * @returns True if successful, false otherwise
+ */
+async function editTelegramMessage(
+  chatId: number,
+  messageId: number,
+  text: string,
+  keyboard?: any,
+  parseMode: string = 'Markdown',
+): Promise<boolean> {
+  const botToken = process.env.TELEGRAM_BOT_TOKEN;
+
+  if (!botToken) {
+    console.error('TELEGRAM_BOT_TOKEN environment variable is not set.');
+    console.log(
+      `SIMULATING editing Telegram message ${messageId} in chat ${chatId}: "${text}" (because bot token is not set)`,
+    );
+    return false;
+  }
+
+  const url = `https://api.telegram.org/bot${botToken}/editMessageText`;
+
+  const payload: any = {
+    chat_id: chatId,
+    message_id: messageId,
+    text: text,
+    parse_mode: parseMode,
+  };
+
+  if (keyboard !== undefined) {
+    payload.reply_markup = keyboard;
+  }
+
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('Failed to edit Telegram message:', JSON.stringify(errorData, null, 2));
+      return false;
+    }
+
+    console.log(`Successfully edited Telegram message ${messageId} in chat ${chatId}`);
+    return true;
+  } catch (error) {
+    console.error('Exception when trying to edit Telegram message:', error);
+    return false;
   }
 }
 
 /**
  * Send a command response with proper formatting
+ * @param chatId The chat ID to send to
+ * @param response The command response to send
+ * @param userId The user ID for storing context (optional)
  */
-async function sendCommandResponse(chatId: number, response: CommandResponse): Promise<void> {
-  await sendTelegramReply(chatId, response.text, response.keyboard, response.parseMode);
+async function sendCommandResponse(
+  chatId: number,
+  response: CommandResponse,
+  userId?: string,
+): Promise<void> {
+  const sentMessage = await sendTelegramReply(
+    chatId,
+    response.text,
+    response.keyboard,
+    response.parseMode,
+  );
+
+  // Store message ID for wizard-style editing
+  if (sentMessage?.message_id && userId) {
+    const { setBookingContext } = await import('@/services/conversationHistory');
+    setBookingContext(userId, { currentStepMessageId: sentMessage.message_id });
+  }
 }
 
 /**
@@ -223,52 +306,54 @@ export async function POST(request: Request) {
       // Get user context for command handlers
       const dbUser = await findUserByTelegramId(chatId);
 
-      // Handle slash commands
+      //Handle slash commands
+      const userId = chatId.toString();
+
       if (incomingMessage === '/start') {
         const response = await handleStartCommand(dbUser);
-        await sendCommandResponse(chatId, response);
+        await sendCommandResponse(chatId, response, userId);
         return Response.json({ success: true }, { status: 200 });
       }
 
       if (incomingMessage === '/services') {
         const response = await handleServicesCommand();
-        await sendCommandResponse(chatId, response);
+        await sendCommandResponse(chatId, response, userId);
         return Response.json({ success: true }, { status: 200 });
       }
 
       if (incomingMessage === '/appointments') {
         const response = await handleAppointmentsCommand(dbUser);
-        await sendCommandResponse(chatId, response);
+        await sendCommandResponse(chatId, response, userId);
         return Response.json({ success: true }, { status: 200 });
       }
 
       if (incomingMessage === '/book') {
         const response = await handleBookCommand();
-        await sendCommandResponse(chatId, response);
+        await sendCommandResponse(chatId, response, userId);
         return Response.json({ success: true }, { status: 200 });
       }
 
       if (incomingMessage === '/cancel') {
         const response = await handleCancelCommand(dbUser);
-        await sendCommandResponse(chatId, response);
+        await sendCommandResponse(chatId, response, userId);
         return Response.json({ success: true }, { status: 200 });
       }
 
       if (incomingMessage === '/reschedule') {
         const response = await handleRescheduleCommand(dbUser);
-        await sendCommandResponse(chatId, response);
+        await sendCommandResponse(chatId, response, userId);
         return Response.json({ success: true }, { status: 200 });
       }
 
       if (incomingMessage === '/hours') {
         const response = await handleHoursCommand();
-        await sendCommandResponse(chatId, response);
+        await sendCommandResponse(chatId, response, userId);
         return Response.json({ success: true }, { status: 200 });
       }
 
       if (incomingMessage === '/help') {
         const response = await handleHelpCommand();
-        await sendCommandResponse(chatId, response);
+        await sendCommandResponse(chatId, response, userId);
         return Response.json({ success: true }, { status: 200 });
       }
 
@@ -303,14 +388,32 @@ export async function POST(request: Request) {
   if (callbackQuery) {
     const chatId = callbackQuery.message.chat.id;
     const callbackData = callbackQuery.data;
+    const userId = chatId.toString();
 
     try {
       // Get user context
       const dbUser = await findUserByTelegramId(chatId);
 
       // Handle the callback with chatId for context storage
-      const response = await handleCallbackQuery(callbackData, dbUser, chatId.toString());
-      await sendCommandResponse(chatId, response);
+      const response = await handleCallbackQuery(callbackData, dbUser, userId);
+
+      // Check if we should edit the previous message or send a new one
+      const { getBookingContext } = await import('@/services/conversationHistory');
+      const context = getBookingContext(userId);
+
+      if (response.editPreviousMessage && context?.currentStepMessageId) {
+        // EDIT the message that was clicked (wizard-style UX)
+        await editTelegramMessage(
+          chatId,
+          context.currentStepMessageId,
+          response.text,
+          response.keyboard || null, // null removes keyboard
+          response.parseMode,
+        );
+      } else {
+        // SEND new message (normal flow)
+        await sendCommandResponse(chatId, response, userId);
+      }
 
       // Answer the callback query to remove loading state
       const botToken = process.env.TELEGRAM_BOT_TOKEN;
