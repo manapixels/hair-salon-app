@@ -15,6 +15,7 @@ export interface CommandResponse {
   text: string;
   keyboard?: InlineKeyboard;
   parseMode?: 'Markdown' | 'HTML';
+  editPreviousMessage?: boolean; // If true, edit the previous message instead of sending new
 }
 
 /**
@@ -455,9 +456,10 @@ export async function handleCallbackQuery(
     };
 
     return {
-      text: `Great choice! You've selected:\n\n✂️ *${service.name}*\n💰 $${service.price}\n⏱️ ${service.duration} minutes\n\nWho would you like as your stylist?`,
+      text: `✅ *${service.name}* selected\n💰 $${service.price} | ⏱️ ${service.duration} minutes\n\nWho would you like as your stylist?`,
       keyboard,
       parseMode: 'Markdown',
+      editPreviousMessage: true, // Edit the service selection message
     };
   }
 
@@ -487,9 +489,13 @@ export async function handleCallbackQuery(
       }
     }
 
+    const context = getBookingContext(userId);
+    const serviceName = context?.services?.[0] || 'selected service';
+
     return {
-      text: `Perfect! ${stylistSelection === 'any' ? "We'll match you with an available stylist" : `You'll be with *${stylistName}*`}.\n\nNow, please tell me your preferred date and time.\n\nFor example: "October 20th at 2:00 PM"${!user?.email ? "\n\nI'll also need your name and email." : ''}`,
+      text: `✅ *${serviceName}* with ${stylistSelection === 'any' ? 'any available stylist' : `*${stylistName}*`}\n\nWhat date and time would you prefer?\n\nFor example: "October 20th at 2:00 PM"${!user?.email ? "\n\nI'll also need your name and email." : ''}`,
       parseMode: 'Markdown',
+      editPreviousMessage: true, // Edit the stylist selection message
     };
   }
 
@@ -708,6 +714,7 @@ export async function handleCallbackQuery(
           text: `✅ *Booking Confirmed!*\n\n${servicesToBook.map(s => `✂️ ${s.name}`).join('\n')}\n📅 ${formattedDate}\n🕐 ${bookingContext.time}\n💰 $${servicesToBook.reduce((sum, s) => sum + s.price, 0)}\n\nYou'll receive a confirmation email at ${bookingContext.customerEmail} shortly.\n\nThank you for choosing Luxe Cuts!`,
           keyboard,
           parseMode: 'Markdown',
+          editPreviousMessage: true, // Edit the confirmation question
         };
       } catch (error: any) {
         return {

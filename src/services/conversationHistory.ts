@@ -27,6 +27,8 @@ interface BookingContext {
   lastServiceBooked?: string; // Last service name
   lastStylistBooked?: string; // Last stylist ID
   lastBookingDate?: number; // Timestamp of last successful booking
+  // Wizard-style UX: Track current step message for editing
+  currentStepMessageId?: number; // Telegram message ID to edit on next step
 }
 const bookingContextStore = new Map<string, BookingContext>();
 
