@@ -342,12 +342,12 @@ Before declaring Phase 1 complete, verify:
 ### Test 1: Booking Flow
 
 - Status: ✅ PASS / ❌ FAIL
-- Notes: ****\*\*****\_****\*\*****
+- Notes: \***\*\*\*\*\***\_\***\*\*\*\*\***
 
 ### Test 2: View Appointments
 
 - Status: ✅ PASS / ❌ FAIL
-- Notes: ****\*\*****\_****\*\*****
+- Notes: \***\*\*\*\*\***\_\***\*\*\*\*\***
 
 [... continue for all tests ...]
 

@@ -8,6 +8,7 @@ import AppHeader from './AppHeader';
 import AppFooter from './AppFooter';
 import OAuthLoginModal from './OAuthLoginModal';
 import { useAuth } from '../context/AuthContext';
+import { toast } from 'sonner';
 
 type View = 'booking' | 'admin' | 'dashboard';
 
@@ -27,6 +28,8 @@ export default function AppShell() {
       window.history.replaceState({}, document.title, window.location.pathname);
       // Force AuthContext to re-check session without full page reload
       window.dispatchEvent(new Event('auth-refresh'));
+      // Show success toast
+      toast.success('Logged in successfully!');
     } else if (error) {
       // Handle OAuth errors
       const errorMessages: { [key: string]: string } = {
@@ -41,7 +44,8 @@ export default function AppShell() {
       };
 
       const errorMessage = errorMessages[error] || 'Authentication failed';
-      alert(errorMessage);
+      // Replace browser alert with toast
+      toast.error(errorMessage);
 
       // Clear URL parameters
       window.history.replaceState({}, document.title, window.location.pathname);

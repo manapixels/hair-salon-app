@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { toast } from 'sonner';
 
 interface TelegramLoginWidgetProps {
   botUsername: string;
@@ -15,6 +16,17 @@ const TelegramLoginWidget: React.FC<TelegramLoginWidgetProps> = ({
 }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const popupWindowRef = useRef<Window | null>(null);
+  const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+      }
+    };
+  }, []);
 
   const handleLogin = async () => {
     setLoading(true);
@@ -38,15 +50,46 @@ const TelegramLoginWidget: React.FC<TelegramLoginWidgetProps> = ({
       // Create deep link to Telegram bot
       const telegramDeepLink = `https://t.me/${botUsername}?start=login_${token}`;
 
-      // Open Telegram
-      window.open(telegramDeepLink, '_blank');
+      // Open Telegram in new window/tab
+      popupWindowRef.current = window.open(telegramDeepLink, '_blank');
+
+      // Start polling to check if popup was closed
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+      }
+
+      pollingIntervalRef.current = setInterval(() => {
+        if (popupWindowRef.current && popupWindowRef.current.closed) {
+          // User closed the popup without completing login
+          clearInterval(pollingIntervalRef.current!);
+          pollingIntervalRef.current = null;
+          setLoading(false);
+          toast.error('Login cancelled. Please try again if you want to log in.');
+          popupWindowRef.current = null;
+        }
+      }, 500);
+
+      // Auto-stop polling after 5 minutes (timeout)
+      setTimeout(
+        () => {
+          if (pollingIntervalRef.current) {
+            clearInterval(pollingIntervalRef.current);
+            pollingIntervalRef.current = null;
+            setLoading(false);
+            if (popupWindowRef.current && !popupWindowRef.current.closed) {
+              toast('Login timed out. Please try again.', { icon: '⏱️' });
+            }
+            popupWindowRef.current = null;
+          }
+        },
+        5 * 60 * 1000,
+      );
 
       // Show success message
       setError(null);
     } catch (err) {
       console.error('Login error:', err);
       setError('Failed to initiate login. Please try again.');
-    } finally {
       setLoading(false);
     }
   };

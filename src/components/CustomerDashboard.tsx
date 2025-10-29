@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { toast } from 'sonner';
 import { useAuth } from '../context/AuthContext';
 import RescheduleModal from './RescheduleModal';
@@ -184,9 +185,11 @@ export default function CustomerDashboard() {
       <div className="bg-white dark:bg-gray-900 rounded-lg shadow-md p-6 mb-6">
         <div className="flex items-center space-x-4">
           {user.avatar && (
-            <img
+            <Image
               src={user.avatar}
               alt={user.name}
+              width={64}
+              height={64}
               className="w-16 h-16 rounded-full object-cover"
             />
           )}
@@ -392,18 +395,36 @@ export default function CustomerDashboard() {
                         <button
                           onClick={() => handleRescheduleAppointment(appointment.id)}
                           disabled={reschedulingId === appointment.id}
-                          className="text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 text-sm disabled:opacity-50"
+                          className="text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 text-sm disabled:opacity-50 inline-flex items-center gap-1"
                         >
-                          <i className="fa-solid fa-edit mr-1"></i>
-                          {reschedulingId === appointment.id ? 'Rescheduling...' : 'Reschedule'}
+                          {reschedulingId === appointment.id ? (
+                            <>
+                              <i className="fa-solid fa-spinner fa-spin"></i>
+                              <span>Rescheduling...</span>
+                            </>
+                          ) : (
+                            <>
+                              <i className="fa-solid fa-edit"></i>
+                              <span>Reschedule</span>
+                            </>
+                          )}
                         </button>
                         <button
                           onClick={() => handleCancelAppointment(appointment.id)}
                           disabled={cancellingId === appointment.id}
-                          className="text-red-600 hover:text-red-700 dark:text-red-400 text-sm disabled:opacity-50"
+                          className="text-red-600 hover:text-red-700 dark:text-red-400 text-sm disabled:opacity-50 inline-flex items-center gap-1"
                         >
-                          <i className="fa-solid fa-times mr-1"></i>
-                          {cancellingId === appointment.id ? 'Cancelling...' : 'Cancel'}
+                          {cancellingId === appointment.id ? (
+                            <>
+                              <i className="fa-solid fa-spinner fa-spin"></i>
+                              <span>Cancelling...</span>
+                            </>
+                          ) : (
+                            <>
+                              <i className="fa-solid fa-times"></i>
+                              <span>Cancel</span>
+                            </>
+                          )}
                         </button>
                       </div>
                     </div>

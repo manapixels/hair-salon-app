@@ -1,4 +1,5 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
+import Image from 'next/image';
 import { toast } from 'sonner';
 import { SALON_SERVICES } from '@/constants';
 import type { Service, TimeSlot, Appointment, Stylist } from '@/types';
@@ -70,46 +71,47 @@ const StylistSelector: React.FC<{
   // Delayed loading to prevent flash on fast connections
   const showLoader = useDelayedLoading(loading, { delay: 150, minDuration: 300 });
 
-  useEffect(() => {
-    const fetchStylists = async () => {
-      if (selectedServices.length === 0) {
-        setStylists([]);
-        return;
+  // Extract fetch function so it can be reused for retry
+  const fetchStylists = useCallback(async () => {
+    if (selectedServices.length === 0) {
+      setStylists([]);
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const serviceIds = selectedServices.map(s => s.id);
+      const response = await fetch(`/api/stylists?services=${serviceIds.join(',')}`);
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch stylists: ${response.status}`);
       }
 
-      setLoading(true);
-      setError(null);
+      const availableStylists = await response.json();
 
-      try {
-        const serviceIds = selectedServices.map(s => s.id);
-        const response = await fetch(`/api/stylists?services=${serviceIds.join(',')}`);
-
-        if (!response.ok) {
-          throw new Error(`Failed to fetch stylists: ${response.status}`);
-        }
-
-        const availableStylists = await response.json();
-
-        // Validate response is an array
-        if (!Array.isArray(availableStylists)) {
-          console.error('Invalid response format:', availableStylists);
-          throw new Error('Invalid response format from server');
-        }
-
-        setStylists(availableStylists);
-      } catch (error) {
-        console.error('Failed to fetch stylists:', error);
-        const errorMsg = error instanceof Error ? error.message : 'Unable to load stylists';
-        setError(errorMsg);
-        toast.error(errorMsg);
-        setStylists([]);
-      } finally {
-        setLoading(false);
+      // Validate response is an array
+      if (!Array.isArray(availableStylists)) {
+        console.error('Invalid response format:', availableStylists);
+        throw new Error('Invalid response format from server');
       }
-    };
 
-    fetchStylists();
+      setStylists(availableStylists);
+    } catch (error) {
+      console.error('Failed to fetch stylists:', error);
+      const errorMsg = error instanceof Error ? error.message : 'Unable to load stylists';
+      setError(errorMsg);
+      toast.error(errorMsg);
+      setStylists([]);
+    } finally {
+      setLoading(false);
+    }
   }, [selectedServices]);
+
+  useEffect(() => {
+    fetchStylists();
+  }, [fetchStylists]);
 
   if (selectedServices.length === 0) {
     return null;
@@ -144,8 +146,8 @@ const StylistSelector: React.FC<{
         <ErrorState
           title="Failed to Load Stylists"
           message={error}
-          onRetry={() => window.location.reload()}
-          retryText="Refresh Page"
+          onRetry={fetchStylists}
+          retryText="Try Again"
         />
       ) : stylists.length === 0 ? (
         <EmptyState
@@ -182,9 +184,11 @@ const StylistSelector: React.FC<{
               >
                 <div className="flex items-center mb-3">
                   {stylist.avatar ? (
-                    <img
+                    <Image
                       src={stylist.avatar}
                       alt={stylist.name}
+                      width={48}
+                      height={48}
                       className="w-12 h-12 rounded-full mr-3"
                     />
                   ) : (
@@ -641,10 +645,18 @@ const BookingForm: React.FC = () => {
   const [bookingConfirmed, setBookingConfirmed] = useState<Appointment | null>(null);
   const { createAppointment } = useBooking();
 
+  // Smart reset logic: only reset when necessary
   useEffect(() => {
+    // Always reset time when date changes
     setSelectedTime(null);
-    setSelectedStylist(null);
-  }, [selectedServices, selectedDate]);
+  }, [selectedDate]);
+
+  // Reset stylist only when services change (but StylistSelector will handle this more intelligently)
+  useEffect(() => {
+    if (selectedServices.length === 0) {
+      setSelectedStylist(null);
+    }
+  }, [selectedServices]);
 
   const { totalPrice, totalDuration } = useMemo(() => {
     return selectedServices.reduce(

@@ -3,6 +3,7 @@
 import { useAuth } from '../context/AuthContext';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 
 type View = 'booking' | 'admin' | 'dashboard';
 
@@ -147,7 +148,15 @@ export default function AppHeader({ view, onViewChange, onLoginClick }: AppHeade
             {user ? (
               <>
                 <span className="text-sm font-medium hidden md:inline">Welcome, {user.name}!</span>
-                <AuthButton onClick={logout}>Logout</AuthButton>
+                <AuthButton
+                  onClick={async () => {
+                    await logout();
+                    router.push('/');
+                    toast.success('Logged out successfully');
+                  }}
+                >
+                  Logout
+                </AuthButton>
               </>
             ) : (
               <>

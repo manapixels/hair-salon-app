@@ -159,3 +159,190 @@ export function formatLongDate(date: Date | string): string {
 
   return `${dayOfWeek}, ${day} ${month} ${year}`;
 }
+
+// =============================================================================
+// TIMEZONE UTILITIES FOR UTC/LOCAL CONVERSION
+// =============================================================================
+
+/**
+ * Convert a local Date object to UTC ISO string for database storage
+ * @param localDate - Date object in user's local timezone
+ * @returns ISO string in UTC (e.g., "2024-03-15T14:30:00.000Z")
+ */
+export function toUTC(localDate: Date): string {
+  return localDate.toISOString();
+}
+
+/**
+ * Convert UTC ISO string from database to local Date object
+ * @param utcString - ISO string in UTC (e.g., "2024-03-15T14:30:00.000Z")
+ * @returns Date object in user's local timezone
+ */
+export function toLocalDate(utcString: string): Date {
+  return new Date(utcString);
+}
+
+/**
+ * Compare two dates ignoring time, timezone-safe
+ * @param date1 - First date (Date object or UTC string)
+ * @param date2 - Second date (Date object or UTC string)
+ * @returns true if dates are the same day in UTC
+ */
+export function isSameDay(date1: Date | string, date2: Date | string): boolean {
+  const d1 = typeof date1 === 'string' ? toLocalDate(date1) : date1;
+  const d2 = typeof date2 === 'string' ? toLocalDate(date2) : date2;
+
+  return (
+    d1.getUTCFullYear() === d2.getUTCFullYear() &&
+    d1.getUTCMonth() === d2.getUTCMonth() &&
+    d1.getUTCDate() === d2.getUTCDate()
+  );
+}
+
+/**
+ * Get YYYY-MM-DD string for date input (local timezone)
+ * @param date - Date object
+ * @returns Date string in YYYY-MM-DD format for input[type="date"]
+ */
+export function toDateInputValue(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+/**
+ * Create Date from YYYY-MM-DD input value (local timezone)
+ * @param dateString - Date string in YYYY-MM-DD format
+ * @returns Date object at midnight in local timezone
+ */
+export function fromDateInputValue(dateString: string): Date {
+  const [year, month, day] = dateString.split('-').map(Number);
+  return new Date(year, month - 1, day);
+}
+
+/**
+ * Combine date and time strings into UTC ISO string
+ * @param dateString - Date in YYYY-MM-DD format (local)
+ * @param timeString - Time in HH:MM format (24h)
+ * @returns UTC ISO string for database storage
+ */
+export function combineDateTimeToUTC(dateString: string, timeString: string): string {
+  const [year, month, day] = dateString.split('-').map(Number);
+  const [hours, minutes] = timeString.split(':').map(Number);
+  const localDate = new Date(year, month - 1, day, hours, minutes);
+  return toUTC(localDate);
+}
+
+/**
+ * Check if a date is in the past (ignoring time)
+ * @param date - Date to check (Date object or UTC string)
+ * @returns true if date is before today
+ */
+export function isPastDate(date: Date | string): boolean {
+  const checkDate = typeof date === 'string' ? toLocalDate(date) : date;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  checkDate.setHours(0, 0, 0, 0);
+  return checkDate < today;
+}
+
+/**
+ * Get minimum date for date inputs (today in local timezone)
+ * @returns YYYY-MM-DD string for min attribute
+ */
+export function getMinDateForInput(): string {
+  return toDateInputValue(new Date());
+}
+
+/**
+ * Get maximum date for date inputs (e.g., 90 days from now)
+ * @param daysFromNow - Number of days from today
+ * @returns YYYY-MM-DD string for max attribute
+ */
+export function getMaxDateForInput(daysFromNow: number = 90): string {
+  const maxDate = new Date();
+  maxDate.setDate(maxDate.getDate() + daysFromNow);
+  return toDateInputValue(maxDate);
+}
+
+/**
+ * Parse appointment date/time to UTC
+ * Legacy support for existing date formats
+ * @param dateValue - Date string or Date object
+ * @param timeString - Time string (optional, e.g., "14:30")
+ * @returns UTC ISO string
+ */
+export function parseAppointmentDateTime(dateValue: string | Date, timeString?: string): string {
+  let date: Date;
+
+  if (typeof dateValue === 'string') {
+    // If it's already an ISO string, parse it
+    if (dateValue.includes('T') || dateValue.includes('Z')) {
+      date = new Date(dateValue);
+    } else if (timeString) {
+      // If we have separate date and time strings
+      return combineDateTimeToUTC(dateValue, timeString);
+    } else {
+      // Just a date string, treat as local date at midnight
+      date = fromDateInputValue(dateValue);
+    }
+  } else {
+    date = dateValue;
+  }
+
+  return toUTC(date);
+}
+
+/**
+ * Get timezone indicator string for UI display
+ * @returns String like "PST" or "GMT-8"
+ */
+export function getTimezoneIndicator(): string {
+  const date = new Date();
+  const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+  try {
+    // Try to get short timezone name (e.g., "PST", "EST")
+    const shortName = date
+      .toLocaleTimeString('en-US', {
+        timeZoneName: 'short',
+      })
+      .split(' ')
+      .pop();
+
+    return shortName || timeZone;
+  } catch {
+    // Fallback to timezone name
+    return timeZone;
+  }
+}
+
+/**
+ * Get timezone offset string (e.g., "UTC-8" or "UTC+5:30")
+ * @returns Offset string for display
+ */
+export function getTimezoneOffset(): string {
+  const offset = -new Date().getTimezoneOffset();
+  const hours = Math.floor(Math.abs(offset) / 60);
+  const minutes = Math.abs(offset) % 60;
+  const sign = offset >= 0 ? '+' : '-';
+
+  if (minutes === 0) {
+    return `UTC${sign}${hours}`;
+  }
+  return `UTC${sign}${hours}:${String(minutes).padStart(2, '0')}`;
+}
+
+/**
+ * Check if a date/time combination is in the past
+ * @param dateString - Date in YYYY-MM-DD format
+ * @param timeString - Time in HH:MM format
+ * @returns true if the combined date/time is in the past
+ */
+export function isDateTimePast(dateString: string, timeString: string): boolean {
+  const [year, month, day] = dateString.split('-').map(Number);
+  const [hours, minutes] = timeString.split(':').map(Number);
+  const dateTime = new Date(year, month - 1, day, hours, minutes);
+  return dateTime < new Date();
+}

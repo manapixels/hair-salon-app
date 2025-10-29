@@ -1,10 +1,16 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 import type { Appointment, TimeSlot } from '@/types';
 import { useBooking } from '@/context/BookingContext';
-import { formatDisplayDate } from '@/lib/timeUtils';
+import {
+  formatDisplayDate,
+  toDateInputValue,
+  isSameDay,
+  getMinDateForInput,
+  combineDateTimeToUTC,
+} from '@/lib/timeUtils';
 
 interface RescheduleModalProps {
   appointment: Appointment;
@@ -36,14 +42,8 @@ export default function RescheduleModal({
     }
   }, [isOpen]);
 
-  // Fetch available time slots when date changes
-  useEffect(() => {
-    if (isOpen && selectedDate) {
-      fetchTimeSlots();
-    }
-  }, [selectedDate, isOpen]);
-
-  const fetchTimeSlots = async () => {
+  // Memoized fetch function to satisfy dependency array
+  const fetchTimeSlots = useCallback(async () => {
     setLoading(true);
     try {
       const availableSlots = await getAvailableSlots(
@@ -59,7 +59,14 @@ export default function RescheduleModal({
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedDate, appointment.stylistId, getAvailableSlots]);
+
+  // Fetch available time slots when date changes
+  useEffect(() => {
+    if (isOpen && selectedDate) {
+      fetchTimeSlots();
+    }
+  }, [selectedDate, isOpen, fetchTimeSlots]);
 
   const handleReschedule = async () => {
     if (!selectedDate || !selectedTime) {
@@ -67,12 +74,13 @@ export default function RescheduleModal({
       return;
     }
 
-    // Check if the new date/time is different from current
-    const currentDateTime = `${appointment.date.toISOString().split('T')[0]} ${appointment.time}`;
-    const newDateTime = `${selectedDate.toISOString().split('T')[0]} ${selectedTime}`;
+    // Check if the new date/time is different from current (timezone-safe)
+    const appointmentDate = new Date(appointment.date);
+    const isSameDateSelected = isSameDay(selectedDate, appointmentDate);
+    const isSameTimeSelected = selectedTime === appointment.time;
 
-    if (currentDateTime === newDateTime) {
-      toast.warning('Please select a different date and time');
+    if (isSameDateSelected && isSameTimeSelected) {
+      toast.warning('Please select a different date or time');
       return;
     }
 
@@ -80,6 +88,9 @@ export default function RescheduleModal({
     const toastId = toast.loading('Rescheduling appointment...');
 
     try {
+      // Convert local date/time to UTC for database storage
+      const utcDateTime = combineDateTimeToUTC(toDateInputValue(selectedDate), selectedTime);
+
       const response = await fetch('/api/appointments/user-reschedule', {
         method: 'PATCH',
         headers: {
@@ -87,8 +98,9 @@ export default function RescheduleModal({
         },
         body: JSON.stringify({
           appointmentId: appointment.id,
-          newDate: selectedDate.toISOString().split('T')[0],
+          newDate: toDateInputValue(selectedDate),
           newTime: selectedTime,
+          utcDateTime, // Send UTC for server-side consistency
         }),
       });
 
@@ -174,12 +186,18 @@ export default function RescheduleModal({
             </label>
             <input
               type="date"
-              value={selectedDate.toISOString().split('T')[0]}
-              min={new Date().toISOString().split('T')[0]}
-              onChange={e => setSelectedDate(new Date(e.target.value))}
+              value={toDateInputValue(selectedDate)}
+              min={getMinDateForInput()}
+              onChange={e => {
+                const [year, month, day] = e.target.value.split('-').map(Number);
+                setSelectedDate(new Date(year, month - 1, day));
+              }}
               className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
               disabled={isRescheduling}
             />
+            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              All times shown in your local timezone
+            </p>
           </div>
 
           {/* Time Selection */}
