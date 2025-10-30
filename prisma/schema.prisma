@@ -15,6 +15,19 @@ enum Role {
   ADMIN
 }
 
+enum AppointmentStatus {
+  SCHEDULED
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}
+
+enum RetentionMessageType {
+  FEEDBACK_REQUEST
+  REBOOKING_NUDGE
+  WIN_BACK
+}
+
 model User {
   id            String  @id @default(cuid())
   name          String
@@ -25,9 +38,17 @@ model User {
   telegramId    Int?    @unique
   whatsappPhone String? @unique
   avatar        String?
-  appointments  Appointment[]
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+
+  // Retention tracking
+  lastVisitDate            DateTime?
+  totalVisits              Int       @default(0)
+  lastRetentionMessageSent DateTime?
+
+  appointments      Appointment[]
+  feedback          Feedback[]
+  retentionMessages RetentionMessage[]
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
   @@index([whatsappPhone])
   @@map("users")
@@ -76,8 +97,15 @@ model Appointment {
   calendarEventId String?  // Google Calendar event ID
   userId          String?
   user            User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+
+  // Status tracking
+  status       AppointmentStatus @default(SCHEDULED)
+  completedAt  DateTime?
+  feedbackSent Boolean           @default(false)
+
+  feedback  Feedback?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("appointments")
 }
@@ -90,4 +118,30 @@ model AdminSettings {
   updatedAt    DateTime @updatedAt
 
   @@map("admin_settings")
+}
+
+model Feedback {
+  id            String      @id @default(cuid())
+  appointmentId String      @unique
+  appointment   Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  userId        String
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rating        Int         // 1-5 stars
+  comment       String?
+  createdAt     DateTime    @default(now())
+
+  @@map("feedback")
+}
+
+model RetentionMessage {
+  id                 String                 @id @default(cuid())
+  userId             String
+  user               User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messageType        RetentionMessageType
+  daysSinceLastVisit Int
+  sentAt             DateTime               @default(now())
+  deliveryStatus     String                 @default("PENDING") // SENT/FAILED/REPLIED
+  deliveryError      String?
+
+  @@map("retention_messages")
 }

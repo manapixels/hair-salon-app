@@ -34,6 +34,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'Missing required appointment data.' }, { status: 400 });
     }
 
+    // Look up user by email to link appointment to user account
+    const existingUser = await findUserByEmail(customerEmail);
+
     const appointmentData = {
       date: new Date(date),
       time,
@@ -41,6 +44,7 @@ export async function POST(request: NextRequest) {
       stylistId,
       customerName,
       customerEmail,
+      userId: existingUser?.id, // Link to user if they have an account
     };
 
     const newAppointment = await bookNewAppointment(appointmentData);
@@ -57,17 +61,17 @@ export async function POST(request: NextRequest) {
 
     // Send appointment confirmation via WhatsApp/Telegram
     try {
-      const dbUser = await findUserByEmail(newAppointment.customerEmail);
       let user = null;
-      if (dbUser) {
-        // Convert Prisma types to app types
+      if (existingUser) {
+        // Convert Prisma types to app types (user already looked up above)
         user = {
-          ...dbUser,
-          role: dbUser.role as 'CUSTOMER' | 'ADMIN',
-          authProvider: (dbUser.authProvider as 'email' | 'whatsapp' | 'telegram') ?? undefined,
-          telegramId: dbUser.telegramId ?? undefined,
-          whatsappPhone: dbUser.whatsappPhone ?? undefined,
-          avatar: dbUser.avatar ?? undefined,
+          ...existingUser,
+          role: existingUser.role as 'CUSTOMER' | 'ADMIN',
+          authProvider:
+            (existingUser.authProvider as 'email' | 'whatsapp' | 'telegram') ?? undefined,
+          telegramId: existingUser.telegramId ?? undefined,
+          whatsappPhone: existingUser.whatsappPhone ?? undefined,
+          avatar: existingUser.avatar ?? undefined,
         };
       }
       const messageSent = await sendAppointmentConfirmation(user, newAppointment, 'confirmation');

@@ -264,6 +264,7 @@ All loading states MUST include:
 6. ✅ **Disable form inputs** during submission, don't hide them
 7. ❌ **Don't use color alone** for loading indicators
 8. ❌ **Don't block entire UI** unless absolutely necessary
+9. When coming up with implementation plans, be extremely concise. Sacrifice grammar for the sake of conciseness.
 
 ---
 

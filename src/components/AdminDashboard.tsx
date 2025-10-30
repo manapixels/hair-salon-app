@@ -189,6 +189,61 @@ const AdminDashboard: React.FC = () => {
     );
   };
 
+  const handleMarkNoShow = async (appointment: Appointment) => {
+    toast.custom(
+      (t: string | number) => (
+        <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700">
+          <div className="flex flex-col gap-3">
+            <p className="font-medium text-gray-900 dark:text-white">
+              Mark {appointment.customerName} as no-show?
+            </p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              This will reverse their visit stats and exclude them from retention campaigns.
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={async () => {
+                  toast.dismiss(t);
+                  const toastId = toast.loading('Marking as no-show...');
+                  try {
+                    const response = await fetch('/api/appointments/mark-no-show', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                        appointmentId: appointment.id,
+                      }),
+                    });
+
+                    if (!response.ok) {
+                      const error = await response.json();
+                      throw new Error(error.message || 'Failed to mark as no-show');
+                    }
+
+                    await fetchAndSetAppointments();
+                    toast.success('Marked as no-show successfully', { id: toastId });
+                  } catch (error) {
+                    toast.error('Failed to mark as no-show', { id: toastId });
+                    console.error('Error marking as no-show:', error);
+                  }
+                }}
+                className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors"
+              >
+                Yes, Mark No-Show
+              </button>
+              <button
+                onClick={() => toast.dismiss(t)}
+                className="px-4 py-2 bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-white rounded hover:bg-gray-400 dark:hover:bg-gray-500 transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      ),
+      { duration: Infinity },
+    );
+  };
+
   const handleSaveAppointment = async (updatedData: Partial<Appointment>) => {
     if (!selectedAppointment) return;
 
@@ -758,6 +813,9 @@ const AdminDashboard: React.FC = () => {
                         <SortableHeader field="duration">Duration</SortableHeader>
                         <SortableHeader field="price">Price</SortableHeader>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                          Status
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                           Actions
                         </th>
                       </tr>
@@ -859,6 +917,40 @@ const AdminDashboard: React.FC = () => {
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
                             ${appointment.totalPrice}
                           </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            {(() => {
+                              const status = (appointment as any).status || 'SCHEDULED';
+                              if (status === 'COMPLETED') {
+                                return (
+                                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                                    <i className="fas fa-check-circle mr-1"></i>
+                                    Completed
+                                  </span>
+                                );
+                              } else if (status === 'NO_SHOW') {
+                                return (
+                                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300">
+                                    <i className="fas fa-user-slash mr-1"></i>
+                                    No-Show
+                                  </span>
+                                );
+                              } else if (status === 'CANCELLED') {
+                                return (
+                                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">
+                                    <i className="fas fa-times-circle mr-1"></i>
+                                    Cancelled
+                                  </span>
+                                );
+                              } else {
+                                return (
+                                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                                    <i className="fas fa-calendar-check mr-1"></i>
+                                    Scheduled
+                                  </span>
+                                );
+                              }
+                            })()}
+                          </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                             <div className="flex space-x-2">
                               <button
@@ -875,6 +967,28 @@ const AdminDashboard: React.FC = () => {
                               >
                                 <i className="fas fa-trash"></i>
                               </button>
+                              {(() => {
+                                const status = (appointment as any).status || 'SCHEDULED';
+                                const completedAt = (appointment as any).completedAt;
+                                const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+                                const isRecentlyCompleted =
+                                  status === 'COMPLETED' &&
+                                  completedAt &&
+                                  new Date(completedAt) > sevenDaysAgo;
+
+                                if (isRecentlyCompleted) {
+                                  return (
+                                    <button
+                                      onClick={() => handleMarkNoShow(appointment)}
+                                      className="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
+                                      title="Mark as no-show"
+                                    >
+                                      <i className="fas fa-user-slash"></i>
+                                    </button>
+                                  );
+                                }
+                                return null;
+                              })()}
                             </div>
                           </td>
                         </tr>
@@ -1162,6 +1276,40 @@ const AdminDashboard: React.FC = () => {
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
                             ${appointment.totalPrice}
                           </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            {(() => {
+                              const status = (appointment as any).status || 'SCHEDULED';
+                              if (status === 'COMPLETED') {
+                                return (
+                                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                                    <i className="fas fa-check-circle mr-1"></i>
+                                    Completed
+                                  </span>
+                                );
+                              } else if (status === 'NO_SHOW') {
+                                return (
+                                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300">
+                                    <i className="fas fa-user-slash mr-1"></i>
+                                    No-Show
+                                  </span>
+                                );
+                              } else if (status === 'CANCELLED') {
+                                return (
+                                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">
+                                    <i className="fas fa-times-circle mr-1"></i>
+                                    Cancelled
+                                  </span>
+                                );
+                              } else {
+                                return (
+                                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                                    <i className="fas fa-calendar-check mr-1"></i>
+                                    Scheduled
+                                  </span>
+                                );
+                              }
+                            })()}
+                          </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                             <div className="flex space-x-2">
                               <button
@@ -1178,6 +1326,28 @@ const AdminDashboard: React.FC = () => {
                               >
                                 <i className="fas fa-trash"></i>
                               </button>
+                              {(() => {
+                                const status = (appointment as any).status || 'SCHEDULED';
+                                const completedAt = (appointment as any).completedAt;
+                                const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+                                const isRecentlyCompleted =
+                                  status === 'COMPLETED' &&
+                                  completedAt &&
+                                  new Date(completedAt) > sevenDaysAgo;
+
+                                if (isRecentlyCompleted) {
+                                  return (
+                                    <button
+                                      onClick={() => handleMarkNoShow(appointment)}
+                                      className="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
+                                      title="Mark as no-show"
+                                    >
+                                      <i className="fas fa-user-slash"></i>
+                                    </button>
+                                  );
+                                }
+                                return null;
+                              })()}
                             </div>
                           </td>
                         </tr>

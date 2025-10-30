@@ -434,6 +434,7 @@ export const bookNewAppointment = async (
       stylistId: appointmentData.stylistId,
       customerName: appointmentData.customerName,
       customerEmail: appointmentData.customerEmail,
+      userId: appointmentData.userId, // Link to user account if available
       totalPrice,
       totalDuration,
     },
@@ -1106,3 +1107,6 @@ export const markReminderSent = async (appointmentId: string): Promise<void> => 
     data: { updatedAt: new Date() },
   });
 };
+
+// Re-export retention service function for auto-complete
+export { markAppointmentCompleted } from '../services/retentionService';
