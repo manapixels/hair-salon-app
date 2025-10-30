@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getUpcomingAppointmentsForReminders, markReminderSent } from '@/lib/database';
 import { sendBulkReminders } from '@/services/reminderService';
 
+/**
+ * NOTE: Scheduled reminders now run via Inngest (src/inngest/appointmentReminders.ts)
+ * This endpoint is preserved for manual testing and debugging purposes only.
+ */
 export async function POST(request: NextRequest) {
   try {
     // Optional: Add authentication check for admin or cron job
