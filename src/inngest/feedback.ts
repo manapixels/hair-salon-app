@@ -37,6 +37,7 @@ export const sendFeedbackRequests = inngest.createFunction(
             message,
             'FEEDBACK_REQUEST',
             daysSinceVisit,
+            appointment.id, // Pass appointmentId for inline keyboard buttons
           );
 
           // Mark appointment as having feedback request sent

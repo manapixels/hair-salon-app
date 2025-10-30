@@ -1,6 +1,11 @@
-import { sendWhatsAppMessage, sendTelegramMessage } from './messagingService';
+import {
+  sendWhatsAppMessage,
+  sendTelegramMessage,
+  sendTelegramMessageWithKeyboard,
+} from './messagingService';
 import { prisma } from '@/lib/prisma';
 import { logRetentionMessage } from './retentionService';
+import { generateFeedbackKeyboard } from './messageTemplates';
 
 export interface MessageResult {
   success: boolean;
@@ -16,6 +21,7 @@ export async function sendRetentionMessage(
   message: string,
   messageType: 'FEEDBACK_REQUEST' | 'REBOOKING_NUDGE' | 'WIN_BACK',
   daysSinceLastVisit: number,
+  appointmentId?: string, // Optional: for feedback requests with inline buttons
 ): Promise<MessageResult> {
   const user = await prisma.user.findUnique({
     where: { id: userId },
@@ -36,7 +42,13 @@ export async function sendRetentionMessage(
   try {
     // Try Telegram first if available
     if (user.telegramId) {
-      success = await sendTelegramMessage(user.telegramId, message);
+      // For feedback requests, use inline keyboard buttons
+      if (messageType === 'FEEDBACK_REQUEST' && appointmentId) {
+        const keyboard = generateFeedbackKeyboard(appointmentId);
+        success = await sendTelegramMessageWithKeyboard(user.telegramId, message, keyboard);
+      } else {
+        success = await sendTelegramMessage(user.telegramId, message);
+      }
       method = 'telegram';
     }
     // Fall back to WhatsApp

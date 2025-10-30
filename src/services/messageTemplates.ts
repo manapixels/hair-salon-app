@@ -21,14 +21,22 @@ export function generateFeedbackRequestMessage(
 
   return `Hi ${user.name}! How was your ${serviceNames} today?
 
-We'd love to hear your feedback!
+We'd love to hear your feedback! 💬`;
+}
 
-Reply with 1-5 stars:
-⭐⭐⭐⭐⭐ (5) - Amazing!
-⭐⭐⭐⭐ (4) - Great
-⭐⭐⭐ (3) - Good
-⭐⭐ (2) - Okay
-⭐ (1) - Not great`;
+/**
+ * Generate inline keyboard for Telegram feedback (3 simple options)
+ */
+export function generateFeedbackKeyboard(appointmentId: string) {
+  return {
+    inline_keyboard: [
+      [
+        { text: '😞 Not Great', callback_data: `feedback:${appointmentId}:1` },
+        { text: '👌 Okay', callback_data: `feedback:${appointmentId}:3` },
+        { text: '🤩 Amazing!', callback_data: `feedback:${appointmentId}:5` },
+      ],
+    ],
+  };
 }
 
 /**

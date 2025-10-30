@@ -612,6 +612,61 @@ export async function handleCallbackQuery(
     };
   }
 
+  // Handle feedback rating buttons
+  if (callbackData.startsWith('feedback:')) {
+    const parts = callbackData.split(':');
+    if (parts.length === 3) {
+      const appointmentId = parts[1];
+      const rating = parseInt(parts[2]);
+
+      if (!user?.id) {
+        return {
+          text: `Sorry, I couldn't identify your account. Please try again.`,
+          parseMode: 'Markdown',
+        };
+      }
+
+      try {
+        // Submit feedback to the API
+        const response = await fetch(`${process.env.NEXTAUTH_URL}/api/feedback`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            appointmentId,
+            userId: user.id,
+            rating,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to submit feedback');
+        }
+
+        // Return thank you message based on rating
+        let thankYouMessage = '';
+        if (rating === 5) {
+          thankYouMessage = `🤩 *Amazing! Thank you!*\n\nWe're thrilled you had a great experience! Your 5-star feedback means the world to us.\n\nWe look forward to seeing you again soon!`;
+        } else if (rating === 3) {
+          thankYouMessage = `👌 *Thanks for your feedback!*\n\nWe appreciate you taking the time to share your thoughts.\n\nWe're always working to improve our service!`;
+        } else {
+          thankYouMessage = `😞 *We're sorry to hear that*\n\nThank you for your honest feedback. We take this seriously and will work to improve.\n\nIf you'd like to share more details, please feel free to message us.`;
+        }
+
+        return {
+          text: thankYouMessage,
+          parseMode: 'Markdown',
+          editPreviousMessage: true, // Replace the feedback request message
+        };
+      } catch (error) {
+        console.error('Error submitting feedback:', error);
+        return {
+          text: `Sorry, I had trouble saving your feedback. Please try again or contact us directly.`,
+          parseMode: 'Markdown',
+        };
+      }
+    }
+  }
+
   switch (callbackData) {
     case 'cmd_start':
       return handleStartCommand(user);
