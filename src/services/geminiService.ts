@@ -328,7 +328,7 @@ ${servicesListString}
             customerEmail: args?.customerEmail as string,
           });
           return {
-            text: `Great! Your appointment is confirmed for ${args?.date} at ${args?.time} for ${requestedServices.join(', ')}. You'll receive an email confirmation shortly.`,
+            text: `Great! Your appointment is confirmed for ${args?.date} at ${args?.time} for ${requestedServices.join(', ')}.`,
             bookingDetails: {
               customerName: args?.customerName as string,
               customerEmail: args?.customerEmail as string,

@@ -423,14 +423,17 @@ export async function handleCallbackQuery(
       };
     }
 
-    // Store service selection in booking context
+    // Store service selection in booking context (preserve currentStepMessageId)
+    const existingContext = getBookingContext(userId);
     setBookingContext(userId, {
       services: [service.name],
       customerName: user?.name,
       customerEmail: user?.email,
+      currentStepMessageId: existingContext?.currentStepMessageId, // Preserve message ID
     });
     console.log('[SERVICE SELECT] UserId:', userId);
     console.log('[SERVICE SELECT] Stored service:', service.name);
+    console.log('[SERVICE SELECT] Preserved message ID:', existingContext?.currentStepMessageId);
 
     // Get available stylists
     const stylists = await getStylists();
@@ -473,18 +476,21 @@ export async function handleCallbackQuery(
     const context = getBookingContext(userId);
     console.log('[STYLIST SELECT] UserId:', userId);
     console.log('[STYLIST SELECT] Context before update:', JSON.stringify(context));
+    console.log('[STYLIST SELECT] Current message ID:', context?.currentStepMessageId);
 
     if (stylistSelection === 'any') {
       // No preference - don't store stylist ID
       setBookingContext(userId, {
         stylistId: undefined,
         services: context?.services, // Preserve services
+        currentStepMessageId: context?.currentStepMessageId, // Preserve message ID
       });
     } else {
       // Store selected stylist
       setBookingContext(userId, {
         stylistId: stylistSelection,
         services: context?.services, // Preserve services
+        currentStepMessageId: context?.currentStepMessageId, // Preserve message ID
       });
     }
 
@@ -793,21 +799,26 @@ export async function handleCallbackQuery(
 
   switch (callbackData) {
     case 'cmd_start':
-      return handleStartCommand(user);
+      const startResponse = await handleStartCommand(user);
+      return { ...startResponse, editPreviousMessage: true };
     case 'cmd_book':
       return handleBookCommand();
     case 'cmd_appointments':
-      return handleAppointmentsCommand(user);
+      const appointmentsResponse = await handleAppointmentsCommand(user);
+      return { ...appointmentsResponse, editPreviousMessage: true };
     case 'cmd_services':
-      return handleServicesCommand();
+      const servicesResponse = await handleServicesCommand();
+      return { ...servicesResponse, editPreviousMessage: true };
     case 'cmd_cancel':
       return handleCancelCommand(user);
     case 'cmd_reschedule':
       return handleRescheduleCommand(user);
     case 'cmd_hours':
-      return handleHoursCommand();
+      const hoursResponse = await handleHoursCommand();
+      return { ...hoursResponse, editPreviousMessage: true };
     case 'cmd_help':
-      return handleHelpCommand();
+      const helpResponse = await handleHelpCommand();
+      return { ...helpResponse, editPreviousMessage: true };
     case 'confirm_booking':
       // Retrieve booking context
       const bookingContext = getBookingContext(userId);
