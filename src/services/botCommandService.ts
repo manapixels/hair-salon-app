@@ -522,6 +522,7 @@ export async function handleCallbackQuery(
           ],
         ],
       },
+      editPreviousMessage: true, // Edit appointments list message
     };
   }
 
@@ -530,15 +531,18 @@ export async function handleCallbackQuery(
     return {
       text: `🔄 *Reschedule Appointment*\n\nPlease tell me your preferred new date and time.\n\nFor example: "January 20th at 3:00 PM"`,
       parseMode: 'Markdown',
+      editPreviousMessage: true, // Edit appointments list message
     };
   }
 
   if (callbackData.startsWith('confirm_cancel_')) {
     const aptId = callbackData.replace('confirm_cancel_', '');
+    console.log('[CONFIRM CANCEL] Appointment ID:', aptId, 'User:', userId);
     // This will be handled by the AI with conversation context
     return {
       text: `Confirming cancellation of appointment ${aptId}...`,
       parseMode: 'Markdown',
+      editPreviousMessage: true, // Edit the confirmation prompt
     };
   }
 
@@ -583,6 +587,7 @@ export async function handleCallbackQuery(
   // Handle reminder confirmation buttons
   if (callbackData.startsWith('confirm_reminder_')) {
     const aptId = callbackData.replace('confirm_reminder_', '');
+    console.log('[CONFIRM REMINDER] Appointment ID:', aptId, 'User:', userId);
     return {
       text: `✅ *Thank You!*\n\nYour appointment is confirmed. We look forward to seeing you!\n\nIf you need to make any changes, you can use /reschedule or /cancel commands.`,
       parseMode: 'Markdown',
@@ -594,19 +599,23 @@ export async function handleCallbackQuery(
           ],
         ],
       },
+      editPreviousMessage: true, // Edit the reminder message
     };
   }
 
   if (callbackData.startsWith('reschedule_reminder_')) {
     const aptId = callbackData.replace('reschedule_reminder_', '');
+    console.log('[RESCHEDULE REMINDER] Appointment ID:', aptId, 'User:', userId);
     return {
       text: `🔄 *Reschedule Appointment*\n\nNo problem! Please tell me your preferred new date and time.\n\nFor example: "January 20th at 3:00 PM"`,
       parseMode: 'Markdown',
+      editPreviousMessage: true, // Edit the reminder message
     };
   }
 
   if (callbackData.startsWith('cancel_reminder_')) {
     const aptId = callbackData.replace('cancel_reminder_', '');
+    console.log('[CANCEL REMINDER] Appointment ID:', aptId, 'User:', userId);
     return {
       text: `⚠️ *Cancel Appointment*\n\nAre you sure you want to cancel this appointment?\n\nThis action cannot be undone.`,
       parseMode: 'Markdown',
@@ -618,6 +627,7 @@ export async function handleCallbackQuery(
           ],
         ],
       },
+      editPreviousMessage: true, // Edit the reminder message
     };
   }
 
