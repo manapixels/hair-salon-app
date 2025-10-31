@@ -403,13 +403,19 @@ export async function POST(request: Request) {
 
       if (response.editPreviousMessage && context?.currentStepMessageId) {
         // EDIT the message that was clicked (wizard-style UX)
-        await editTelegramMessage(
+        const editSuccess = await editTelegramMessage(
           chatId,
           context.currentStepMessageId,
           response.text,
           response.keyboard || null, // null removes keyboard
           response.parseMode,
         );
+
+        // Fallback: if edit fails, send a new message instead
+        if (!editSuccess) {
+          console.log('Edit failed, falling back to new message');
+          await sendCommandResponse(chatId, response, userId);
+        }
       } else {
         // SEND new message (normal flow)
         await sendCommandResponse(chatId, response, userId);
