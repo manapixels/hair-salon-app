@@ -569,7 +569,7 @@ export async function handleCallbackQuery(
   if (callbackData.startsWith('cancel_apt_')) {
     const aptId = callbackData.replace('cancel_apt_', '');
     return {
-      text: `⚠️ Are you sure you want to cancel this appointment?\n\nThis action cannot be undone.\n\nPlease confirm by saying "Yes, cancel appointment ${aptId}"`,
+      text: `⚠️ *Cancel Appointment*\n\nAre you sure you want to cancel this appointment?\n\nThis action cannot be undone.`,
       parseMode: 'Markdown',
       keyboard: {
         inline_keyboard: [
@@ -595,12 +595,60 @@ export async function handleCallbackQuery(
   if (callbackData.startsWith('confirm_cancel_')) {
     const aptId = callbackData.replace('confirm_cancel_', '');
     console.log('[CONFIRM CANCEL] Appointment ID:', aptId, 'User:', userId);
-    // This will be handled by the AI with conversation context
-    return {
-      text: `Confirming cancellation of appointment ${aptId}...`,
-      parseMode: 'Markdown',
-      editPreviousMessage: true, // Edit the confirmation prompt
-    };
+
+    try {
+      // Fetch appointment details before deleting (for confirmation message)
+      const { findAppointmentById, deleteAppointment } = await import('@/lib/database');
+      const appointment = await findAppointmentById(aptId);
+
+      if (!appointment) {
+        return {
+          text: `Sorry, I couldn't find that appointment. It may have already been cancelled.`,
+          parseMode: 'Markdown',
+          keyboard: {
+            inline_keyboard: [
+              [{ text: '📋 View Appointments', callback_data: 'cmd_appointments' }],
+            ],
+          },
+          editPreviousMessage: true,
+        };
+      }
+
+      // Delete the appointment
+      await deleteAppointment(aptId);
+
+      // Build success message with appointment details
+      const services = appointment.services.map(s => s.name).join(', ');
+      const date = formatDisplayDate(appointment.date);
+
+      const text = `✅ *Appointment Cancelled*\n\nYour appointment has been successfully cancelled:\n\n✂️ ${services}\n📅 ${date}\n🕐 ${appointment.time}\n💰 $${appointment.totalPrice}\n\nWe hope to see you again soon!`;
+
+      const keyboard: InlineKeyboard = {
+        inline_keyboard: [
+          [
+            { text: '📅 Book New Appointment', callback_data: 'cmd_book' },
+            { text: '📋 View Appointments', callback_data: 'cmd_appointments' },
+          ],
+        ],
+      };
+
+      return {
+        text,
+        keyboard,
+        parseMode: 'Markdown',
+        editPreviousMessage: true, // Edit the confirmation prompt
+      };
+    } catch (error: any) {
+      console.error('[CONFIRM CANCEL] Error:', error);
+      return {
+        text: `Sorry, I couldn't cancel the appointment. ${error.message || 'Please try again or contact us directly.'}`,
+        parseMode: 'Markdown',
+        keyboard: {
+          inline_keyboard: [[{ text: '📋 View Appointments', callback_data: 'cmd_appointments' }]],
+        },
+        editPreviousMessage: true,
+      };
+    }
   }
 
   // Handle quick rebooking
