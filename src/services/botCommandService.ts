@@ -151,17 +151,17 @@ export async function handleAppointmentsCommand(user: User | null): Promise<Comm
     const context = getBookingContext(user?.email || user?.telegramId?.toString() || '');
     const hasFavorite = context?.lastServiceBooked && context?.lastStylistBooked;
 
-    // Create per-appointment action buttons
+    // Create appointment selection buttons (one per appointment)
     const keyboard: InlineKeyboard = {
       inline_keyboard: [
-        ...appointments.flatMap(apt => {
+        ...appointments.map(apt => {
           const date = formatDisplayDate(apt.date);
-          const shortService = apt.services[0].name.substring(0, 15);
+          const shortService = apt.services[0].name.substring(0, 20);
           return [
-            [
-              { text: `🔄 ${date} - ${shortService}`, callback_data: `reschedule_apt_${apt.id}` },
-              { text: `❌ Cancel`, callback_data: `cancel_apt_${apt.id}` },
-            ],
+            {
+              text: `📅 ${date} at ${apt.time} - ${shortService}`,
+              callback_data: `view_apt_${apt.id}`,
+            },
           ];
         }),
         // Add "Book Again" button if user has a favorite
@@ -506,6 +506,63 @@ export async function handleCallbackQuery(
       parseMode: 'Markdown',
       editPreviousMessage: true, // Edit the stylist selection message
     };
+  }
+
+  // Handle appointment view/selection
+  if (callbackData.startsWith('view_apt_')) {
+    const aptId = callbackData.replace('view_apt_', '');
+    console.log('[VIEW APPOINTMENT] Appointment ID:', aptId, 'User:', userId);
+
+    try {
+      // Fetch the specific appointment
+      const { findAppointmentById } = await import('@/lib/database');
+      const appointment = await findAppointmentById(aptId);
+
+      if (!appointment) {
+        return {
+          text: `Sorry, I couldn't find that appointment. It may have been cancelled or completed.`,
+          parseMode: 'Markdown',
+          keyboard: {
+            inline_keyboard: [
+              [{ text: '📋 View Appointments', callback_data: 'cmd_appointments' }],
+            ],
+          },
+          editPreviousMessage: true,
+        };
+      }
+
+      const services = appointment.services.map(s => s.name).join(', ');
+      const date = formatDisplayDate(appointment.date);
+
+      const text = `📅 *Appointment Details*\n\n✂️ ${services}\n📅 ${date}\n🕐 ${appointment.time}\n${appointment.stylist ? `👤 Stylist: ${appointment.stylist.name}\n` : ''}⏱️ ${appointment.totalDuration} minutes\n💰 $${appointment.totalPrice}\n\nWhat would you like to do?`;
+
+      const keyboard: InlineKeyboard = {
+        inline_keyboard: [
+          [
+            { text: '🔄 Reschedule', callback_data: `reschedule_apt_${aptId}` },
+            { text: '❌ Cancel', callback_data: `cancel_apt_${aptId}` },
+          ],
+          [{ text: '⬅️ Back to Appointments', callback_data: 'cmd_appointments' }],
+        ],
+      };
+
+      return {
+        text,
+        keyboard,
+        parseMode: 'Markdown',
+        editPreviousMessage: true, // Edit the appointments list
+      };
+    } catch (error) {
+      console.error('[VIEW APPOINTMENT] Error:', error);
+      return {
+        text: `Sorry, I had trouble loading that appointment. Please try again.`,
+        parseMode: 'Markdown',
+        keyboard: {
+          inline_keyboard: [[{ text: '📋 View Appointments', callback_data: 'cmd_appointments' }]],
+        },
+        editPreviousMessage: true,
+      };
+    }
   }
 
   // Handle appointment-specific actions
