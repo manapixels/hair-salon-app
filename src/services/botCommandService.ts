@@ -429,6 +429,8 @@ export async function handleCallbackQuery(
       customerName: user?.name,
       customerEmail: user?.email,
     });
+    console.log('[SERVICE SELECT] UserId:', userId);
+    console.log('[SERVICE SELECT] Stored service:', service.name);
 
     // Get available stylists
     const stylists = await getStylists();
@@ -467,15 +469,22 @@ export async function handleCallbackQuery(
   if (callbackData.startsWith('select_stylist_')) {
     const stylistSelection = callbackData.replace('select_stylist_', '');
 
+    // Get context BEFORE updating it
+    const context = getBookingContext(userId);
+    console.log('[STYLIST SELECT] UserId:', userId);
+    console.log('[STYLIST SELECT] Context before update:', JSON.stringify(context));
+
     if (stylistSelection === 'any') {
       // No preference - don't store stylist ID
       setBookingContext(userId, {
         stylistId: undefined,
+        services: context?.services, // Preserve services
       });
     } else {
       // Store selected stylist
       setBookingContext(userId, {
         stylistId: stylistSelection,
+        services: context?.services, // Preserve services
       });
     }
 
@@ -489,8 +498,8 @@ export async function handleCallbackQuery(
       }
     }
 
-    const context = getBookingContext(userId);
     const serviceName = context?.services?.[0] || 'selected service';
+    console.log('[STYLIST SELECT] Service name:', serviceName);
 
     return {
       text: `✅ *${serviceName}* with ${stylistSelection === 'any' ? 'any available stylist' : `*${stylistName}*`}\n\nWhat date and time would you prefer?\n\nFor example: "October 20th at 2:00 PM"${!user?.email ? "\n\nI'll also need your name and email." : ''}`,

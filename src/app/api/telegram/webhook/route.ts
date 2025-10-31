@@ -182,6 +182,12 @@ async function sendCommandResponse(
   if (sentMessage?.message_id && userId) {
     const { setBookingContext } = await import('@/services/conversationHistory');
     setBookingContext(userId, { currentStepMessageId: sentMessage.message_id });
+    console.log(
+      '[COMMAND RESPONSE] Stored message ID:',
+      sentMessage.message_id,
+      'for user:',
+      userId,
+    );
   }
 }
 
@@ -372,8 +378,43 @@ export async function POST(request: Request) {
         };
       }
 
-      // Send the generated reply back to the user via the Telegram Bot API
-      await sendTelegramReply(chatId, replyText, keyboard);
+      // Check if we should edit existing message (during booking flow) or send new one
+      const { getBookingContext, setBookingContext } = await import(
+        '@/services/conversationHistory'
+      );
+      const context = getBookingContext(userId);
+
+      console.log('[NATURAL LANGUAGE] UserId:', userId);
+      console.log('[NATURAL LANGUAGE] Current message ID:', context?.currentStepMessageId);
+      console.log('[NATURAL LANGUAGE] Has booking context:', !!context);
+
+      if (context?.currentStepMessageId) {
+        // EDIT existing message during booking flow (keeps single message for entire booking)
+        console.log('[NATURAL LANGUAGE] Attempting to edit message:', context.currentStepMessageId);
+        const editSuccess = await editTelegramMessage(
+          chatId,
+          context.currentStepMessageId,
+          replyText,
+          keyboard || null,
+          'Markdown',
+        );
+
+        if (!editSuccess) {
+          // Fallback: if edit fails, send new message and update the stored ID
+          console.log('[NATURAL LANGUAGE] Edit failed, sending new message');
+          const sentMessage = await sendTelegramReply(chatId, replyText, keyboard);
+          if (sentMessage?.message_id) {
+            setBookingContext(userId, { currentStepMessageId: sentMessage.message_id });
+            console.log('[NATURAL LANGUAGE] Stored new message ID:', sentMessage.message_id);
+          }
+        } else {
+          console.log('[NATURAL LANGUAGE] Successfully edited message');
+        }
+      } else {
+        // No booking context - this is normal chat, send new message
+        console.log('[NATURAL LANGUAGE] No booking context, sending new message');
+        await sendTelegramReply(chatId, replyText, keyboard);
+      }
 
       // Respond to the webhook request to acknowledge receipt
       return Response.json({ success: true }, { status: 200 });
@@ -401,8 +442,13 @@ export async function POST(request: Request) {
       const { getBookingContext } = await import('@/services/conversationHistory');
       const context = getBookingContext(userId);
 
+      console.log('[CALLBACK] CallbackData:', callbackData);
+      console.log('[CALLBACK] Edit requested:', response.editPreviousMessage);
+      console.log('[CALLBACK] Current message ID:', context?.currentStepMessageId);
+
       if (response.editPreviousMessage && context?.currentStepMessageId) {
         // EDIT the message that was clicked (wizard-style UX)
+        console.log('[CALLBACK] Attempting to edit message:', context.currentStepMessageId);
         const editSuccess = await editTelegramMessage(
           chatId,
           context.currentStepMessageId,
@@ -413,11 +459,14 @@ export async function POST(request: Request) {
 
         // Fallback: if edit fails, send a new message instead
         if (!editSuccess) {
-          console.log('Edit failed, falling back to new message');
+          console.log('[CALLBACK] Edit failed, falling back to new message');
           await sendCommandResponse(chatId, response, userId);
+        } else {
+          console.log('[CALLBACK] Successfully edited message');
         }
       } else {
         // SEND new message (normal flow)
+        console.log('[CALLBACK] Sending new message (no edit requested or no message ID)');
         await sendCommandResponse(chatId, response, userId);
       }
 
