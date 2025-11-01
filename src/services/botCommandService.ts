@@ -3,8 +3,15 @@
  * Handles structured commands and button interactions for both WhatsApp and Telegram
  */
 
-import { getServices, findAppointmentsByEmail, findUserByEmail, getStylists } from '@/lib/database';
-import { formatDisplayDate } from '@/lib/timeUtils';
+import {
+  getServices,
+  findAppointmentsByEmail,
+  findUserByEmail,
+  getStylists,
+  getAvailability,
+  bookNewAppointment,
+} from '@/lib/database';
+import { formatDisplayDate, formatTime12Hour } from '@/lib/timeUtils';
 import type { User } from '@/types';
 import { setBookingContext, getBookingContext } from './conversationHistory';
 
@@ -195,27 +202,32 @@ export async function handleAppointmentsCommand(user: User | null): Promise<Comm
 export async function handleBookCommand(): Promise<CommandResponse> {
   const services = await getServices();
 
-  const text = `📅 *Let's Book Your Appointment!*\n\nWhich service would you like?\n\nSelect from our popular services below or view the full menu:`;
+  const text = `📅 *Let's Book Your Appointment!*
 
-  // Show top 4 services as quick select buttons
-  const popularServices = services.slice(0, 4);
+Which service would you like?
 
+👇 *Choose from our services:*`;
+
+  // Service emoji mapping for better UX
+  const getServiceEmoji = (name: string): string => {
+    const nameLower = name.toLowerCase();
+    if (nameLower.includes("men's") || nameLower.includes('mens')) return '✂️';
+    if (nameLower.includes("women's") || nameLower.includes('womens')) return '✂️';
+    if (nameLower.includes('color') && !nameLower.includes('highlight')) return '🎨';
+    if (nameLower.includes('highlight')) return '✨';
+    if (nameLower.includes('balayage')) return '💫';
+    if (nameLower.includes('keratin')) return '🌟';
+    return '💆';
+  };
+
+  // Show all services in organized grid (2 per row for mobile readability)
   const keyboard: InlineKeyboard = {
-    inline_keyboard: [
-      ...popularServices.slice(0, 2).map(s => [
-        {
-          text: `✂️ ${s.name} - $${s.price}`,
-          callback_data: `book_service_${s.id}`,
-        },
-      ]),
-      ...popularServices.slice(2, 4).map(s => [
-        {
-          text: `✂️ ${s.name} - $${s.price}`,
-          callback_data: `book_service_${s.id}`,
-        },
-      ]),
-      [{ text: '💆 View All Services', callback_data: 'cmd_services' }],
-    ],
+    inline_keyboard: services.map(s => [
+      {
+        text: `${getServiceEmoji(s.name)} ${s.name} • $${s.price}`,
+        callback_data: `book_service_${s.id}`,
+      },
+    ]),
   };
 
   return { text, keyboard, parseMode: 'Markdown' };
@@ -452,16 +464,21 @@ export async function handleCallbackQuery(
       inline_keyboard: [
         ...activeStylists.map(stylist => [
           {
-            text: `👤 ${stylist.name}${stylist.bio ? ` - ${stylist.bio.substring(0, 30)}` : ''}`,
+            text: `👤 ${stylist.name}${stylist.bio ? ` • ${stylist.bio.substring(0, 40)}` : ''}`,
             callback_data: `select_stylist_${stylist.id}`,
           },
         ]),
-        [{ text: '🎲 No Preference', callback_data: 'select_stylist_any' }],
+        [{ text: '🎲 Any Stylist', callback_data: 'select_stylist_any' }],
       ],
     };
 
     return {
-      text: `✅ *${service.name}* selected\n💰 $${service.price} | ⏱️ ${service.duration} minutes\n\nWho would you like as your stylist?`,
+      text: `✅ *${service.name}*
+
+💰 Price: $${service.price}
+⏱️ Duration: ${service.duration} minutes
+
+👇 *Choose your stylist:*`,
       keyboard,
       parseMode: 'Markdown',
       editPreviousMessage: true, // Edit the service selection message
@@ -507,11 +524,396 @@ export async function handleCallbackQuery(
     const serviceName = context?.services?.[0] || 'selected service';
     console.log('[STYLIST SELECT] Service name:', serviceName);
 
+    // Generate date picker buttons (today + next 6 days)
+    const dateButtons: InlineKeyboardButton[][] = [];
+    const today = new Date();
+
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(today);
+      date.setDate(today.getDate() + i);
+
+      // Create date string in YYYY-MM-DD format for callback
+      const dateStr = date.toISOString().split('T')[0];
+
+      // Format display with day name for today/tomorrow
+      let displayText = '';
+      if (i === 0) {
+        displayText = `📅 Today (${formatDisplayDate(date)})`;
+      } else if (i === 1) {
+        displayText = `📅 Tomorrow (${formatDisplayDate(date)})`;
+      } else {
+        const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
+        displayText = `📅 ${dayName}, ${formatDisplayDate(date)}`;
+      }
+
+      dateButtons.push([
+        {
+          text: displayText,
+          callback_data: `pick_date_${dateStr}`,
+        },
+      ]);
+    }
+
+    const keyboard: InlineKeyboard = {
+      inline_keyboard: dateButtons,
+    };
+
     return {
-      text: `✅ *${serviceName}* with ${stylistSelection === 'any' ? 'any available stylist' : `*${stylistName}*`}\n\nWhat date and time would you prefer?\n\nFor example: "October 20th at 2:00 PM"${!user?.email ? "\n\nI'll also need your name and email." : ''}`,
+      text: `✅ *${serviceName}* with ${stylistSelection === 'any' ? 'any available stylist' : `*${stylistName}*`}
+
+📅 *Choose a date:*`,
+      keyboard,
       parseMode: 'Markdown',
       editPreviousMessage: true, // Edit the stylist selection message
     };
+  }
+
+  // Handle date selection
+  if (callbackData.startsWith('pick_date_')) {
+    const dateStr = callbackData.replace('pick_date_', '');
+    const context = getBookingContext(userId);
+
+    console.log('[DATE SELECT] UserId:', userId);
+    console.log('[DATE SELECT] Selected date:', dateStr);
+
+    if (!context?.services || !context.services[0]) {
+      return {
+        text: `Sorry, I lost track of your booking. Please start over with /book`,
+        parseMode: 'Markdown',
+      };
+    }
+
+    // Store selected date in context
+    setBookingContext(userId, {
+      ...context,
+      date: dateStr,
+    });
+
+    // Get availability for the selected date
+    const selectedDate = new Date(dateStr);
+    const availableSlots = await getAvailability(selectedDate);
+
+    if (availableSlots.length === 0) {
+      // No slots available - suggest next available dates
+      const suggestions: { date: Date; slots: string[] }[] = [];
+
+      for (let i = 1; i <= 7; i++) {
+        const nextDate = new Date(selectedDate);
+        nextDate.setDate(selectedDate.getDate() + i);
+        const nextSlots = await getAvailability(nextDate);
+
+        if (nextSlots.length > 0 && suggestions.length < 3) {
+          suggestions.push({ date: nextDate, slots: nextSlots.slice(0, 3) });
+        }
+
+        if (suggestions.length >= 3) break;
+      }
+
+      const suggestionButtons: InlineKeyboardButton[][] = suggestions.map(({ date, slots }) => [
+        {
+          text: `📅 ${formatDisplayDate(date)} (${slots.length} slots available)`,
+          callback_data: `pick_date_${date.toISOString().split('T')[0]}`,
+        },
+      ]);
+
+      suggestionButtons.push([{ text: '⬅️ Back to Dates', callback_data: 'back_to_dates' }]);
+
+      return {
+        text: `❌ Sorry, ${formatDisplayDate(selectedDate)} is fully booked.
+
+📅 *Here are the nearest available dates:*`,
+        keyboard: { inline_keyboard: suggestionButtons },
+        parseMode: 'Markdown',
+        editPreviousMessage: true,
+      };
+    }
+
+    // Show available time slots
+    const timeButtons: InlineKeyboardButton[][] = availableSlots.map(slot => [
+      {
+        text: `🕐 ${formatTime12Hour(slot)}`,
+        callback_data: `pick_time_${slot}`,
+      },
+    ]);
+
+    // Add back button
+    timeButtons.push([{ text: '⬅️ Back to Dates', callback_data: 'back_to_dates' }]);
+
+    const serviceName = context.services[0];
+    const stylistName = context.stylistId
+      ? (await getStylists()).find(s => s.id === context.stylistId)?.name || 'any available stylist'
+      : 'any available stylist';
+
+    return {
+      text: `✅ *${serviceName}* with ${stylistName}
+
+📅 ${formatDisplayDate(selectedDate)}
+
+⏰ *Choose a time:*`,
+      keyboard: { inline_keyboard: timeButtons },
+      parseMode: 'Markdown',
+      editPreviousMessage: true,
+    };
+  }
+
+  // Handle back to dates button
+  if (callbackData === 'back_to_dates') {
+    const context = getBookingContext(userId);
+
+    if (!context?.services || !context.services[0]) {
+      return {
+        text: `Sorry, I lost track of your booking. Please start over with /book`,
+        parseMode: 'Markdown',
+      };
+    }
+
+    // Generate date picker buttons again
+    const dateButtons: InlineKeyboardButton[][] = [];
+    const today = new Date();
+
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(today);
+      date.setDate(today.getDate() + i);
+      const dateStr = date.toISOString().split('T')[0];
+
+      let displayText = '';
+      if (i === 0) {
+        displayText = `📅 Today (${formatDisplayDate(date)})`;
+      } else if (i === 1) {
+        displayText = `📅 Tomorrow (${formatDisplayDate(date)})`;
+      } else {
+        const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
+        displayText = `📅 ${dayName}, ${formatDisplayDate(date)}`;
+      }
+
+      dateButtons.push([
+        {
+          text: displayText,
+          callback_data: `pick_date_${dateStr}`,
+        },
+      ]);
+    }
+
+    const serviceName = context.services[0];
+    const stylistName = context.stylistId
+      ? (await getStylists()).find(s => s.id === context.stylistId)?.name || 'any available stylist'
+      : 'any available stylist';
+
+    return {
+      text: `✅ *${serviceName}* with ${stylistName}
+
+📅 *Choose a date:*`,
+      keyboard: { inline_keyboard: dateButtons },
+      parseMode: 'Markdown',
+      editPreviousMessage: true,
+    };
+  }
+
+  // Handle time selection
+  if (callbackData.startsWith('pick_time_')) {
+    const timeStr = callbackData.replace('pick_time_', '');
+    const context = getBookingContext(userId);
+
+    console.log('[TIME SELECT] UserId:', userId);
+    console.log('[TIME SELECT] Selected time:', timeStr);
+
+    if (!context?.services || !context.services[0] || !context.date) {
+      return {
+        text: `Sorry, I lost track of your booking. Please start over with /book`,
+        parseMode: 'Markdown',
+      };
+    }
+
+    // Store selected time in context
+    setBookingContext(userId, {
+      ...context,
+      time: timeStr,
+    });
+
+    // Get service details for summary
+    const services = await getServices();
+    const service = services.find(s => s.name === context.services?.[0]);
+
+    if (!service) {
+      return {
+        text: `Sorry, I couldn't find that service. Please start over with /book`,
+        parseMode: 'Markdown',
+      };
+    }
+
+    // Get stylist name
+    const stylistName = context.stylistId
+      ? (await getStylists()).find(s => s.id === context.stylistId)?.name || 'Any available stylist'
+      : 'Any available stylist';
+
+    // Show confirmation review screen
+    const selectedDate = new Date(context.date);
+    const keyboard: InlineKeyboard = {
+      inline_keyboard: [
+        [{ text: '✅ Confirm Booking', callback_data: 'confirm_booking_final' }],
+        [
+          { text: '🔄 Change Time', callback_data: 'back_to_dates' },
+          { text: '❌ Cancel', callback_data: 'cancel_booking' },
+        ],
+      ],
+    };
+
+    return {
+      text: `📋 *Review Your Booking*
+
+✂️ *Service:* ${service.name}
+👤 *Stylist:* ${stylistName}
+📅 *Date:* ${formatDisplayDate(selectedDate)}
+🕐 *Time:* ${formatTime12Hour(timeStr)}
+⏱️ *Duration:* ${service.duration} minutes
+💰 *Price:* $${service.price}
+
+Is this correct?`,
+      keyboard,
+      parseMode: 'Markdown',
+      editPreviousMessage: true,
+    };
+  }
+
+  // Handle cancel booking during review
+  if (callbackData === 'cancel_booking') {
+    const context = getBookingContext(userId);
+
+    // Clear booking context
+    if (context) {
+      setBookingContext(userId, {
+        currentStepMessageId: context.currentStepMessageId,
+      });
+    }
+
+    return {
+      text: `❌ Booking cancelled.
+
+You can start a new booking anytime with /book`,
+      parseMode: 'Markdown',
+      editPreviousMessage: true,
+    };
+  }
+
+  // Handle final booking confirmation
+  if (callbackData === 'confirm_booking_final') {
+    const context = getBookingContext(userId);
+
+    console.log('[CONFIRM BOOKING] UserId:', userId);
+    console.log('[CONFIRM BOOKING] Context:', JSON.stringify(context));
+
+    if (!context?.services || !context.services[0] || !context.date || !context.time) {
+      return {
+        text: `Sorry, I lost track of your booking. Please start over with /book`,
+        parseMode: 'Markdown',
+        editPreviousMessage: true,
+      };
+    }
+
+    // Get service details
+    const services = await getServices();
+    const service = services.find(s => s.name === context.services?.[0]);
+
+    if (!service) {
+      return {
+        text: `Sorry, I couldn't find that service. Please start over with /book`,
+        parseMode: 'Markdown',
+        editPreviousMessage: true,
+      };
+    }
+
+    // Validate user information
+    if (!user?.name || !user?.email) {
+      return {
+        text: `⚠️ I need your name and email to complete the booking.
+
+Please make sure you're logged in and try again with /book`,
+        parseMode: 'Markdown',
+        editPreviousMessage: true,
+      };
+    }
+
+    try {
+      // Book the appointment
+      const appointment = await bookNewAppointment({
+        date: new Date(context.date),
+        time: context.time,
+        services: [service],
+        stylistId: context.stylistId,
+        customerName: user.name,
+        customerEmail: user.email,
+        userId: user.id,
+      });
+
+      // Clear booking context
+      setBookingContext(userId, {
+        currentStepMessageId: context.currentStepMessageId,
+      });
+
+      // Get stylist name
+      const stylistName = appointment.stylistId
+        ? (await getStylists()).find(s => s.id === appointment.stylistId)?.name
+        : undefined;
+
+      // Success message
+      return {
+        text: `✅ *Booking Confirmed!*
+
+Your appointment has been successfully booked.
+
+✂️ *Service:* ${service.name}
+${stylistName ? `👤 *Stylist:* ${stylistName}\n` : ''}📅 *Date:* ${formatDisplayDate(new Date(context.date))}
+🕐 *Time:* ${formatTime12Hour(context.time)}
+⏱️ *Duration:* ${service.duration} minutes
+💰 *Price:* $${service.price}
+📧 *Confirmation sent to:* ${user.email}
+
+🔔 You'll receive a reminder 24 hours before your appointment.
+
+Thank you for choosing Luxe Cuts! 💇`,
+        parseMode: 'Markdown',
+        editPreviousMessage: true,
+      };
+    } catch (error: any) {
+      console.error('[BOOKING ERROR]', error);
+
+      // Check if it's an availability error
+      if (error.message && error.message.includes('Not enough consecutive slots')) {
+        return {
+          text: `❌ *Booking Failed*
+
+Sorry, the selected time slot is no longer available. Someone may have just booked it.
+
+Please try a different time:`,
+          keyboard: {
+            inline_keyboard: [
+              [{ text: '🔄 Choose Different Time', callback_data: 'back_to_dates' }],
+            ],
+          },
+          parseMode: 'Markdown',
+          editPreviousMessage: true,
+        };
+      }
+
+      // Generic error
+      return {
+        text: `❌ *Booking Failed*
+
+Sorry, something went wrong while booking your appointment.
+
+Error: ${error.message}
+
+Please try again or contact us directly.`,
+        keyboard: {
+          inline_keyboard: [
+            [{ text: '🔄 Try Again', callback_data: 'back_to_dates' }],
+            [{ text: '❌ Cancel', callback_data: 'cancel_booking' }],
+          ],
+        },
+        parseMode: 'Markdown',
+        editPreviousMessage: true,
+      };
+    }
   }
 
   // Handle appointment view/selection
