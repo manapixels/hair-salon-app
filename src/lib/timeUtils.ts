@@ -60,6 +60,27 @@ export function formatDuration(minutes: number): string {
 }
 
 /**
+ * Convert 24-hour time format to 12-hour format with lowercase am/pm
+ * @param time - Time string in HH:MM format (e.g., "15:00", "09:30")
+ * @returns Time in 12-hour format with lowercase am/pm (e.g., "3pm", "9:30am")
+ */
+export function formatTime12Hour(time: string): string {
+  const [hours, minutes] = time.split(':').map(Number);
+
+  // Determine AM/PM
+  const period = hours >= 12 ? 'pm' : 'am';
+
+  // Convert to 12-hour format (0-23 -> 1-12)
+  const hour12 = hours % 12 || 12;
+
+  // Format: if minutes are 00, show just the hour (e.g., "3pm"), otherwise include minutes (e.g., "3:30pm")
+  if (minutes === 0) {
+    return `${hour12}${period}`;
+  }
+  return `${hour12}:${minutes.toString().padStart(2, '0')}${period}`;
+}
+
+/**
  * Get color class for duration indicator based on length
  * @param minutes - Duration in minutes
  * @returns Tailwind color class

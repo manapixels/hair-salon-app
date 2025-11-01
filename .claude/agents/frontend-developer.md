@@ -37,10 +37,11 @@ Use this agent for:
 
 **First steps:**
 
-1. Review CLAUDE.md for project guidelines
+1. Review CLAUDE.md for project guidelines (especially "Date & Time Display Guidelines")
 2. Check existing patterns in similar components
 3. Identify required loading states
 4. Plan TypeScript types from src/types.ts
+5. Import datetime utilities if displaying dates/times to users
 
 ---
 
@@ -340,6 +341,14 @@ When creating/modifying components:
 - [ ] Consistent spacing and colors
 - [ ] Dark mode support (if applicable)
 
+### ✅ Date & Time Display
+
+- [ ] Use formatDisplayDate() for compact dates ("18 Oct 2025")
+- [ ] Use formatLongDate() for confirmations ("Monday, 18 Oct 2025")
+- [ ] Use formatTime12Hour() for all user-facing times ("2pm", "2:30pm")
+- [ ] NEVER show raw times (14:00) or ISO strings to users
+- [ ] Keep technical formats only for forms, APIs, database
+
 ### ✅ Security
 
 - [ ] No sensitive data in client components
@@ -423,6 +432,60 @@ export function useData<T>(url: string) {
 // See src/components/booking/CalendlyStyleDateTimePicker.tsx
 // See src/hooks/useCalendar.ts for date logic
 ```
+
+### DateTime Display Pattern
+
+**CRITICAL: Always format dates/times for user-facing displays**
+
+```tsx
+import { formatDisplayDate, formatLongDate, formatTime12Hour } from '@/lib/timeUtils';
+
+// ✅ GOOD - User-friendly
+function AppointmentCard({ appointment }: { appointment: Appointment }) {
+  return (
+    <div>
+      <p>Date: {formatDisplayDate(appointment.date)}</p>
+      {/* Output: "18 Oct 2025" */}
+
+      <p>Time: {formatTime12Hour(appointment.time)}</p>
+      {/* Output: "2pm" or "2:30pm" */}
+
+      <p>
+        Full: {formatLongDate(appointment.date)} at {formatTime12Hour(appointment.time)}
+      </p>
+      {/* Output: "Monday, 18 Oct 2025 at 2pm" */}
+    </div>
+  );
+}
+
+// ❌ BAD - Technical format shown to users
+function AppointmentCardBad({ appointment }: { appointment: Appointment }) {
+  return (
+    <div>
+      <p>Date: {appointment.date}</p> {/* "2025-10-18T00:00:00.000Z" */}
+      <p>Time: {appointment.time}</p> {/* "14:00" */}
+    </div>
+  );
+}
+
+// Messaging/Notifications
+const sendConfirmation = (appointment: Appointment) => {
+  const date = formatDisplayDate(appointment.date);
+  const time = formatTime12Hour(appointment.time);
+
+  return `Your appointment is confirmed for ${date} at ${time}`;
+  // Output: "Your appointment is confirmed for 18 Oct 2025 at 2pm"
+};
+```
+
+**When to keep technical formats:**
+
+- Form inputs: `<input type="date">` needs YYYY-MM-DD
+- Form inputs: `<input type="time">` needs HH:MM
+- API requests/responses (JSON payloads)
+- Database operations
+
+**Reference:** See CLAUDE.md "Date & Time Display Guidelines" section for complete rules.
 
 ---
 
@@ -562,6 +625,8 @@ When implementing features:
 - Add ARIA labels for accessibility
 - Test responsive design
 - Reference CLAUDE.md for guidelines
+- **Format dates/times with formatDisplayDate() and formatTime12Hour()**
+- **Show "18 Oct 2025" and "2pm" to users, never raw formats**
 
 ### ❌ DON'T
 
@@ -575,6 +640,8 @@ When implementing features:
 - Forget accessibility
 - Hardcode values (use config/constants)
 - Modify API routes (that's backend territory)
+- **Display raw times like "14:00" or dates like "2025-10-18" to users**
+- **Show ISO strings or technical formats in UI/messages**
 
 ---
 

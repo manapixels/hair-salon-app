@@ -268,4 +268,133 @@ All loading states MUST include:
 
 ---
 
+## 📅 Date & Time Display Guidelines
+
+### **User-Friendly DateTime Formatting**
+
+All user-facing date/time displays MUST use human-readable formats from `/src/lib/timeUtils.ts`:
+
+```tsx
+import { formatDisplayDate, formatLongDate, formatTime12Hour } from '@/lib/timeUtils';
+```
+
+### **Available Utilities**
+
+| Function              | Input          | Output                | Use Case                |
+| --------------------- | -------------- | --------------------- | ----------------------- |
+| `formatDisplayDate()` | Date or string | "18 Oct 2025"         | Compact date displays   |
+| `formatLongDate()`    | Date or string | "Monday, 18 Oct 2025" | Confirmations, messages |
+| `formatTime12Hour()`  | "HH:MM" (24h)  | "2pm" or "2:30pm"     | All user-facing times   |
+
+### **When to Use Each Format**
+
+**Dates:**
+
+- **Compact UI** (cards, lists, tables): `formatDisplayDate()` → "18 Oct 2025"
+- **Messages & confirmations**: `formatLongDate()` → "Monday, 18 Oct 2025"
+- **Form inputs**: Keep YYYY-MM-DD (HTML requirement)
+- **Database/API**: ISO strings (technical, not user-facing)
+
+**Times:**
+
+- **All user-facing displays**: `formatTime12Hour()` → "2pm", "2:30pm"
+- **Form inputs**: Keep HH:MM (HTML requirement)
+- **Database/API**: Keep HH:MM or ISO (technical, not user-facing)
+
+### **Quick Reference Examples**
+
+#### ✅ GOOD - User-Friendly
+
+```tsx
+// UI Components
+<p>Date: {formatDisplayDate(appointment.date)}</p>
+<p>Time: {formatTime12Hour(appointment.time)}</p>
+// Output: "Date: 18 Oct 2025" "Time: 2pm"
+
+// Messages & Notifications
+`Your appointment is confirmed for ${formatDisplayDate(appointment.date)} at ${formatTime12Hour(appointment.time)}`
+// Output: "Your appointment is confirmed for 18 Oct 2025 at 2pm"
+
+// Combined format (like Gemini confirmation)
+const formattedDate = formatDisplayDate(new Date(dateString));
+const formattedTime = formatTime12Hour(timeString);
+`Confirmed for ${formattedDate}, ${formattedTime}`
+// Output: "Confirmed for 18 Oct 2025, 2pm"
+```
+
+#### ❌ BAD - Technical Format
+
+```tsx
+// DON'T show raw database/API formats to users
+<p>Date: {appointment.date}</p>              // "2025-10-18T00:00:00.000Z"
+<p>Time: {appointment.time}</p>              // "14:00"
+`Appointment on ${args?.date} at ${args?.time}` // "2025-10-18 at 14:00"
+```
+
+### **Context-Specific Patterns**
+
+**UI Components** (CustomerDashboard, AdminDashboard, Modals):
+
+```tsx
+<span>{formatDisplayDate(appointment.date)}</span>
+<span>at {formatTime12Hour(appointment.time)}</span>
+```
+
+**Messaging Services** (WhatsApp, Telegram, Email):
+
+```tsx
+`🕐 Time: ${formatTime12Hour(appointment.time)}``📅 ${formatDisplayDate(appointment.date)} at ${formatTime12Hour(appointment.time)}`;
+```
+
+**AI Chat Responses** (Gemini, Bot Commands):
+
+```tsx
+const date = formatDisplayDate(new Date(appointment.date));
+const time = formatTime12Hour(appointment.time);
+text: `Your appointment is confirmed for ${date}, ${time}`;
+```
+
+### **Technical vs User-Facing**
+
+**Technical contexts (keep as-is):**
+
+- HTML form inputs (`<input type="date">`, `<input type="time">`)
+- API request/response bodies (JSON)
+- Database queries and storage
+- Function parameters in Gemini API declarations
+- Google Calendar API integration
+
+**User-facing contexts (MUST format):**
+
+- React component text/JSX output
+- WhatsApp/Telegram messages
+- Email notifications
+- Confirmation messages
+- Error messages with dates/times
+- Dashboard displays
+- Modal/dialog content
+
+### **Migration Notes**
+
+18 locations currently need updating across:
+
+- `src/services/reminderService.ts` (1 location)
+- `src/services/messagingService.ts` (4 locations)
+- `src/services/botCommandService.ts` (5 locations)
+- `src/services/geminiService.ts` (3 locations)
+- `src/components/CustomerDashboard.tsx` (1 location)
+- `src/components/RescheduleModal.tsx` (1 location)
+- `src/components/AdminDashboard.tsx` (2 locations - optional)
+
+### **Best Practices**
+
+1. ✅ **Import once** at the top of each file using datetime formatting
+2. ✅ **Format at display time**, not at data retrieval
+3. ✅ **Keep technical formats** for forms, APIs, database operations
+4. ✅ **Always use formatTime12Hour()** for user-facing times (never raw HH:MM)
+5. ❌ **Never** show ISO strings or YYYY-MM-DD to end users
+6. ❌ **Never** show 24-hour time format (14:00) to end users
+
+---
+
 **Production-ready salon management system with OAuth authentication, comprehensive customer self-service, automated notifications, and secure session management.**

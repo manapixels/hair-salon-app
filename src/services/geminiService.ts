@@ -13,7 +13,7 @@ import {
 } from '../lib/database';
 import { updateCalendarEvent } from '../lib/google';
 import { sendAppointmentConfirmation } from './messagingService';
-import { formatDisplayDate } from '@/lib/timeUtils';
+import { formatDisplayDate, formatTime12Hour } from '@/lib/timeUtils';
 
 // This function is now designed to be run on the server.
 // The API KEY should be set as an environment variable on the server.
@@ -327,8 +327,10 @@ ${servicesListString}
             customerName: args?.customerName as string,
             customerEmail: args?.customerEmail as string,
           });
+          const formattedDate = formatDisplayDate(new Date(args?.date as string));
+          const formattedTime = formatTime12Hour(args?.time as string);
           return {
-            text: `Great! Your appointment is confirmed for ${args?.date} at ${args?.time} for ${requestedServices.join(', ')}.`,
+            text: `Great! Your appointment is confirmed for ${formattedDate}, ${formattedTime} for ${requestedServices.join(', ')}.`,
             bookingDetails: {
               customerName: args?.customerName as string,
               customerEmail: args?.customerEmail as string,
