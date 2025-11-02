@@ -69,6 +69,7 @@ src/
 
 - **Google Calendar**: Auto-sync appointments
 - **WhatsApp/Telegram**: Confirmations, reminders, AI chat
+  - **Note**: Email confirmations are NOT handled. All appointment notifications (confirmations, reminders, updates) are sent exclusively via WhatsApp or Telegram based on user's auth provider
 - **Automated Reminders**: 24-hour notifications via GitHub Actions
 
 ## 🎯 Development Priorities

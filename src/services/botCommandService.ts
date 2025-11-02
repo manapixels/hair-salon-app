@@ -146,11 +146,11 @@ export async function handleAppointmentsCommand(user: User | null): Promise<Comm
       const date = formatDisplayDate(apt.date);
 
       text += `*${index + 1}. ${date} at ${apt.time}*\n`;
-      text += `✂️ ${services}\n`;
-      text += `⏱️ ${apt.totalDuration} mins | 💰 $${apt.totalPrice}\n`;
+      text += `   ✂️ ${services}\n`;
       if (apt.stylist) {
-        text += `👤 Stylist: ${apt.stylist.name}\n`;
+        text += `   👤 Stylist: ${apt.stylist.name}\n`;
       }
+      text += `   ⏱️ ${apt.totalDuration} mins | 💰 $${apt.totalPrice}\n`;
       text += `\n`;
     });
 
@@ -158,19 +158,20 @@ export async function handleAppointmentsCommand(user: User | null): Promise<Comm
     const context = getBookingContext(user?.email || user?.telegramId?.toString() || '');
     const hasFavorite = context?.lastServiceBooked && context?.lastStylistBooked;
 
-    // Create appointment selection buttons (one per appointment)
+    // Create inline action buttons for each appointment
     const keyboard: InlineKeyboard = {
       inline_keyboard: [
-        ...appointments.map(apt => {
-          const date = formatDisplayDate(apt.date);
-          const shortService = apt.services[0].name.substring(0, 20);
-          return [
-            {
-              text: `📅 ${date} at ${apt.time} - ${shortService}`,
-              callback_data: `view_apt_${apt.id}`,
-            },
-          ];
-        }),
+        // Add Reschedule + Cancel buttons for each appointment
+        ...appointments.map(apt => [
+          {
+            text: `✏️ Reschedule`,
+            callback_data: `reschedule_apt_${apt.id}`,
+          },
+          {
+            text: `❌ Cancel`,
+            callback_data: `cancel_apt_${apt.id}`,
+          },
+        ]),
         // Add "Book Again" button if user has a favorite
         ...(hasFavorite
           ? [
@@ -182,7 +183,7 @@ export async function handleAppointmentsCommand(user: User | null): Promise<Comm
               ],
             ]
           : []),
-        [{ text: '📅 Book New Service', callback_data: 'cmd_book' }],
+        [{ text: '📅 Book New Appointment', callback_data: 'cmd_book' }],
       ],
     };
 
@@ -554,6 +555,14 @@ export async function handleCallbackQuery(
       ]);
     }
 
+    // Add "Other Date" option for custom date entry
+    dateButtons.push([
+      {
+        text: '📅 Other Date',
+        callback_data: 'custom_date_entry',
+      },
+    ]);
+
     const keyboard: InlineKeyboard = {
       inline_keyboard: dateButtons,
     };
@@ -561,7 +570,9 @@ export async function handleCallbackQuery(
     return {
       text: `✅ *${serviceName}* with ${stylistSelection === 'any' ? 'any available stylist' : `*${stylistName}*`}
 
-📅 *Choose a date:*`,
+📅 *Choose a date:*
+
+_Tip: Select from quick picks or choose "Other Date" to enter a future date_`,
       keyboard,
       parseMode: 'Markdown',
       editPreviousMessage: true, // Edit the stylist selection message
@@ -694,6 +705,14 @@ export async function handleCallbackQuery(
       ]);
     }
 
+    // Add "Other Date" option for custom date entry
+    dateButtons.push([
+      {
+        text: '📅 Other Date',
+        callback_data: 'custom_date_entry',
+      },
+    ]);
+
     const serviceName = context.services[0];
     const stylistName = context.stylistId
       ? (await getStylists()).find(s => s.id === context.stylistId)?.name || 'any available stylist'
@@ -702,8 +721,53 @@ export async function handleCallbackQuery(
     return {
       text: `✅ *${serviceName}* with ${stylistName}
 
-📅 *Choose a date:*`,
+📅 *Choose a date:*
+
+_Tip: Select from quick picks or choose "Other Date" to enter a future date_`,
       keyboard: { inline_keyboard: dateButtons },
+      parseMode: 'Markdown',
+      editPreviousMessage: true,
+    };
+  }
+
+  // Handle custom date entry request
+  if (callbackData === 'custom_date_entry') {
+    const context = getBookingContext(userId);
+
+    if (!context?.services || !context.services[0]) {
+      return {
+        text: `Sorry, I lost track of your booking. Please start over with /book`,
+        parseMode: 'Markdown',
+        editPreviousMessage: true,
+      };
+    }
+
+    const serviceName = context.services[0];
+    const stylistName = context.stylistId
+      ? (await getStylists()).find(s => s.id === context.stylistId)?.name || 'any available stylist'
+      : 'any available stylist';
+
+    // Set a flag to indicate we're in custom date mode
+    setBookingContext(userId, {
+      ...context,
+      awaitingCustomDate: true,
+    });
+
+    return {
+      text: `✅ *${serviceName}* with ${stylistName}
+
+📅 *Enter your preferred date*
+
+Please type your desired date in natural language. For example:
+• "November 15th"
+• "Next Friday"
+• "December 5th"
+• "3 weeks from now"
+
+Or click the button below to go back to quick picks.`,
+      keyboard: {
+        inline_keyboard: [[{ text: '⬅️ Back to Quick Picks', callback_data: 'back_to_dates' }]],
+      },
       parseMode: 'Markdown',
       editPreviousMessage: true,
     };
@@ -866,9 +930,8 @@ ${stylistName ? `👤 *Stylist:* ${stylistName}\n` : ''}📅 *Date:* ${formatDis
 🕐 *Time:* ${formatTime12Hour(context.time)}
 ⏱️ *Duration:* ${service.duration} minutes
 💰 *Price:* $${service.price}
-📧 *Confirmation sent to:* ${user.email}
 
-🔔 You'll receive a reminder 24 hours before your appointment.
+🔔 You'll receive a reminder 24 hours before your appointment via ${user.authProvider === 'telegram' ? 'Telegram' : 'WhatsApp'}.
 
 Thank you for choosing Luxe Cuts! 💇`,
         parseMode: 'Markdown',

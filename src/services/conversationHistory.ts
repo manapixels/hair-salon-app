@@ -23,6 +23,7 @@ interface BookingContext {
   date?: string; // YYYY-MM-DD
   time?: string; // HH:MM
   confirmed?: boolean;
+  awaitingCustomDate?: boolean; // True when user is entering custom date via text
   // Favorite/last booking tracking for quick rebooking
   lastServiceBooked?: string; // Last service name
   lastStylistBooked?: string; // Last stylist ID

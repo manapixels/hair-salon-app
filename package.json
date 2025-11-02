@@ -10,6 +10,7 @@
     "format": "prettier --write .",
     "typecheck": "tsc --noEmit",
     "check": "npm run lint && npm run format && npm run typecheck",
+    "inngest": "npx inngest-cli@latest dev",
     "prepare": "husky install",
     "db:push": "prisma db push",
     "db:pull": "prisma db pull",
