@@ -13,7 +13,13 @@ import {
 } from '@/lib/database';
 import { formatDisplayDate, formatTime12Hour } from '@/lib/timeUtils';
 import type { User } from '@/types';
-import { setBookingContext, getBookingContext } from './conversationHistory';
+import {
+  setBookingContext,
+  getBookingContext,
+  pushStep,
+  popStep,
+  clearStepHistory,
+} from './conversationHistory';
 
 /**
  * Command response type with optional inline keyboards
@@ -561,12 +567,17 @@ export async function handleCallbackQuery(
 
     // Store service selection in booking context (preserve currentStepMessageId)
     const existingContext = getBookingContext(userId);
-    setBookingContext(userId, {
+    const newContext = {
       services: [service.name],
       customerName: user?.name,
       customerEmail: user?.email,
       currentStepMessageId: existingContext?.currentStepMessageId, // Preserve message ID
-    });
+    };
+    setBookingContext(userId, newContext);
+
+    // Push this step to navigation history
+    pushStep(userId, 'multi_service_option', newContext);
+
     console.log('[SERVICE SELECT] UserId:', userId);
     console.log('[SERVICE SELECT] Stored service:', service.name);
     console.log('[SERVICE SELECT] Preserved message ID:', existingContext?.currentStepMessageId);
@@ -607,6 +618,7 @@ Would you like to add more services or continue?`,
         inline_keyboard: [
           [{ text: '➕ Add Another Service', callback_data: 'add_another_service' }],
           [{ text: '✅ Continue to Stylist', callback_data: 'proceed_to_stylist' }],
+          [{ text: '⬅️ Back to Services', callback_data: 'go_back' }],
         ],
       },
       parseMode: 'Markdown',
@@ -734,6 +746,14 @@ Would you like to add more?`,
       return createErrorResponse('context_lost');
     }
 
+    // Push stylist selection step to history
+    pushStep(userId, 'stylist_selection', {
+      services: context.services,
+      customerName: context.customerName,
+      customerEmail: context.customerEmail,
+      currentStepMessageId: context.currentStepMessageId,
+    });
+
     // Get available stylists
     const stylists = await getStylists();
     const activeStylists = stylists.filter(s => s.isActive);
@@ -777,6 +797,9 @@ For example: "October 20th at 2:00 PM"${!user?.email ? "\n\nI'll also need your 
     const selectedServices = services.filter(s => context.services?.includes(s.name));
     const totalPrice = selectedServices.reduce((sum, s) => sum + s.price, 0);
     const totalDuration = selectedServices.reduce((sum, s) => sum + s.duration, 0);
+
+    // Add Back button to keyboard
+    keyboard.inline_keyboard.push([{ text: '⬅️ Back to Services', callback_data: 'go_back' }]);
 
     return {
       text: `✅ *Your Services:*
@@ -830,6 +853,16 @@ ${context.services.map(s => `• ${s}`).join('\n')}
 
     const serviceName = context?.services?.[0] || 'selected service';
     console.log('[STYLIST SELECT] Service name:', serviceName);
+
+    // Push date selection step to history
+    pushStep(userId, 'date_selection', {
+      services: context?.services,
+      stylistId: stylistSelection === 'any' ? undefined : stylistSelection,
+      customerName: context?.customerName,
+      customerEmail: context?.customerEmail,
+      currentStepMessageId: context?.currentStepMessageId,
+      currentWeekOffset: context?.currentWeekOffset || 0,
+    });
 
     // Generate date picker buttons (today + next 6 days) in 2-column layout
     const dateButtons: InlineKeyboardButton[][] = [];
@@ -900,6 +933,9 @@ ${context.services.map(s => `• ${s}`).join('\n')}
         callback_data: 'custom_date_entry',
       },
     ]);
+
+    // Add Back button
+    dateButtons.push([{ text: '⬅️ Back to Stylist', callback_data: 'go_back' }]);
 
     const keyboard: InlineKeyboard = {
       inline_keyboard: dateButtons,
@@ -1031,6 +1067,17 @@ _Tip: Use arrows to browse weeks ahead_`,
       date: dateStr,
     });
 
+    // Push time selection step to history
+    pushStep(userId, 'time_selection', {
+      services: context?.services,
+      stylistId: context?.stylistId,
+      date: dateStr,
+      customerName: context?.customerName,
+      customerEmail: context?.customerEmail,
+      currentStepMessageId: context?.currentStepMessageId,
+      currentWeekOffset: context?.currentWeekOffset,
+    });
+
     // Get availability for the selected date
     const selectedDate = new Date(dateStr);
     const availableSlots = await getAvailability(selectedDate);
@@ -1124,7 +1171,7 @@ _Tip: Use arrows to browse weeks ahead_`,
     }
 
     // Add back button
-    timeButtons.push([{ text: '⬅️ Back to Dates', callback_data: 'back_to_dates' }]);
+    timeButtons.push([{ text: '⬅️ Back to Dates', callback_data: 'go_back' }]);
 
     const serviceName = context.services[0];
     const stylistName = context.stylistId
@@ -1273,6 +1320,18 @@ Choose a quick suggestion or go back:`,
       time: timeStr,
     });
 
+    // Push confirmation step to history
+    pushStep(userId, 'confirmation', {
+      services: context?.services,
+      stylistId: context?.stylistId,
+      date: context?.date,
+      time: timeStr,
+      customerName: context?.customerName,
+      customerEmail: context?.customerEmail,
+      currentStepMessageId: context?.currentStepMessageId,
+      currentWeekOffset: context?.currentWeekOffset,
+    });
+
     // Get service details for summary
     const services = await getServices();
     const service = services.find(s => s.name === context.services?.[0]);
@@ -1295,7 +1354,7 @@ Choose a quick suggestion or go back:`,
       inline_keyboard: [
         [{ text: '✅ Confirm Booking', callback_data: 'confirm_booking_final' }],
         [
-          { text: '🔄 Change Time', callback_data: 'back_to_dates' },
+          { text: '⬅️ Back to Times', callback_data: 'go_back' },
           { text: '❌ Cancel', callback_data: 'cancel_booking' },
         ],
       ],
@@ -1322,7 +1381,8 @@ Is this correct?`,
   if (callbackData === 'cancel_booking') {
     const context = getBookingContext(userId);
 
-    // Clear booking context
+    // Clear booking context and step history
+    clearStepHistory(userId);
     if (context) {
       setBookingContext(userId, {
         currentStepMessageId: context.currentStepMessageId,
@@ -1388,7 +1448,8 @@ Please make sure you're logged in and try again with /book`,
         userId: user.id,
       });
 
-      // Clear booking context
+      // Clear booking context and step history
+      clearStepHistory(userId);
       setBookingContext(userId, {
         currentStepMessageId: context.currentStepMessageId,
       });
@@ -1739,6 +1800,56 @@ Please try again or contact us directly.`,
     };
   }
 
+  // Handle back button navigation
+  if (callbackData === 'go_back') {
+    const context = getBookingContext(userId);
+
+    if (!context?.stepHistory || context.stepHistory.length === 0) {
+      // No history, return to start
+      return {
+        text: `❌ *Can't Go Back*
+
+No previous step found. Let's start fresh!`,
+        keyboard: {
+          inline_keyboard: [
+            [{ text: '📅 Start New Booking', callback_data: 'cmd_book' }],
+            [{ text: '🏠 Main Menu', callback_data: 'cmd_start' }],
+          ],
+        },
+        parseMode: 'Markdown',
+        editPreviousMessage: true,
+      };
+    }
+
+    // Pop the last step
+    const previousState = popStep(userId);
+
+    if (!previousState) {
+      return createErrorResponse('context_lost');
+    }
+
+    const currentStep = previousState.currentStep;
+
+    // Rebuild the UI for the previous step
+    switch (currentStep) {
+      case 'multi_service_option':
+        return await rebuildMultiServiceStep(userId, previousState);
+
+      case 'stylist_selection':
+        return await rebuildStylistStep(userId, previousState);
+
+      case 'date_selection':
+        return await rebuildDateStep(userId, previousState);
+
+      case 'time_selection':
+        return await rebuildTimeStep(userId, previousState);
+
+      default:
+        // Fallback to service selection
+        return await handleBookCommand();
+    }
+  }
+
   // Handle quick date suggestions
   if (callbackData === 'quick_date_next_week') {
     const nextWeek = new Date();
@@ -2080,4 +2191,257 @@ I'm your personal booking assistant. Here's what I can help you with:
 Or just ask me anything - I understand natural language! 💬
 
 What would you like to do today?`;
+}
+
+/**
+ * Rebuilder Functions for Back Navigation
+ * These rebuild the UI for each step when user goes back
+ */
+
+async function rebuildMultiServiceStep(
+  userId: string,
+  state: Partial<import('./conversationHistory').BookingContext>,
+): Promise<CommandResponse> {
+  const services = await getServices();
+  const selectedServices = state.services || [];
+
+  const totalPrice = services
+    .filter(s => selectedServices.includes(s.name))
+    .reduce((sum, s) => sum + s.price, 0);
+  const totalDuration = services
+    .filter(s => selectedServices.includes(s.name))
+    .reduce((sum, s) => sum + s.duration, 0);
+
+  return {
+    text: `✅ *Your Services:*
+${selectedServices.map(s => `• ${s}`).join('\n')}
+
+💰 Total: $${totalPrice}
+⏱️ Total Duration: ${totalDuration} minutes
+
+Would you like to add more?`,
+    keyboard: {
+      inline_keyboard: [
+        [{ text: '➕ Add Another Service', callback_data: 'add_another_service' }],
+        [{ text: '✅ Continue to Stylist', callback_data: 'proceed_to_stylist' }],
+        [{ text: '⬅️ Back to Service List', callback_data: 'go_back' }],
+      ],
+    },
+    parseMode: 'Markdown',
+    editPreviousMessage: true,
+  };
+}
+
+async function rebuildStylistStep(
+  userId: string,
+  state: Partial<import('./conversationHistory').BookingContext>,
+): Promise<CommandResponse> {
+  const stylists = await getStylists();
+  const activeStylists = stylists.filter(s => s.isActive);
+
+  const services = await getServices();
+  const selectedServices = services.filter(s => state.services?.includes(s.name));
+  const totalPrice = selectedServices.reduce((sum, s) => sum + s.price, 0);
+  const totalDuration = selectedServices.reduce((sum, s) => sum + s.duration, 0);
+
+  const keyboard: InlineKeyboard = {
+    inline_keyboard: [
+      ...activeStylists.map(stylist => [
+        {
+          text: `👤 ${stylist.name}${stylist.bio ? ` • ${stylist.bio.substring(0, 40)}` : ''}`,
+          callback_data: `select_stylist_${stylist.id}`,
+        },
+      ]),
+      [{ text: '🎲 Any Stylist', callback_data: 'select_stylist_any' }],
+      [{ text: '⬅️ Back to Services', callback_data: 'go_back' }],
+    ],
+  };
+
+  return {
+    text: `✅ *Your Services:*
+${state.services?.map(s => `• ${s}`).join('\n')}
+
+💰 Total: $${totalPrice}
+⏱️ Duration: ${totalDuration} minutes
+
+👇 *Choose your stylist:*`,
+    keyboard,
+    parseMode: 'Markdown',
+    editPreviousMessage: true,
+  };
+}
+
+async function rebuildDateStep(
+  userId: string,
+  state: Partial<import('./conversationHistory').BookingContext>,
+): Promise<CommandResponse> {
+  // Restore week offset if it was set
+  const weekOffset = state.currentWeekOffset || 0;
+
+  // Generate date buttons (same as in select_stylist handler)
+  const dateButtons: InlineKeyboardButton[][] = [];
+  const today = new Date();
+  const startDayOffset = weekOffset * 7;
+
+  for (let i = 0; i < 7; i += 2) {
+    const date1 = new Date(today);
+    date1.setDate(today.getDate() + startDayOffset + i);
+    const dateStr1 = date1.toISOString().split('T')[0];
+
+    const date2 = new Date(today);
+    date2.setDate(today.getDate() + startDayOffset + i + 1);
+    const dateStr2 = date2.toISOString().split('T')[0];
+
+    const formatDateButton = (date: Date, dayIndex: number) => {
+      const absoluteDay = startDayOffset + dayIndex;
+      if (absoluteDay === 0) {
+        return `📅 Today (${formatDisplayDate(date).split(' ')[0]} ${formatDisplayDate(date).split(' ')[1]})`;
+      } else if (absoluteDay === 1) {
+        return `📅 Tomorrow (${formatDisplayDate(date).split(' ')[0]} ${formatDisplayDate(date).split(' ')[1]})`;
+      } else {
+        const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
+        return `📅 ${dayName}, ${formatDisplayDate(date)}`;
+      }
+    };
+
+    const row: InlineKeyboardButton[] = [
+      {
+        text: formatDateButton(date1, i),
+        callback_data: `pick_date_${dateStr1}`,
+      },
+    ];
+
+    if (i + 1 < 7) {
+      row.push({
+        text: formatDateButton(date2, i + 1),
+        callback_data: `pick_date_${dateStr2}`,
+      });
+    }
+
+    dateButtons.push(row);
+  }
+
+  // Add week navigation buttons
+  const navigationRow: InlineKeyboardButton[] = [];
+  if (weekOffset > 0) {
+    navigationRow.push({
+      text: '⬅️ Previous Week',
+      callback_data: `week_nav_${weekOffset - 1}`,
+    });
+  }
+  navigationRow.push({
+    text: '➡️ Next Week',
+    callback_data: `week_nav_${weekOffset + 1}`,
+  });
+  dateButtons.push(navigationRow);
+
+  dateButtons.push([
+    {
+      text: '🗓️ Choose Other Date',
+      callback_data: 'custom_date_entry',
+    },
+  ]);
+
+  // Add Back button
+  dateButtons.push([{ text: '⬅️ Back to Stylist', callback_data: 'go_back' }]);
+
+  const serviceName = state.services?.[0] || 'selected service';
+  const stylistName = state.stylistId
+    ? (await getStylists()).find(s => s.id === state.stylistId)?.name || 'any available stylist'
+    : 'any available stylist';
+
+  return {
+    text: `✅ *${serviceName}* with ${stylistName}
+
+📅 *Choose a date:*
+
+_Tip: Use arrows to browse weeks ahead_`,
+    keyboard: { inline_keyboard: dateButtons },
+    parseMode: 'Markdown',
+    editPreviousMessage: true,
+  };
+}
+
+async function rebuildTimeStep(
+  userId: string,
+  state: Partial<import('./conversationHistory').BookingContext>,
+): Promise<CommandResponse> {
+  if (!state.date) {
+    return createErrorResponse('context_lost');
+  }
+
+  const selectedDate = new Date(state.date);
+  const availableSlots = await getAvailability(selectedDate);
+
+  if (availableSlots.length === 0) {
+    return {
+      text: `❌ Sorry, ${formatDisplayDate(selectedDate)} is now fully booked.
+
+Please go back and choose a different date.`,
+      keyboard: {
+        inline_keyboard: [[{ text: '⬅️ Back to Dates', callback_data: 'go_back' }]],
+      },
+      parseMode: 'Markdown',
+      editPreviousMessage: true,
+    };
+  }
+
+  // Group time slots by time of day
+  const morning: string[] = [];
+  const afternoon: string[] = [];
+  const evening: string[] = [];
+
+  availableSlots.forEach(slot => {
+    const hour = parseInt(slot.split(':')[0]);
+    if (hour < 12) morning.push(slot);
+    else if (hour < 17) afternoon.push(slot);
+    else evening.push(slot);
+  });
+
+  const createTimeRows = (slots: string[]): InlineKeyboardButton[][] => {
+    const rows: InlineKeyboardButton[][] = [];
+    for (let i = 0; i < slots.length; i += 3) {
+      const row: InlineKeyboardButton[] = [];
+      for (let j = 0; j < 3 && i + j < slots.length; j++) {
+        const slot = slots[i + j];
+        row.push({
+          text: `🕐 ${formatTime12Hour(slot)}`,
+          callback_data: `pick_time_${slot}`,
+        });
+      }
+      rows.push(row);
+    }
+    return rows;
+  };
+
+  const timeButtons: InlineKeyboardButton[][] = [];
+  if (morning.length > 0) {
+    timeButtons.push([{ text: '☀️ Morning', callback_data: 'no_op' }]);
+    timeButtons.push(...createTimeRows(morning));
+  }
+  if (afternoon.length > 0) {
+    timeButtons.push([{ text: '🌤️ Afternoon', callback_data: 'no_op' }]);
+    timeButtons.push(...createTimeRows(afternoon));
+  }
+  if (evening.length > 0) {
+    timeButtons.push([{ text: '🌙 Evening', callback_data: 'no_op' }]);
+    timeButtons.push(...createTimeRows(evening));
+  }
+  timeButtons.push([{ text: '⬅️ Back to Dates', callback_data: 'go_back' }]);
+
+  const serviceName = state.services?.[0] || 'selected service';
+  const stylistName = state.stylistId
+    ? (await getStylists()).find(s => s.id === state.stylistId)?.name || 'any available stylist'
+    : 'any available stylist';
+
+  return {
+    text: `✅ *${serviceName}* with ${stylistName}
+
+📅 ${formatDisplayDate(selectedDate)}
+
+⏰ *Choose a time:*`,
+    keyboard: { inline_keyboard: timeButtons },
+    parseMode: 'Markdown',
+    editPreviousMessage: true,
+  };
 }

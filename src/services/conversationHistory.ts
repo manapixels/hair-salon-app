@@ -31,7 +31,12 @@ interface BookingContext {
   // Wizard-style UX: Track current step message for editing
   currentStepMessageId?: number; // Telegram message ID to edit on next step
   // Navigation history for Back button
-  stepHistory?: string[]; // Stack of previous callback_data for navigation
+  currentStep?: string; // Current step identifier
+  stepHistory?: Array<{
+    step: string;
+    context: Partial<BookingContext>;
+    timestamp: number;
+  }>; // Stack of previous steps with their state
   currentWeekOffset?: number; // Week offset for date picker pagination (0 = current week)
 }
 const bookingContextStore = new Map<string, BookingContext>();
@@ -116,6 +121,67 @@ export function getBookingContext(userId: string): BookingContext | null {
  */
 export function clearBookingContext(userId: string): void {
   bookingContextStore.delete(userId);
+}
+
+/**
+ * Push a new step onto the navigation history
+ */
+export function pushStep(userId: string, step: string, context: Partial<BookingContext>): void {
+  const current = getBookingContext(userId) || {};
+  const history = current.stepHistory || [];
+
+  // Add current step to history
+  history.push({
+    step,
+    context: { ...context },
+    timestamp: Date.now(),
+  });
+
+  // Update context with new step
+  setBookingContext(userId, {
+    ...current,
+    currentStep: step,
+    stepHistory: history,
+  });
+}
+
+/**
+ * Pop the last step from navigation history and restore its state
+ * Returns the restored context, or null if no history exists
+ */
+export function popStep(userId: string): Partial<BookingContext> | null {
+  const current = getBookingContext(userId);
+  if (!current?.stepHistory || current.stepHistory.length === 0) {
+    return null;
+  }
+
+  const history = [...current.stepHistory];
+  const previousStep = history.pop();
+
+  if (!previousStep) return null;
+
+  // Restore the context from the previous step
+  setBookingContext(userId, {
+    ...previousStep.context,
+    stepHistory: history,
+    currentStep: previousStep.step,
+  });
+
+  return previousStep.context;
+}
+
+/**
+ * Clear the step history for a user (e.g., after booking completion)
+ */
+export function clearStepHistory(userId: string): void {
+  const current = getBookingContext(userId);
+  if (current) {
+    setBookingContext(userId, {
+      ...current,
+      stepHistory: [],
+      currentStep: undefined,
+    });
+  }
 }
 
 /**
