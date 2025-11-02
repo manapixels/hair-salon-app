@@ -1,6 +1,6 @@
 import type { Appointment, User } from '@/types';
 import { sendWhatsAppMessage, sendTelegramMessage } from './messagingService';
-import { formatLongDate } from '@/lib/timeUtils';
+import { formatLongDate, formatTime12Hour } from '@/lib/timeUtils';
 import type { InlineKeyboard } from './botCommandService';
 
 export interface ReminderResult {
@@ -104,17 +104,23 @@ export const formatReminderMessage = (
   const serviceNames = appointment.services.map(s => s.name).join(', ');
   const stylistInfo = appointment.stylist ? ` with ${appointment.stylist.name}` : '';
 
+  const formattedTime = formatTime12Hour(appointment.time);
+
   const message = `🔔 *Appointment Reminder*
 
-Hi ${appointment.user?.name || appointment.customerName}! Your appointment is tomorrow at ${appointment.time} 📅
+Hi ${appointment.user?.name || appointment.customerName}! Your appointment is *tomorrow at ${formattedTime}* 📅
 
-✂️ *Services:* ${serviceNames}
-👩‍💇 *Stylist:* ${appointment.stylist?.name || 'To be assigned'}
-💰 *Total:* $${appointment.totalPrice}
-⏱️ *Duration:* ${appointment.totalDuration} minutes
-📍 *Location:* Luxe Cuts Hair Salon
+━━━━━━━━━━━━━━━━━━━━━
+✂️ *${serviceNames}*
+${appointment.stylist ? `👤 ${appointment.stylist.name} • ` : ''}💰 $${appointment.totalPrice}
+⏱️ ${appointment.totalDuration} mins
+📍 Luxe Cuts Hair Salon
+━━━━━━━━━━━━━━━━━━━━━
 
-Looking forward to seeing you! ✨`;
+Looking forward to seeing you! ✨
+
+*Quick Actions:*
+👇 Tap a button below to confirm, reschedule, or cancel`;
 
   // Create interactive keyboard with action buttons
   const keyboard: InlineKeyboard = {

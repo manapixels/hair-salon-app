@@ -39,6 +39,37 @@ declare global {
 globalThis.telegramLoginSessions = globalThis.telegramLoginSessions || new Map();
 
 /**
+ * Sends a chat action (typing indicator) to show the bot is processing
+ * @param chatId The chat ID
+ * @param action The action type (typing, upload_photo, etc.)
+ */
+async function sendChatAction(chatId: number, action: string = 'typing'): Promise<void> {
+  const botToken = process.env.TELEGRAM_BOT_TOKEN;
+
+  if (!botToken) {
+    return;
+  }
+
+  const url = `https://api.telegram.org/bot${botToken}/sendChatAction`;
+
+  try {
+    await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        chat_id: chatId,
+        action: action,
+      }),
+    });
+  } catch (error) {
+    // Silently fail - chat actions are not critical
+    console.debug('Failed to send chat action:', error);
+  }
+}
+
+/**
  * Sends a reply to the user via the Telegram Bot API.
  * @param chatId The chat ID where the message should be sent.
  * @param text The message text to send.
@@ -316,52 +347,63 @@ export async function POST(request: Request) {
       const userId = chatId.toString();
 
       if (incomingMessage === '/start') {
+        await sendChatAction(chatId);
         const response = await handleStartCommand(dbUser);
         await sendCommandResponse(chatId, response, userId);
         return Response.json({ success: true }, { status: 200 });
       }
 
       if (incomingMessage === '/services') {
+        await sendChatAction(chatId);
         const response = await handleServicesCommand();
         await sendCommandResponse(chatId, response, userId);
         return Response.json({ success: true }, { status: 200 });
       }
 
       if (incomingMessage === '/appointments') {
+        await sendChatAction(chatId);
         const response = await handleAppointmentsCommand(dbUser);
         await sendCommandResponse(chatId, response, userId);
         return Response.json({ success: true }, { status: 200 });
       }
 
       if (incomingMessage === '/book') {
+        await sendChatAction(chatId);
         const response = await handleBookCommand();
         await sendCommandResponse(chatId, response, userId);
         return Response.json({ success: true }, { status: 200 });
       }
 
       if (incomingMessage === '/cancel') {
+        await sendChatAction(chatId);
         const response = await handleCancelCommand(dbUser);
         await sendCommandResponse(chatId, response, userId);
         return Response.json({ success: true }, { status: 200 });
       }
 
       if (incomingMessage === '/reschedule') {
+        await sendChatAction(chatId);
         const response = await handleRescheduleCommand(dbUser);
         await sendCommandResponse(chatId, response, userId);
         return Response.json({ success: true }, { status: 200 });
       }
 
       if (incomingMessage === '/hours') {
+        await sendChatAction(chatId);
         const response = await handleHoursCommand();
         await sendCommandResponse(chatId, response, userId);
         return Response.json({ success: true }, { status: 200 });
       }
 
       if (incomingMessage === '/help') {
+        await sendChatAction(chatId);
         const response = await handleHelpCommand();
         await sendCommandResponse(chatId, response, userId);
         return Response.json({ success: true }, { status: 200 });
       }
+
+      // Show typing indicator for natural language processing
+      await sendChatAction(chatId);
 
       // Use enhanced messaging service with user context for natural language
       const { reply: replyText, buttons } = await handleMessagingWithUserContext(
@@ -432,6 +474,9 @@ export async function POST(request: Request) {
     const userId = chatId.toString();
 
     try {
+      // Show typing indicator while processing
+      await sendChatAction(chatId);
+
       // Get user context
       const dbUser = await findUserByTelegramId(chatId);
 

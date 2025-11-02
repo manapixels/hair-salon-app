@@ -26,6 +26,128 @@ export interface CommandResponse {
 }
 
 /**
+ * Helper function to create user-friendly error messages
+ */
+function createErrorResponse(
+  errorType:
+    | 'context_lost'
+    | 'fetch_failed'
+    | 'not_found'
+    | 'booking_failed'
+    | 'fully_booked'
+    | 'generic',
+  customMessage?: string,
+): CommandResponse {
+  switch (errorType) {
+    case 'context_lost':
+      return {
+        text: `❌ *Oops! Session Expired*
+
+Your booking session timed out (this happens after 30 minutes of inactivity).
+
+💡 *Don't worry* - let's start fresh!`,
+        keyboard: {
+          inline_keyboard: [
+            [{ text: '📅 Start New Booking', callback_data: 'cmd_book' }],
+            [{ text: '❓ Help', callback_data: 'cmd_help' }],
+          ],
+        },
+        parseMode: 'Markdown',
+      };
+
+    case 'fetch_failed':
+      return {
+        text: `❌ *Couldn't Load Data*
+
+${customMessage || 'I had trouble fetching your information.'}
+
+💡 *This usually resolves itself* - please try again in a moment.`,
+        keyboard: {
+          inline_keyboard: [
+            [{ text: '🔄 Try Again', callback_data: 'cmd_appointments' }],
+            [{ text: '❓ Contact Support', callback_data: 'cmd_hours' }],
+          ],
+        },
+        parseMode: 'Markdown',
+      };
+
+    case 'not_found':
+      return {
+        text: `❌ *Not Found*
+
+${customMessage || 'The item you requested could not be found.'}
+
+💡 It may have been *cancelled* or *completed* already.`,
+        keyboard: {
+          inline_keyboard: [
+            [{ text: '📋 View Appointments', callback_data: 'cmd_appointments' }],
+            [{ text: '🏠 Main Menu', callback_data: 'cmd_start' }],
+          ],
+        },
+        parseMode: 'Markdown',
+      };
+
+    case 'booking_failed':
+      return {
+        text: `❌ *Booking Unsuccessful*
+
+${customMessage || 'Something went wrong while processing your booking.'}
+
+💡 *Common fixes:*
+• The time slot may have just been taken
+• Try selecting a different time
+• Contact us if this persists`,
+        keyboard: {
+          inline_keyboard: [
+            [{ text: '🔄 Choose Different Time', callback_data: 'back_to_dates' }],
+            [{ text: '📞 Call Us', callback_data: 'cmd_hours' }],
+          ],
+        },
+        parseMode: 'Markdown',
+      };
+
+    case 'fully_booked':
+      return {
+        text: `❌ *Fully Booked*
+
+${customMessage || 'Unfortunately, this date is completely booked.'}
+
+💡 *Try these alternatives:*
+• Browse next week
+• Choose a different date
+• Call us for cancellation list`,
+        keyboard: {
+          inline_keyboard: [
+            [{ text: '📅 Browse Other Dates', callback_data: 'back_to_dates' }],
+            [{ text: '📞 Call for Waitlist', callback_data: 'cmd_hours' }],
+          ],
+        },
+        parseMode: 'Markdown',
+      };
+
+    case 'generic':
+    default:
+      return {
+        text: `❌ *Something Went Wrong*
+
+${customMessage || 'An unexpected error occurred.'}
+
+💡 *What to do:*
+• Try again in a moment
+• Return to main menu
+• Contact us if the issue persists`,
+        keyboard: {
+          inline_keyboard: [
+            [{ text: '🔄 Try Again', callback_data: 'cmd_start' }],
+            [{ text: '📞 Contact Us', callback_data: 'cmd_hours' }],
+          ],
+        },
+        parseMode: 'Markdown',
+      };
+  }
+}
+
+/**
  * Inline keyboard button for Telegram
  */
 export interface InlineKeyboardButton {
@@ -144,31 +266,35 @@ export async function handleAppointmentsCommand(user: User | null): Promise<Comm
     appointments.forEach((apt, index) => {
       const services = apt.services.map(s => s.name).join(', ');
       const date = formatDisplayDate(apt.date);
+      const time = formatTime12Hour(apt.time);
 
-      text += `*${index + 1}. ${date} at ${apt.time}*\n`;
-      text += `   ✂️ ${services}\n`;
+      text += `━━━━━━━━━━━━━━━━━━━━━\n`;
+      text += `📅 *${date} at ${time}*\n`;
+      text += `✂️ ${services} • 💰 $${apt.totalPrice}\n`;
       if (apt.stylist) {
-        text += `   👤 Stylist: ${apt.stylist.name}\n`;
+        text += `👤 ${apt.stylist.name} • ⏱️ ${apt.totalDuration} mins\n`;
+      } else {
+        text += `⏱️ ${apt.totalDuration} mins\n`;
       }
-      text += `   ⏱️ ${apt.totalDuration} mins | 💰 $${apt.totalPrice}\n`;
-      text += `\n`;
     });
 
     // Check if user has a favorite service (most recent appointment)
     const context = getBookingContext(user?.email || user?.telegramId?.toString() || '');
     const hasFavorite = context?.lastServiceBooked && context?.lastStylistBooked;
 
+    text += `━━━━━━━━━━━━━━━━━━━━━\n`;
+
     // Create inline action buttons for each appointment
     const keyboard: InlineKeyboard = {
       inline_keyboard: [
         // Add Reschedule + Cancel buttons for each appointment
-        ...appointments.map(apt => [
+        ...appointments.map((apt, index) => [
           {
-            text: `✏️ Reschedule`,
+            text: `✏️ Edit #${index + 1}`,
             callback_data: `reschedule_apt_${apt.id}`,
           },
           {
-            text: `❌ Cancel`,
+            text: `❌ Cancel #${index + 1}`,
             callback_data: `cancel_apt_${apt.id}`,
           },
         ]),
@@ -430,10 +556,7 @@ export async function handleCallbackQuery(
     const service = services.find(s => s.id === serviceId);
 
     if (!service) {
-      return {
-        text: `Sorry, I couldn't find that service. Please try again.`,
-        parseMode: 'Markdown',
-      };
+      return createErrorResponse('not_found', 'The selected service is no longer available.');
     }
 
     // Store service selection in booking context (preserve currentStepMessageId)
@@ -474,15 +597,198 @@ export async function handleCallbackQuery(
     };
 
     return {
-      text: `✅ *${service.name}*
+      text: `✅ *${service.name}* selected
 
 💰 Price: $${service.price}
 ⏱️ Duration: ${service.duration} minutes
 
+Would you like to add more services or continue?`,
+      keyboard: {
+        inline_keyboard: [
+          [{ text: '➕ Add Another Service', callback_data: 'add_another_service' }],
+          [{ text: '✅ Continue to Stylist', callback_data: 'proceed_to_stylist' }],
+        ],
+      },
+      parseMode: 'Markdown',
+      editPreviousMessage: true, // Edit the service selection message
+    };
+  }
+
+  // Handle add another service
+  if (callbackData === 'add_another_service') {
+    const context = getBookingContext(userId);
+    const services = await getServices();
+
+    if (!context?.services) {
+      return createErrorResponse('context_lost');
+    }
+
+    // Show services except already selected ones
+    const selectedServiceNames = context.services;
+    const availableServices = services.filter(s => !selectedServiceNames.includes(s.name));
+
+    if (availableServices.length === 0) {
+      return {
+        text: `✅ You've selected all available services!
+
+*Current Selection:*
+${selectedServiceNames.map(s => `• ${s}`).join('\n')}
+
+Ready to choose your stylist?`,
+        keyboard: {
+          inline_keyboard: [
+            [{ text: '✅ Continue to Stylist', callback_data: 'proceed_to_stylist' }],
+            [{ text: '❌ Remove a Service', callback_data: 'cmd_book' }],
+          ],
+        },
+        parseMode: 'Markdown',
+        editPreviousMessage: true,
+      };
+    }
+
+    const getServiceEmoji = (name: string): string => {
+      const nameLower = name.toLowerCase();
+      if (nameLower.includes("men's") || nameLower.includes('mens')) return '✂️';
+      if (nameLower.includes("women's") || nameLower.includes('womens')) return '✂️';
+      if (nameLower.includes('color') && !nameLower.includes('highlight')) return '🎨';
+      if (nameLower.includes('highlight')) return '✨';
+      if (nameLower.includes('balayage')) return '💫';
+      if (nameLower.includes('keratin')) return '🌟';
+      return '💆';
+    };
+
+    return {
+      text: `✅ *Selected Services:*
+${selectedServiceNames.map(s => `• ${s}`).join('\n')}
+
+➕ *Add another service:*`,
+      keyboard: {
+        inline_keyboard: availableServices.map(s => [
+          {
+            text: `${getServiceEmoji(s.name)} ${s.name} • $${s.price}`,
+            callback_data: `add_service_${s.id}`,
+          },
+        ]),
+      },
+      parseMode: 'Markdown',
+      editPreviousMessage: true,
+    };
+  }
+
+  // Handle adding additional service
+  if (callbackData.startsWith('add_service_')) {
+    const serviceId = parseInt(callbackData.replace('add_service_', ''));
+    const services = await getServices();
+    const service = services.find(s => s.id === serviceId);
+
+    if (!service) {
+      return createErrorResponse('not_found', 'The selected service is no longer available.');
+    }
+
+    const context = getBookingContext(userId);
+    if (!context?.services) {
+      return createErrorResponse('context_lost');
+    }
+
+    // Add to existing services
+    const updatedServices = [...context.services, service.name];
+    setBookingContext(userId, {
+      ...context,
+      services: updatedServices,
+      currentStepMessageId: context.currentStepMessageId,
+    });
+
+    const totalPrice = services
+      .filter(s => updatedServices.includes(s.name))
+      .reduce((sum, s) => sum + s.price, 0);
+    const totalDuration = services
+      .filter(s => updatedServices.includes(s.name))
+      .reduce((sum, s) => sum + s.duration, 0);
+
+    return {
+      text: `✅ *${service.name}* added!
+
+*Your Services:*
+${updatedServices.map(s => `• ${s}`).join('\n')}
+
+💰 Total: $${totalPrice}
+⏱️ Total Duration: ${totalDuration} minutes
+
+Would you like to add more?`,
+      keyboard: {
+        inline_keyboard: [
+          [{ text: '➕ Add Another Service', callback_data: 'add_another_service' }],
+          [{ text: '✅ Continue to Stylist', callback_data: 'proceed_to_stylist' }],
+        ],
+      },
+      parseMode: 'Markdown',
+      editPreviousMessage: true,
+    };
+  }
+
+  // Handle proceed to stylist selection
+  if (callbackData === 'proceed_to_stylist') {
+    const context = getBookingContext(userId);
+
+    if (!context?.services) {
+      return createErrorResponse('context_lost');
+    }
+
+    // Get available stylists
+    const stylists = await getStylists();
+    const activeStylists = stylists.filter(s => s.isActive);
+
+    if (activeStylists.length === 0) {
+      // No stylists available, skip to date/time
+      const services = await getServices();
+      const selectedServices = services.filter(s => context.services?.includes(s.name));
+      const totalPrice = selectedServices.reduce((sum, s) => sum + s.price, 0);
+      const totalDuration = selectedServices.reduce((sum, s) => sum + s.duration, 0);
+
+      return {
+        text: `✅ *Your Services:*
+${context.services.map(s => `• ${s}`).join('\n')}
+
+💰 Total: $${totalPrice}
+⏱️ Duration: ${totalDuration} minutes
+
+Now, please tell me your preferred date and time.
+
+For example: "October 20th at 2:00 PM"${!user?.email ? "\n\nI'll also need your name and email." : ''}`,
+        parseMode: 'Markdown',
+        editPreviousMessage: true,
+      };
+    }
+
+    // Show stylist selection
+    const keyboard: InlineKeyboard = {
+      inline_keyboard: [
+        ...activeStylists.map(stylist => [
+          {
+            text: `👤 ${stylist.name}${stylist.bio ? ` • ${stylist.bio.substring(0, 40)}` : ''}`,
+            callback_data: `select_stylist_${stylist.id}`,
+          },
+        ]),
+        [{ text: '🎲 Any Stylist', callback_data: 'select_stylist_any' }],
+      ],
+    };
+
+    const services = await getServices();
+    const selectedServices = services.filter(s => context.services?.includes(s.name));
+    const totalPrice = selectedServices.reduce((sum, s) => sum + s.price, 0);
+    const totalDuration = selectedServices.reduce((sum, s) => sum + s.duration, 0);
+
+    return {
+      text: `✅ *Your Services:*
+${context.services.map(s => `• ${s}`).join('\n')}
+
+💰 Total: $${totalPrice}
+⏱️ Duration: ${totalDuration} minutes
+
 👇 *Choose your stylist:*`,
       keyboard,
       parseMode: 'Markdown',
-      editPreviousMessage: true, // Edit the service selection message
+      editPreviousMessage: true,
     };
   }
 
@@ -525,40 +831,72 @@ export async function handleCallbackQuery(
     const serviceName = context?.services?.[0] || 'selected service';
     console.log('[STYLIST SELECT] Service name:', serviceName);
 
-    // Generate date picker buttons (today + next 6 days)
+    // Generate date picker buttons (today + next 6 days) in 2-column layout
     const dateButtons: InlineKeyboardButton[][] = [];
     const today = new Date();
+    const weekOffset = context?.currentWeekOffset || 0;
 
-    for (let i = 0; i < 7; i++) {
-      const date = new Date(today);
-      date.setDate(today.getDate() + i);
+    // Calculate date range based on week offset
+    const startDayOffset = weekOffset * 7;
 
-      // Create date string in YYYY-MM-DD format for callback
-      const dateStr = date.toISOString().split('T')[0];
+    for (let i = 0; i < 7; i += 2) {
+      const date1 = new Date(today);
+      date1.setDate(today.getDate() + startDayOffset + i);
+      const dateStr1 = date1.toISOString().split('T')[0];
 
-      // Format display with day name for today/tomorrow
-      let displayText = '';
-      if (i === 0) {
-        displayText = `📅 Today (${formatDisplayDate(date)})`;
-      } else if (i === 1) {
-        displayText = `📅 Tomorrow (${formatDisplayDate(date)})`;
-      } else {
-        const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
-        displayText = `📅 ${dayName}, ${formatDisplayDate(date)}`;
+      const date2 = new Date(today);
+      date2.setDate(today.getDate() + startDayOffset + i + 1);
+      const dateStr2 = date2.toISOString().split('T')[0];
+
+      // Format display with day name
+      const formatDateButton = (date: Date, dayIndex: number) => {
+        const absoluteDay = startDayOffset + dayIndex;
+        if (absoluteDay === 0) {
+          return `📅 Today (${formatDisplayDate(date).split(' ')[0]} ${formatDisplayDate(date).split(' ')[1]})`;
+        } else if (absoluteDay === 1) {
+          return `📅 Tomorrow (${formatDisplayDate(date).split(' ')[0]} ${formatDisplayDate(date).split(' ')[1]})`;
+        } else {
+          const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
+          return `📅 ${dayName}, ${formatDisplayDate(date)}`;
+        }
+      };
+
+      const row: InlineKeyboardButton[] = [
+        {
+          text: formatDateButton(date1, i),
+          callback_data: `pick_date_${dateStr1}`,
+        },
+      ];
+
+      // Add second column if not the last row
+      if (i + 1 < 7) {
+        row.push({
+          text: formatDateButton(date2, i + 1),
+          callback_data: `pick_date_${dateStr2}`,
+        });
       }
 
-      dateButtons.push([
-        {
-          text: displayText,
-          callback_data: `pick_date_${dateStr}`,
-        },
-      ]);
+      dateButtons.push(row);
     }
+
+    // Add week navigation buttons
+    const navigationRow: InlineKeyboardButton[] = [];
+    if (weekOffset > 0) {
+      navigationRow.push({
+        text: '⬅️ Previous Week',
+        callback_data: `week_nav_${weekOffset - 1}`,
+      });
+    }
+    navigationRow.push({
+      text: '➡️ Next Week',
+      callback_data: `week_nav_${weekOffset + 1}`,
+    });
+    dateButtons.push(navigationRow);
 
     // Add "Other Date" option for custom date entry
     dateButtons.push([
       {
-        text: '📅 Other Date',
+        text: '🗓️ Choose Other Date',
         callback_data: 'custom_date_entry',
       },
     ]);
@@ -579,6 +917,102 @@ _Tip: Select from quick picks or choose "Other Date" to enter a future date_`,
     };
   }
 
+  // Handle week navigation
+  if (callbackData.startsWith('week_nav_')) {
+    const weekOffset = parseInt(callbackData.replace('week_nav_', ''));
+    const context = getBookingContext(userId);
+
+    if (!context?.services || !context.services[0]) {
+      return createErrorResponse('context_lost');
+    }
+
+    // Store the week offset
+    setBookingContext(userId, {
+      ...context,
+      currentWeekOffset: weekOffset,
+    });
+
+    // Generate date picker with new week offset
+    const dateButtons: InlineKeyboardButton[][] = [];
+    const today = new Date();
+    const startDayOffset = weekOffset * 7;
+
+    for (let i = 0; i < 7; i += 2) {
+      const date1 = new Date(today);
+      date1.setDate(today.getDate() + startDayOffset + i);
+      const dateStr1 = date1.toISOString().split('T')[0];
+
+      const date2 = new Date(today);
+      date2.setDate(today.getDate() + startDayOffset + i + 1);
+      const dateStr2 = date2.toISOString().split('T')[0];
+
+      const formatDateButton = (date: Date, dayIndex: number) => {
+        const absoluteDay = startDayOffset + dayIndex;
+        if (absoluteDay === 0) {
+          return `📅 Today (${formatDisplayDate(date).split(' ')[0]} ${formatDisplayDate(date).split(' ')[1]})`;
+        } else if (absoluteDay === 1) {
+          return `📅 Tomorrow (${formatDisplayDate(date).split(' ')[0]} ${formatDisplayDate(date).split(' ')[1]})`;
+        } else {
+          const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
+          return `📅 ${dayName}, ${formatDisplayDate(date)}`;
+        }
+      };
+
+      const row: InlineKeyboardButton[] = [
+        {
+          text: formatDateButton(date1, i),
+          callback_data: `pick_date_${dateStr1}`,
+        },
+      ];
+
+      if (i + 1 < 7) {
+        row.push({
+          text: formatDateButton(date2, i + 1),
+          callback_data: `pick_date_${dateStr2}`,
+        });
+      }
+
+      dateButtons.push(row);
+    }
+
+    // Add week navigation buttons
+    const navigationRow: InlineKeyboardButton[] = [];
+    if (weekOffset > 0) {
+      navigationRow.push({
+        text: '⬅️ Previous Week',
+        callback_data: `week_nav_${weekOffset - 1}`,
+      });
+    }
+    navigationRow.push({
+      text: '➡️ Next Week',
+      callback_data: `week_nav_${weekOffset + 1}`,
+    });
+    dateButtons.push(navigationRow);
+
+    dateButtons.push([
+      {
+        text: '🗓️ Choose Other Date',
+        callback_data: 'custom_date_entry',
+      },
+    ]);
+
+    const serviceName = context.services[0];
+    const stylistName = context.stylistId
+      ? (await getStylists()).find(s => s.id === context.stylistId)?.name || 'any available stylist'
+      : 'any available stylist';
+
+    return {
+      text: `✅ *${serviceName}* with ${stylistName}
+
+📅 *Choose a date:*
+
+_Tip: Use arrows to browse weeks ahead_`,
+      keyboard: { inline_keyboard: dateButtons },
+      parseMode: 'Markdown',
+      editPreviousMessage: true,
+    };
+  }
+
   // Handle date selection
   if (callbackData.startsWith('pick_date_')) {
     const dateStr = callbackData.replace('pick_date_', '');
@@ -588,10 +1022,7 @@ _Tip: Select from quick picks or choose "Other Date" to enter a future date_`,
     console.log('[DATE SELECT] Selected date:', dateStr);
 
     if (!context?.services || !context.services[0]) {
-      return {
-        text: `Sorry, I lost track of your booking. Please start over with /book`,
-        parseMode: 'Markdown',
-      };
+      return createErrorResponse('context_lost');
     }
 
     // Store selected date in context
@@ -639,13 +1070,58 @@ _Tip: Select from quick picks or choose "Other Date" to enter a future date_`,
       };
     }
 
-    // Show available time slots
-    const timeButtons: InlineKeyboardButton[][] = availableSlots.map(slot => [
-      {
-        text: `🕐 ${formatTime12Hour(slot)}`,
-        callback_data: `pick_time_${slot}`,
-      },
-    ]);
+    // Group time slots by time of day and create 3-column layout
+    const morning: string[] = [];
+    const afternoon: string[] = [];
+    const evening: string[] = [];
+
+    availableSlots.forEach(slot => {
+      const hour = parseInt(slot.split(':')[0]);
+      if (hour < 12) {
+        morning.push(slot);
+      } else if (hour < 17) {
+        afternoon.push(slot);
+      } else {
+        evening.push(slot);
+      }
+    });
+
+    const timeButtons: InlineKeyboardButton[][] = [];
+
+    // Helper function to create 3-column rows
+    const createTimeRows = (slots: string[]): InlineKeyboardButton[][] => {
+      const rows: InlineKeyboardButton[][] = [];
+      for (let i = 0; i < slots.length; i += 3) {
+        const row: InlineKeyboardButton[] = [];
+        for (let j = 0; j < 3 && i + j < slots.length; j++) {
+          const slot = slots[i + j];
+          row.push({
+            text: `🕐 ${formatTime12Hour(slot)}`,
+            callback_data: `pick_time_${slot}`,
+          });
+        }
+        rows.push(row);
+      }
+      return rows;
+    };
+
+    // Add morning section
+    if (morning.length > 0) {
+      timeButtons.push([{ text: '☀️ Morning', callback_data: 'no_op' }]);
+      timeButtons.push(...createTimeRows(morning));
+    }
+
+    // Add afternoon section
+    if (afternoon.length > 0) {
+      timeButtons.push([{ text: '🌤️ Afternoon', callback_data: 'no_op' }]);
+      timeButtons.push(...createTimeRows(afternoon));
+    }
+
+    // Add evening section
+    if (evening.length > 0) {
+      timeButtons.push([{ text: '🌙 Evening', callback_data: 'no_op' }]);
+      timeButtons.push(...createTimeRows(evening));
+    }
 
     // Add back button
     timeButtons.push([{ text: '⬅️ Back to Dates', callback_data: 'back_to_dates' }]);
@@ -672,10 +1148,7 @@ _Tip: Select from quick picks or choose "Other Date" to enter a future date_`,
     const context = getBookingContext(userId);
 
     if (!context?.services || !context.services[0]) {
-      return {
-        text: `Sorry, I lost track of your booking. Please start over with /book`,
-        parseMode: 'Markdown',
-      };
+      return createErrorResponse('context_lost');
     }
 
     // Generate date picker buttons again
@@ -758,15 +1231,24 @@ _Tip: Select from quick picks or choose "Other Date" to enter a future date_`,
 
 📅 *Enter your preferred date*
 
-Please type your desired date in natural language. For example:
+Type your desired date in natural language.
+
+*Examples:*
 • "November 15th"
 • "Next Friday"
 • "December 5th"
 • "3 weeks from now"
+• "First Monday of December"
 
-Or click the button below to go back to quick picks.`,
+Choose a quick suggestion or go back:`,
       keyboard: {
-        inline_keyboard: [[{ text: '⬅️ Back to Quick Picks', callback_data: 'back_to_dates' }]],
+        inline_keyboard: [
+          [
+            { text: '📅 Next Week', callback_data: 'quick_date_next_week' },
+            { text: '📅 Next Month', callback_data: 'quick_date_next_month' },
+          ],
+          [{ text: '⬅️ Back to Quick Picks', callback_data: 'back_to_dates' }],
+        ],
       },
       parseMode: 'Markdown',
       editPreviousMessage: true,
@@ -782,10 +1264,7 @@ Or click the button below to go back to quick picks.`,
     console.log('[TIME SELECT] Selected time:', timeStr);
 
     if (!context?.services || !context.services[0] || !context.date) {
-      return {
-        text: `Sorry, I lost track of your booking. Please start over with /book`,
-        parseMode: 'Markdown',
-      };
+      return createErrorResponse('context_lost');
     }
 
     // Store selected time in context
@@ -991,13 +1470,7 @@ Please try again or contact us directly.`,
 
       if (!appointment) {
         return {
-          text: `Sorry, I couldn't find that appointment. It may have been cancelled or completed.`,
-          parseMode: 'Markdown',
-          keyboard: {
-            inline_keyboard: [
-              [{ text: '📋 View Appointments', callback_data: 'cmd_appointments' }],
-            ],
-          },
+          ...createErrorResponse('not_found', 'This appointment could not be found.'),
           editPreviousMessage: true,
         };
       }
@@ -1026,11 +1499,7 @@ Please try again or contact us directly.`,
     } catch (error) {
       console.error('[VIEW APPOINTMENT] Error:', error);
       return {
-        text: `Sorry, I had trouble loading that appointment. Please try again.`,
-        parseMode: 'Markdown',
-        keyboard: {
-          inline_keyboard: [[{ text: '📋 View Appointments', callback_data: 'cmd_appointments' }]],
-        },
+        ...createErrorResponse('fetch_failed', 'Unable to load appointment details.'),
         editPreviousMessage: true,
       };
     }
@@ -1260,6 +1729,194 @@ Please try again or contact us directly.`,
         };
       }
     }
+  }
+
+  // Handle no-op callbacks (section headers that shouldn't do anything)
+  if (callbackData === 'no_op') {
+    return {
+      text: 'Please select a time slot from the options below.',
+      parseMode: 'Markdown',
+    };
+  }
+
+  // Handle quick date suggestions
+  if (callbackData === 'quick_date_next_week') {
+    const nextWeek = new Date();
+    nextWeek.setDate(nextWeek.getDate() + 7);
+    const dateStr = nextWeek.toISOString().split('T')[0];
+
+    // Store date in context and proceed to time selection
+    const context = getBookingContext(userId);
+    if (!context?.services) {
+      return createErrorResponse('context_lost');
+    }
+
+    setBookingContext(userId, {
+      ...context,
+      date: dateStr,
+      awaitingCustomDate: false,
+    });
+
+    // Get availability and show time slots
+    const availableSlots = await getAvailability(nextWeek);
+
+    if (availableSlots.length === 0) {
+      return {
+        text: `Sorry, ${formatDisplayDate(nextWeek)} is fully booked. Please try a different date.`,
+        keyboard: {
+          inline_keyboard: [[{ text: '⬅️ Back to Dates', callback_data: 'back_to_dates' }]],
+        },
+        parseMode: 'Markdown',
+        editPreviousMessage: true,
+      };
+    }
+
+    // Group and show time slots
+    const morning: string[] = [];
+    const afternoon: string[] = [];
+    const evening: string[] = [];
+
+    availableSlots.forEach(slot => {
+      const hour = parseInt(slot.split(':')[0]);
+      if (hour < 12) morning.push(slot);
+      else if (hour < 17) afternoon.push(slot);
+      else evening.push(slot);
+    });
+
+    const createTimeRows = (slots: string[]): InlineKeyboardButton[][] => {
+      const rows: InlineKeyboardButton[][] = [];
+      for (let i = 0; i < slots.length; i += 3) {
+        const row: InlineKeyboardButton[] = [];
+        for (let j = 0; j < 3 && i + j < slots.length; j++) {
+          const slot = slots[i + j];
+          row.push({
+            text: `🕐 ${formatTime12Hour(slot)}`,
+            callback_data: `pick_time_${slot}`,
+          });
+        }
+        rows.push(row);
+      }
+      return rows;
+    };
+
+    const timeButtons: InlineKeyboardButton[][] = [];
+    if (morning.length > 0) {
+      timeButtons.push([{ text: '☀️ Morning', callback_data: 'no_op' }]);
+      timeButtons.push(...createTimeRows(morning));
+    }
+    if (afternoon.length > 0) {
+      timeButtons.push([{ text: '🌤️ Afternoon', callback_data: 'no_op' }]);
+      timeButtons.push(...createTimeRows(afternoon));
+    }
+    if (evening.length > 0) {
+      timeButtons.push([{ text: '🌙 Evening', callback_data: 'no_op' }]);
+      timeButtons.push(...createTimeRows(evening));
+    }
+    timeButtons.push([{ text: '⬅️ Back to Dates', callback_data: 'back_to_dates' }]);
+
+    const serviceName = context.services[0];
+    const stylistName = context.stylistId
+      ? (await getStylists()).find(s => s.id === context.stylistId)?.name || 'any available stylist'
+      : 'any available stylist';
+
+    return {
+      text: `✅ *${serviceName}* with ${stylistName}
+
+📅 ${formatDisplayDate(nextWeek)}
+
+⏰ *Choose a time:*`,
+      keyboard: { inline_keyboard: timeButtons },
+      parseMode: 'Markdown',
+      editPreviousMessage: true,
+    };
+  }
+
+  if (callbackData === 'quick_date_next_month') {
+    const nextMonth = new Date();
+    nextMonth.setMonth(nextMonth.getMonth() + 1);
+    const dateStr = nextMonth.toISOString().split('T')[0];
+
+    const context = getBookingContext(userId);
+    if (!context?.services) {
+      return createErrorResponse('context_lost');
+    }
+
+    setBookingContext(userId, {
+      ...context,
+      date: dateStr,
+      awaitingCustomDate: false,
+    });
+
+    const availableSlots = await getAvailability(nextMonth);
+
+    if (availableSlots.length === 0) {
+      return {
+        text: `Sorry, ${formatDisplayDate(nextMonth)} is fully booked. Please try a different date.`,
+        keyboard: {
+          inline_keyboard: [[{ text: '⬅️ Back to Dates', callback_data: 'back_to_dates' }]],
+        },
+        parseMode: 'Markdown',
+        editPreviousMessage: true,
+      };
+    }
+
+    const morning: string[] = [];
+    const afternoon: string[] = [];
+    const evening: string[] = [];
+
+    availableSlots.forEach(slot => {
+      const hour = parseInt(slot.split(':')[0]);
+      if (hour < 12) morning.push(slot);
+      else if (hour < 17) afternoon.push(slot);
+      else evening.push(slot);
+    });
+
+    const createTimeRows = (slots: string[]): InlineKeyboardButton[][] => {
+      const rows: InlineKeyboardButton[][] = [];
+      for (let i = 0; i < slots.length; i += 3) {
+        const row: InlineKeyboardButton[] = [];
+        for (let j = 0; j < 3 && i + j < slots.length; j++) {
+          const slot = slots[i + j];
+          row.push({
+            text: `🕐 ${formatTime12Hour(slot)}`,
+            callback_data: `pick_time_${slot}`,
+          });
+        }
+        rows.push(row);
+      }
+      return rows;
+    };
+
+    const timeButtons: InlineKeyboardButton[][] = [];
+    if (morning.length > 0) {
+      timeButtons.push([{ text: '☀️ Morning', callback_data: 'no_op' }]);
+      timeButtons.push(...createTimeRows(morning));
+    }
+    if (afternoon.length > 0) {
+      timeButtons.push([{ text: '🌤️ Afternoon', callback_data: 'no_op' }]);
+      timeButtons.push(...createTimeRows(afternoon));
+    }
+    if (evening.length > 0) {
+      timeButtons.push([{ text: '🌙 Evening', callback_data: 'no_op' }]);
+      timeButtons.push(...createTimeRows(evening));
+    }
+    timeButtons.push([{ text: '⬅️ Back to Dates', callback_data: 'back_to_dates' }]);
+
+    const serviceName = context.services[0];
+    const stylistName = context.stylistId
+      ? (await getStylists()).find(s => s.id === context.stylistId)?.name || 'any available stylist'
+      : 'any available stylist';
+
+    return {
+      text: `✅ *${serviceName}* with ${stylistName}
+
+📅 ${formatDisplayDate(nextMonth)}
+
+⏰ *Choose a time:*`,
+      keyboard: { inline_keyboard: timeButtons },
+      parseMode: 'Markdown',
+      editPreviousMessage: true,
+    };
   }
 
   switch (callbackData) {

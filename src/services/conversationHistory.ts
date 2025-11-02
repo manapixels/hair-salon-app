@@ -30,6 +30,9 @@ interface BookingContext {
   lastBookingDate?: number; // Timestamp of last successful booking
   // Wizard-style UX: Track current step message for editing
   currentStepMessageId?: number; // Telegram message ID to edit on next step
+  // Navigation history for Back button
+  stepHistory?: string[]; // Stack of previous callback_data for navigation
+  currentWeekOffset?: number; // Week offset for date picker pagination (0 = current week)
 }
 const bookingContextStore = new Map<string, BookingContext>();
 
