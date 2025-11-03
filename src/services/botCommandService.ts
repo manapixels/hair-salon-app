@@ -1049,6 +1049,29 @@ _Tip: Use arrows to browse weeks ahead_`,
     };
   }
 
+  // Handle month navigation
+  if (callbackData.startsWith('month_nav_')) {
+    const monthOffset = parseInt(callbackData.replace('month_nav_', ''));
+    const context = getBookingContext(userId);
+
+    if (!context?.services || !context.services[0]) {
+      return createErrorResponse('context_lost');
+    }
+
+    // For simplicity, this moves one month from the current calendar view.
+    // A more robust implementation might track the calendar's current month.
+    const currentViewDate = new Date();
+    currentViewDate.setMonth(currentViewDate.getMonth() + monthOffset);
+
+    // We can reuse the week navigation logic by calculating the week offset
+    const today = new Date();
+    const weekOffset = Math.floor(
+      (currentViewDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24 * 7),
+    );
+
+    return handleCallbackQuery(`week_nav_${weekOffset}`, user, userId);
+  }
+
   // Handle date selection
   if (callbackData.startsWith('pick_date_')) {
     const dateStr = callbackData.replace('pick_date_', '');
@@ -1291,8 +1314,12 @@ Choose a quick suggestion or go back:`,
       keyboard: {
         inline_keyboard: [
           [
-            { text: '📅 Next Week', callback_data: 'quick_date_next_week' },
-            { text: '📅 Next Month', callback_data: 'quick_date_next_month' },
+            { text: '⬅️ Previous Week', callback_data: 'week_nav_-1' },
+            { text: '➡️ Next Week', callback_data: 'week_nav_1' },
+          ],
+          [
+            { text: '⬅️ Previous Month', callback_data: 'month_nav_-1' },
+            { text: '➡️ Next Month', callback_data: 'month_nav_1' },
           ],
           [{ text: '⬅️ Back to Quick Picks', callback_data: 'back_to_dates' }],
         ],
