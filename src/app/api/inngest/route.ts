@@ -5,6 +5,7 @@ import { sendFeedbackRequests } from '@/inngest/feedback';
 import { sendRebookingReminders } from '@/inngest/rebooking';
 import { sendWinBackCampaigns } from '@/inngest/winback';
 import { autoCompleteAppointments } from '@/inngest/autoCompleteAppointments';
+import { syncAppointmentsToCalendar } from '@/inngest/syncCalendar';
 
 export const { GET, POST, PUT } = serve({
   client: inngest,
@@ -14,5 +15,6 @@ export const { GET, POST, PUT } = serve({
     sendFeedbackRequests,
     sendRebookingReminders,
     sendWinBackCampaigns,
+    syncAppointmentsToCalendar,
   ],
 });

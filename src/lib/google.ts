@@ -41,7 +41,10 @@ const initializeGoogleCalendar = () => {
     console.log('Google Calendar API initialized successfully');
     return calendar;
   } catch (error) {
-    console.error('Failed to initialize Google Calendar API:', error);
+    console.error(
+      'Failed to initialize Google Calendar API. Check GOOGLE_SERVICE_ACCOUNT_KEY format.',
+      error,
+    );
     return null;
   }
 };

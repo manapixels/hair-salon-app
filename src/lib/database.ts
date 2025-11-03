@@ -404,7 +404,9 @@ export const getStylistAvailability = async (date: Date, stylistId: string): Pro
 export const bookNewAppointment = async (
   appointmentData: CreateAppointmentInput,
 ): Promise<Appointment> => {
-  const availableSlots = await getAvailability(appointmentData.date);
+  const availableSlots = appointmentData.stylistId
+    ? await getStylistAvailability(appointmentData.date, appointmentData.stylistId)
+    : await getAvailability(appointmentData.date);
   const { totalPrice, totalDuration } = appointmentData.services.reduce(
     (acc, service) => {
       acc.totalPrice += service.price;
@@ -1110,3 +1112,41 @@ export const markReminderSent = async (appointmentId: string): Promise<void> => 
 
 // Re-export retention service function for auto-complete
 export { markAppointmentCompleted } from '../services/retentionService';
+
+export const getUnsyncedAppointments = async (): Promise<Appointment[]> => {
+  const twoDaysAgo = new Date();
+  twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
+
+  const appointments = await prisma.appointment.findMany({
+    where: {
+      calendarEventId: null,
+      createdAt: { gte: twoDaysAgo },
+      date: { gte: new Date() },
+    },
+    include: {
+      stylist: true,
+    },
+  });
+
+  const allServices = await getServices();
+
+  return appointments.map(apt => ({
+    ...apt,
+    services: Array.isArray(apt.services) ? (apt.services as unknown as Service[]) : [],
+    stylistId: apt.stylistId ?? undefined,
+    stylist: apt.stylist
+      ? {
+          ...apt.stylist,
+          bio: apt.stylist.bio ?? undefined,
+          avatar: apt.stylist.avatar ?? undefined,
+          specialties: Array.isArray(apt.stylist.specialties)
+            ? ((apt.stylist.specialties as number[])
+                .map(id => allServices.find(s => s.id === id))
+                .filter(Boolean) as Service[])
+            : [],
+          workingHours: (apt.stylist.workingHours as any) || getDefaultWorkingHours(),
+        }
+      : undefined,
+    calendarEventId: apt.calendarEventId ?? undefined,
+  }));
+};

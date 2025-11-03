@@ -48,11 +48,14 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
     return availableDates.has(dateKey);
   };
 
-  const isDateDisabled = (date: Date) => {
-    if (isBefore(startOfDay(date), startOfDay(minDate))) return true;
-    if (maxDate && isBefore(startOfDay(maxDate), startOfDay(date))) return true;
-    return false;
-  };
+  const isDateDisabled = useCallback(
+    (date: Date) => {
+      if (isBefore(startOfDay(date), startOfDay(minDate))) return true;
+      if (maxDate && isBefore(startOfDay(maxDate), startOfDay(date))) return true;
+      return false;
+    },
+    [minDate, maxDate],
+  );
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent<HTMLButtonElement>, date: Date) => {

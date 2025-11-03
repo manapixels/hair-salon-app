@@ -1,5 +1,4 @@
-'use client';
-
+import Image from 'next/image';
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -151,9 +150,11 @@ export default function StylistManagement({ onClose }: StylistManagementProps) {
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center">
                   {stylist.avatar ? (
-                    <img
+                    <Image
                       src={stylist.avatar}
                       alt={stylist.name}
+                      width={48}
+                      height={48}
                       className="w-12 h-12 rounded-full mr-3"
                     />
                   ) : (
