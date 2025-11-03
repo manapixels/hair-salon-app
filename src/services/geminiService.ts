@@ -10,8 +10,9 @@ import {
   updateAppointment,
   findAppointmentById,
   findUserByEmail,
+  updateAppointmentCalendarId,
 } from '../lib/database';
-import { updateCalendarEvent } from '../lib/google';
+import { createCalendarEvent, updateCalendarEvent } from '../lib/google';
 import { sendAppointmentConfirmation } from './messagingService';
 import { formatDisplayDate, formatTime12Hour } from '@/lib/timeUtils';
 
@@ -320,13 +321,28 @@ ${servicesListString}
         }
 
         try {
-          await bookNewAppointment({
+          const newAppointment = await bookNewAppointment({
             date: new Date(args?.date as string),
             time: args?.time as string,
             services: servicesToBook,
             customerName: args?.customerName as string,
             customerEmail: args?.customerEmail as string,
           });
+
+          // Sync to Google Calendar
+          try {
+            const calendarEventId = await createCalendarEvent(newAppointment);
+            if (calendarEventId) {
+              await updateAppointmentCalendarId(newAppointment.id, calendarEventId);
+            }
+          } catch (error) {
+            console.error(
+              `Failed to create Google Calendar event for appointment ${newAppointment.id}:`,
+              error,
+            );
+            // Non-fatal, booking succeeds even if calendar sync fails
+          }
+
           const formattedDate = formatDisplayDate(new Date(args?.date as string));
           const formattedTime = formatTime12Hour(args?.time as string);
           return {
