@@ -516,7 +516,6 @@ export async function handleHoursCommand(): Promise<CommandResponse> {
   const keyboard: InlineKeyboard = {
     inline_keyboard: [
       [
-        { text: '📞 Call Us', url: `tel:${businessPhone.replace(/[^0-9+]/g, '')}` },
         {
           text: '📍 Get Directions',
           url: `https://maps.google.com/?q=${encodeURIComponent(businessAddress)}`,
