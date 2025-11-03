@@ -253,7 +253,9 @@ function StylistModal({ isOpen, onClose, stylist, onSave }: StylistModalProps) {
     avatar: '',
     specialtyIds: [] as number[],
     workingHours: getDefaultWorkingHours(),
+    blockedDates: [] as string[],
   });
+  const [newBlockedDate, setNewBlockedDate] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -266,6 +268,7 @@ function StylistModal({ isOpen, onClose, stylist, onSave }: StylistModalProps) {
         avatar: stylist.avatar || '',
         specialtyIds: stylist.specialties.map(s => s.id),
         workingHours: stylist.workingHours,
+        blockedDates: stylist.blockedDates || [],
       });
     } else {
       setFormData({
@@ -275,9 +278,11 @@ function StylistModal({ isOpen, onClose, stylist, onSave }: StylistModalProps) {
         avatar: '',
         specialtyIds: [],
         workingHours: getDefaultWorkingHours(),
+        blockedDates: [],
       });
     }
     setError('');
+    setNewBlockedDate('');
   }, [stylist]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -461,6 +466,68 @@ function StylistModal({ isOpen, onClose, stylist, onSave }: StylistModalProps) {
                         </label>
                       );
                     })}
+                  </div>
+                </div>
+
+                {/* Blocked Dates Section */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Blocked Dates (Holidays/Days Off)
+                  </label>
+                  <div className="border border-gray-200 dark:border-gray-600 rounded-md p-3">
+                    <div className="space-y-2 mb-3">
+                      {formData.blockedDates.length === 0 ? (
+                        <p className="text-sm text-gray-500 dark:text-gray-400 italic">
+                          No blocked dates. Stylist is available according to their schedule.
+                        </p>
+                      ) : (
+                        formData.blockedDates.map(date => (
+                          <div
+                            key={date}
+                            className="flex items-center justify-between bg-gray-50 dark:bg-gray-700 p-2 rounded"
+                          >
+                            <span className="text-sm text-gray-900 dark:text-white">{date}</span>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setFormData(prev => ({
+                                  ...prev,
+                                  blockedDates: prev.blockedDates.filter(d => d !== date),
+                                }))
+                              }
+                              className="text-red-600 hover:text-red-800 text-sm"
+                            >
+                              Remove
+                            </button>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                    <div className="flex gap-2">
+                      <input
+                        type="date"
+                        value={newBlockedDate}
+                        onChange={e => setNewBlockedDate(e.target.value)}
+                        className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                        min={new Date().toISOString().split('T')[0]}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (newBlockedDate && !formData.blockedDates.includes(newBlockedDate)) {
+                            setFormData(prev => ({
+                              ...prev,
+                              blockedDates: [...prev.blockedDates, newBlockedDate].sort(),
+                            }));
+                            setNewBlockedDate('');
+                          }
+                        }}
+                        disabled={!newBlockedDate}
+                        className="px-4 py-2 bg-yellow-600 text-white rounded text-sm hover:bg-yellow-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        Add
+                      </button>
+                    </div>
                   </div>
                 </div>
 

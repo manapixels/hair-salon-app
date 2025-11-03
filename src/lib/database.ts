@@ -249,6 +249,10 @@ export const getAppointments = async (): Promise<Appointment[]> => {
                 .filter(Boolean) as Service[])
             : [],
           workingHours: (apt.stylist.workingHours as any) || getDefaultWorkingHours(),
+          blockedDates:
+            apt.stylist.blockedDates && Array.isArray(apt.stylist.blockedDates)
+              ? (apt.stylist.blockedDates as string[])
+              : [],
         }
       : undefined,
     calendarEventId: apt.calendarEventId ?? undefined,
@@ -389,6 +393,11 @@ export const getStylistAvailability = async (date: Date, stylistId: string): Pro
   const stylist = await getStylistById(stylistId);
   if (!stylist || !stylist.isActive) {
     return []; // Inactive stylist has no availability
+  }
+
+  // Check if stylist has blocked this date (holidays/breaks)
+  if (stylist.blockedDates.includes(dateKey)) {
+    return []; // Stylist is not available on this date
   }
 
   // Check if stylist is working on this day
@@ -702,6 +711,10 @@ export const getStylists = async (): Promise<Stylist[]> => {
           .filter(Boolean) as Service[])
       : [],
     workingHours: (stylist.workingHours as any) || getDefaultWorkingHours(),
+    blockedDates:
+      stylist.blockedDates && Array.isArray(stylist.blockedDates)
+        ? (stylist.blockedDates as string[])
+        : [],
   }));
 };
 
@@ -724,6 +737,10 @@ export const getStylistById = async (id: string): Promise<Stylist | null> => {
           .filter(Boolean) as Service[])
       : [],
     workingHours: (stylist.workingHours as any) || getDefaultWorkingHours(),
+    blockedDates:
+      stylist.blockedDates && Array.isArray(stylist.blockedDates)
+        ? (stylist.blockedDates as string[])
+        : [],
   };
 };
 
@@ -734,6 +751,7 @@ export const createStylist = async (stylistData: {
   avatar?: string;
   specialtyIds: number[];
   workingHours?: Stylist['workingHours'];
+  blockedDates?: string[];
 }): Promise<Stylist> => {
   const defaultHours = getDefaultWorkingHours();
 
@@ -745,6 +763,7 @@ export const createStylist = async (stylistData: {
       avatar: stylistData.avatar,
       specialties: stylistData.specialtyIds,
       workingHours: stylistData.workingHours || defaultHours,
+      blockedDates: stylistData.blockedDates || [],
     },
   });
 
@@ -758,6 +777,10 @@ export const createStylist = async (stylistData: {
       .map(id => allServices.find(s => s.id === id))
       .filter(Boolean) as Service[],
     workingHours: (newStylist.workingHours as any) || defaultHours,
+    blockedDates:
+      newStylist.blockedDates && Array.isArray(newStylist.blockedDates)
+        ? (newStylist.blockedDates as string[])
+        : [],
   };
 };
 
@@ -770,6 +793,7 @@ export const updateStylist = async (
     avatar?: string;
     specialtyIds?: number[];
     workingHours?: Stylist['workingHours'];
+    blockedDates?: string[];
     isActive?: boolean;
   },
 ): Promise<Stylist> => {
@@ -781,6 +805,7 @@ export const updateStylist = async (
   if (updateData.avatar !== undefined) updatePayload.avatar = updateData.avatar;
   if (updateData.specialtyIds !== undefined) updatePayload.specialties = updateData.specialtyIds;
   if (updateData.workingHours !== undefined) updatePayload.workingHours = updateData.workingHours;
+  if (updateData.blockedDates !== undefined) updatePayload.blockedDates = updateData.blockedDates;
   if (updateData.isActive !== undefined) updatePayload.isActive = updateData.isActive;
 
   const updatedStylist = await prisma.stylist.update({
@@ -800,6 +825,10 @@ export const updateStylist = async (
           .filter(Boolean) as Service[])
       : [],
     workingHours: (updatedStylist.workingHours as any) || getDefaultWorkingHours(),
+    blockedDates:
+      updatedStylist.blockedDates && Array.isArray(updatedStylist.blockedDates)
+        ? (updatedStylist.blockedDates as string[])
+        : [],
   };
 };
 
@@ -1189,6 +1218,10 @@ export const getUnsyncedAppointments = async (): Promise<Appointment[]> => {
                 .filter(Boolean) as Service[])
             : [],
           workingHours: (apt.stylist.workingHours as any) || getDefaultWorkingHours(),
+          blockedDates:
+            apt.stylist.blockedDates && Array.isArray(apt.stylist.blockedDates)
+              ? (apt.stylist.blockedDates as string[])
+              : [],
         }
       : undefined,
     calendarEventId: apt.calendarEventId ?? undefined,

@@ -26,6 +26,7 @@ export interface Stylist {
       isWorking: boolean;
     };
   };
+  blockedDates: string[]; // Array of "YYYY-MM-DD" strings for breaks/holidays
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;

@@ -75,6 +75,7 @@ model Stylist {
   avatar       String?
   specialties  Json         // Array of service IDs this stylist can perform
   workingHours Json         // Working hours for each day of week
+  blockedDates Json         @default("[]") // Array of date strings in YYYY-MM-DD format for breaks/holidays
   isActive     Boolean      @default(true)
   appointments Appointment[]
   createdAt    DateTime     @default(now())
