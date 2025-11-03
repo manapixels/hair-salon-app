@@ -259,19 +259,27 @@ export const getAdminSettings = async (): Promise<AdminSettings> => {
     return {
       openingTime: '09:00',
       closingTime: '18:00',
+      saturdayClosing: '15:00',
       blockedSlots: {},
+      businessName: 'Luxe Cuts Hair Salon',
+      businessAddress: '123 Main St, Your City, ST 12345',
+      businessPhone: '(555) 123-4567',
     };
   }
 
   return {
     openingTime: settings.openingTime,
     closingTime: settings.closingTime,
+    saturdayClosing: settings.saturdayClosing,
     blockedSlots:
       settings.blockedSlots &&
       typeof settings.blockedSlots === 'object' &&
       !Array.isArray(settings.blockedSlots)
         ? (settings.blockedSlots as { [date: string]: string[] })
         : {},
+    businessName: settings.businessName,
+    businessAddress: settings.businessAddress,
+    businessPhone: settings.businessPhone,
   };
 };
 
@@ -286,6 +294,10 @@ export const updateAdminSettings = async (
       data: {
         openingTime: newSettings.openingTime ?? existingSettings.openingTime,
         closingTime: newSettings.closingTime ?? existingSettings.closingTime,
+        saturdayClosing: newSettings.saturdayClosing ?? existingSettings.saturdayClosing,
+        businessName: newSettings.businessName ?? existingSettings.businessName,
+        businessAddress: newSettings.businessAddress ?? existingSettings.businessAddress,
+        businessPhone: newSettings.businessPhone ?? existingSettings.businessPhone,
         blockedSlots: (newSettings.blockedSlots ?? existingSettings.blockedSlots) as any,
       },
     });
@@ -293,31 +305,43 @@ export const updateAdminSettings = async (
     return {
       openingTime: updated.openingTime,
       closingTime: updated.closingTime,
+      saturdayClosing: updated.saturdayClosing,
       blockedSlots:
         updated.blockedSlots &&
         typeof updated.blockedSlots === 'object' &&
         !Array.isArray(updated.blockedSlots)
           ? (updated.blockedSlots as { [date: string]: string[] })
           : {},
+      businessName: updated.businessName,
+      businessAddress: updated.businessAddress,
+      businessPhone: updated.businessPhone,
     };
   } else {
     const created = await prisma.adminSettings.create({
       data: {
         openingTime: newSettings.openingTime ?? '09:00',
         closingTime: newSettings.closingTime ?? '18:00',
+        saturdayClosing: newSettings.saturdayClosing ?? '15:00',
         blockedSlots: newSettings.blockedSlots ?? {},
+        businessName: newSettings.businessName ?? 'Luxe Cuts Hair Salon',
+        businessAddress: newSettings.businessAddress ?? '123 Main St, Your City, ST 12345',
+        businessPhone: newSettings.businessPhone ?? '(555) 123-4567',
       },
     });
 
     return {
       openingTime: created.openingTime,
       closingTime: created.closingTime,
+      saturdayClosing: created.saturdayClosing,
       blockedSlots:
         created.blockedSlots &&
         typeof created.blockedSlots === 'object' &&
         !Array.isArray(created.blockedSlots)
           ? (created.blockedSlots as { [date: string]: string[] })
           : {},
+      businessName: created.businessName,
+      businessAddress: created.businessAddress,
+      businessPhone: created.businessPhone,
     };
   }
 };

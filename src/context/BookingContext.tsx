@@ -31,7 +31,11 @@ export const BookingProvider: React.FC<{ children: ReactNode }> = ({ children })
   const [adminSettings, setAdminSettings] = useState<AdminSettings>({
     openingTime: '09:00',
     closingTime: '18:00',
+    saturdayClosing: '15:00',
     blockedSlots: {},
+    businessName: 'Luxe Cuts Hair Salon',
+    businessAddress: '123 Main St, Your City, ST 12345',
+    businessPhone: '(555) 123-4567',
   });
 
   const fetchAndSetAppointments = useCallback(async () => {

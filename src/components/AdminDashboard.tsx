@@ -22,6 +22,10 @@ const AdminDashboard: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [openingTime, setOpeningTime] = useState(adminSettings.openingTime);
   const [closingTime, setClosingTime] = useState(adminSettings.closingTime);
+  const [saturdayClosing, setSaturdayClosing] = useState(adminSettings.saturdayClosing);
+  const [businessName, setBusinessName] = useState(adminSettings.businessName);
+  const [businessAddress, setBusinessAddress] = useState(adminSettings.businessAddress);
+  const [businessPhone, setBusinessPhone] = useState(adminSettings.businessPhone);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -60,6 +64,10 @@ const AdminDashboard: React.FC = () => {
   useEffect(() => {
     setOpeningTime(adminSettings.openingTime);
     setClosingTime(adminSettings.closingTime);
+    setSaturdayClosing(adminSettings.saturdayClosing);
+    setBusinessName(adminSettings.businessName);
+    setBusinessAddress(adminSettings.businessAddress);
+    setBusinessPhone(adminSettings.businessPhone);
   }, [adminSettings]);
 
   useEffect(() => {
@@ -124,7 +132,15 @@ const AdminDashboard: React.FC = () => {
   const handleSettingsSave = async () => {
     const toastId = toast.loading('Saving settings...');
     try {
-      await saveAdminSettings({ ...adminSettings, openingTime, closingTime });
+      await saveAdminSettings({
+        ...adminSettings,
+        openingTime,
+        closingTime,
+        saturdayClosing,
+        businessName,
+        businessAddress,
+        businessPhone,
+      });
       toast.success('Settings saved successfully!', { id: toastId });
     } catch (error) {
       toast.error('Failed to save settings.', { id: toastId });
@@ -1076,60 +1092,138 @@ const AdminDashboard: React.FC = () => {
 
       {activeTab === 'availability' && (
         <div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            {/* Operating Hours */}
             <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
               <h3 className="text-xl font-semibold mb-3">Operating Hours</h3>
-              <div className="flex items-center space-x-4">
-                <div>
-                  <label
-                    htmlFor="openingTime"
-                    className="block text-sm font-medium text-gray-600 dark:text-gray-300"
-                  >
-                    Opening Time
-                  </label>
-                  <input
-                    type="time"
-                    id="openingTime"
-                    value={openingTime}
-                    onChange={e => setOpeningTime(e.target.value)}
-                    className="mt-1 p-2 border rounded-md bg-white dark:bg-gray-600 dark:border-gray-500"
-                    step="1800"
-                  />
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label
+                      htmlFor="openingTime"
+                      className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-1"
+                    >
+                      Opening Time
+                    </label>
+                    <input
+                      type="time"
+                      id="openingTime"
+                      value={openingTime}
+                      onChange={e => setOpeningTime(e.target.value)}
+                      className="w-full p-2 border rounded-md bg-white dark:bg-gray-600 dark:border-gray-500"
+                      step="1800"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      htmlFor="closingTime"
+                      className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-1"
+                    >
+                      Closing Time
+                    </label>
+                    <input
+                      type="time"
+                      id="closingTime"
+                      value={closingTime}
+                      onChange={e => setClosingTime(e.target.value)}
+                      className="w-full p-2 border rounded-md bg-white dark:bg-gray-600 dark:border-gray-500"
+                      step="1800"
+                    />
+                  </div>
                 </div>
                 <div>
                   <label
-                    htmlFor="closingTime"
-                    className="block text-sm font-medium text-gray-600 dark:text-gray-300"
+                    htmlFor="saturdayClosing"
+                    className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-1"
                   >
-                    Closing Time
+                    Saturday Closing Time
                   </label>
                   <input
                     type="time"
-                    id="closingTime"
-                    value={closingTime}
-                    onChange={e => setClosingTime(e.target.value)}
-                    className="mt-1 p-2 border rounded-md bg-white dark:bg-gray-600 dark:border-gray-500"
+                    id="saturdayClosing"
+                    value={saturdayClosing}
+                    onChange={e => setSaturdayClosing(e.target.value)}
+                    className="w-full p-2 border rounded-md bg-white dark:bg-gray-600 dark:border-gray-500"
                     step="1800"
                   />
                 </div>
-                <button
-                  onClick={handleSettingsSave}
-                  className="self-end bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition-colors"
-                >
-                  Save
-                </button>
               </div>
             </div>
+
+            {/* Business Information */}
             <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
-              <h3 className="text-xl font-semibold mb-3">Appointments Today</h3>
-              <p className="text-4xl font-bold text-indigo-600">
-                {
-                  (Array.isArray(appointments) ? appointments : []).filter(
-                    a => new Date(a.date).toDateString() === new Date().toDateString(),
-                  ).length
-                }
-              </p>
+              <h3 className="text-xl font-semibold mb-3">Business Information</h3>
+              <div className="space-y-4">
+                <div>
+                  <label
+                    htmlFor="businessName"
+                    className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-1"
+                  >
+                    Business Name
+                  </label>
+                  <input
+                    type="text"
+                    id="businessName"
+                    value={businessName}
+                    onChange={e => setBusinessName(e.target.value)}
+                    className="w-full p-2 border rounded-md bg-white dark:bg-gray-600 dark:border-gray-500"
+                  />
+                </div>
+                <div>
+                  <label
+                    htmlFor="businessAddress"
+                    className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-1"
+                  >
+                    Address
+                  </label>
+                  <input
+                    type="text"
+                    id="businessAddress"
+                    value={businessAddress}
+                    onChange={e => setBusinessAddress(e.target.value)}
+                    className="w-full p-2 border rounded-md bg-white dark:bg-gray-600 dark:border-gray-500"
+                  />
+                </div>
+                <div>
+                  <label
+                    htmlFor="businessPhone"
+                    className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-1"
+                  >
+                    Phone Number
+                  </label>
+                  <input
+                    type="tel"
+                    id="businessPhone"
+                    value={businessPhone}
+                    onChange={e => setBusinessPhone(e.target.value)}
+                    className="w-full p-2 border rounded-md bg-white dark:bg-gray-600 dark:border-gray-500"
+                  />
+                </div>
+              </div>
             </div>
+          </div>
+
+          {/* Save Button */}
+          <div className="mb-8">
+            <button
+              onClick={handleSettingsSave}
+              className="bg-indigo-600 text-white px-6 py-3 rounded-md hover:bg-indigo-700 transition-colors font-medium"
+            >
+              <i className="fas fa-save mr-2"></i>
+              Save Settings
+            </button>
+          </div>
+
+          {/* Stats Card */}
+          <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg mb-8">
+            <h3 className="text-xl font-semibold mb-3">Appointments Today</h3>
+            <p className="text-4xl font-bold text-indigo-600">
+              {
+                (Array.isArray(appointments) ? appointments : []).filter(
+                  a => new Date(a.date).toDateString() === new Date().toDateString(),
+                ).length
+              }
+            </p>
           </div>
 
           {/* Appointments Management Section */}

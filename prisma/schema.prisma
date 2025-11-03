@@ -111,11 +111,18 @@ model Appointment {
 }
 
 model AdminSettings {
-  id           Int    @id @default(autoincrement())
-  openingTime  String @default("09:00")
-  closingTime  String @default("18:00")
-  blockedSlots Json   @default("{}")
-  updatedAt    DateTime @updatedAt
+  id              Int      @id @default(autoincrement())
+  openingTime     String   @default("09:00")
+  closingTime     String   @default("18:00")
+  saturdayClosing String   @default("15:00")
+  blockedSlots    Json     @default("{}")
+  
+  // Business Information
+  businessName    String   @default("Luxe Cuts Hair Salon")
+  businessAddress String   @default("123 Main St, Your City, ST 12345")
+  businessPhone   String   @default("(555) 123-4567")
+  
+  updatedAt       DateTime @updatedAt
 
   @@map("admin_settings")
 }

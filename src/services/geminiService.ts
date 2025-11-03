@@ -11,6 +11,7 @@ import {
   findAppointmentById,
   findUserByEmail,
   updateAppointmentCalendarId,
+  getAdminSettings,
 } from '../lib/database';
 import { createCalendarEvent, updateCalendarEvent } from '../lib/google';
 import { sendAppointmentConfirmation } from './messagingService';
@@ -303,8 +304,9 @@ ${servicesListString}
               text: `Sorry, ${formatDisplayDate(utcDate)} is fully booked. Here are the nearest available dates:\n\n${suggestions.join('\n')}\n\nWould any of these work for you?`,
             };
           } else {
+            const settings = await getAdminSettings();
             return {
-              text: `Sorry, there are no available slots on ${formatDisplayDate(utcDate)} or in the next week. Please try a different date or contact us directly at ${process.env.BUSINESS_PHONE || '(555) 123-4567'}.`,
+              text: `Sorry, there are no available slots on ${formatDisplayDate(utcDate)} or in the next week. Please try a different date or contact us directly at ${settings.businessPhone}.`,
             };
           }
         }
@@ -390,8 +392,9 @@ ${servicesListString}
                 text: `I'm sorry, ${formatDisplayDate(utcDate)} is fully booked. Here are the nearest available dates:\n\n${suggestions.join('\n')}\n\nWould any of these work for you?`,
               };
             } else {
+              const settings = await getAdminSettings();
               return {
-                text: `I'm sorry, I couldn't book that appointment. ${e.message}\n\nPlease try a different date or contact us at ${process.env.BUSINESS_PHONE || '(555) 123-4567'}.`,
+                text: `I'm sorry, I couldn't book that appointment. ${e.message}\n\nPlease try a different date or contact us at ${settings.businessPhone}.`,
               };
             }
           }

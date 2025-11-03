@@ -65,7 +65,11 @@ export type StylistSummary = {
 export interface AdminSettings {
   openingTime: string; // "HH:MM"
   closingTime: string; // "HH:MM"
+  saturdayClosing: string; // "HH:MM"
   blockedSlots: { [date: string]: string[] }; // e.g., { "2024-07-28": ["10:00", "10:30"] }
+  businessName: string;
+  businessAddress: string;
+  businessPhone: string;
 }
 
 // FIX: Define and export the missing WhatsAppMessage interface.

@@ -483,18 +483,33 @@ export async function handleRescheduleCommand(user: User | null): Promise<Comman
  * Handle /hours command - Business hours
  */
 export async function handleHoursCommand(): Promise<CommandResponse> {
-  // Get business info from environment variables
-  const businessName = process.env.BUSINESS_NAME || 'Luxe Cuts Hair Salon';
-  const businessAddress = process.env.BUSINESS_ADDRESS || '123 Main St, Your City, ST 12345';
-  const businessPhone = process.env.BUSINESS_PHONE || '(555) 123-4567';
-  const openingTime = process.env.OPENING_TIME || '9:00 AM';
-  const closingTime = process.env.CLOSING_TIME || '6:00 PM';
-  const saturdayClosing = process.env.SATURDAY_CLOSING || '3:00 PM';
+  // Get business info from database
+  const { getAdminSettings } = await import('@/lib/database');
+  const settings = await getAdminSettings();
+
+  const businessName = settings.businessName;
+  const businessAddress = settings.businessAddress;
+  const businessPhone = settings.businessPhone;
+  const openingTime = formatTime12Hour(settings.openingTime);
+  const closingTime = formatTime12Hour(settings.closingTime);
+  const saturdayClosing = formatTime12Hour(settings.saturdayClosing);
 
   // Check if currently open (basic logic)
   const now = new Date();
   const currentDay = now.getDay(); // 0 = Sunday, 6 = Saturday
   const currentHour = now.getHours();
+  const currentMinutes = now.getMinutes();
+  const currentTimeInMinutes = currentHour * 60 + currentMinutes;
+
+  // Parse opening/closing times to minutes
+  const [openHour, openMin] = settings.openingTime.split(':').map(Number);
+  const [closeHour, closeMin] = settings.closingTime.split(':').map(Number);
+  const [satCloseHour, satCloseMin] = settings.saturdayClosing.split(':').map(Number);
+
+  const openTimeInMinutes = openHour * 60 + openMin;
+  const closeTimeInMinutes = closeHour * 60 + closeMin;
+  const satCloseTimeInMinutes = satCloseHour * 60 + satCloseMin;
+
   const isWeekday = currentDay >= 1 && currentDay <= 5;
   const isSaturday = currentDay === 6;
   const isSunday = currentDay === 0;
@@ -502,10 +517,18 @@ export async function handleHoursCommand(): Promise<CommandResponse> {
   let statusEmoji = '🔴';
   let statusText = 'Closed';
 
-  if (isWeekday && currentHour >= 9 && currentHour < 18) {
+  if (
+    isWeekday &&
+    currentTimeInMinutes >= openTimeInMinutes &&
+    currentTimeInMinutes < closeTimeInMinutes
+  ) {
     statusEmoji = '🟢';
     statusText = 'Open Now';
-  } else if (isSaturday && currentHour >= 9 && currentHour < 15) {
+  } else if (
+    isSaturday &&
+    currentTimeInMinutes >= openTimeInMinutes &&
+    currentTimeInMinutes < satCloseTimeInMinutes
+  ) {
     statusEmoji = '🟢';
     statusText = 'Open Now';
   }
