@@ -19,6 +19,7 @@ import {
   pushStep,
   popStep,
   clearStepHistory,
+  clearBookingContext,
 } from './conversationHistory';
 
 /**
@@ -1476,10 +1477,14 @@ Please make sure you're logged in and try again with /book`,
       });
 
       // Clear booking context and step history
+      const messageId = context.currentStepMessageId;
       clearStepHistory(userId);
-      setBookingContext(userId, {
-        currentStepMessageId: context.currentStepMessageId,
-      });
+      clearBookingContext(userId);
+      if (messageId) {
+        setBookingContext(userId, {
+          currentStepMessageId: messageId,
+        });
+      }
 
       // Get stylist name
       const stylistName = appointment.stylistId
