@@ -35,9 +35,12 @@ async function initializeDatabase() {
     if (!settings) {
       await prisma.adminSettings.create({
         data: {
-          openingTime: '09:00',
-          closingTime: '18:00',
+          weeklySchedule: getDefaultWeeklySchedule() as any,
+          closedDates: [],
           blockedSlots: {},
+          businessName: 'Luxe Cuts Hair Salon',
+          businessAddress: '123 Main St, Your City, ST 12345',
+          businessPhone: '(555) 123-4567',
         },
       });
     }
@@ -252,14 +255,23 @@ export const getAppointments = async (): Promise<Appointment[]> => {
   }));
 };
 
+const getDefaultWeeklySchedule = () => ({
+  monday: { isOpen: true, openingTime: '11:00', closingTime: '19:00' },
+  tuesday: { isOpen: false, openingTime: '11:00', closingTime: '19:00' },
+  wednesday: { isOpen: true, openingTime: '11:00', closingTime: '19:00' },
+  thursday: { isOpen: true, openingTime: '11:00', closingTime: '19:00' },
+  friday: { isOpen: true, openingTime: '11:00', closingTime: '19:00' },
+  saturday: { isOpen: true, openingTime: '11:00', closingTime: '19:00' },
+  sunday: { isOpen: true, openingTime: '11:00', closingTime: '19:00' },
+});
+
 export const getAdminSettings = async (): Promise<AdminSettings> => {
   const settings = await prisma.adminSettings.findFirst();
   if (!settings) {
     // Return default settings if none exist
     return {
-      openingTime: '09:00',
-      closingTime: '18:00',
-      saturdayClosing: '15:00',
+      weeklySchedule: getDefaultWeeklySchedule(),
+      closedDates: [],
       blockedSlots: {},
       businessName: 'Luxe Cuts Hair Salon',
       businessAddress: '123 Main St, Your City, ST 12345',
@@ -268,9 +280,14 @@ export const getAdminSettings = async (): Promise<AdminSettings> => {
   }
 
   return {
-    openingTime: settings.openingTime,
-    closingTime: settings.closingTime,
-    saturdayClosing: settings.saturdayClosing,
+    weeklySchedule:
+      settings.weeklySchedule && typeof settings.weeklySchedule === 'object'
+        ? (settings.weeklySchedule as any)
+        : getDefaultWeeklySchedule(),
+    closedDates:
+      settings.closedDates && Array.isArray(settings.closedDates)
+        ? (settings.closedDates as string[])
+        : [],
     blockedSlots:
       settings.blockedSlots &&
       typeof settings.blockedSlots === 'object' &&
@@ -287,69 +304,57 @@ export const updateAdminSettings = async (
   newSettings: Partial<AdminSettings>,
 ): Promise<AdminSettings> => {
   const existingSettings = await prisma.adminSettings.findFirst();
+  const currentSettings = await getAdminSettings();
 
   if (existingSettings) {
     const updated = await prisma.adminSettings.update({
       where: { id: existingSettings.id },
       data: {
-        openingTime: newSettings.openingTime ?? existingSettings.openingTime,
-        closingTime: newSettings.closingTime ?? existingSettings.closingTime,
-        saturdayClosing: newSettings.saturdayClosing ?? existingSettings.saturdayClosing,
+        weeklySchedule: (newSettings.weeklySchedule ?? currentSettings.weeklySchedule) as any,
+        closedDates: (newSettings.closedDates ?? currentSettings.closedDates) as any,
         businessName: newSettings.businessName ?? existingSettings.businessName,
         businessAddress: newSettings.businessAddress ?? existingSettings.businessAddress,
         businessPhone: newSettings.businessPhone ?? existingSettings.businessPhone,
-        blockedSlots: (newSettings.blockedSlots ?? existingSettings.blockedSlots) as any,
+        blockedSlots: (newSettings.blockedSlots ?? currentSettings.blockedSlots) as any,
       },
     });
 
-    return {
-      openingTime: updated.openingTime,
-      closingTime: updated.closingTime,
-      saturdayClosing: updated.saturdayClosing,
-      blockedSlots:
-        updated.blockedSlots &&
-        typeof updated.blockedSlots === 'object' &&
-        !Array.isArray(updated.blockedSlots)
-          ? (updated.blockedSlots as { [date: string]: string[] })
-          : {},
-      businessName: updated.businessName,
-      businessAddress: updated.businessAddress,
-      businessPhone: updated.businessPhone,
-    };
+    return await getAdminSettings();
   } else {
-    const created = await prisma.adminSettings.create({
+    await prisma.adminSettings.create({
       data: {
-        openingTime: newSettings.openingTime ?? '09:00',
-        closingTime: newSettings.closingTime ?? '18:00',
-        saturdayClosing: newSettings.saturdayClosing ?? '15:00',
-        blockedSlots: newSettings.blockedSlots ?? {},
+        weeklySchedule: (newSettings.weeklySchedule ?? getDefaultWeeklySchedule()) as any,
+        closedDates: (newSettings.closedDates ?? []) as any,
+        blockedSlots: (newSettings.blockedSlots ?? {}) as any,
         businessName: newSettings.businessName ?? 'Luxe Cuts Hair Salon',
         businessAddress: newSettings.businessAddress ?? '123 Main St, Your City, ST 12345',
         businessPhone: newSettings.businessPhone ?? '(555) 123-4567',
       },
     });
 
-    return {
-      openingTime: created.openingTime,
-      closingTime: created.closingTime,
-      saturdayClosing: created.saturdayClosing,
-      blockedSlots:
-        created.blockedSlots &&
-        typeof created.blockedSlots === 'object' &&
-        !Array.isArray(created.blockedSlots)
-          ? (created.blockedSlots as { [date: string]: string[] })
-          : {},
-      businessName: created.businessName,
-      businessAddress: created.businessAddress,
-      businessPhone: created.businessPhone,
-    };
+    return await getAdminSettings();
   }
 };
 
 export const getAvailability = async (date: Date): Promise<string[]> => {
   const settings = await getAdminSettings();
-  const allSlots = generateTimeSlots(settings.openingTime, settings.closingTime);
   const dateKey = dateToKey(date);
+
+  // Check if date is in closed dates
+  if (settings.closedDates.includes(dateKey)) {
+    return []; // Store is closed on this date
+  }
+
+  // Get day of week and check if store is open
+  const dayOfWeek = date.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
+  const daySchedule = settings.weeklySchedule[dayOfWeek as keyof typeof settings.weeklySchedule];
+
+  if (!daySchedule || !daySchedule.isOpen) {
+    return []; // Store is closed on this day of week
+  }
+
+  // Generate time slots based on day-specific hours
+  const allSlots = generateTimeSlots(daySchedule.openingTime, daySchedule.closingTime);
 
   // Get booked appointments for this date
   const appointments = await prisma.appointment.findMany({
@@ -841,9 +846,24 @@ export const rescheduleAppointment = async (
 
   // Check if new time is during business hours
   const settings = await getAdminSettings();
-  if (newTime < settings.openingTime || newTime >= settings.closingTime) {
+  const dateKey = dateToKey(newDate);
+
+  // Check if store is closed on this date
+  if (settings.closedDates.includes(dateKey)) {
+    throw new Error('The store is closed on this date');
+  }
+
+  // Get day schedule
+  const dayOfWeek = newDate.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
+  const daySchedule = settings.weeklySchedule[dayOfWeek as keyof typeof settings.weeklySchedule];
+
+  if (!daySchedule || !daySchedule.isOpen) {
+    throw new Error('The store is closed on this day');
+  }
+
+  if (newTime < daySchedule.openingTime || newTime >= daySchedule.closingTime) {
     throw new Error(
-      `Appointments are only available between ${settings.openingTime} and ${settings.closingTime}`,
+      `Appointments are only available between ${daySchedule.openingTime} and ${daySchedule.closingTime} on ${dayOfWeek}s`,
     );
   }
 

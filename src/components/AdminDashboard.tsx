@@ -20,9 +20,9 @@ const AdminDashboard: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
   const [loading, setLoading] = useState(false);
-  const [openingTime, setOpeningTime] = useState(adminSettings.openingTime);
-  const [closingTime, setClosingTime] = useState(adminSettings.closingTime);
-  const [saturdayClosing, setSaturdayClosing] = useState(adminSettings.saturdayClosing);
+  const [weeklySchedule, setWeeklySchedule] = useState(adminSettings.weeklySchedule);
+  const [closedDates, setClosedDates] = useState<string[]>(adminSettings.closedDates);
+  const [newClosedDate, setNewClosedDate] = useState('');
   const [businessName, setBusinessName] = useState(adminSettings.businessName);
   const [businessAddress, setBusinessAddress] = useState(adminSettings.businessAddress);
   const [businessPhone, setBusinessPhone] = useState(adminSettings.businessPhone);
@@ -62,9 +62,8 @@ const AdminDashboard: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    setOpeningTime(adminSettings.openingTime);
-    setClosingTime(adminSettings.closingTime);
-    setSaturdayClosing(adminSettings.saturdayClosing);
+    setWeeklySchedule(adminSettings.weeklySchedule);
+    setClosedDates(adminSettings.closedDates);
     setBusinessName(adminSettings.businessName);
     setBusinessAddress(adminSettings.businessAddress);
     setBusinessPhone(adminSettings.businessPhone);
@@ -74,7 +73,14 @@ const AdminDashboard: React.FC = () => {
     const fetchAndProcessSlots = async () => {
       setLoading(true);
       const availableSlotsList = await getAvailableSlots(selectedDate);
-      const allSlots = generateAllTimeSlots(adminSettings.openingTime, adminSettings.closingTime);
+
+      // Get day-specific schedule
+      const dayOfWeek = selectedDate.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
+      const daySchedule = weeklySchedule[dayOfWeek as keyof typeof weeklySchedule];
+      const allSlots =
+        daySchedule && daySchedule.isOpen
+          ? generateAllTimeSlots(daySchedule.openingTime, daySchedule.closingTime)
+          : [];
 
       // Validate appointments is an array before filtering
       const apptTimes = Array.isArray(appointments)
@@ -96,7 +102,7 @@ const AdminDashboard: React.FC = () => {
     };
 
     fetchAndProcessSlots();
-  }, [selectedDate, adminSettings, appointments, getAvailableSlots]);
+  }, [selectedDate, weeklySchedule, appointments, getAvailableSlots]);
 
   const handleTimeSlotClick = async (time: string, isAvailable: boolean) => {
     // Optimistic update
@@ -134,9 +140,8 @@ const AdminDashboard: React.FC = () => {
     try {
       await saveAdminSettings({
         ...adminSettings,
-        openingTime,
-        closingTime,
-        saturdayClosing,
+        weeklySchedule,
+        closedDates,
         businessName,
         businessAddress,
         businessPhone,
@@ -1095,57 +1100,97 @@ const AdminDashboard: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
             {/* Operating Hours */}
             <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
-              <h3 className="text-xl font-semibold mb-3">Operating Hours</h3>
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label
-                      htmlFor="openingTime"
-                      className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-1"
-                    >
-                      Opening Time
-                    </label>
+              <h3 className="text-xl font-semibold mb-3">Weekly Schedule</h3>
+              <div className="space-y-2">
+                {Object.entries(weeklySchedule).map(([day, schedule]) => (
+                  <div key={day} className="grid grid-cols-4 gap-2 items-center">
+                    <div className="flex items-center">
+                      <input
+                        type="checkbox"
+                        id={`${day}-open`}
+                        checked={schedule.isOpen}
+                        onChange={e =>
+                          setWeeklySchedule({
+                            ...weeklySchedule,
+                            [day]: { ...schedule, isOpen: e.target.checked },
+                          })
+                        }
+                        className="mr-2"
+                      />
+                      <label htmlFor={`${day}-open`} className="text-sm font-medium capitalize">
+                        {day}
+                      </label>
+                    </div>
                     <input
                       type="time"
-                      id="openingTime"
-                      value={openingTime}
-                      onChange={e => setOpeningTime(e.target.value)}
-                      className="w-full p-2 border rounded-md bg-white dark:bg-gray-600 dark:border-gray-500"
+                      value={schedule.openingTime}
+                      onChange={e =>
+                        setWeeklySchedule({
+                          ...weeklySchedule,
+                          [day]: { ...schedule, openingTime: e.target.value },
+                        })
+                      }
+                      disabled={!schedule.isOpen}
+                      className="p-2 border rounded text-sm bg-white dark:bg-gray-600 dark:border-gray-500 disabled:opacity-50"
+                      step="1800"
+                    />
+                    <span className="text-center text-sm">to</span>
+                    <input
+                      type="time"
+                      value={schedule.closingTime}
+                      onChange={e =>
+                        setWeeklySchedule({
+                          ...weeklySchedule,
+                          [day]: { ...schedule, closingTime: e.target.value },
+                        })
+                      }
+                      disabled={!schedule.isOpen}
+                      className="p-2 border rounded text-sm bg-white dark:bg-gray-600 dark:border-gray-500 disabled:opacity-50"
                       step="1800"
                     />
                   </div>
-                  <div>
-                    <label
-                      htmlFor="closingTime"
-                      className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-1"
+                ))}
+              </div>
+
+              {/* Closed Dates Section */}
+              <div className="mt-6 pt-4 border-t border-gray-300 dark:border-gray-600">
+                <h4 className="text-md font-semibold mb-2">Special Closed Dates</h4>
+                <div className="space-y-2">
+                  {closedDates.map(date => (
+                    <div
+                      key={date}
+                      className="flex items-center justify-between bg-white dark:bg-gray-600 p-2 rounded"
                     >
-                      Closing Time
-                    </label>
+                      <span className="text-sm">{date}</span>
+                      <button
+                        onClick={() => setClosedDates(closedDates.filter(d => d !== date))}
+                        className="text-red-600 hover:text-red-800 text-sm"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ))}
+                  <div className="flex gap-2">
                     <input
-                      type="time"
-                      id="closingTime"
-                      value={closingTime}
-                      onChange={e => setClosingTime(e.target.value)}
-                      className="w-full p-2 border rounded-md bg-white dark:bg-gray-600 dark:border-gray-500"
-                      step="1800"
+                      type="date"
+                      value={newClosedDate}
+                      onChange={e => setNewClosedDate(e.target.value)}
+                      className="flex-1 p-2 border rounded text-sm bg-white dark:bg-gray-600 dark:border-gray-500"
+                      min={new Date().toISOString().split('T')[0]}
                     />
+                    <button
+                      onClick={() => {
+                        if (newClosedDate && !closedDates.includes(newClosedDate)) {
+                          setClosedDates([...closedDates, newClosedDate].sort());
+                          setNewClosedDate('');
+                        }
+                      }}
+                      disabled={!newClosedDate}
+                      className="px-4 py-2 bg-indigo-600 text-white rounded text-sm hover:bg-indigo-700 disabled:opacity-50"
+                    >
+                      Add
+                    </button>
                   </div>
-                </div>
-                <div>
-                  <label
-                    htmlFor="saturdayClosing"
-                    className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-1"
-                  >
-                    Saturday Closing Time
-                  </label>
-                  <input
-                    type="time"
-                    id="saturdayClosing"
-                    value={saturdayClosing}
-                    onChange={e => setSaturdayClosing(e.target.value)}
-                    className="w-full p-2 border rounded-md bg-white dark:bg-gray-600 dark:border-gray-500"
-                    step="1800"
-                  />
                 </div>
               </div>
             </div>

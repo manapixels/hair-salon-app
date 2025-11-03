@@ -29,9 +29,16 @@ const BookingContext = createContext<BookingContextType | undefined>(undefined);
 export const BookingProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [adminSettings, setAdminSettings] = useState<AdminSettings>({
-    openingTime: '09:00',
-    closingTime: '18:00',
-    saturdayClosing: '15:00',
+    weeklySchedule: {
+      monday: { isOpen: true, openingTime: '11:00', closingTime: '19:00' },
+      tuesday: { isOpen: false, openingTime: '11:00', closingTime: '19:00' },
+      wednesday: { isOpen: true, openingTime: '11:00', closingTime: '19:00' },
+      thursday: { isOpen: true, openingTime: '11:00', closingTime: '19:00' },
+      friday: { isOpen: true, openingTime: '11:00', closingTime: '19:00' },
+      saturday: { isOpen: true, openingTime: '11:00', closingTime: '19:00' },
+      sunday: { isOpen: true, openingTime: '11:00', closingTime: '19:00' },
+    },
+    closedDates: [],
     blockedSlots: {},
     businessName: 'Luxe Cuts Hair Salon',
     businessAddress: '123 Main St, Your City, ST 12345',

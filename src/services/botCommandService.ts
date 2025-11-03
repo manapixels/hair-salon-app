@@ -490,50 +490,50 @@ export async function handleHoursCommand(): Promise<CommandResponse> {
   const businessName = settings.businessName;
   const businessAddress = settings.businessAddress;
   const businessPhone = settings.businessPhone;
-  const openingTime = formatTime12Hour(settings.openingTime);
-  const closingTime = formatTime12Hour(settings.closingTime);
-  const saturdayClosing = formatTime12Hour(settings.saturdayClosing);
 
-  // Check if currently open (basic logic)
+  // Check if currently open
   const now = new Date();
-  const currentDay = now.getDay(); // 0 = Sunday, 6 = Saturday
+  const dayOfWeek = now.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
   const currentHour = now.getHours();
   const currentMinutes = now.getMinutes();
   const currentTimeInMinutes = currentHour * 60 + currentMinutes;
 
-  // Parse opening/closing times to minutes
-  const [openHour, openMin] = settings.openingTime.split(':').map(Number);
-  const [closeHour, closeMin] = settings.closingTime.split(':').map(Number);
-  const [satCloseHour, satCloseMin] = settings.saturdayClosing.split(':').map(Number);
-
-  const openTimeInMinutes = openHour * 60 + openMin;
-  const closeTimeInMinutes = closeHour * 60 + closeMin;
-  const satCloseTimeInMinutes = satCloseHour * 60 + satCloseMin;
-
-  const isWeekday = currentDay >= 1 && currentDay <= 5;
-  const isSaturday = currentDay === 6;
-  const isSunday = currentDay === 0;
+  const todaySchedule = settings.weeklySchedule[dayOfWeek as keyof typeof settings.weeklySchedule];
 
   let statusEmoji = '🔴';
   let statusText = 'Closed';
 
-  if (
-    isWeekday &&
-    currentTimeInMinutes >= openTimeInMinutes &&
-    currentTimeInMinutes < closeTimeInMinutes
-  ) {
-    statusEmoji = '🟢';
-    statusText = 'Open Now';
-  } else if (
-    isSaturday &&
-    currentTimeInMinutes >= openTimeInMinutes &&
-    currentTimeInMinutes < satCloseTimeInMinutes
-  ) {
-    statusEmoji = '🟢';
-    statusText = 'Open Now';
+  if (todaySchedule && todaySchedule.isOpen) {
+    const [openHour, openMin] = todaySchedule.openingTime.split(':').map(Number);
+    const [closeHour, closeMin] = todaySchedule.closingTime.split(':').map(Number);
+
+    const openTimeInMinutes = openHour * 60 + openMin;
+    const closeTimeInMinutes = closeHour * 60 + closeMin;
+
+    if (currentTimeInMinutes >= openTimeInMinutes && currentTimeInMinutes < closeTimeInMinutes) {
+      statusEmoji = '🟢';
+      statusText = 'Open Now';
+    }
   }
 
-  const text = `🕐 *Business Hours*\n\n*${businessName}*\n\n${statusEmoji} *${statusText}*\n\n📍 ${businessAddress}\n📞 ${businessPhone}\n\n*Opening Hours:*\nMonday - Friday: ${openingTime} - ${closingTime}\nSaturday: ${openingTime} - ${saturdayClosing}\nSunday: Closed\n\n*Walk-ins welcome* or book your appointment in advance!`;
+  // Build hours text
+  const daysOrder = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+  const hoursLines: string[] = [];
+
+  daysOrder.forEach(day => {
+    const schedule = settings.weeklySchedule[day as keyof typeof settings.weeklySchedule];
+    const dayCapitalized = day.charAt(0).toUpperCase() + day.slice(1);
+
+    if (schedule && schedule.isOpen) {
+      const openTime = formatTime12Hour(schedule.openingTime);
+      const closeTime = formatTime12Hour(schedule.closingTime);
+      hoursLines.push(`${dayCapitalized}: ${openTime} - ${closeTime}`);
+    } else {
+      hoursLines.push(`${dayCapitalized}: Closed`);
+    }
+  });
+
+  const text = `🕐 *Business Hours*\n\n*${businessName}*\n\n${statusEmoji} *${statusText}*\n\n📍 ${businessAddress}\n📞 ${businessPhone}\n\n*Opening Hours:*\n${hoursLines.join('\n')}\n\n*Walk-ins welcome* or book your appointment in advance!`;
 
   // Create keyboard with clickable links
   const keyboard: InlineKeyboard = {
@@ -769,6 +769,16 @@ Would you like to add more?`,
       return createErrorResponse('context_lost');
     }
 
+    // Get available stylists
+    const stylists = await getStylists();
+    const activeStylists = stylists.filter(s => s.isActive);
+
+    // If only 1 stylist, auto-select and proceed to date
+    if (activeStylists.length === 1) {
+      // Simulate selecting the only stylist
+      return handleCallbackQuery(`select_stylist_${activeStylists[0].id}`, user, userId);
+    }
+
     // Push stylist selection step to history
     pushStep(userId, 'stylist_selection', {
       services: context.services,
@@ -776,10 +786,6 @@ Would you like to add more?`,
       customerEmail: context.customerEmail,
       currentStepMessageId: context.currentStepMessageId,
     });
-
-    // Get available stylists
-    const stylists = await getStylists();
-    const activeStylists = stylists.filter(s => s.isActive);
 
     if (activeStylists.length === 0) {
       // No stylists available, skip to date/time

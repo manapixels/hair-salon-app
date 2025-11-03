@@ -62,10 +62,25 @@ export type StylistSummary = {
   email: string;
 };
 
-export interface AdminSettings {
+export interface DaySchedule {
+  isOpen: boolean;
   openingTime: string; // "HH:MM"
   closingTime: string; // "HH:MM"
-  saturdayClosing: string; // "HH:MM"
+}
+
+export interface WeeklySchedule {
+  monday: DaySchedule;
+  tuesday: DaySchedule;
+  wednesday: DaySchedule;
+  thursday: DaySchedule;
+  friday: DaySchedule;
+  saturday: DaySchedule;
+  sunday: DaySchedule;
+}
+
+export interface AdminSettings {
+  weeklySchedule: WeeklySchedule;
+  closedDates: string[]; // Array of "YYYY-MM-DD" strings
   blockedSlots: { [date: string]: string[] }; // e.g., { "2024-07-28": ["10:00", "10:30"] }
   businessName: string;
   businessAddress: string;

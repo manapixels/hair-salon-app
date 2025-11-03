@@ -98,9 +98,20 @@ async function main() {
     where: { id: 1 },
     update: {},
     create: {
-      openingTime: '09:00',
-      closingTime: '18:00',
+      weeklySchedule: {
+        monday: { isOpen: true, openingTime: '11:00', closingTime: '19:00' },
+        tuesday: { isOpen: false, openingTime: '11:00', closingTime: '19:00' },
+        wednesday: { isOpen: true, openingTime: '11:00', closingTime: '19:00' },
+        thursday: { isOpen: true, openingTime: '11:00', closingTime: '19:00' },
+        friday: { isOpen: true, openingTime: '11:00', closingTime: '19:00' },
+        saturday: { isOpen: true, openingTime: '11:00', closingTime: '19:00' },
+        sunday: { isOpen: true, openingTime: '11:00', closingTime: '19:00' },
+      },
+      closedDates: [],
       blockedSlots: {},
+      businessName: 'Luxe Cuts Hair Salon',
+      businessAddress: '123 Main St, Your City, ST 12345',
+      businessPhone: '(555) 123-4567',
     },
   });
   console.log('✅ Admin settings created');
