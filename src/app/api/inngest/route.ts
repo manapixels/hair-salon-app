@@ -6,6 +6,8 @@ import { sendRebookingReminders } from '@/inngest/rebooking';
 import { sendWinBackCampaigns } from '@/inngest/winback';
 import { autoCompleteAppointments } from '@/inngest/autoCompleteAppointments';
 import { syncAppointmentsToCalendar } from '@/inngest/syncCalendar';
+import { proactiveAgent } from '@/inngest/proactiveAgent';
+import { customerSuggestions } from '@/inngest/customerSuggestions';
 
 export const { GET, POST, PUT } = serve({
   client: inngest,
@@ -16,5 +18,7 @@ export const { GET, POST, PUT } = serve({
     sendRebookingReminders,
     sendWinBackCampaigns,
     syncAppointmentsToCalendar,
+    proactiveAgent,
+    customerSuggestions,
   ],
 });

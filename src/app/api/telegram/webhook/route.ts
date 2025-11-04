@@ -8,6 +8,7 @@
 import { handleMessagingWithUserContext } from '../../../../services/messagingUserService';
 import { createUserFromOAuth, findUserByTelegramId } from '@/lib/database';
 import { randomBytes } from 'crypto';
+import { prisma } from '@/lib/prisma';
 import {
   handleStartCommand,
   handleServicesCommand,
@@ -234,14 +235,13 @@ async function handleLoginCommand(
     return false;
   }
 
-  const loginToken = startParam.substring(6); // Remove 'login_' prefix
+  const loginToken = startParam.substring(6);
 
   try {
-    // Import token store from start-login endpoint
-    const { loginTokens } = await import('../../auth/telegram/start-login/route');
+    const tokenData = await prisma.loginToken.findUnique({
+      where: { token: loginToken },
+    });
 
-    // Verify token exists and is valid
-    const tokenData = loginTokens.get(loginToken);
     if (!tokenData) {
       await sendTelegramReply(
         chatId,
@@ -250,9 +250,8 @@ async function handleLoginCommand(
       return true;
     }
 
-    // Check if token is expired
     if (tokenData.expiresAt.getTime() < Date.now()) {
-      loginTokens.delete(loginToken);
+      await prisma.loginToken.delete({ where: { id: tokenData.id } });
       await sendTelegramReply(
         chatId,
         '⏰ This login link has expired. Please try logging in again from the website.',
@@ -260,7 +259,6 @@ async function handleLoginCommand(
       return true;
     }
 
-    // Create or update user
     const fullName = user.last_name ? `${user.first_name} ${user.last_name}` : user.first_name;
     const email = user.username ? `${user.username}@telegram.local` : `${chatId}@telegram.local`;
 
@@ -272,35 +270,17 @@ async function handleLoginCommand(
       avatar: user.photo_url || undefined,
     });
 
-    // Generate session token for the login link
-    const sessionToken = randomBytes(32).toString('base64url');
-
-    // Store session data
-    globalThis.telegramLoginSessions.set(sessionToken, {
-      telegramId: chatId,
-      firstName: user.first_name,
-      lastName: user.last_name,
-      username: user.username,
-      photoUrl: user.photo_url,
-      timestamp: Date.now(),
+    await prisma.loginToken.update({
+      where: { id: tokenData.id },
+      data: { userId: dbUser.id },
     });
 
-    // Clean up the login token
-    loginTokens.delete(loginToken);
-
-    // Send login link to user
-    const loginUrl = `${process.env.NEXTAUTH_URL}/api/auth/telegram/verify-login?token=${sessionToken}`;
+    const loginUrl = `${process.env.NEXTAUTH_URL}/api/auth/telegram/verify-login?token=${loginToken}`;
     const message = `🎉 *Welcome to Luxe Cuts!*
 
 Click the button below to complete your login:
 
 [🔐 Complete Login](${loginUrl})
-
-✨ *What you can do:*
-• Book appointments with our professional stylists
-• View and manage your bookings
-• Get reminders for upcoming appointments
-• Chat with me anytime for help
 
 This link will expire in 10 minutes for security.`;
 

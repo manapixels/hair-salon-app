@@ -106,6 +106,23 @@ export const findUserByTelegramId = async (telegramId: number): Promise<User | n
   };
 };
 
+export const findUserById = async (id: string): Promise<User | null> => {
+  const user = await prisma.user.findUnique({
+    where: { id },
+  });
+
+  if (!user) return null;
+
+  return {
+    ...user,
+    role: user.role as 'CUSTOMER' | 'ADMIN',
+    authProvider: (user.authProvider as 'email' | 'whatsapp' | 'telegram') ?? undefined,
+    telegramId: user.telegramId ?? undefined,
+    whatsappPhone: user.whatsappPhone ?? undefined,
+    avatar: user.avatar ?? undefined,
+  };
+};
+
 export const createUserFromOAuth = async (userData: Omit<User, 'id' | 'role'>): Promise<User> => {
   // First, check by whatsappPhone if it's a WhatsApp login
   let existingUser = null;
@@ -1226,4 +1243,67 @@ export const getUnsyncedAppointments = async (): Promise<Appointment[]> => {
       : undefined,
     calendarEventId: apt.calendarEventId ?? undefined,
   }));
+};
+
+export const getUsersForRebookingReminders = async (daysAgo: number = 28): Promise<User[]> => {
+  const targetDate = new Date();
+  targetDate.setDate(targetDate.getDate() - daysAgo);
+
+  const users = await prisma.user.findMany({
+    where: {
+      appointments: {
+        some: {
+          date: {
+            equals: targetDate,
+          },
+        },
+        none: {
+          date: {
+            gt: targetDate,
+          },
+        },
+      },
+    },
+    include: {
+      appointments: {
+        orderBy: {
+          date: 'desc',
+        },
+        take: 1,
+      },
+    },
+  });
+
+  return users.map(user => ({
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    role: user.role as 'CUSTOMER' | 'ADMIN',
+    authProvider: (user.authProvider as 'email' | 'whatsapp' | 'telegram') ?? undefined,
+    telegramId: user.telegramId ?? undefined,
+    whatsappPhone: user.whatsappPhone ?? undefined,
+    avatar: user.avatar ?? undefined,
+  }));
+};
+
+export const getLastAppointmentByUserId = async (userId: string): Promise<Appointment | null> => {
+  const appointment = await prisma.appointment.findFirst({
+    where: {
+      userId: userId,
+    },
+    orderBy: {
+      date: 'desc',
+    },
+  });
+
+  if (!appointment) return null;
+
+  return {
+    ...appointment,
+    services: Array.isArray(appointment.services)
+      ? (appointment.services as unknown as Service[])
+      : [],
+    stylistId: appointment.stylistId ?? undefined,
+    calendarEventId: appointment.calendarEventId ?? undefined,
+  };
 };
