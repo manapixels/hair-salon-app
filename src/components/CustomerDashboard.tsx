@@ -181,37 +181,36 @@ export default function CustomerDashboard() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto">
-      <div className="bg-white dark:bg-gray-900 rounded-lg shadow-md p-6 mb-6">
-        <div className="flex items-center space-x-4">
+    <div className="max-w-7xl mx-auto">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8 mb-8">
+        <div className="flex items-center space-x-6">
           {user.avatar && (
             <Image
               src={user.avatar}
               alt={user.name}
-              width={64}
-              height={64}
-              className="w-16 h-16 rounded-full object-cover"
+              width={80}
+              height={80}
+              className="w-20 h-20 rounded-full object-cover ring-4 ring-indigo-500/20"
             />
           )}
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
               Welcome back, {user.name}!
             </h1>
-            <p className="text-gray-600 dark:text-gray-400">Manage your appointments and profile</p>
+            <p className="text-gray-600 dark:text-gray-400 mt-1">
+              Here you can manage your appointments and profile settings.
+            </p>
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Profile Section */}
         <div className="lg:col-span-1">
-          <div className="bg-white dark:bg-gray-900 rounded-lg shadow-md p-6">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-              <i className="fa-solid fa-user mr-2"></i>
-              Your Profile
-            </h2>
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Your Profile</h2>
 
-            <div className="space-y-4">
+            <div className="space-y-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Display Name
@@ -222,8 +221,8 @@ export default function CustomerDashboard() {
                       type="text"
                       value={newName}
                       onChange={e => setNewName(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md
-                               bg-white dark:bg-gray-800 text-gray-900 dark:text-white
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg
+                               bg-white dark:bg-gray-700 text-gray-900 dark:text-white
                                focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                       placeholder="Enter your display name"
                       maxLength={50}
@@ -231,29 +230,30 @@ export default function CustomerDashboard() {
                     <div className="flex space-x-2">
                       <button
                         onClick={handleNameSave}
-                        className="text-sm bg-indigo-600 text-white px-3 py-1 rounded hover:bg-indigo-700"
+                        className="text-sm bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 font-semibold"
                       >
                         Save
                       </button>
                       <button
                         onClick={handleNameCancel}
-                        className="text-sm bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300 px-3 py-1 rounded hover:bg-gray-400 dark:hover:bg-gray-500"
+                        className="text-sm bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500 font-semibold"
                       >
                         Cancel
                       </button>
                     </div>
                   </div>
                 ) : (
-                  <>
-                    <div className="text-gray-900 dark:text-white font-medium">{user.name}</div>
+                  <div className="flex items-center justify-between">
+                    <div className="text-gray-900 dark:text-white font-medium text-lg">
+                      {user.name}
+                    </div>
                     <button
                       onClick={handleNameEdit}
-                      className="text-sm text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 mt-1"
+                      className="text-sm text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 font-semibold"
                     >
-                      <i className="fa-solid fa-edit mr-1"></i>
-                      Edit name
+                      Edit
                     </button>
-                  </>
+                  </div>
                 )}
               </div>
 
@@ -264,8 +264,14 @@ export default function CustomerDashboard() {
                 <div className="flex items-center space-x-2">
                   {user.authProvider === 'whatsapp' && (
                     <>
-                      <i className="fa-brands fa-whatsapp text-green-600"></i>
-                      <span className="text-gray-900 dark:text-white">WhatsApp</span>
+                      <svg
+                        className="w-5 h-5 text-green-600"
+                        fill="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+                      </svg>
+                      <span className="text-gray-900 dark:text-white font-medium">WhatsApp</span>
                       {user.whatsappPhone && (
                         <span className="text-sm text-gray-600 dark:text-gray-400">
                           ({user.whatsappPhone})
@@ -275,8 +281,14 @@ export default function CustomerDashboard() {
                   )}
                   {user.authProvider === 'telegram' && (
                     <>
-                      <i className="fa-brands fa-telegram text-blue-600"></i>
-                      <span className="text-gray-900 dark:text-white">Telegram</span>
+                      <svg
+                        className="w-5 h-5 text-blue-600"
+                        fill="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.88l-1.44 6.92c-.12.56-.44.7-.9.44l-2.2-1.6-1.04.98c-.12.12-.22.22-.4.22l.16-2.28 4.24-3.8c.18-.16-.04-.24-.28-.08l-5.24 3.32-2.16-.68c-.56-.18-.58-.54.1-.8l8.4-3.26c.48-.18.9.12.74.74z" />
+                      </svg>
+                      <span className="text-gray-900 dark:text-white font-medium">Telegram</span>
                       {user.telegramId && (
                         <span className="text-sm text-gray-600 dark:text-gray-400">
                           (ID: {user.telegramId})
@@ -292,8 +304,10 @@ export default function CustomerDashboard() {
                   Contact Preferences
                 </label>
                 <div className="text-sm text-gray-600 dark:text-gray-400">
-                  Appointment confirmations via{' '}
-                  {user.authProvider === 'whatsapp' ? 'WhatsApp' : 'Telegram'}
+                  You will receive appointment updates via{' '}
+                  <span className="font-semibold">
+                    {user.authProvider === 'whatsapp' ? 'WhatsApp' : 'Telegram'}
+                  </span>
                 </div>
               </div>
             </div>
@@ -302,15 +316,14 @@ export default function CustomerDashboard() {
 
         {/* Appointments Section */}
         <div className="lg:col-span-2">
-          <div className="bg-white dark:bg-gray-900 rounded-lg shadow-md p-6">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-              <i className="fa-solid fa-calendar-check mr-2"></i>
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">
               Your Appointments
             </h2>
 
             {showLoader ? (
-              <div className="flex flex-col items-center justify-center py-8 space-y-3">
-                <LoadingSpinner size="md" message="Loading your appointments..." />
+              <div className="flex flex-col items-center justify-center py-12 space-y-3">
+                <LoadingSpinner size="lg" message="Loading your appointments..." />
               </div>
             ) : error ? (
               <ErrorState
@@ -336,32 +349,31 @@ export default function CustomerDashboard() {
                   </svg>
                 }
                 title="No appointments found"
-                description="Book your first appointment to get started!"
+                description="Ready for a new look? Book your first appointment to get started!"
               />
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-6">
                 {appointments.map(appointment => (
                   <div
                     key={appointment.id}
-                    className="border border-gray-200 dark:border-gray-700 rounded-lg p-4"
+                    className="border border-gray-200 dark:border-gray-700 rounded-xl p-5 hover:shadow-md transition-shadow"
                   >
                     <div className="flex justify-between items-start">
                       <div className="flex-1">
-                        <div className="flex items-center space-x-2 mb-2">
-                          <i className="fa-solid fa-calendar text-indigo-600"></i>
-                          <span className="font-medium text-gray-900 dark:text-white">
+                        <div className="flex items-center space-x-3 mb-3">
+                          <span className="font-bold text-gray-900 dark:text-white text-lg">
                             {formatDisplayDate(appointment.date)}
                           </span>
-                          <span className="text-gray-600 dark:text-gray-400">
+                          <span className="text-gray-600 dark:text-gray-400 font-semibold">
                             at {appointment.time}
                           </span>
                         </div>
 
-                        <div className="mb-2">
-                          <span className="text-sm text-gray-600 dark:text-gray-400">
+                        <div className="mb-3">
+                          <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
                             Services:{' '}
                           </span>
-                          <span className="text-gray-900 dark:text-white">
+                          <span className="text-gray-800 dark:text-white font-semibold">
                             {Array.isArray(appointment.services)
                               ? appointment.services.map((s: any) => s.name).join(', ')
                               : 'Services not available'}
@@ -369,61 +381,47 @@ export default function CustomerDashboard() {
                         </div>
 
                         {appointment.stylistId && (
-                          <div className="mb-2">
-                            <span className="text-sm text-gray-600 dark:text-gray-400">
+                          <div className="mb-3">
+                            <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
                               Stylist:{' '}
                             </span>
-                            <span className="text-gray-900 dark:text-white">
+                            <span className="text-gray-800 dark:text-white font-semibold">
                               {appointment.stylist?.name || 'Assigned stylist'}
                             </span>
                           </div>
                         )}
 
-                        <div className="flex items-center space-x-4 text-sm">
-                          <span className="text-gray-600 dark:text-gray-400">
-                            <i className="fa-solid fa-clock mr-1"></i>
+                        <div className="flex items-center space-x-6 text-sm">
+                          <span className="text-gray-600 dark:text-gray-400 font-medium">
                             {appointment.totalDuration} min
                           </span>
-                          <span className="text-gray-600 dark:text-gray-400">
-                            <i className="fa-solid fa-dollar-sign mr-1"></i>$
-                            {appointment.totalPrice}
+                          <span className="text-gray-600 dark:text-gray-400 font-bold">
+                            ${appointment.totalPrice}
                           </span>
                         </div>
                       </div>
 
-                      <div className="flex space-x-2">
+                      <div className="flex flex-col space-y-2 items-end">
                         <button
                           onClick={() => handleRescheduleAppointment(appointment.id)}
                           disabled={reschedulingId === appointment.id}
-                          className="text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 text-sm disabled:opacity-50 inline-flex items-center gap-1"
+                          className="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 text-sm disabled:opacity-50 inline-flex items-center gap-1 font-semibold"
                         >
                           {reschedulingId === appointment.id ? (
-                            <>
-                              <i className="fa-solid fa-spinner fa-spin"></i>
-                              <span>Rescheduling...</span>
-                            </>
+                            <LoadingSpinner size="sm" />
                           ) : (
-                            <>
-                              <i className="fa-solid fa-edit"></i>
-                              <span>Reschedule</span>
-                            </>
+                            'Reschedule'
                           )}
                         </button>
                         <button
                           onClick={() => handleCancelAppointment(appointment.id)}
                           disabled={cancellingId === appointment.id}
-                          className="text-red-600 hover:text-red-700 dark:text-red-400 text-sm disabled:opacity-50 inline-flex items-center gap-1"
+                          className="text-red-600 hover:text-red-800 dark:text-red-400 text-sm disabled:opacity-50 inline-flex items-center gap-1 font-semibold"
                         >
                           {cancellingId === appointment.id ? (
-                            <>
-                              <i className="fa-solid fa-spinner fa-spin"></i>
-                              <span>Cancelling...</span>
-                            </>
+                            <LoadingSpinner size="sm" />
                           ) : (
-                            <>
-                              <i className="fa-solid fa-times"></i>
-                              <span>Cancel</span>
-                            </>
+                            'Cancel'
                           )}
                         </button>
                       </div>

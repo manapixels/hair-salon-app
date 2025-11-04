@@ -125,34 +125,47 @@ export default function EditAppointmentModal({
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
-            className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"
+            className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto"
           >
-            <div className="p-6">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+            <div className="p-8">
+              <div className="flex justify-between items-center mb-8">
+                <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
                   Edit Appointment
                 </h2>
                 <button
                   onClick={onClose}
                   className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
                 >
-                  <i className="fas fa-times text-xl"></i>
+                  <svg
+                    className="w-7 h-7"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
                 </button>
               </div>
 
               {error && (
-                <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+                <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
                   {error}
                 </div>
               )}
 
               <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Customer Name *
@@ -163,7 +176,7 @@ export default function EditAppointmentModal({
                       onChange={e =>
                         setFormData(prev => ({ ...prev, customerName: e.target.value }))
                       }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-yellow-500 focus:border-yellow-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                       required
                     />
                   </div>
@@ -178,7 +191,7 @@ export default function EditAppointmentModal({
                       onChange={e =>
                         setFormData(prev => ({ ...prev, customerEmail: e.target.value }))
                       }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-yellow-500 focus:border-yellow-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                       required
                     />
                   </div>
@@ -192,7 +205,7 @@ export default function EditAppointmentModal({
                       value={formData.date}
                       onChange={e => setFormData(prev => ({ ...prev, date: e.target.value }))}
                       min={format(new Date(), 'yyyy-MM-dd')}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-yellow-500 focus:border-yellow-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                       required
                     />
                   </div>
@@ -204,7 +217,7 @@ export default function EditAppointmentModal({
                     <select
                       value={formData.time}
                       onChange={e => setFormData(prev => ({ ...prev, time: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-yellow-500 focus:border-yellow-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                       required
                     >
                       <option value="">Select time</option>
@@ -221,7 +234,7 @@ export default function EditAppointmentModal({
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Services *
                   </label>
-                  <div className="grid grid-cols-1 gap-3 max-h-60 overflow-y-auto border border-gray-200 dark:border-gray-600 rounded-md p-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-64 overflow-y-auto border border-gray-200 dark:border-gray-600 rounded-lg p-4">
                     {SALON_SERVICES.map(service => {
                       const isSelected = formData.services.some(s => s.id === service.id);
                       return (
@@ -229,7 +242,7 @@ export default function EditAppointmentModal({
                           key={service.id}
                           className={`flex items-center p-3 rounded-lg border cursor-pointer transition-colors ${
                             isSelected
-                              ? 'border-yellow-500 bg-yellow-50 dark:bg-yellow-900/20'
+                              ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20'
                               : 'border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
                           }`}
                         >
@@ -237,27 +250,12 @@ export default function EditAppointmentModal({
                             type="checkbox"
                             checked={isSelected}
                             onChange={() => handleServiceToggle(service)}
-                            className="mr-3 text-yellow-600 focus:ring-yellow-500"
+                            className="mr-3 h-5 w-5 rounded text-indigo-600 focus:ring-indigo-500"
                           />
                           <div className="flex-1">
-                            <div className="flex justify-between items-start">
-                              <div>
-                                <h4 className="font-medium text-gray-900 dark:text-white">
-                                  {service.name}
-                                </h4>
-                                <p className="text-sm text-gray-600 dark:text-gray-400">
-                                  {service.description}
-                                </p>
-                              </div>
-                              <div className="text-right">
-                                <div className="font-semibold text-gray-900 dark:text-white">
-                                  ${service.price}
-                                </div>
-                                <div className="text-sm text-gray-600 dark:text-gray-400">
-                                  {service.duration} min
-                                </div>
-                              </div>
-                            </div>
+                            <h4 className="font-semibold text-gray-900 dark:text-white">
+                              {service.name}
+                            </h4>
                           </div>
                         </label>
                       );
@@ -267,19 +265,19 @@ export default function EditAppointmentModal({
 
                 {formData.services.length > 0 && (
                   <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
-                    <h3 className="font-medium text-gray-900 dark:text-white mb-2">
+                    <h3 className="font-semibold text-gray-900 dark:text-white mb-2">
                       Appointment Summary
                     </h3>
                     <div className="space-y-1 text-sm">
                       <div className="flex justify-between">
                         <span className="text-gray-600 dark:text-gray-400">Total Duration:</span>
-                        <span className="font-medium text-gray-900 dark:text-white">
+                        <span className="font-semibold text-gray-900 dark:text-white">
                           {totalDuration} minutes
                         </span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-600 dark:text-gray-400">Total Price:</span>
-                        <span className="font-medium text-gray-900 dark:text-white">
+                        <span className="font-semibold text-gray-900 dark:text-white">
                           ${totalPrice}
                         </span>
                       </div>
@@ -287,11 +285,11 @@ export default function EditAppointmentModal({
                   </div>
                 )}
 
-                <div className="flex gap-3 pt-4">
+                <div className="flex gap-4 pt-6">
                   <button
                     type="button"
                     onClick={onClose}
-                    className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+                    className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700 font-semibold"
                   >
                     Cancel
                   </button>
@@ -300,7 +298,7 @@ export default function EditAppointmentModal({
                     disabled={formData.services.length === 0}
                     loading={isLoading}
                     loadingText="Updating..."
-                    className="flex-1 px-4 py-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex-1 px-4 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
                   >
                     Update Appointment
                   </LoadingButton>

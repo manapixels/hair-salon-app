@@ -41,6 +41,11 @@ export default function AppShell() {
         whatsapp_oauth_failed: 'WhatsApp authentication failed',
         invalid_oauth_response: 'Invalid OAuth response',
         invalid_state: 'Invalid OAuth state parameter',
+        missing_token: 'Login link is missing authentication token',
+        invalid_or_expired_token: 'Login link is invalid or has expired',
+        token_expired: 'Login link has expired. Please try logging in again',
+        user_not_found: 'User account not found. Please contact support',
+        login_failed: 'Login failed. Please try again or contact support',
       };
 
       const errorMessage = errorMessages[error] || 'Authentication failed';

@@ -415,6 +415,7 @@ curl -X POST http://localhost:3000/api/reminders/test
 ## 🔗 Related Files
 
 - **Implementation Plan**: `docs/implementation-plans/ai-agents-plan.md`
+- **UI Style Guide**: `docs/style.md`
 - **Telegram Testing**: `docs/TELEGRAM_TESTING_GUIDE.md`
 - **Coding Guidelines**: `CLAUDE.md`
 - **Services Directory**: `src/services/`

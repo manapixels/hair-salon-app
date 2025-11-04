@@ -237,12 +237,17 @@ async function handleLoginCommand(
 
   const loginToken = startParam.substring(6);
 
+  console.log('[LOGIN-WEBHOOK] Starting login command handler');
+  console.log('[LOGIN-WEBHOOK] ChatId:', chatId);
+  console.log('[LOGIN-WEBHOOK] Token (redacted):', loginToken.substring(0, 10) + '...');
+
   try {
     const tokenData = await prisma.loginToken.findUnique({
       where: { token: loginToken },
     });
 
     if (!tokenData) {
+      console.error('[LOGIN-WEBHOOK] FAILED: Token not found in database');
       await sendTelegramReply(
         chatId,
         '❌ Invalid or expired login link. Please try logging in again from the website.',
@@ -250,7 +255,10 @@ async function handleLoginCommand(
       return true;
     }
 
+    console.log('[LOGIN-WEBHOOK] Token found, checking expiry...');
+
     if (tokenData.expiresAt.getTime() < Date.now()) {
+      console.error('[LOGIN-WEBHOOK] FAILED: Token expired');
       await prisma.loginToken.delete({ where: { id: tokenData.id } });
       await sendTelegramReply(
         chatId,
@@ -259,21 +267,48 @@ async function handleLoginCommand(
       return true;
     }
 
+    console.log('[LOGIN-WEBHOOK] Token valid, creating/finding user...');
+
     const fullName = user.last_name ? `${user.first_name} ${user.last_name}` : user.first_name;
     const email = user.username ? `${user.username}@telegram.local` : `${chatId}@telegram.local`;
 
-    const dbUser = await createUserFromOAuth({
-      name: fullName,
-      email,
-      authProvider: 'telegram',
-      telegramId: chatId,
-      avatar: user.photo_url || undefined,
-    });
+    let dbUser;
+    try {
+      dbUser = await createUserFromOAuth({
+        name: fullName,
+        email,
+        authProvider: 'telegram',
+        telegramId: chatId,
+        avatar: user.photo_url || undefined,
+      });
+      console.log('[LOGIN-WEBHOOK] User created/found:', dbUser.id);
+    } catch (userError) {
+      console.error('[LOGIN-WEBHOOK] FAILED: Error creating/finding user:', userError);
+      await sendTelegramReply(
+        chatId,
+        '❌ Failed to create your account. Please try again or contact support.',
+      );
+      return true;
+    }
 
-    await prisma.loginToken.update({
-      where: { id: tokenData.id },
-      data: { userId: dbUser.id },
-    });
+    console.log('[LOGIN-WEBHOOK] Updating token with userId...');
+
+    try {
+      await prisma.loginToken.update({
+        where: { id: tokenData.id },
+        data: { userId: dbUser.id },
+      });
+      console.log('[LOGIN-WEBHOOK] Token updated successfully');
+    } catch (tokenUpdateError) {
+      console.error('[LOGIN-WEBHOOK] FAILED: Error updating token with userId:', tokenUpdateError);
+      await sendTelegramReply(
+        chatId,
+        '❌ Failed to link your login session. Please try logging in again from the website.',
+      );
+      return true;
+    }
+
+    console.log('[LOGIN-WEBHOOK] Sending complete login link to user...');
 
     const loginUrl = `${process.env.NEXTAUTH_URL}/api/auth/telegram/verify-login?token=${loginToken}`;
     const message = `🎉 *Welcome to Luxe Cuts!*
@@ -286,9 +321,15 @@ This link will expire in 10 minutes for security.`;
 
     await sendTelegramReply(chatId, message);
 
+    console.log('[LOGIN-WEBHOOK] SUCCESS: Login flow completed');
+
     return true;
   } catch (error) {
-    console.error('Error handling login command:', error);
+    console.error('[LOGIN-WEBHOOK] UNEXPECTED ERROR:', error);
+    console.error('[LOGIN-WEBHOOK] Error details:', {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+    });
     await sendTelegramReply(
       chatId,
       '❌ Something went wrong during login. Please try again from the website.',

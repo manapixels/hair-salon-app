@@ -45,14 +45,14 @@ const ServiceSelector: React.FC<{
         <div
           key={service.id}
           onClick={() => onServiceToggle(service)}
-          className={`p-4 border rounded-lg cursor-pointer transition-all duration-200 ${selectedServices.some(s => s.id === service.id) ? 'bg-indigo-600 text-white border-indigo-600 shadow-lg scale-105' : 'bg-white dark:bg-gray-800 hover:shadow-md hover:border-indigo-400 dark:border-gray-700'}`}
+          className={`p-5 border rounded-xl cursor-pointer transition-all duration-200 ${selectedServices.some(s => s.id === service.id) ? 'bg-indigo-600 text-white border-indigo-600 shadow-lg ring-2 ring-indigo-400' : 'bg-white dark:bg-gray-800 hover:shadow-lg hover:border-indigo-500 dark:border-gray-700'}`}
         >
-          <div className="flex justify-between items-center">
-            <h3 className="font-bold">{service.name}</h3>
-            <p className="font-semibold text-lg">${service.price}</p>
+          <div className="flex justify-between items-start">
+            <h3 className="font-bold text-lg">{service.name}</h3>
+            <p className="font-semibold text-xl">${service.price}</p>
           </div>
-          <p className="text-sm mt-1 opacity-90">{service.description}</p>
-          <p className="text-xs mt-2 opacity-70">{service.duration} mins</p>
+          <p className="text-sm mt-2 opacity-90">{service.description}</p>
+          <p className="text-xs mt-3 opacity-70">{service.duration} mins</p>
         </div>
       ))}
     </div>
@@ -118,7 +118,7 @@ const StylistSelector: React.FC<{
   }
 
   return (
-    <div className="mt-8">
+    <div className="mt-10">
       <h2 className="text-2xl font-semibold mb-4 text-gray-800 dark:text-gray-200">
         2. Choose Your Stylist
       </h2>
@@ -176,37 +176,47 @@ const StylistSelector: React.FC<{
               <div
                 key={stylist.id}
                 onClick={() => onStylistSelect(stylist)}
-                className={`p-4 border rounded-lg cursor-pointer transition-all duration-200 ${
+                className={`p-5 border rounded-xl cursor-pointer transition-all duration-200 ${
                   selectedStylist?.id === stylist.id
-                    ? 'bg-indigo-600 text-white border-indigo-600 shadow-lg scale-105'
-                    : 'bg-white dark:bg-gray-800 hover:shadow-md hover:border-indigo-400 dark:border-gray-700'
+                    ? 'bg-indigo-600 text-white border-indigo-600 shadow-lg ring-2 ring-indigo-400'
+                    : 'bg-white dark:bg-gray-800 hover:shadow-lg hover:border-indigo-500 dark:border-gray-700'
                 }`}
               >
-                <div className="flex items-center mb-3">
+                <div className="flex items-center mb-4">
                   {stylist.avatar ? (
                     <Image
                       src={stylist.avatar}
                       alt={stylist.name}
-                      width={48}
-                      height={48}
-                      className="w-12 h-12 rounded-full mr-3"
+                      width={52}
+                      height={52}
+                      className="w-13 h-13 rounded-full mr-4"
                     />
                   ) : (
-                    <div className="w-12 h-12 bg-gray-300 dark:bg-gray-600 rounded-full flex items-center justify-center mr-3">
-                      <i className="fas fa-user text-gray-600 dark:text-gray-400"></i>
+                    <div className="w-13 h-13 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center mr-4">
+                      <svg
+                        className="w-8 h-8 text-gray-500 dark:text-gray-400"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
                     </div>
                   )}
                   <div>
-                    <h3 className="font-bold">{stylist.name}</h3>
+                    <h3 className="font-bold text-lg">{stylist.name}</h3>
                     <p className="text-sm opacity-80">{stylist.email}</p>
                   </div>
                 </div>
-                {stylist.bio && <p className="text-sm opacity-90 mb-2">{stylist.bio}</p>}
-                <div className="flex flex-wrap gap-1">
+                {stylist.bio && <p className="text-sm opacity-90 mb-3">{stylist.bio}</p>}
+                <div className="flex flex-wrap gap-2">
                   {stylist.specialties.slice(0, 3).map(service => (
                     <span
                       key={service.id}
-                      className={`text-xs px-2 py-1 rounded ${
+                      className={`text-xs px-2.5 py-1 rounded-full ${
                         selectedStylist?.id === stylist.id
                           ? 'bg-indigo-500 text-white'
                           : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
@@ -217,7 +227,7 @@ const StylistSelector: React.FC<{
                   ))}
                   {stylist.specialties.length > 3 && (
                     <span
-                      className={`text-xs px-2 py-1 rounded ${
+                      className={`text-xs px-2.5 py-1 rounded-full ${
                         selectedStylist?.id === stylist.id
                           ? 'bg-indigo-500 text-white'
                           : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
@@ -230,10 +240,10 @@ const StylistSelector: React.FC<{
               </div>
             ))}
           </div>
-          <div className="flex justify-center">
+          <div className="flex justify-center mt-6">
             <button
               onClick={() => onStylistSelect(null)}
-              className={`px-4 py-2 rounded-md transition-colors ${
+              className={`px-5 py-2 rounded-lg font-semibold text-sm transition-colors ${
                 selectedStylist === null
                   ? 'bg-indigo-600 text-white'
                   : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
@@ -361,43 +371,47 @@ const DateTimePicker: React.FC<{
   }, [selectedDate, selectedStylist, getAvailableSlots]);
 
   return (
-    <div className="mt-8">
+    <div className="mt-10">
       <h2 className="text-2xl font-semibold mb-6 text-gray-800 dark:text-gray-200">
         3. Select Date & Time
       </h2>
 
       {/* Date Picker */}
-      <div className="mb-6">
+      <div className="mb-6 bg-white dark:bg-gray-800 p-4 rounded-xl shadow-lg">
         <DatePicker
           selected={selectedDate}
           onChange={date => date && onDateChange(date)}
           inline
           minDate={getTodayInSalonTimezone()}
-          calendarClassName="!bg-white dark:!bg-gray-800 !border-gray-200 dark:!border-gray-700 rounded-lg shadow-lg"
+          calendarClassName="!bg-transparent dark:!bg-transparent !border-none"
           dayClassName={() =>
-            'hover:bg-indigo-100 dark:hover:bg-indigo-900 rounded-lg transition-colors'
+            'hover:bg-indigo-100 dark:hover:bg-indigo-900 rounded-full transition-colors'
           }
+          weekDayClassName={() => 'text-gray-500 dark:text-gray-400 font-semibold'}
+          monthClassName={() => 'text-gray-800 dark:text-gray-200'}
         />
       </div>
 
       {/* Time Slots */}
       {loading ? (
         <div className="flex items-center justify-center p-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600" />
-          <span className="ml-3 text-gray-600 dark:text-gray-400">Finding available times...</span>
+          <LoadingSpinner message="Finding available times..." />
         </div>
       ) : (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">
-              Available Times
+              Available Times for{' '}
+              <span className="text-indigo-600 dark:text-indigo-400 font-bold">
+                {format(selectedDate, 'EEEE, MMMM d')}
+              </span>
             </h3>
             <span className="text-sm text-gray-500 dark:text-gray-400">
               {timeSlots.length} slot{timeSlots.length !== 1 ? 's' : ''} available
             </span>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
             {timeSlots.length > 0 ? (
               timeSlots.map(({ time, available }) => (
                 <TimeSlotCard
@@ -410,7 +424,7 @@ const DateTimePicker: React.FC<{
                 />
               ))
             ) : (
-              <div className="col-span-full text-center p-8 bg-gray-50 dark:bg-gray-800 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-700">
+              <div className="col-span-full text-center p-8 bg-gray-50 dark:bg-gray-800/50 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-700">
                 <svg
                   className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500"
                   fill="none"
@@ -467,11 +481,14 @@ const ConfirmationForm: React.FC<{
     onConfirm(name, email);
   };
   return (
-    <div className="mt-8">
+    <div className="mt-10">
       <h2 className="text-2xl font-semibold mb-4 text-gray-800 dark:text-gray-200">
         4. Confirm Your Booking
       </h2>
-      <form onSubmit={handleSubmit} className="space-y-4 max-w-md">
+      <form
+        onSubmit={handleSubmit}
+        className="space-y-4 max-w-lg bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg"
+      >
         <div>
           <label
             htmlFor="name"
@@ -485,7 +502,7 @@ const ConfirmationForm: React.FC<{
             value={name}
             onChange={e => setName(e.target.value)}
             disabled={!!user}
-            className="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-100 dark:disabled:bg-gray-700"
+            className="mt-1 block w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-100 dark:disabled:bg-gray-700"
             required
           />
         </div>
@@ -502,7 +519,7 @@ const ConfirmationForm: React.FC<{
             value={email}
             onChange={e => setEmail(e.target.value)}
             disabled={!!user}
-            className="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-100 dark:disabled:bg-gray-700"
+            className="mt-1 block w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-100 dark:disabled:bg-gray-700"
             required
           />
         </div>
@@ -515,26 +532,7 @@ const ConfirmationForm: React.FC<{
         >
           {isSubmitting ? (
             <>
-              <svg
-                className="animate-spin h-5 w-5"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
-                <circle
-                  className="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  strokeWidth="4"
-                ></circle>
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                ></path>
-              </svg>
+              <LoadingSpinner />
               Booking...
             </>
           ) : (
@@ -595,39 +593,47 @@ const BookingSummary: React.FC<{
   onClear,
 }) => {
   return (
-    <div className="p-6 bg-white dark:bg-gray-900/50 rounded-lg shadow-lg sticky top-8">
-      <div className="flex justify-between items-center mb-4 border-b pb-3 dark:border-gray-700">
-        <h3 className="text-xl font-semibold">Booking Summary</h3>
-        <button onClick={onClear} className="text-sm text-red-500 hover:underline">
-          &times; Clear All
+    <div className="p-6 bg-white dark:bg-gray-800 rounded-2xl shadow-lg sticky top-8">
+      <div className="flex justify-between items-center mb-5 border-b pb-4 dark:border-gray-700">
+        <h3 className="text-xl font-bold">Booking Summary</h3>
+        <button onClick={onClear} className="text-sm text-red-500 hover:underline font-semibold">
+          Clear All
         </button>
       </div>
       {selectedServices.length === 0 ? (
-        <p className="text-gray-500">Select services to get started.</p>
+        <p className="text-gray-500 dark:text-gray-400">Select services to get started.</p>
       ) : (
         <>
-          <div className="space-y-2 mb-4">
+          <div className="space-y-3 mb-4">
             {selectedServices.map(s => (
               <div key={s.id} className="flex justify-between text-sm">
-                <span>{s.name}</span>
-                <span className="font-medium">${s.price}</span>
+                <span className="text-gray-700 dark:text-gray-300">{s.name}</span>
+                <span className="font-semibold">${s.price}</span>
               </div>
             ))}
           </div>
-          <div className="border-t pt-3 dark:border-gray-700 space-y-2">
+          <div className="border-t pt-4 dark:border-gray-700 space-y-2">
             <div className="flex justify-between font-bold text-lg">
               <span>Total</span>
               <span>${totalPrice}</span>
             </div>
-            <p className="text-xs text-gray-500">Duration: {totalDuration} mins</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Total Duration: {totalDuration} mins
+            </p>
             {selectedStylist && (
-              <p className="text-sm">
-                Stylist: <span className="font-medium">{selectedStylist.name}</span>
+              <p className="text-sm text-gray-700 dark:text-gray-300">
+                Stylist: <span className="font-semibold">{selectedStylist.name}</span>
               </p>
             )}
-            {selectedDate && <p className="text-sm">Date: {formatDisplayDate(selectedDate)}</p>}
+            {selectedDate && (
+              <p className="text-sm text-gray-700 dark:text-gray-300">
+                Date: <span className="font-semibold">{formatDisplayDate(selectedDate)}</span>
+              </p>
+            )}
             {selectedTime && (
-              <p className="text-sm font-bold text-indigo-500">Time: {selectedTime}</p>
+              <p className="text-sm font-bold text-indigo-600 dark:text-indigo-400">
+                Time: {selectedTime}
+              </p>
             )}
           </div>
         </>
