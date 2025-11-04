@@ -38,8 +38,15 @@ interface BookingContext {
     timestamp: number;
   }>; // Stack of previous steps with their state
   currentWeekOffset?: number; // Week offset for date picker pagination (0 = current week)
+  lastCommandOptions?: CommandOption[]; // Stored options for WhatsApp command replies
 }
 const bookingContextStore = new Map<string, BookingContext>();
+
+export interface CommandOption {
+  id: string; // Display index (e.g., "1", "2")
+  label: string; // Human-readable label shown to the user
+  callbackData: string; // Callback data used with botCommandService
+}
 
 // Maximum messages to keep per conversation (to prevent memory bloat)
 const MAX_MESSAGES_PER_CONVERSATION = 20;
@@ -121,6 +128,35 @@ export function getBookingContext(userId: string): BookingContext | null {
  */
 export function clearBookingContext(userId: string): void {
   bookingContextStore.delete(userId);
+}
+
+/**
+ * Store the latest selectable command options for a user (used by WhatsApp flows)
+ */
+export function setCommandOptions(userId: string, options: CommandOption[]): void {
+  const existing = bookingContextStore.get(userId) || {};
+  bookingContextStore.set(userId, { ...existing, lastCommandOptions: options });
+  lastActivityStore.set(userId, Date.now());
+}
+
+/**
+ * Retrieve the selectable command options for a user
+ */
+export function getCommandOptions(userId: string): CommandOption[] | undefined {
+  return getBookingContext(userId)?.lastCommandOptions;
+}
+
+/**
+ * Clear stored command options for a user
+ */
+export function clearCommandOptions(userId: string): void {
+  const existing = bookingContextStore.get(userId);
+  if (!existing || existing.lastCommandOptions === undefined) {
+    return;
+  }
+
+  const { lastCommandOptions: _ignored, ...rest } = existing;
+  bookingContextStore.set(userId, rest);
 }
 
 /**
