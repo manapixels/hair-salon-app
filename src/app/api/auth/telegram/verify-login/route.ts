@@ -15,14 +15,38 @@ export async function GET(request: NextRequest) {
   }
 
   console.log('[VERIFY-LOGIN] Token received (redacted):', sessionToken.substring(0, 10) + '...');
+  console.log('[VERIFY-LOGIN] Token full length:', sessionToken.length);
 
   try {
+    console.log('[VERIFY-LOGIN] Querying database for token...');
+
+    // Query all tokens to see what's in the database
+    const allTokens = await prisma.loginToken.findMany({
+      select: {
+        id: true,
+        token: true,
+        userId: true,
+        expiresAt: true,
+        createdAt: true,
+      },
+    });
+    console.log('[VERIFY-LOGIN] Total tokens in database:', allTokens.length);
+    console.log(
+      '[VERIFY-LOGIN] Token prefixes:',
+      allTokens.map(t => ({
+        prefix: t.token.substring(0, 10) + '...',
+        userId: t.userId,
+        expired: t.expiresAt < new Date(),
+      })),
+    );
+
     const tokenData = await prisma.loginToken.findUnique({
       where: { token: sessionToken },
     });
 
     if (!tokenData) {
       console.error('[VERIFY-LOGIN] FAILED: Token not found in database');
+      console.error('[VERIFY-LOGIN] Searched for token:', sessionToken.substring(0, 10) + '...');
       return NextResponse.redirect(`${process.env.NEXTAUTH_URL}/?error=invalid_or_expired_token`);
     }
 

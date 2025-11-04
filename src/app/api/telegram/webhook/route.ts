@@ -354,11 +354,18 @@ export async function POST(request: Request) {
     try {
       // Check for /start command with login parameter
       if (incomingMessage.startsWith('/start ')) {
+        console.log('[WEBHOOK] Detected /start command with parameter');
         const startParam = incomingMessage.substring(7).trim();
+        console.log('[WEBHOOK] Start parameter:', startParam);
         const handled = await handleLoginCommand(chatId, user, startParam);
+        console.log('[WEBHOOK] Login command handled:', handled);
         if (handled) {
           return Response.json({ success: true }, { status: 200 });
         }
+      } else if (incomingMessage === '/start') {
+        console.log('[WEBHOOK] Detected /start command without parameter');
+      } else {
+        console.log('[WEBHOOK] Regular message (not /start):', incomingMessage);
       }
 
       // Get user context for command handlers
