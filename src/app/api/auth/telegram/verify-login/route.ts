@@ -9,6 +9,37 @@ export async function GET(request: NextRequest) {
 
   console.log('[VERIFY-LOGIN] Starting verification process');
 
+  // Check if this is Telegram's link preview bot
+  const userAgent = request.headers.get('user-agent') || '';
+  const isTelegramBot = userAgent.includes('TelegramBot');
+
+  console.log('[VERIFY-LOGIN] User-Agent:', userAgent);
+  console.log('[VERIFY-LOGIN] Is Telegram Bot:', isTelegramBot);
+
+  if (isTelegramBot) {
+    console.log('[VERIFY-LOGIN] Telegram preview bot detected - returning simple success page');
+    // Return a simple HTML page for the preview without consuming the token
+    return new NextResponse(
+      `<!DOCTYPE html>
+<html>
+<head>
+  <title>Complete Your Login</title>
+  <meta property="og:title" content="Complete Your Login to Luxe Cuts" />
+  <meta property="og:description" content="Click to complete your Telegram login" />
+</head>
+<body>
+  <h1>Click to complete your login</h1>
+</body>
+</html>`,
+      {
+        status: 200,
+        headers: {
+          'Content-Type': 'text/html',
+        },
+      },
+    );
+  }
+
   if (!sessionToken) {
     console.error('[VERIFY-LOGIN] FAILED: Token parameter missing from URL');
     return NextResponse.redirect(`${process.env.NEXTAUTH_URL}/?error=missing_token`);
