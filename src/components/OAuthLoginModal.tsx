@@ -4,8 +4,7 @@ import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import TelegramLoginWidget from './TelegramLoginWidget';
 import WhatsAppOTPLogin from './WhatsAppOTPLogin';
-import { LoadingButton } from './loaders/LoadingButton';
-import { ErrorState } from './ErrorState';
+import { Button, Dialog } from '@radix-ui/themes';
 
 interface OAuthLoginModalProps {
   isOpen: boolean;
@@ -20,20 +19,13 @@ export default function OAuthLoginModal({ isOpen, onClose }: OAuthLoginModalProp
   const [telegramError, setTelegramError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
+    if (!isOpen) {
+      setShowTelegramWidget(false);
+      setShowWhatsAppOTP(false);
+      return;
     }
 
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
-  }, [isOpen]);
-
-  useEffect(() => {
-    if (isOpen && !telegramBotUsername && !loadingTelegram) {
-      // Fetch Telegram bot info when modal opens
+    if (!telegramBotUsername && !loadingTelegram) {
       setLoadingTelegram(true);
       setTelegramError(null);
 
@@ -66,113 +58,122 @@ export default function OAuthLoginModal({ isOpen, onClose }: OAuthLoginModalProp
   };
 
   const handleTelegramLogin = () => {
-    setShowTelegramWidget(true);
+    setShowTelegramWidget(previous => !previous);
   };
-
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white dark:bg-gray-900 rounded-lg shadow-xl max-w-md w-full">
-        <div className="p-6">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Sign In</h2>
-            <button
-              onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-            >
-              <i className="fa-solid fa-times text-xl"></i>
-            </button>
+    <Dialog.Root open={isOpen} onOpenChange={open => (!open ? onClose() : undefined)}>
+      <Dialog.Content className="max-w-lg space-y-6">
+        <div className="flex items-start justify-between">
+          <div>
+            <Dialog.Title>Sign In</Dialog.Title>
+            <Dialog.Description>
+              Choose your preferred messaging platform to continue to Luxe Cuts.
+            </Dialog.Description>
           </div>
+          <Dialog.Close>
+            <Button variant="ghost" className="h-10 w-10 rounded-full p-0 text-gray-500">
+              <i className="fa-solid fa-xmark" aria-hidden="true"></i>
+              <span className="sr-only">Close sign in modal</span>
+            </Button>
+          </Dialog.Close>
+        </div>
 
+        {showWhatsAppOTP ? (
+          <WhatsAppOTPLogin onSuccess={onClose} onBack={() => setShowWhatsAppOTP(false)} />
+        ) : (
           <div className="space-y-4">
-            {showWhatsAppOTP ? (
-              <WhatsAppOTPLogin onSuccess={onClose} onBack={() => setShowWhatsAppOTP(false)} />
-            ) : showTelegramWidget ? (
-              <div className="text-center">
-                <p className="text-gray-600 dark:text-gray-400 mb-4">
-                  Click the Telegram button below to sign in:
-                </p>
-                {telegramBotUsername && (
-                  <TelegramLoginWidget
-                    botUsername={telegramBotUsername}
-                    buttonSize="large"
-                    className="flex justify-center"
-                  />
-                )}
-                <button
-                  onClick={() => setShowTelegramWidget(false)}
-                  className="text-sm text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 mt-4"
-                >
-                  ← Back to options
-                </button>
-              </div>
-            ) : (
-              <>
-                <p className="text-gray-600 dark:text-gray-400 text-center mb-6">
-                  Sign in with your preferred messaging platform
-                </p>
+            <p className="text-center text-sm text-gray-600 dark:text-gray-400">
+              Sign in with your preferred messaging platform
+            </p>
 
-                {/* WhatsApp Login Button */}
-                <button
-                  onClick={handleWhatsAppLogin}
-                  className="w-full flex items-center justify-center space-x-3 bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-4 rounded-lg transition-colors"
-                >
-                  <i className="fa-brands fa-whatsapp text-xl"></i>
-                  <span>Continue with WhatsApp</span>
-                </button>
+            <Button
+              onClick={handleWhatsAppLogin}
+              className="w-full border border-[#1ebe5d] bg-[#25D366] text-white hover:bg-[#1ebe5d]"
+            >
+              <i className="fa-brands fa-whatsapp text-lg" aria-hidden="true"></i>
+              Continue with WhatsApp
+            </Button>
 
-                {/* Telegram Login Button */}
-                <LoadingButton
-                  onClick={handleTelegramLogin}
-                  disabled={!telegramBotUsername || !!telegramError}
-                  loading={loadingTelegram}
-                  loadingText="Loading Telegram..."
-                  className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-medium py-3 px-4 rounded-lg transition-colors"
-                >
-                  <i className="fa-brands fa-telegram text-xl"></i>
-                  <span>Continue with Telegram</span>
-                </LoadingButton>
+            <Button
+              onClick={handleTelegramLogin}
+              loading={loadingTelegram}
+              disabled={!telegramBotUsername || !!telegramError}
+              className="w-full bg-[#0088cc] text-white hover:bg-[#007ab8] disabled:bg-[#8ccae8]"
+            >
+              <i className="fa-brands fa-telegram text-lg" aria-hidden="true"></i>
+              {showTelegramWidget ? 'Hide Telegram' : 'Continue with Telegram'}
+            </Button>
 
-                {/* Telegram Error State */}
-                {telegramError && (
-                  <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-                    <p className="text-sm text-red-700 dark:text-red-300 flex items-center gap-2">
-                      <svg
-                        className="w-4 h-4 flex-shrink-0"
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                      <span>{telegramError}</span>
+            {showTelegramWidget && (
+              <div className="rounded-xl border border-blue-100 bg-blue-50 p-5 dark:border-blue-900/40 dark:bg-blue-900/10">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <h3 className="text-sm font-semibold text-blue-800 dark:text-blue-200">
+                      Ready to sign in with Telegram?
+                    </h3>
+                    <p className="mt-1 text-sm text-blue-700 dark:text-blue-300">
+                      A new tab will open. Tap <span className="font-semibold">Start</span> in the
+                      bot chat to finish logging in.
                     </p>
-                    <button
-                      onClick={() => {
-                        setTelegramError(null);
-                        setTelegramBotUsername(null); // Trigger refetch
-                      }}
-                      className="mt-2 text-sm text-red-600 dark:text-red-400 hover:underline"
-                    >
-                      Retry
-                    </button>
                   </div>
-                )}
-              </>
+                  <Button
+                    variant="ghost"
+                    className="h-8 px-3 text-xs text-blue-700"
+                    onClick={() => setShowTelegramWidget(false)}
+                  >
+                    Close
+                  </Button>
+                </div>
+
+                <div className="mt-4 flex justify-center">
+                  {telegramBotUsername ? (
+                    <TelegramLoginWidget
+                      botUsername={telegramBotUsername}
+                      buttonSize="large"
+                      className="flex justify-center"
+                    />
+                  ) : (
+                    <p className="text-sm text-blue-700 dark:text-blue-300">
+                      Loading Telegram login...
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {telegramError && (
+              <div className="rounded-lg border border-red-200 bg-red-50 p-3 dark:border-red-800 dark:bg-red-900/20">
+                <p className="flex items-center gap-2 text-sm text-red-700 dark:text-red-300">
+                  <svg className="h-4 w-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    <path
+                      fillRule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  <span>{telegramError}</span>
+                </p>
+                <Button
+                  variant="ghost"
+                  className="mt-2 h-8 px-3 text-sm text-red-600 hover:text-red-700 dark:text-red-400"
+                  onClick={() => {
+                    setTelegramError(null);
+                    setTelegramBotUsername(null);
+                  }}
+                >
+                  Retry
+                </Button>
+              </div>
             )}
           </div>
+        )}
 
-          <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              By signing in, you agree to our terms of service and privacy policy.
-            </p>
-          </div>
+        <div className="border-t border-gray-200 pt-4 text-center dark:border-gray-800">
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            By signing in, you agree to our terms of service and privacy policy.
+          </p>
         </div>
-      </div>
-    </div>
+      </Dialog.Content>
+    </Dialog.Root>
   );
 }

@@ -2,8 +2,10 @@ import type { Metadata } from 'next';
 import { AuthProvider } from '../context/AuthContext';
 import { BookingProvider } from '../context/BookingContext';
 import { Toaster } from 'sonner';
+import { Theme } from '@radix-ui/themes';
 import { autoConfigureTelegramBotMenu } from '../lib/telegramBotSetup';
 import '../styles/globals.css';
+import '@radix-ui/themes/styles.css';
 import 'dotenv/config';
 
 export const metadata: Metadata = {
@@ -27,10 +29,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="icon" type="image/svg+xml" href="/vite.svg" />
       </head>
       <body className="bg-gray-50 dark:bg-gray-900">
-        <AuthProvider>
-          <BookingProvider>{children}</BookingProvider>
-        </AuthProvider>
-        <Toaster position="top-right" richColors closeButton />
+        <Theme accentColor="gold" grayColor="olive" radius="large">
+          <AuthProvider>
+            <BookingProvider>{children}</BookingProvider>
+          </AuthProvider>
+          <Toaster position="top-right" richColors closeButton />
+        </Theme>
       </body>
     </html>
   );

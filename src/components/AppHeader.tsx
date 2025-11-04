@@ -2,8 +2,10 @@
 
 import { useAuth } from '../context/AuthContext';
 import { usePathname, useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
+import { Button } from '@radix-ui/themes';
+import { cn } from '@/lib/utils';
 
 type View = 'booking' | 'admin' | 'dashboard';
 
@@ -12,47 +14,6 @@ interface AppHeaderProps {
   onViewChange: (view: View) => void;
   onLoginClick?: () => void;
 }
-
-const NavButton: React.FC<{
-  href?: string;
-  currentView?: View;
-  targetView?: View;
-  children: React.ReactNode;
-  onClick: () => void;
-  isActive?: boolean;
-}> = ({ href, currentView, targetView, children, onClick, isActive: isActiveProp }) => {
-  const isActive = isActiveProp ?? currentView === targetView;
-  return (
-    <button
-      onClick={onClick}
-      className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-        isActive
-          ? 'bg-indigo-600 text-white shadow-sm'
-          : 'text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
-      }`}
-      aria-current={isActive ? 'page' : undefined}
-    >
-      {children}
-    </button>
-  );
-};
-
-const AuthButton: React.FC<{
-  onClick: () => void;
-  children: React.ReactNode;
-  primary?: boolean;
-}> = ({ onClick, children, primary }) => (
-  <button
-    onClick={onClick}
-    className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-      primary
-        ? 'bg-indigo-600 text-white hover:bg-indigo-700'
-        : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600'
-    }`}
-  >
-    {children}
-  </button>
-);
 
 const NotificationBadge: React.FC<{ count: number }> = ({ count }) => {
   if (count === 0) return null;
@@ -74,6 +35,19 @@ export default function AppHeader({ view, onViewChange, onLoginClick }: AppHeade
   const router = useRouter();
   const pathname = usePathname();
   const [appointmentCount, setAppointmentCount] = useState(0);
+
+  const activeView: View = useMemo(() => {
+    if (pathname?.startsWith('/admin')) return 'admin';
+    if (pathname?.startsWith('/dashboard')) return 'dashboard';
+    return 'booking';
+  }, [pathname]);
+
+  useEffect(() => {
+    if (activeView !== view) {
+      onViewChange(activeView);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeView]);
 
   // Fetch appointment count for customers
   useEffect(() => {
@@ -103,52 +77,87 @@ export default function AppHeader({ view, onViewChange, onLoginClick }: AppHeade
   }, [user]);
 
   return (
-    <header className="bg-white dark:bg-gray-900 shadow-md">
-      <nav className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+    <header className="border-b border-gray-100 bg-white/90 shadow-sm backdrop-blur-sm dark:border-gray-800 dark:bg-gray-900/90">
+      <nav className="container mx-auto flex items-center justify-between px-4 py-2 sm:px-6 lg:px-8">
         <div className="flex items-center">
-          <i className="fa-solid fa-scissors text-3xl text-indigo-600 mr-3"></i>
+          <i className="fa-solid fa-scissors mr-3 text-3xl text-accent"></i>
           <h1 className="text-2xl font-bold tracking-tight text-gray-800 dark:text-white">
             Luxe Cuts
           </h1>
         </div>
-        <div className="flex items-center space-x-4">
-          <div className="hidden sm:flex items-center space-x-1 bg-gray-100 dark:bg-gray-800 p-1 rounded-lg">
-            <NavButton isActive={pathname === '/'} onClick={() => router.push('/')}>
-              <i className="fa-solid fa-calendar-check mr-2"></i> Book Online
-            </NavButton>
+        <div className="flex items-center gap-4">
+          <div className="hidden items-center gap-1 sm:flex">
+            <Button
+              variant={activeView === 'booking' ? 'solid' : 'soft'}
+              className={cn('', activeView !== 'booking' && 'text-gray-600 dark:text-gray-300')}
+              onClick={() => {
+                if (activeView !== 'booking') {
+                  router.push('/');
+                  onViewChange('booking');
+                }
+              }}
+            >
+              <i className="fa-solid fa-calendar-check" aria-hidden="true"></i>
+              Book Online
+            </Button>
+
             {user && user.role === 'CUSTOMER' && (
               <div className="relative">
-                <NavButton
-                  isActive={pathname === '/dashboard'}
-                  onClick={() => router.push('/dashboard')}
+                <Button
+                  variant={activeView === 'dashboard' ? 'solid' : 'soft'}
+                  className={cn(
+                    '',
+                    activeView !== 'dashboard' && 'text-gray-600 dark:text-gray-300',
+                  )}
+                  onClick={() => {
+                    if (activeView !== 'dashboard') {
+                      router.push('/dashboard');
+                      onViewChange('dashboard');
+                    }
+                  }}
                 >
-                  <i className="fa-solid fa-user mr-2"></i> Dashboard
-                </NavButton>
+                  <i className="fa-solid fa-user" aria-hidden="true"></i>
+                  Dashboard
+                </Button>
                 <NotificationBadge count={appointmentCount} />
               </div>
             )}
+
             {user?.role === 'ADMIN' && (
-              <NavButton isActive={pathname === '/admin'} onClick={() => router.push('/admin')}>
-                <i className="fa-solid fa-user-shield mr-2"></i> Admin
-              </NavButton>
+              <Button
+                variant={activeView === 'admin' ? 'solid' : 'soft'}
+                className={cn('', activeView !== 'admin' && 'text-gray-600 dark:text-gray-300')}
+                onClick={() => {
+                  if (activeView !== 'admin') {
+                    router.push('/admin');
+                    onViewChange('admin');
+                  }
+                }}
+              >
+                <i className="fa-solid fa-user-shield" aria-hidden="true"></i>
+                Admin
+              </Button>
             )}
           </div>
-          <div className="flex items-center space-x-2">
-            {/* Mobile bell icon for customers */}
+          <div className="flex items-center gap-3">
             {user && user.role === 'CUSTOMER' && (
-              <button
+              <Button
+                variant="soft"
+                className="relative h-11 w-11 rounded-full border border-gray-200 p-0 text-gray-600 hover:text-accent sm:hidden dark:border-gray-700 dark:text-gray-300"
                 onClick={() => router.push('/dashboard')}
-                className="sm:hidden relative w-11 h-11 flex items-center justify-center text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
                 aria-label={`Dashboard, ${appointmentCount} upcoming appointment${appointmentCount !== 1 ? 's' : ''}`}
               >
-                <i className="fa-regular fa-bell text-xl"></i>
+                <i className="fa-regular fa-bell text-xl" aria-hidden="true"></i>
                 <NotificationBadge count={appointmentCount} />
-              </button>
+              </Button>
             )}
             {user ? (
               <>
-                <span className="text-sm font-medium hidden md:inline">Welcome, {user.name}!</span>
-                <AuthButton
+                <span className="hidden  text-gray-600 md:inline dark:text-gray-200">
+                  Welcome, {user.name}!
+                </span>
+                <Button
+                  variant="soft"
                   onClick={async () => {
                     await logout();
                     router.push('/');
@@ -156,17 +165,15 @@ export default function AppHeader({ view, onViewChange, onLoginClick }: AppHeade
                   }}
                 >
                   Logout
-                </AuthButton>
+                </Button>
               </>
             ) : (
-              <>
-                {onLoginClick && (
-                  <AuthButton onClick={onLoginClick} primary>
-                    <i className="fa-solid fa-sign-in-alt mr-2"></i>
-                    Sign In
-                  </AuthButton>
-                )}
-              </>
+              onLoginClick && (
+                <Button onClick={onLoginClick}>
+                  <i className="fa-solid fa-sign-in-alt" aria-hidden="true"></i>
+                  Sign In
+                </Button>
+              )
             )}
           </div>
         </div>

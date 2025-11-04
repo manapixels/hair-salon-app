@@ -16,3 +16,85 @@ body {
 .phone-input-wrapper .PhoneInputCountry {
   @apply dark:bg-gray-800 border-gray-300 dark:border-gray-600;
 }
+
+.radix-themes {
+	--cursor-button: pointer;
+}
+
+@layer utilities {
+  .bg-accent {
+    background-color: var(--accent-9);
+    color: var(--accent-contrast);
+  }
+
+  .hover\:bg-accent:hover {
+    background-color: var(--accent-10);
+    color: var(--accent-contrast);
+  }
+
+  .bg-accent-soft {
+    background-color: var(--accent-4);
+  }
+
+  .border-accent {
+    border-color: var(--accent-8);
+  }
+
+  .text-accent {
+    color: var(--accent-9);
+  }
+
+  .hover\:text-accent:hover {
+    color: var(--accent-10);
+  }
+
+  .ring-accent {
+    --tw-ring-color: var(--accent-8);
+  }
+
+  .outline-accent {
+    outline-color: var(--accent-9);
+  }
+
+  .disabled\:bg-accent:disabled {
+    background-color: var(--accent-6);
+  }
+
+  .focus\:ring-accent:focus {
+    --tw-ring-color: var(--accent-8);
+  }
+
+  .focus\:border-accent:focus {
+    border-color: var(--accent-9);
+  }
+
+  .hover\:border-accent:hover {
+    border-color: var(--accent-8);
+  }
+
+  /* Dark mode accent utilities */
+  .dark .dark\:bg-accent {
+    background-color: var(--accent-9);
+    color: var(--accent-contrast);
+  }
+
+  .dark .dark\:bg-accent-soft {
+    background-color: var(--accent-3);
+  }
+
+  .dark .dark\:hover\:bg-accent:hover {
+    background-color: var(--accent-4);
+  }
+
+  .dark .dark\:text-accent {
+    color: var(--accent-11);
+  }
+
+  .dark .dark\:hover\:text-accent:hover {
+    color: var(--accent-11);
+  }
+
+  .dark .dark\:border-accent {
+    border-color: var(--accent-8);
+  }
+}

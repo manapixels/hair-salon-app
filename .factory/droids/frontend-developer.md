@@ -239,9 +239,9 @@ export function Component({ user, onSelect, className }: ComponentProps) {
 
 **Consistent patterns:**
 
-- Buttons: `bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg`
+- Buttons: `bg-accent hover:bg-accent px-4 py-2 rounded-lg`
 - Cards: `bg-white border border-gray-200 rounded-xl p-6 shadow-sm`
-- Inputs: `border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500`
+- Inputs: `border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-accent`
 - Text: Primary `text-gray-900`, Secondary `text-gray-600`, Muted `text-gray-500`
 
 **Responsive design:**
@@ -506,7 +506,7 @@ router.back();
 ```tsx
 import Link from 'next/link';
 
-<Link href="/admin" className="text-indigo-600 hover:underline">
+<Link href="/admin" className="text-accent hover:underline">
   Admin
 </Link>;
 ```

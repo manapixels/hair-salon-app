@@ -45,7 +45,7 @@ const ServiceSelector: React.FC<{
         <div
           key={service.id}
           onClick={() => onServiceToggle(service)}
-          className={`p-5 border rounded-xl cursor-pointer transition-all duration-200 ${selectedServices.some(s => s.id === service.id) ? 'bg-indigo-600 text-white border-indigo-600 shadow-lg ring-2 ring-indigo-400' : 'bg-white dark:bg-gray-800 hover:shadow-lg hover:border-indigo-500 dark:border-gray-700'}`}
+          className={`p-5 border rounded-xl cursor-pointer transition-all duration-200 ${selectedServices.some(s => s.id === service.id) ? 'bg-accent border-accent shadow-lg ring-2 ring-accent' : 'bg-white dark:bg-gray-800 hover:shadow-lg hover:border-accent dark:border-gray-700'}`}
         >
           <div className="flex justify-between items-start">
             <h3 className="font-bold text-lg">{service.name}</h3>
@@ -178,8 +178,8 @@ const StylistSelector: React.FC<{
                 onClick={() => onStylistSelect(stylist)}
                 className={`p-5 border rounded-xl cursor-pointer transition-all duration-200 ${
                   selectedStylist?.id === stylist.id
-                    ? 'bg-indigo-600 text-white border-indigo-600 shadow-lg ring-2 ring-indigo-400'
-                    : 'bg-white dark:bg-gray-800 hover:shadow-lg hover:border-indigo-500 dark:border-gray-700'
+                    ? 'bg-accent border-accent shadow-lg ring-2 ring-accent'
+                    : 'bg-white dark:bg-gray-800 hover:shadow-lg hover:border-accent dark:border-gray-700'
                 }`}
               >
                 <div className="flex items-center mb-4">
@@ -218,7 +218,7 @@ const StylistSelector: React.FC<{
                       key={service.id}
                       className={`text-xs px-2.5 py-1 rounded-full ${
                         selectedStylist?.id === stylist.id
-                          ? 'bg-indigo-500 text-white'
+                          ? 'bg-accent'
                           : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
                       }`}
                     >
@@ -229,7 +229,7 @@ const StylistSelector: React.FC<{
                     <span
                       className={`text-xs px-2.5 py-1 rounded-full ${
                         selectedStylist?.id === stylist.id
-                          ? 'bg-indigo-500 text-white'
+                          ? 'bg-accent'
                           : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
                       }`}
                     >
@@ -245,7 +245,7 @@ const StylistSelector: React.FC<{
               onClick={() => onStylistSelect(null)}
               className={`px-5 py-2 rounded-lg font-semibold text-sm transition-colors ${
                 selectedStylist === null
-                  ? 'bg-indigo-600 text-white'
+                  ? 'bg-accent'
                   : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
               }`}
             >
@@ -276,9 +276,9 @@ const TimeSlotCard: React.FC<{
         relative p-4 rounded-lg text-left transition-all duration-200
         ${
           isSelected
-            ? 'bg-indigo-600 text-white ring-2 ring-indigo-400 shadow-lg scale-105'
+            ? 'bg-accent ring-2 ring-accent shadow-lg scale-105'
             : isAvailable
-              ? 'bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 hover:border-indigo-400 hover:shadow-md'
+              ? 'bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 hover:border-accent hover:shadow-md'
               : 'bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 opacity-50 cursor-not-allowed'
         }
       `}
@@ -292,7 +292,7 @@ const TimeSlotCard: React.FC<{
         {/* Duration bar */}
         <div
           className={`mb-1 rounded-full h-1.5 overflow-hidden ${
-            isSelected ? 'bg-indigo-400' : 'bg-gray-200 dark:bg-gray-700'
+            isSelected ? 'bg-accent-soft' : 'bg-gray-200 dark:bg-gray-700'
           }`}
         >
           <div
@@ -305,9 +305,7 @@ const TimeSlotCard: React.FC<{
 
         {/* End time */}
         <span
-          className={`text-xs ${
-            isSelected ? 'text-indigo-100' : 'text-gray-600 dark:text-gray-400'
-          }`}
+          className={`text-xs ${isSelected ? 'text-white/90' : 'text-gray-600 dark:text-gray-400'}`}
         >
           to {endTime}
         </span>
@@ -315,7 +313,7 @@ const TimeSlotCard: React.FC<{
         {/* Duration label */}
         <div
           className={`flex items-center gap-1 text-xs ${
-            isSelected ? 'text-indigo-200' : 'text-gray-500 dark:text-gray-500'
+            isSelected ? 'text-white/80' : 'text-gray-500 dark:text-gray-500'
           }`}
         >
           <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -385,7 +383,7 @@ const DateTimePicker: React.FC<{
           minDate={getTodayInSalonTimezone()}
           calendarClassName="!bg-transparent dark:!bg-transparent !border-none"
           dayClassName={() =>
-            'hover:bg-indigo-100 dark:hover:bg-indigo-900 rounded-full transition-colors'
+            'hover:bg-accent-soft dark:hover:bg-accent-soft rounded-full transition-colors'
           }
           weekDayClassName={() => 'text-gray-500 dark:text-gray-400 font-semibold'}
           monthClassName={() => 'text-gray-800 dark:text-gray-200'}
@@ -402,7 +400,7 @@ const DateTimePicker: React.FC<{
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">
               Available Times for{' '}
-              <span className="text-indigo-600 dark:text-indigo-400 font-bold">
+              <span className="text-accent dark:text-accent font-bold">
                 {format(selectedDate, 'EEEE, MMMM d')}
               </span>
             </h3>
@@ -502,7 +500,7 @@ const ConfirmationForm: React.FC<{
             value={name}
             onChange={e => setName(e.target.value)}
             disabled={!!user}
-            className="mt-1 block w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-100 dark:disabled:bg-gray-700"
+            className="mt-1 block w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-accent focus:border-accent disabled:bg-gray-100 dark:disabled:bg-gray-700"
             required
           />
         </div>
@@ -519,7 +517,7 @@ const ConfirmationForm: React.FC<{
             value={email}
             onChange={e => setEmail(e.target.value)}
             disabled={!!user}
-            className="mt-1 block w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-100 dark:disabled:bg-gray-700"
+            className="mt-1 block w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-accent focus:border-accent disabled:bg-gray-100 dark:disabled:bg-gray-700"
             required
           />
         </div>
@@ -527,7 +525,7 @@ const ConfirmationForm: React.FC<{
         <button
           type="submit"
           disabled={isSubmitting}
-          className="w-full flex items-center justify-center gap-2 py-4 px-6 border border-transparent rounded-lg shadow-xl text-lg font-bold text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-indigo-400 transition-all"
+          className="w-full flex items-center justify-center gap-2 py-4 px-6 border border-transparent rounded-lg shadow-xl text-lg font-bold bg-accent hover:bg-accent focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent disabled:bg-accent transition-all"
           aria-label={isSubmitting ? 'Booking in progress' : 'Confirm your appointment'}
         >
           {isSubmitting ? (
@@ -631,9 +629,7 @@ const BookingSummary: React.FC<{
               </p>
             )}
             {selectedTime && (
-              <p className="text-sm font-bold text-indigo-600 dark:text-indigo-400">
-                Time: {selectedTime}
-              </p>
+              <p className="text-sm font-bold text-accent dark:text-accent">Time: {selectedTime}</p>
             )}
           </div>
         </>
@@ -774,7 +770,7 @@ Please confirm availability. Thank you!`;
         </p>
         <button
           onClick={handleReset}
-          className="mt-6 bg-indigo-600 text-white px-6 py-2 rounded-md hover:bg-indigo-700 transition-colors"
+          className="mt-6 bg-accent px-6 py-2 rounded-md hover:bg-accent transition-colors"
         >
           Make Another Booking
         </button>

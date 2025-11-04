@@ -32,7 +32,7 @@ const CloudIcon = () => (
 );
 
 const MoonIcon = () => (
-  <svg className="w-4 h-4 text-indigo-500" fill="currentColor" viewBox="0 0 20 20">
+  <svg className="w-4 h-4 text-accent" fill="currentColor" viewBox="0 0 20 20">
     <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
   </svg>
 );
@@ -76,11 +76,11 @@ const TimeSlotGroup: React.FC<TimeSlotGroupProps> = ({
               className={`
                 w-full text-left px-4 py-3.5 rounded-lg font-medium
                 border-2 bg-white transition-all duration-200
-                focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2
+                focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2
                 ${
                   isSelected
-                    ? 'border-indigo-600 bg-indigo-600 text-white'
-                    : 'border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 hover:border-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/10'
+                    ? 'border-accent bg-accent'
+                    : 'border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 hover:border-accent hover:bg-accent-soft dark:hover:bg-accent-soft'
                 }
                 ${!available ? 'opacity-50 cursor-not-allowed hover:border-gray-200 dark:hover:border-gray-700 hover:bg-transparent' : 'cursor-pointer'}
               `}

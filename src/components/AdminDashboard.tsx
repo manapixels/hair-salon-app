@@ -555,7 +555,7 @@ const AdminDashboard: React.FC = () => {
     <div className="bg-gray-50 dark:bg-gray-900 p-8 rounded-2xl shadow-lg">
       <div className="flex items-center justify-between mb-8">
         <h2 className="text-4xl font-bold text-gray-800 dark:text-gray-200">Salon Management</h2>
-        <span className="px-4 py-2 text-sm font-semibold rounded-full bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200">
+        <span className="px-4 py-2 text-sm font-semibold rounded-full bg-accent-soft text-accent dark:bg-accent-soft dark:text-accent">
           Admin
         </span>
       </div>
@@ -567,7 +567,7 @@ const AdminDashboard: React.FC = () => {
             onClick={() => setActiveTab('appointments')}
             className={`py-3 px-2 border-b-2 font-semibold text-base transition-colors ${
               activeTab === 'appointments'
-                ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400'
+                ? 'border-accent text-accent dark:text-accent'
                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
             }`}
           >
@@ -577,7 +577,7 @@ const AdminDashboard: React.FC = () => {
             onClick={() => setActiveTab('stylists')}
             className={`py-3 px-2 border-b-2 font-semibold text-base transition-colors ${
               activeTab === 'stylists'
-                ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400'
+                ? 'border-accent text-accent dark:text-accent'
                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
             }`}
           >
@@ -587,7 +587,7 @@ const AdminDashboard: React.FC = () => {
             onClick={() => setActiveTab('availability')}
             className={`py-3 px-2 border-b-2 font-semibold text-base transition-colors ${
               activeTab === 'availability'
-                ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400'
+                ? 'border-accent text-accent dark:text-accent'
                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
             }`}
           >
@@ -652,7 +652,7 @@ const AdminDashboard: React.FC = () => {
                   <select
                     value={dateFilter}
                     onChange={e => setDateFilter(e.target.value as any)}
-                    className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                    className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-accent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                   >
                     <option value="all">All Dates</option>
                     <option value="today">Today</option>
@@ -669,7 +669,7 @@ const AdminDashboard: React.FC = () => {
                   <select
                     value={statusFilter}
                     onChange={e => setStatusFilter(e.target.value as any)}
-                    className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                    className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-accent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                   >
                     <option value="all">All Status</option>
                     <option value="today">Today</option>
@@ -684,7 +684,7 @@ const AdminDashboard: React.FC = () => {
                       type="date"
                       value={customFromDate}
                       onChange={e => setCustomFromDate(e.target.value)}
-                      className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                      className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-accent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                       placeholder="From date"
                     />
                     <span className="text-gray-500 dark:text-gray-400">to</span>
@@ -692,7 +692,7 @@ const AdminDashboard: React.FC = () => {
                       type="date"
                       value={customToDate}
                       onChange={e => setCustomToDate(e.target.value)}
-                      className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                      className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-accent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                       placeholder="To date"
                     />
                   </div>
@@ -705,7 +705,7 @@ const AdminDashboard: React.FC = () => {
                       placeholder="Search..."
                       value={searchTerm}
                       onChange={e => setSearchTerm(e.target.value)}
-                      className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                      className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                     />
                     <svg
                       className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400"
@@ -825,7 +825,7 @@ const AdminDashboard: React.FC = () => {
                               paginatedAppointments.length > 0
                             }
                             onChange={handleSelectAll}
-                            className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                            className="rounded border-gray-300 text-accent focus:ring-accent"
                           />
                         </th>
                         <SortableHeader field="date">Date & Time</SortableHeader>
@@ -848,14 +848,14 @@ const AdminDashboard: React.FC = () => {
                       {paginatedAppointments.map(appointment => (
                         <tr
                           key={appointment.id}
-                          className={`hover:bg-gray-50 dark:hover:bg-gray-800 ${selectedAppointments.has(appointment.id) ? 'bg-indigo-50 dark:bg-indigo-900/20' : ''}`}
+                          className={`hover:bg-gray-50 dark:hover:bg-gray-800 ${selectedAppointments.has(appointment.id) ? 'bg-accent-soft dark:bg-accent-soft' : ''}`}
                         >
                           <td className="px-6 py-4 whitespace-nowrap">
                             <input
                               type="checkbox"
                               checked={selectedAppointments.has(appointment.id)}
                               onChange={() => handleSelectAppointment(appointment.id)}
-                              className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                              className="rounded border-gray-300 text-accent focus:ring-accent"
                             />
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
@@ -926,7 +926,7 @@ const AdminDashboard: React.FC = () => {
                             <div className="flex space-x-4">
                               <button
                                 onClick={() => handleEditAppointment(appointment)}
-                                className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 transition-colors"
+                                className="text-accent hover:text-accent dark:text-accent dark:hover:text-accent transition-colors"
                                 title="Edit appointment"
                               >
                                 <svg
@@ -1038,7 +1038,7 @@ const AdminDashboard: React.FC = () => {
                               onClick={() => setCurrentPage(pageNum)}
                               className={`px-3 py-1 text-sm border rounded-lg ${
                                 currentPage === pageNum
-                                  ? 'bg-indigo-500 text-white border-indigo-500'
+                                  ? 'bg-accent border-accent'
                                   : 'hover:bg-gray-100 dark:hover:bg-gray-700'
                               }`}
                             >
@@ -1099,7 +1099,7 @@ const AdminDashboard: React.FC = () => {
                             [day]: { ...schedule, isOpen: e.target.checked },
                           })
                         }
-                        className="mr-3 h-5 w-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                        className="mr-3 h-5 w-5 rounded border-gray-300 text-accent focus:ring-accent"
                       />
                       <label htmlFor={`${day}-open`} className="text-sm font-medium capitalize">
                         {day}
@@ -1170,7 +1170,7 @@ const AdminDashboard: React.FC = () => {
                         }
                       }}
                       disabled={!newClosedDate}
-                      className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700 disabled:opacity-50"
+                      className="px-4 py-2 bg-accent rounded-lg text-sm font-semibold hover:bg-accent disabled:opacity-50"
                     >
                       Add Date
                     </button>
@@ -1236,7 +1236,7 @@ const AdminDashboard: React.FC = () => {
           <div className="mt-8 flex justify-end">
             <button
               onClick={handleSettingsSave}
-              className="bg-indigo-600 text-white px-8 py-3 rounded-lg hover:bg-indigo-700 transition-colors font-semibold text-base"
+              className="bg-accent px-8 py-3 rounded-lg hover:bg-accent transition-colors font-semibold text-base"
             >
               Save Settings
             </button>
@@ -1245,7 +1245,7 @@ const AdminDashboard: React.FC = () => {
           {/* Stats Card */}
           <div className="bg-white dark:bg-gray-800 p-6 rounded-xl mt-8">
             <h3 className="text-xl font-semibold mb-2">Appointments Today</h3>
-            <p className="text-5xl font-bold text-indigo-600">
+            <p className="text-5xl font-bold text-accent">
               {
                 (Array.isArray(appointments) ? appointments : []).filter(
                   a => new Date(a.date).toDateString() === new Date().toDateString(),

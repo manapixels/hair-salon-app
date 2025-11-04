@@ -17,12 +17,12 @@
 }
 
 .react-datepicker__day {
-  @apply dark:text-gray-300 dark:hover:bg-indigo-900;
+  @apply dark:text-gray-300 dark:hover:bg-accent-soft;
 }
 
 .react-datepicker__day--selected,
 .react-datepicker__day--keyboard-selected {
-  @apply dark:bg-indigo-600 dark:text-white;
+  @apply dark:bg-accent dark:text-white;
 }
 
 .react-datepicker__day--disabled {

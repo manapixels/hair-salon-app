@@ -7,7 +7,7 @@ export default function RemindersPanel() {
     <div className="space-y-6">
       <div className="bg-white dark:bg-gray-900 rounded-lg shadow-md p-6">
         <div className="flex items-center space-x-2 mb-4">
-          <i className="fa-solid fa-bell text-indigo-600 text-xl"></i>
+          <i className="fa-solid fa-bell text-accent text-xl"></i>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
             Appointment Reminders
           </h1>

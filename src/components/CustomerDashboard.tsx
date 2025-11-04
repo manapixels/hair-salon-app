@@ -190,7 +190,7 @@ export default function CustomerDashboard() {
               alt={user.name}
               width={80}
               height={80}
-              className="w-20 h-20 rounded-full object-cover ring-4 ring-indigo-500/20"
+              className="w-20 h-20 rounded-full object-cover ring-4 ring-accent/20"
             />
           )}
           <div>
@@ -223,14 +223,14 @@ export default function CustomerDashboard() {
                       onChange={e => setNewName(e.target.value)}
                       className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg
                                bg-white dark:bg-gray-700 text-gray-900 dark:text-white
-                               focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                               focus:ring-2 focus:ring-accent focus:border-accent"
                       placeholder="Enter your display name"
                       maxLength={50}
                     />
                     <div className="flex space-x-2">
                       <button
                         onClick={handleNameSave}
-                        className="text-sm bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 font-semibold"
+                        className="text-sm bg-accent px-4 py-2 rounded-lg hover:bg-accent font-semibold"
                       >
                         Save
                       </button>
@@ -249,7 +249,7 @@ export default function CustomerDashboard() {
                     </div>
                     <button
                       onClick={handleNameEdit}
-                      className="text-sm text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 font-semibold"
+                      className="text-sm text-accent hover:text-accent dark:text-accent font-semibold"
                     >
                       Edit
                     </button>
@@ -405,7 +405,7 @@ export default function CustomerDashboard() {
                         <button
                           onClick={() => handleRescheduleAppointment(appointment.id)}
                           disabled={reschedulingId === appointment.id}
-                          className="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 text-sm disabled:opacity-50 inline-flex items-center gap-1 font-semibold"
+                          className="text-accent hover:text-accent dark:text-accent text-sm disabled:opacity-50 inline-flex items-center gap-1 font-semibold"
                         >
                           {reschedulingId === appointment.id ? (
                             <LoadingSpinner size="sm" />

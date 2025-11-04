@@ -207,7 +207,7 @@ const showLoader = useDelayedLoading(loading, { delay: 150, minDuration: 300 });
   loading={submitting}
   loadingText="Saving..."
   onClick={handleSubmit}
-  className="bg-indigo-600 text-white px-4 py-2 rounded-lg"
+  className="bg-accent px-4 py-2 rounded-lg"
 >
   Save Changes
 </LoadingButton>

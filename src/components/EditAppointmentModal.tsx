@@ -2,11 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
-import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
 import type { Appointment, Service } from '../types';
 import { SALON_SERVICES } from '../constants';
-import { LoadingButton } from './loaders/LoadingButton';
+import { Button, Checkbox, Dialog, Select } from '@radix-ui/themes';
+import { formatTime12Hour } from '@/lib/timeUtils';
 
 interface EditAppointmentModalProps {
   isOpen: boolean;
@@ -123,191 +123,158 @@ export default function EditAppointmentModal({
   const { totalPrice, totalDuration } = calculateTotals();
 
   return (
-    <AnimatePresence>
-      {isOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto"
-          >
-            <div className="p-8">
-              <div className="flex justify-between items-center mb-8">
-                <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
-                  Edit Appointment
-                </h2>
-                <button
-                  onClick={onClose}
-                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                >
-                  <svg
-                    className="w-7 h-7"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                    xmlns="http://www.w3.org/2000/svg"
+    <Dialog.Root open={isOpen} onOpenChange={(open: boolean) => (!open ? onClose() : undefined)}>
+      <Dialog.Content className="max-h-[90vh] w-full max-w-3xl overflow-y-auto space-y-6">
+        <div className="flex items-start justify-between">
+          <div>
+            <Dialog.Title>Edit Appointment</Dialog.Title>
+            <Dialog.Description>
+              Update customer details, services, and scheduled time for this appointment.
+            </Dialog.Description>
+          </div>
+          <Dialog.Close>
+            <Button variant="ghost" className="h-10 w-10 rounded-full p-0 text-gray-500">
+              <i className="fa-solid fa-xmark" aria-hidden="true"></i>
+              <span className="sr-only">Close edit appointment modal</span>
+            </Button>
+          </Dialog.Close>
+        </div>
+
+        {error && (
+          <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-700 dark:bg-red-900/20 dark:text-red-300">
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Customer Name *
+              </label>
+              <input
+                type="text"
+                value={formData.customerName}
+                onChange={e => setFormData(prev => ({ ...prev, customerName: e.target.value }))}
+                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-accent dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                required
+              />
+            </div>
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Customer Email *
+              </label>
+              <input
+                type="email"
+                value={formData.customerEmail}
+                onChange={e => setFormData(prev => ({ ...prev, customerEmail: e.target.value }))}
+                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-accent dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                required
+              />
+            </div>
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Date *
+              </label>
+              <input
+                type="date"
+                value={formData.date}
+                onChange={e => setFormData(prev => ({ ...prev, date: e.target.value }))}
+                min={format(new Date(), 'yyyy-MM-dd')}
+                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-accent dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                required
+              />
+            </div>
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Time *
+              </label>
+              <Select.Root
+                value={formData.time || undefined}
+                onValueChange={value => setFormData(prev => ({ ...prev, time: value }))}
+              >
+                <Select.Trigger placeholder="Select time" />
+                <Select.Content>
+                  {generateTimeSlots().map(slot => (
+                    <Select.Item key={slot} value={slot}>
+                      {formatTime12Hour(slot)}
+                    </Select.Item>
+                  ))}
+                </Select.Content>
+              </Select.Root>
+            </div>
+          </div>
+
+          <div>
+            <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Services *
+            </label>
+            <div className="grid max-h-64 grid-cols-1 gap-3 overflow-y-auto rounded-lg border border-gray-200 p-4 sm:grid-cols-2 dark:border-gray-600">
+              {SALON_SERVICES.map(service => {
+                const isSelected = formData.services.some(s => s.id === service.id);
+                const checkboxId = `service-${service.id}`;
+
+                return (
+                  <div
+                    key={service.id}
+                    className={`flex items-center gap-3 rounded-lg border p-3 transition-colors ${
+                      isSelected
+                        ? 'border-accent bg-accent-soft dark:bg-accent-soft'
+                        : 'border-gray-200 hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700'
+                    }`}
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M6 18L18 6M6 6l12 12"
+                    <Checkbox
+                      id={checkboxId}
+                      checked={isSelected}
+                      onCheckedChange={() => handleServiceToggle(service)}
+                      aria-labelledby={`${checkboxId}-label`}
                     />
-                  </svg>
-                </button>
-              </div>
-
-              {error && (
-                <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
-                  {error}
-                </div>
-              )}
-
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Customer Name *
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.customerName}
-                      onChange={e =>
-                        setFormData(prev => ({ ...prev, customerName: e.target.value }))
-                      }
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Customer Email *
-                    </label>
-                    <input
-                      type="email"
-                      value={formData.customerEmail}
-                      onChange={e =>
-                        setFormData(prev => ({ ...prev, customerEmail: e.target.value }))
-                      }
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Date *
-                    </label>
-                    <input
-                      type="date"
-                      value={formData.date}
-                      onChange={e => setFormData(prev => ({ ...prev, date: e.target.value }))}
-                      min={format(new Date(), 'yyyy-MM-dd')}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Time *
-                    </label>
-                    <select
-                      value={formData.time}
-                      onChange={e => setFormData(prev => ({ ...prev, time: e.target.value }))}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                      required
-                    >
-                      <option value="">Select time</option>
-                      {generateTimeSlots().map(slot => (
-                        <option key={slot} value={slot}>
-                          {slot}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Services *
-                  </label>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-64 overflow-y-auto border border-gray-200 dark:border-gray-600 rounded-lg p-4">
-                    {SALON_SERVICES.map(service => {
-                      const isSelected = formData.services.some(s => s.id === service.id);
-                      return (
-                        <label
-                          key={service.id}
-                          className={`flex items-center p-3 rounded-lg border cursor-pointer transition-colors ${
-                            isSelected
-                              ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20'
-                              : 'border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
-                          }`}
-                        >
-                          <input
-                            type="checkbox"
-                            checked={isSelected}
-                            onChange={() => handleServiceToggle(service)}
-                            className="mr-3 h-5 w-5 rounded text-indigo-600 focus:ring-indigo-500"
-                          />
-                          <div className="flex-1">
-                            <h4 className="font-semibold text-gray-900 dark:text-white">
-                              {service.name}
-                            </h4>
-                          </div>
-                        </label>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {formData.services.length > 0 && (
-                  <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
-                    <h3 className="font-semibold text-gray-900 dark:text-white mb-2">
-                      Appointment Summary
-                    </h3>
-                    <div className="space-y-1 text-sm">
-                      <div className="flex justify-between">
-                        <span className="text-gray-600 dark:text-gray-400">Total Duration:</span>
-                        <span className="font-semibold text-gray-900 dark:text-white">
-                          {totalDuration} minutes
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600 dark:text-gray-400">Total Price:</span>
-                        <span className="font-semibold text-gray-900 dark:text-white">
-                          ${totalPrice}
-                        </span>
-                      </div>
+                    <div className="flex-1" id={`${checkboxId}-label`}>
+                      <h4 className="font-semibold text-gray-900 dark:text-white">
+                        {service.name}
+                      </h4>
                     </div>
                   </div>
-                )}
-
-                <div className="flex gap-4 pt-6">
-                  <button
-                    type="button"
-                    onClick={onClose}
-                    className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700 font-semibold"
-                  >
-                    Cancel
-                  </button>
-                  <LoadingButton
-                    type="submit"
-                    disabled={formData.services.length === 0}
-                    loading={isLoading}
-                    loadingText="Updating..."
-                    className="flex-1 px-4 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
-                  >
-                    Update Appointment
-                  </LoadingButton>
-                </div>
-              </form>
+                );
+              })}
             </div>
-          </motion.div>
-        </div>
-      )}
-    </AnimatePresence>
+          </div>
+
+          {formData.services.length > 0 && (
+            <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-600 dark:bg-gray-700">
+              <h3 className="mb-2 font-semibold text-gray-900 dark:text-white">
+                Appointment Summary
+              </h3>
+              <div className="space-y-1 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-gray-600 dark:text-gray-400">Total Duration:</span>
+                  <span className="font-semibold text-gray-900 dark:text-white">
+                    {totalDuration} minutes
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600 dark:text-gray-400">Total Price:</span>
+                  <span className="font-semibold text-gray-900 dark:text-white">${totalPrice}</span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="flex gap-4 pt-6">
+            <Button type="button" variant="soft" className="flex-1" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              className="flex-1"
+              loading={isLoading}
+              disabled={formData.services.length === 0}
+            >
+              Update Appointment
+            </Button>
+          </div>
+        </form>
+      </Dialog.Content>
+    </Dialog.Root>
   );
 }

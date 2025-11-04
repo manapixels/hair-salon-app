@@ -112,7 +112,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
         <button
           onClick={onPreviousMonth}
           disabled={loading}
-          className="w-10 h-10 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-10 h-10 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-accent disabled:opacity-50 disabled:cursor-not-allowed"
           aria-label="Previous month"
         >
           <svg
@@ -134,13 +134,13 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
           <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
             {format(currentMonth, 'MMMM yyyy')}
           </h2>
-          {loading && <LoadingSpinner size="sm" className="text-indigo-600" />}
+          {loading && <LoadingSpinner size="sm" className="text-accent" />}
         </div>
 
         <button
           onClick={onNextMonth}
           disabled={loading}
-          className="w-10 h-10 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-10 h-10 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-accent disabled:opacity-50 disabled:cursor-not-allowed"
           aria-label="Next month"
         >
           <svg
@@ -194,17 +194,17 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
               tabIndex={isSelected ? 0 : -1}
               className={`
                 h-10 w-full rounded-lg flex items-center justify-center text-sm font-medium relative transition-all
-                focus:outline-none focus:ring-2 focus:ring-indigo-500
-                ${isSelected ? 'bg-indigo-600 text-white font-semibold' : ''}
-                ${!isSelected && isTodayDate ? 'ring-2 ring-indigo-400 ring-offset-2' : ''}
-                ${!isSelected && !isDisabled && isCurrentMonth ? 'hover:bg-indigo-50 dark:hover:bg-indigo-900/20 cursor-pointer' : ''}
+                focus:outline-none focus:ring-2 focus:ring-accent
+                ${isSelected ? 'bg-accent font-semibold' : ''}
+                ${!isSelected && isTodayDate ? 'ring-2 ring-accent ring-offset-2' : ''}
+                ${!isSelected && !isDisabled && isCurrentMonth ? 'hover:bg-accent-soft dark:hover:bg-accent-soft cursor-pointer' : ''}
                 ${isDisabled || !isCurrentMonth ? 'text-gray-300 dark:text-gray-700 cursor-not-allowed' : ''}
                 ${!isDisabled && !isSelected && isCurrentMonth ? 'text-gray-900 dark:text-gray-100' : ''}
               `}
             >
               {format(date, 'd')}
               {isAvailable && !isSelected && isCurrentMonth && !isDisabled && (
-                <span className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-indigo-500" />
+                <span className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-accent" />
               )}
             </button>
           );
