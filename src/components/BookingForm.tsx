@@ -7,8 +7,6 @@ import { useBooking } from '@/context/BookingContext';
 import { useAuth } from '@/context/AuthContext';
 import { toZonedTime } from 'date-fns-tz';
 import { format } from 'date-fns';
-import DatePicker from 'react-datepicker';
-import 'react-datepicker/dist/react-datepicker.css';
 import {
   calculateEndTime,
   formatDuration,
@@ -376,22 +374,6 @@ const DateTimePicker: React.FC<{
       <h2 className="text-2xl font-semibold mb-6 text-gray-800 dark:text-gray-200">
         3. Select Date & Time
       </h2>
-
-      {/* Date Picker */}
-      <div className="mb-6 bg-white dark:bg-gray-800 p-4 rounded-xl shadow-lg">
-        <DatePicker
-          selected={selectedDate}
-          onChange={date => date && onDateChange(date)}
-          inline
-          minDate={getTodayInSalonTimezone()}
-          calendarClassName="!bg-transparent dark:!bg-transparent !border-none"
-          dayClassName={() =>
-            'hover:bg-accent-soft dark:hover:bg-accent-soft rounded-full transition-colors'
-          }
-          weekDayClassName={() => 'text-gray-500 dark:text-gray-400 font-semibold'}
-          monthClassName={() => 'text-gray-800 dark:text-gray-200'}
-        />
-      </div>
 
       {/* Time Slots */}
       {showLoader ? (
