@@ -8,6 +8,7 @@ import * as Checkbox from '@radix-ui/react-checkbox';
 import { Button } from '@radix-ui/themes';
 import { TextField } from './ui/TextField';
 import { TextArea } from './ui/TextArea';
+import { LoadingSpinner } from './loaders/LoadingSpinner';
 
 interface StylistManagementProps {
   onClose?: () => void;
@@ -99,7 +100,7 @@ export default function StylistManagement({ onClose }: StylistManagementProps) {
     return (
       <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg">
         <div className="flex items-center justify-center h-64">
-          <div className="text-lg">Loading stylists...</div>
+          <LoadingSpinner size="md" message="Loading stylists..." />
         </div>
       </div>
     );

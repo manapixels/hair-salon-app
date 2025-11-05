@@ -9,6 +9,7 @@ import * as Tabs from '@radix-ui/react-tabs';
 import * as Select from '@radix-ui/react-select';
 import * as Checkbox from '@radix-ui/react-checkbox';
 import { TextField } from './ui/TextField';
+import { LoadingSpinner } from './loaders/LoadingSpinner';
 
 const AdminDashboard: React.FC = () => {
   const {
@@ -24,6 +25,7 @@ const AdminDashboard: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
   const [loading, setLoading] = useState(false);
+  const [appointmentsLoading, setAppointmentsLoading] = useState(true);
   const [weeklySchedule, setWeeklySchedule] = useState(adminSettings.weeklySchedule);
   const [closedDates, setClosedDates] = useState<string[]>(adminSettings.closedDates);
   const [newClosedDate, setNewClosedDate] = useState('');
@@ -56,12 +58,18 @@ const AdminDashboard: React.FC = () => {
   useEffect(() => {
     // FIX: `fetchAndSetAdminSettings` returns `Promise<void>`, so its resolved value cannot be used.
     // This call triggers a context update, and another `useEffect` syncs the local state.
-    fetchAndSetAdminSettings();
-    fetchAndSetAppointments();
-
-    // Initialize previous appointment IDs to prevent false positives on first load
-    const initialIds = new Set(appointments.map(apt => apt.id));
-    setPreviousAppointmentIds(initialIds);
+    const loadInitialData = async () => {
+      setAppointmentsLoading(true);
+      try {
+        await Promise.all([fetchAndSetAdminSettings(), fetchAndSetAppointments()]);
+        // Initialize previous appointment IDs to prevent false positives on first load
+        const initialIds = new Set(appointments.map(apt => apt.id));
+        setPreviousAppointmentIds(initialIds);
+      } finally {
+        setAppointmentsLoading(false);
+      }
+    };
+    loadInitialData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -933,7 +941,11 @@ const AdminDashboard: React.FC = () => {
               </div>
             )}
 
-            {filteredAppointments.length === 0 ? (
+            {appointmentsLoading ? (
+              <div className="bg-gray-50 dark:bg-gray-700 p-6 rounded-lg text-center">
+                <LoadingSpinner size="md" message="Loading appointments..." />
+              </div>
+            ) : filteredAppointments.length === 0 ? (
               <div className="bg-gray-50 dark:bg-gray-700 p-6 rounded-lg text-center">
                 <p className="text-gray-500 dark:text-gray-400">
                   {appointments.length === 0
@@ -1430,7 +1442,11 @@ const AdminDashboard: React.FC = () => {
                 </div>
               </div>
             </div>
-            {filteredAppointments.length === 0 ? (
+            {appointmentsLoading ? (
+              <div className="bg-gray-50 dark:bg-gray-700 p-6 rounded-lg text-center">
+                <LoadingSpinner size="md" message="Loading appointments..." />
+              </div>
+            ) : filteredAppointments.length === 0 ? (
               <div className="bg-gray-50 dark:bg-gray-700 p-6 rounded-lg text-center">
                 <p className="text-gray-500 dark:text-gray-400">
                   {appointments.length === 0
@@ -1646,7 +1662,9 @@ const AdminDashboard: React.FC = () => {
               className="w-full md:w-auto p-2 border rounded-md bg-white dark:bg-gray-600 dark:border-gray-500 mb-4"
             />
             {loading ? (
-              <p>Loading...</p>
+              <div className="flex items-center justify-center p-8">
+                <LoadingSpinner size="md" message="Loading time slots..." />
+              </div>
             ) : (
               <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-3">
                 {timeSlots.map(({ time, available }) => {

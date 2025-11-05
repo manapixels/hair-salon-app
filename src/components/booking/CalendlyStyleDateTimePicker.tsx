@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import { CalendarView } from './CalendarView';
 import { TimeSlotList } from './TimeSlotList';
 import { useCalendar } from '@/hooks/useCalendar';
+import { useDelayedLoading } from '@/hooks/useDelayedLoading';
 import type { TimeSlot, Stylist } from '@/types';
 
 interface CalendlyStyleDateTimePickerProps {
@@ -29,6 +30,7 @@ export default function CalendlyStyleDateTimePicker({
 
   const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
   const [loading, setLoading] = useState(false);
+  const showLoader = useDelayedLoading(loading, { delay: 150, minDuration: 300 });
 
   // Fetch time slots when date or stylist changes
   const fetchTimeSlots = useCallback(async () => {
@@ -79,11 +81,11 @@ export default function CalendlyStyleDateTimePicker({
 
       {/* ARIA Live Region for Screen Readers */}
       <div aria-live="polite" aria-atomic="true" className="sr-only">
-        {loading && 'Loading available time slots'}
-        {!loading &&
+        {showLoader && 'Loading available time slots'}
+        {!showLoader &&
           timeSlots.length === 0 &&
           `No available slots on ${format(selectedDate, 'MMMM d, yyyy')}`}
-        {!loading &&
+        {!showLoader &&
           timeSlots.length > 0 &&
           `${timeSlots.length} time slots available on ${format(selectedDate, 'MMMM d, yyyy')}`}
         {selectedTime && `Time slot ${selectedTime} selected`}
@@ -123,12 +125,12 @@ export default function CalendlyStyleDateTimePicker({
               slots={timeSlots}
               selectedTime={selectedTime}
               onTimeSelect={onTimeSelect}
-              loading={loading}
+              loading={showLoader}
             />
           </div>
 
           {/* Keyboard Hints */}
-          {timeSlots.length > 0 && !loading && (
+          {timeSlots.length > 0 && !showLoader && (
             <p className="text-xs text-gray-500 dark:text-gray-500 mt-3 text-center">
               Use Tab to navigate, Enter to select
             </p>

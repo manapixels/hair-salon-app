@@ -351,6 +351,7 @@ const DateTimePicker: React.FC<{
   const { getAvailableSlots } = useBooking();
   const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
   const [loading, setLoading] = useState(false);
+  const showLoader = useDelayedLoading(loading, { delay: 150, minDuration: 300 });
 
   useEffect(() => {
     const fetchSlots = async () => {
@@ -393,7 +394,7 @@ const DateTimePicker: React.FC<{
       </div>
 
       {/* Time Slots */}
-      {loading ? (
+      {showLoader ? (
         <div className="flex items-center justify-center p-8">
           <LoadingSpinner message="Finding available times..." />
         </div>

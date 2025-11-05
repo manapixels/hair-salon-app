@@ -14,6 +14,7 @@ import {
   combineDateTimeToUTC,
 } from '@/lib/timeUtils';
 import { cn } from '@/lib/utils';
+import { LoadingSpinner } from './loaders/LoadingSpinner';
 
 interface RescheduleModalProps {
   appointment: Appointment;
@@ -205,7 +206,7 @@ export default function RescheduleModal({
 
             {loading ? (
               <div className="py-8 text-center">
-                <p className="text-gray-600 dark:text-gray-400">Loading available times...</p>
+                <LoadingSpinner size="md" message="Loading available times..." />
               </div>
             ) : timeSlots.length === 0 ? (
               <div className="py-8 text-center">
