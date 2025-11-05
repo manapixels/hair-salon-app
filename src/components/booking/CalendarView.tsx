@@ -106,17 +106,17 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
   );
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 sm:p-6">
+    <div className="bg-[var(--color-panel-solid)] rounded-[var(--radius-4)] border border-[var(--gray-6)] p-[var(--space-5)] sm:p-[var(--space-6)]">
       {/* Month Navigation */}
-      <div className="flex items-center justify-between mb-6 px-2">
+      <div className="flex items-center justify-between mb-[var(--space-5)] px-[var(--space-2)]">
         <button
           onClick={onPreviousMonth}
           disabled={loading}
-          className="w-10 h-10 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-accent disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-10 h-10 rounded-[var(--radius-3)] hover:bg-[var(--gray-3)] flex items-center justify-center transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-8)] disabled:opacity-50 disabled:cursor-not-allowed"
           aria-label="Previous month"
         >
           <svg
-            className="w-5 h-5 text-gray-600 dark:text-gray-400"
+            className="w-5 h-5 text-[var(--gray-11)]"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -130,8 +130,8 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
           </svg>
         </button>
 
-        <div className="flex items-center gap-2">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+        <div className="flex items-center gap-[var(--space-2)]">
+          <h2 className="text-[length:var(--font-size-4)] font-semibold text-[var(--gray-12)]">
             {format(currentMonth, 'MMMM yyyy')}
           </h2>
           {loading && <LoadingSpinner size="sm" className="text-accent" />}
@@ -140,11 +140,11 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
         <button
           onClick={onNextMonth}
           disabled={loading}
-          className="w-10 h-10 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-accent disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-10 h-10 rounded-[var(--radius-3)] hover:bg-[var(--gray-3)] flex items-center justify-center transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-8)] disabled:opacity-50 disabled:cursor-not-allowed"
           aria-label="Next month"
         >
           <svg
-            className="w-5 h-5 text-gray-600 dark:text-gray-400"
+            className="w-5 h-5 text-[var(--gray-11)]"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -155,11 +155,11 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
       </div>
 
       {/* Weekday Header */}
-      <div className="grid grid-cols-7 gap-1 mb-2">
+      <div className="grid grid-cols-7 gap-1 mb-[var(--space-2)]">
         {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
           <div
             key={day}
-            className="text-xs font-medium text-gray-600 dark:text-gray-400 text-center py-2 uppercase"
+            className="text-[length:var(--font-size-1)] font-medium text-[var(--gray-11)] text-center py-[var(--space-2)] uppercase tracking-wide"
           >
             {day}
           </div>
@@ -193,13 +193,13 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
               onKeyDown={e => handleKeyDown(e, date)}
               tabIndex={isSelected ? 0 : -1}
               className={`
-                h-10 w-full rounded-lg flex items-center justify-center text-sm font-medium relative transition-all
-                focus:outline-none focus:ring-2 focus:ring-accent
+                h-10 w-full rounded-[var(--radius-2)] flex items-center justify-center text-[length:var(--font-size-2)] font-medium relative transition-all
+                focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-8)]
                 ${isSelected ? 'bg-accent font-semibold' : ''}
-                ${!isSelected && isTodayDate ? 'ring-2 ring-accent ring-offset-2' : ''}
-                ${!isSelected && !isDisabled && isCurrentMonth ? 'hover:bg-accent-soft dark:hover:bg-accent-soft cursor-pointer' : ''}
-                ${isDisabled || !isCurrentMonth ? 'text-gray-300 dark:text-gray-700 cursor-not-allowed' : ''}
-                ${!isDisabled && !isSelected && isCurrentMonth ? 'text-gray-900 dark:text-gray-100' : ''}
+                ${!isSelected && isTodayDate ? 'ring-2 ring-[var(--accent-8)] ring-offset-2 ring-offset-[var(--color-panel-solid)]' : ''}
+                ${!isSelected && !isDisabled && isCurrentMonth ? 'hover:bg-[var(--accent-4)] cursor-pointer' : ''}
+                ${isDisabled || !isCurrentMonth ? 'text-[var(--gray-8)] cursor-not-allowed' : ''}
+                ${!isDisabled && !isSelected && isCurrentMonth ? 'text-[var(--gray-12)]' : ''}
               `}
             >
               {format(date, 'd')}
