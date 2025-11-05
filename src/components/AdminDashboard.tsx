@@ -8,6 +8,7 @@ import { formatDisplayDate } from '@/lib/timeUtils';
 import * as Tabs from '@radix-ui/react-tabs';
 import * as Select from '@radix-ui/react-select';
 import * as Checkbox from '@radix-ui/react-checkbox';
+import * as AlertDialog from '@radix-ui/react-alert-dialog';
 import { TextField } from './ui/TextField';
 import { LoadingSpinner } from './loaders/LoadingSpinner';
 
@@ -54,6 +55,13 @@ const AdminDashboard: React.FC = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
   const [previousAppointmentIds, setPreviousAppointmentIds] = useState<Set<string>>(new Set());
+
+  // AlertDialog states
+  const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
+  const [appointmentToCancel, setAppointmentToCancel] = useState<Appointment | null>(null);
+  const [noShowDialogOpen, setNoShowDialogOpen] = useState(false);
+  const [appointmentForNoShow, setAppointmentForNoShow] = useState<Appointment | null>(null);
+  const [bulkCancelDialogOpen, setBulkCancelDialogOpen] = useState(false);
 
   useEffect(() => {
     // FIX: `fetchAndSetAdminSettings` returns `Promise<void>`, so its resolved value cannot be used.
@@ -169,112 +177,82 @@ const AdminDashboard: React.FC = () => {
     setEditModalOpen(true);
   };
 
-  const handleCancelAppointment = async (appointment: Appointment) => {
-    toast.custom(
-      (t: string | number) => (
-        <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700">
-          <div className="flex flex-col gap-3">
-            <p className="font-medium text-gray-900 dark:text-white">
-              Are you sure you want to cancel the appointment for {appointment.customerName}?
-            </p>
-            <div className="flex gap-2">
-              <button
-                onClick={async () => {
-                  toast.dismiss(t);
-                  const toastId = toast.loading('Cancelling appointment...');
-                  try {
-                    const response = await fetch('/api/appointments/cancel', {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({
-                        customerEmail: appointment.customerEmail,
-                        date: appointment.date.toISOString().split('T')[0],
-                        time: appointment.time,
-                      }),
-                    });
-
-                    if (!response.ok) {
-                      throw new Error('Failed to cancel appointment');
-                    }
-
-                    await fetchAndSetAppointments();
-                    toast.success('Appointment cancelled successfully', { id: toastId });
-                  } catch (error) {
-                    toast.error('Failed to cancel appointment', { id: toastId });
-                    console.error('Error cancelling appointment:', error);
-                  }
-                }}
-                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
-              >
-                Yes
-              </button>
-              <button
-                onClick={() => toast.dismiss(t)}
-                className="px-4 py-2 bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-white rounded hover:bg-gray-400 dark:hover:bg-gray-500 transition-colors"
-              >
-                No
-              </button>
-            </div>
-          </div>
-        </div>
-      ),
-      { duration: Infinity },
-    );
+  const handleCancelAppointment = (appointment: Appointment) => {
+    setAppointmentToCancel(appointment);
+    setCancelDialogOpen(true);
   };
 
-  const handleMarkNoShow = async (appointment: Appointment) => {
-    toast.custom(
-      (t: string | number) => (
-        <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700">
-          <div className="flex flex-col gap-3">
-            <p className="font-medium text-gray-900 dark:text-white">
-              Mark {appointment.customerName} as no-show?
-            </p>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              This will reverse their visit stats and exclude them from retention campaigns.
-            </p>
-            <div className="flex gap-2">
-              <button
-                onClick={async () => {
-                  toast.dismiss(t);
-                  const toastId = toast.loading('Marking as no-show...');
-                  try {
-                    const response = await fetch('/api/appointments/mark-no-show', {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({
-                        appointmentId: appointment.id,
-                      }),
-                    });
+  const confirmCancelAppointment = async () => {
+    if (!appointmentToCancel) return;
 
-                    if (!response.ok) {
-                      const error = await response.json();
-                      throw new Error(error.message || 'Failed to mark as no-show');
-                    }
+    const toastId = toast.loading('Cancelling appointment...');
+    try {
+      const response = await fetch('/api/appointments/cancel', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          customerEmail: appointmentToCancel.customerEmail,
+          date: appointmentToCancel.date.toISOString().split('T')[0],
+          time: appointmentToCancel.time,
+        }),
+      });
 
-                    await fetchAndSetAppointments();
-                    toast.success('Marked as no-show successfully', { id: toastId });
-                  } catch (error) {
-                    toast.error('Failed to mark as no-show', { id: toastId });
-                    console.error('Error marking as no-show:', error);
-                  }
-                }}
-                className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors"
-              >
-                Yes, Mark No-Show
-              </button>
-              <button
-                onClick={() => toast.dismiss(t)}
-                className="px-4 py-2 bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-white rounded hover:bg-gray-400 dark:hover:bg-gray-500 transition-colors"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      ),
-      { duration: Infinity },
-    );
+      if (!response.ok) {
+        throw new Error('Failed to cancel appointment');
+      }
+
+      await fetchAndSetAppointments();
+      toast.success('Appointment cancelled successfully', { id: toastId });
+    } catch (error) {
+      toast.error('Failed to cancel appointment', { id: toastId });
+      console.error('Error cancelling appointment:', error);
+    } finally {
+      setCancelDialogOpen(false);
+      setAppointmentToCancel(null);
+    }
+  };
+
+  const handleMarkNoShow = (appointment: Appointment) => {
+    setAppointmentForNoShow(appointment);
+    setNoShowDialogOpen(true);
+  };
+
+  const confirmMarkNoShow = async () => {
+    if (!appointmentForNoShow) return;
+
+    const toastId = toast.loading('Marking as no-show...');
+    try {
+      const response = await fetch('/api/appointments/mark-no-show', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          appointmentId: appointmentForNoShow.id,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to mark as no-show');
+      }
+
+      await fetchAndSetAppointments();
+      toast.success('Marked as no-show successfully', { id: toastId });
+    } catch (error) {
+      toast.error('Failed to mark as no-show', { id: toastId });
+      console.error('Error marking as no-show:', error);
+    } finally {
+      setNoShowDialogOpen(false);
+      setAppointmentForNoShow(null);
+    }
+  };
+
+  const confirmBulkCancel = () => {
+    // Bulk cancel logic would go here
+    console.log('Bulk cancel:', Array.from(selectedAppointments));
+    const count = selectedAppointments.size;
+    setSelectedAppointments(new Set());
+    setBulkCancelDialogOpen(false);
+    toast.success(`${count} appointment${count > 1 ? 's' : ''} cancelled`);
   };
 
   const handleSaveAppointment = async (updatedData: Partial<Appointment>) => {
@@ -888,43 +866,7 @@ const AdminDashboard: React.FC = () => {
                   </div>
                   <div className="flex items-center space-x-2">
                     <button
-                      onClick={() => {
-                        toast.custom(
-                          (t: string | number) => (
-                            <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700">
-                              <div className="flex flex-col gap-3">
-                                <p className="font-medium text-gray-900 dark:text-white">
-                                  Are you sure you want to cancel {selectedAppointments.size}{' '}
-                                  appointment{selectedAppointments.size > 1 ? 's' : ''}?
-                                </p>
-                                <div className="flex gap-2">
-                                  <button
-                                    onClick={() => {
-                                      toast.dismiss(t);
-                                      // Bulk cancel logic would go here
-                                      console.log('Bulk cancel:', Array.from(selectedAppointments));
-                                      setSelectedAppointments(new Set());
-                                      toast.success(
-                                        `${selectedAppointments.size} appointment${selectedAppointments.size > 1 ? 's' : ''} cancelled`,
-                                      );
-                                    }}
-                                    className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
-                                  >
-                                    Yes
-                                  </button>
-                                  <button
-                                    onClick={() => toast.dismiss(t)}
-                                    className="px-4 py-2 bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-white rounded hover:bg-gray-400 dark:hover:bg-gray-500 transition-colors"
-                                  >
-                                    No
-                                  </button>
-                                </div>
-                              </div>
-                            </div>
-                          ),
-                          { duration: Infinity },
-                        );
-                      }}
+                      onClick={() => setBulkCancelDialogOpen(true)}
                       className="px-3 py-1 text-sm bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
                     >
                       <i className="fas fa-trash mr-1"></i>
@@ -1487,12 +1429,27 @@ const AdminDashboard: React.FC = () => {
                           className={`hover:bg-gray-50 dark:hover:bg-gray-600 ${selectedAppointments.has(appointment.id) ? 'bg-yellow-50 dark:bg-yellow-900/20' : ''}`}
                         >
                           <td className="px-6 py-4 whitespace-nowrap">
-                            <input
-                              type="checkbox"
+                            <Checkbox.Root
                               checked={selectedAppointments.has(appointment.id)}
-                              onChange={() => handleSelectAppointment(appointment.id)}
-                              className="rounded border-gray-300 text-yellow-600 focus:ring-yellow-500"
-                            />
+                              onCheckedChange={() => handleSelectAppointment(appointment.id)}
+                              className="flex items-center justify-center w-5 h-5 rounded-[var(--radius-1)] border border-[var(--gray-7)] bg-[var(--color-surface)] hover:border-[var(--gray-8)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-8)] data-[state=checked]:bg-accent data-[state=checked]:border-[var(--accent-9)]"
+                            >
+                              <Checkbox.Indicator>
+                                <svg
+                                  className="w-4 h-4 text-white"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={3}
+                                    d="M5 13l4 4L19 7"
+                                  />
+                                </svg>
+                              </Checkbox.Indicator>
+                            </Checkbox.Root>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="flex items-center space-x-2">
@@ -1718,6 +1675,101 @@ const AdminDashboard: React.FC = () => {
         appointment={selectedAppointment}
         onSave={handleSaveAppointment}
       />
+
+      {/* Cancel Appointment Dialog */}
+      <AlertDialog.Root open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
+        <AlertDialog.Portal>
+          <AlertDialog.Overlay className="fixed inset-0 bg-black/50 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
+          <AlertDialog.Content className="fixed left-[50%] top-[50%] max-h-[85vh] w-[90vw] max-w-[500px] translate-x-[-50%] translate-y-[-50%] rounded-lg bg-white dark:bg-gray-800 p-6 shadow-lg border border-gray-200 dark:border-gray-700 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%]">
+            <AlertDialog.Title className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+              Cancel Appointment
+            </AlertDialog.Title>
+            <AlertDialog.Description className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+              Are you sure you want to cancel the appointment for{' '}
+              {appointmentToCancel?.customerName}?
+            </AlertDialog.Description>
+            <div className="flex gap-3 justify-end">
+              <AlertDialog.Cancel asChild>
+                <button className="px-4 py-2 text-sm bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">
+                  No
+                </button>
+              </AlertDialog.Cancel>
+              <AlertDialog.Action asChild>
+                <button
+                  onClick={confirmCancelAppointment}
+                  className="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                >
+                  Yes, Cancel
+                </button>
+              </AlertDialog.Action>
+            </div>
+          </AlertDialog.Content>
+        </AlertDialog.Portal>
+      </AlertDialog.Root>
+
+      {/* No-Show Dialog */}
+      <AlertDialog.Root open={noShowDialogOpen} onOpenChange={setNoShowDialogOpen}>
+        <AlertDialog.Portal>
+          <AlertDialog.Overlay className="fixed inset-0 bg-black/50 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
+          <AlertDialog.Content className="fixed left-[50%] top-[50%] max-h-[85vh] w-[90vw] max-w-[500px] translate-x-[-50%] translate-y-[-50%] rounded-lg bg-white dark:bg-gray-800 p-6 shadow-lg border border-gray-200 dark:border-gray-700 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%]">
+            <AlertDialog.Title className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+              Mark as No-Show
+            </AlertDialog.Title>
+            <AlertDialog.Description className="text-sm text-gray-600 dark:text-gray-400 mb-1">
+              Mark {appointmentForNoShow?.customerName} as no-show?
+            </AlertDialog.Description>
+            <p className="text-xs text-gray-500 dark:text-gray-500 mb-4">
+              This will reverse their visit stats and exclude them from retention campaigns.
+            </p>
+            <div className="flex gap-3 justify-end">
+              <AlertDialog.Cancel asChild>
+                <button className="px-4 py-2 text-sm bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">
+                  Cancel
+                </button>
+              </AlertDialog.Cancel>
+              <AlertDialog.Action asChild>
+                <button
+                  onClick={confirmMarkNoShow}
+                  className="px-4 py-2 text-sm bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+                >
+                  Yes, Mark No-Show
+                </button>
+              </AlertDialog.Action>
+            </div>
+          </AlertDialog.Content>
+        </AlertDialog.Portal>
+      </AlertDialog.Root>
+
+      {/* Bulk Cancel Dialog */}
+      <AlertDialog.Root open={bulkCancelDialogOpen} onOpenChange={setBulkCancelDialogOpen}>
+        <AlertDialog.Portal>
+          <AlertDialog.Overlay className="fixed inset-0 bg-black/50 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
+          <AlertDialog.Content className="fixed left-[50%] top-[50%] max-h-[85vh] w-[90vw] max-w-[500px] translate-x-[-50%] translate-y-[-50%] rounded-lg bg-white dark:bg-gray-800 p-6 shadow-lg border border-gray-200 dark:border-gray-700 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%]">
+            <AlertDialog.Title className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+              Cancel Multiple Appointments
+            </AlertDialog.Title>
+            <AlertDialog.Description className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+              Are you sure you want to cancel {selectedAppointments.size} appointment
+              {selectedAppointments.size > 1 ? 's' : ''}?
+            </AlertDialog.Description>
+            <div className="flex gap-3 justify-end">
+              <AlertDialog.Cancel asChild>
+                <button className="px-4 py-2 text-sm bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">
+                  No
+                </button>
+              </AlertDialog.Cancel>
+              <AlertDialog.Action asChild>
+                <button
+                  onClick={confirmBulkCancel}
+                  className="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                >
+                  Yes, Cancel All
+                </button>
+              </AlertDialog.Action>
+            </div>
+          </AlertDialog.Content>
+        </AlertDialog.Portal>
+      </AlertDialog.Root>
     </div>
   );
 };

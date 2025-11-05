@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { toast } from 'sonner';
+import * as AlertDialog from '@radix-ui/react-alert-dialog';
 
 interface ReminderResult {
   appointmentId: string;
@@ -23,6 +24,9 @@ export default function ReminderTesting() {
   const [loading, setLoading] = useState(false);
   const [testResult, setTestResult] = useState<ReminderTestResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  // AlertDialog state
+  const [sendDialogOpen, setSendDialogOpen] = useState(false);
 
   const handleTestMessageFormat = async () => {
     setLoading(true);
@@ -87,68 +91,51 @@ export default function ReminderTesting() {
     }
   };
 
-  const handleSendTestReminders = async () => {
-    toast.custom(
-      (t: string | number) => (
-        <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700">
-          <div className="flex flex-col gap-3">
-            <p className="font-medium text-gray-900 dark:text-white">
-              This will send actual reminder messages to customers. Are you sure?
-            </p>
-            <div className="flex gap-2">
-              <button
-                onClick={async () => {
-                  toast.dismiss(t);
-                  setLoading(true);
-                  setError(null);
-                  setTestResult(null);
-                  const toastId = toast.loading('Sending reminders...');
+  const handleSendTestReminders = () => {
+    setSendDialogOpen(true);
+  };
 
-                  try {
-                    const response = await fetch('/api/reminders/send', {
-                      method: 'POST',
-                      headers: {
-                        'Content-Type': 'application/json',
-                      },
-                    });
+  const confirmSendReminders = async () => {
+    setSendDialogOpen(false);
+    setLoading(true);
+    setError(null);
+    setTestResult(null);
+    const toastId = toast.loading('Sending reminders...');
 
-                    const data = await response.json();
+    try {
+      const response = await fetch('/api/reminders/send', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
 
-                    if (response.ok) {
-                      setTestResult(data);
-                      toast.success(
-                        `Reminders sent successfully! ${data.successful || 0} sent, ${data.failed || 0} failed`,
-                        { id: toastId },
-                      );
-                    } else {
-                      const errorMsg = data.error || 'Failed to send reminders';
-                      setError(errorMsg);
-                      toast.error(errorMsg, { id: toastId });
-                    }
-                  } catch (err) {
-                    const errorMsg = err instanceof Error ? err.message : 'Unknown error occurred';
-                    setError(errorMsg);
-                    toast.error(errorMsg, { id: toastId });
-                  } finally {
-                    setLoading(false);
-                  }
-                }}
-                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
-              >
-                Yes
-              </button>
-              <button
-                onClick={() => toast.dismiss(t)}
-                className="px-4 py-2 bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-white rounded hover:bg-gray-400 dark:hover:bg-gray-500 transition-colors"
-              >
-                No
-              </button>
-            </div>
-          </div>
-        </div>
-      ),
-      { duration: Infinity },
-    );
+      const data = await response.json();
+
+      if (response.ok) {
+        setTestResult(data);
+        toast.success(
+          `Reminders sent successfully! ${data.successful || 0} sent, ${data.failed || 0} failed`,
+          { id: toastId },
+        );
+      } else {
+        const errorMsg = data.error || 'Failed to send reminders';
+        setError(errorMsg);
+        toast.error(errorMsg, { id: toastId });
+      }
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : 'Unknown error occurred';
+      setError(errorMsg);
+      toast.error(errorMsg, { id: toastId });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleViewRaw = () => {
+    if (testResult?.formattedMessage) {
+      console.log('Raw reminder message:', testResult.formattedMessage);
+    }
   };
 
   return (
@@ -310,6 +297,36 @@ export default function ReminderTesting() {
           </div>
         )}
       </div>
+
+      {/* Send Reminders Confirmation Dialog */}
+      <AlertDialog.Root open={sendDialogOpen} onOpenChange={setSendDialogOpen}>
+        <AlertDialog.Portal>
+          <AlertDialog.Overlay className="fixed inset-0 bg-black/50 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
+          <AlertDialog.Content className="fixed left-[50%] top-[50%] max-h-[85vh] w-[90vw] max-w-[500px] translate-x-[-50%] translate-y-[-50%] rounded-lg bg-white dark:bg-gray-800 p-6 shadow-lg border border-gray-200 dark:border-gray-700 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%]">
+            <AlertDialog.Title className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+              Send Test Reminders
+            </AlertDialog.Title>
+            <AlertDialog.Description className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+              This will send actual reminder messages to customers. Are you sure?
+            </AlertDialog.Description>
+            <div className="flex gap-3 justify-end">
+              <AlertDialog.Cancel asChild>
+                <button className="px-4 py-2 text-sm bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">
+                  No
+                </button>
+              </AlertDialog.Cancel>
+              <AlertDialog.Action asChild>
+                <button
+                  onClick={confirmSendReminders}
+                  className="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                >
+                  Yes, Send
+                </button>
+              </AlertDialog.Action>
+            </div>
+          </AlertDialog.Content>
+        </AlertDialog.Portal>
+      </AlertDialog.Root>
     </div>
   );
 }

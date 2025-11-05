@@ -5,6 +5,7 @@ import type { Stylist, Service } from '../types';
 import { SALON_SERVICES } from '../constants';
 import * as Dialog from '@radix-ui/react-dialog';
 import * as Checkbox from '@radix-ui/react-checkbox';
+import * as AlertDialog from '@radix-ui/react-alert-dialog';
 import { Button } from '@radix-ui/themes';
 import { TextField } from './ui/TextField';
 import { TextArea } from './ui/TextArea';
@@ -19,6 +20,10 @@ export default function StylistManagement({ onClose }: StylistManagementProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingStylist, setEditingStylist] = useState<Stylist | null>(null);
+
+  // AlertDialog states
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [stylistToDeleteId, setStylistToDeleteId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchStylists();
@@ -49,51 +54,33 @@ export default function StylistManagement({ onClose }: StylistManagementProps) {
     }
   };
 
-  const handleDeleteStylist = async (stylistId: string) => {
-    toast.custom(
-      (t: string | number) => (
-        <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700">
-          <div className="flex flex-col gap-3">
-            <p className="font-medium text-gray-900 dark:text-white">
-              Are you sure you want to delete this stylist?
-            </p>
-            <div className="flex gap-2">
-              <button
-                onClick={async () => {
-                  toast.dismiss(t);
-                  const toastId = toast.loading('Deleting stylist...');
-                  try {
-                    const response = await fetch(`/api/stylists/${stylistId}`, {
-                      method: 'DELETE',
-                    });
+  const handleDeleteStylist = (stylistId: string) => {
+    setStylistToDeleteId(stylistId);
+    setDeleteDialogOpen(true);
+  };
 
-                    if (response.ok) {
-                      await fetchStylists();
-                      toast.success('Stylist deleted successfully', { id: toastId });
-                    } else {
-                      toast.error('Failed to delete stylist', { id: toastId });
-                    }
-                  } catch (error) {
-                    toast.error('Failed to delete stylist', { id: toastId });
-                    console.error('Error deleting stylist:', error);
-                  }
-                }}
-                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
-              >
-                Yes
-              </button>
-              <button
-                onClick={() => toast.dismiss(t)}
-                className="px-4 py-2 bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-white rounded hover:bg-gray-400 dark:hover:bg-gray-500 transition-colors"
-              >
-                No
-              </button>
-            </div>
-          </div>
-        </div>
-      ),
-      { duration: Infinity },
-    );
+  const confirmDeleteStylist = async () => {
+    if (!stylistToDeleteId) return;
+
+    const toastId = toast.loading('Deleting stylist...');
+    try {
+      const response = await fetch(`/api/stylists/${stylistToDeleteId}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        await fetchStylists();
+        toast.success('Stylist deleted successfully', { id: toastId });
+      } else {
+        toast.error('Failed to delete stylist', { id: toastId });
+      }
+    } catch (error) {
+      toast.error('Failed to delete stylist', { id: toastId });
+      console.error('Error deleting stylist:', error);
+    } finally {
+      setDeleteDialogOpen(false);
+      setStylistToDeleteId(null);
+    }
   };
 
   if (isLoading) {
@@ -107,139 +94,172 @@ export default function StylistManagement({ onClose }: StylistManagementProps) {
   }
 
   return (
-    <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Stylist Management</h2>
-        <div className="flex space-x-3">
-          <button
-            onClick={() => setShowAddModal(true)}
-            className="bg-yellow-600 text-white px-4 py-2 rounded-md hover:bg-yellow-700 transition-colors"
-          >
-            <i className="fas fa-plus mr-2"></i>
-            Add Stylist
-          </button>
-          {onClose && (
+    <>
+      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Stylist Management</h2>
+          <div className="flex space-x-3">
             <button
-              onClick={onClose}
-              className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+              onClick={() => setShowAddModal(true)}
+              className="bg-yellow-600 text-white px-4 py-2 rounded-md hover:bg-yellow-700 transition-colors"
             >
-              <i className="fas fa-times text-xl"></i>
+              <i className="fas fa-plus mr-2"></i>
+              Add Stylist
             </button>
-          )}
+            {onClose && (
+              <button
+                onClick={onClose}
+                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+              >
+                <i className="fas fa-times text-xl"></i>
+              </button>
+            )}
+          </div>
         </div>
-      </div>
 
-      {stylists.length === 0 ? (
-        <div className="bg-gray-50 dark:bg-gray-700 p-8 rounded-lg text-center">
-          <i className="fas fa-users text-4xl text-gray-400 mb-4"></i>
-          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-            No stylists yet
-          </h3>
-          <p className="text-gray-600 dark:text-gray-400 mb-4">
-            Add your first stylist to start managing appointments by staff.
-          </p>
-          <button
-            onClick={() => setShowAddModal(true)}
-            className="bg-yellow-600 text-white px-4 py-2 rounded-md hover:bg-yellow-700 transition-colors"
-          >
-            Add First Stylist
-          </button>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {stylists.map(stylist => (
-            <div
-              key={stylist.id}
-              className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg border border-gray-200 dark:border-gray-600"
+        {stylists.length === 0 ? (
+          <div className="bg-gray-50 dark:bg-gray-700 p-8 rounded-lg text-center">
+            <i className="fas fa-users text-4xl text-gray-400 mb-4"></i>
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+              No stylists yet
+            </h3>
+            <p className="text-gray-600 dark:text-gray-400 mb-4">
+              Add your first stylist to start managing appointments by staff.
+            </p>
+            <button
+              onClick={() => setShowAddModal(true)}
+              className="bg-yellow-600 text-white px-4 py-2 rounded-md hover:bg-yellow-700 transition-colors"
             >
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex items-center">
-                  {stylist.avatar ? (
-                    <Image
-                      src={stylist.avatar}
-                      alt={stylist.name}
-                      width={48}
-                      height={48}
-                      className="w-12 h-12 rounded-full mr-3"
-                    />
-                  ) : (
-                    <div className="w-12 h-12 bg-gray-300 dark:bg-gray-600 rounded-full flex items-center justify-center mr-3">
-                      <i className="fas fa-user text-gray-600 dark:text-gray-400"></i>
+              Add First Stylist
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {stylists.map(stylist => (
+              <div
+                key={stylist.id}
+                className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg border border-gray-200 dark:border-gray-600"
+              >
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-center">
+                    {stylist.avatar ? (
+                      <Image
+                        src={stylist.avatar}
+                        alt={stylist.name}
+                        width={48}
+                        height={48}
+                        className="w-12 h-12 rounded-full mr-3"
+                      />
+                    ) : (
+                      <div className="w-12 h-12 bg-gray-300 dark:bg-gray-600 rounded-full flex items-center justify-center mr-3">
+                        <i className="fas fa-user text-gray-600 dark:text-gray-400"></i>
+                      </div>
+                    )}
+                    <div>
+                      <h3 className="font-semibold text-gray-900 dark:text-white">
+                        {stylist.name}
+                      </h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">{stylist.email}</p>
                     </div>
-                  )}
-                  <div>
-                    <h3 className="font-semibold text-gray-900 dark:text-white">{stylist.name}</h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">{stylist.email}</p>
+                  </div>
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={() => setEditingStylist(stylist)}
+                      className="text-yellow-600 hover:text-yellow-700"
+                      title="Edit stylist"
+                    >
+                      <i className="fas fa-edit"></i>
+                    </button>
+                    <button
+                      onClick={() => handleDeleteStylist(stylist.id)}
+                      className="text-red-600 hover:text-red-700"
+                      title="Delete stylist"
+                    >
+                      <i className="fas fa-trash"></i>
+                    </button>
                   </div>
                 </div>
-                <div className="flex space-x-2">
-                  <button
-                    onClick={() => setEditingStylist(stylist)}
-                    className="text-yellow-600 hover:text-yellow-700"
-                    title="Edit stylist"
-                  >
-                    <i className="fas fa-edit"></i>
-                  </button>
-                  <button
-                    onClick={() => handleDeleteStylist(stylist.id)}
-                    className="text-red-600 hover:text-red-700"
-                    title="Delete stylist"
-                  >
-                    <i className="fas fa-trash"></i>
-                  </button>
+
+                {stylist.bio && (
+                  <p className="text-sm text-gray-700 dark:text-gray-300 mb-3">{stylist.bio}</p>
+                )}
+
+                <div className="mb-3">
+                  <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-1">
+                    Specialties:
+                  </h4>
+                  <div className="flex flex-wrap gap-1">
+                    {stylist.specialties.map(service => (
+                      <span
+                        key={service.id}
+                        className="inline-block bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 text-xs px-2 py-1 rounded"
+                      >
+                        {service.name}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="text-xs text-gray-600 dark:text-gray-400">
+                  <div className="grid grid-cols-2 gap-1">
+                    {Object.entries(stylist.workingHours).map(([day, hours]) => (
+                      <div key={day} className="flex justify-between">
+                        <span className="capitalize">{day.slice(0, 3)}:</span>
+                        <span>{hours.isWorking ? `${hours.start}-${hours.end}` : 'Off'}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
+            ))}
+          </div>
+        )}
 
-              {stylist.bio && (
-                <p className="text-sm text-gray-700 dark:text-gray-300 mb-3">{stylist.bio}</p>
-              )}
+        {/* Add/Edit Stylist Modal */}
+        <StylistModal
+          isOpen={showAddModal || !!editingStylist}
+          onClose={() => {
+            setShowAddModal(false);
+            setEditingStylist(null);
+          }}
+          stylist={editingStylist}
+          onSave={async () => {
+            await fetchStylists();
+            setShowAddModal(false);
+            setEditingStylist(null);
+          }}
+        />
+      </div>
 
-              <div className="mb-3">
-                <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-1">
-                  Specialties:
-                </h4>
-                <div className="flex flex-wrap gap-1">
-                  {stylist.specialties.map(service => (
-                    <span
-                      key={service.id}
-                      className="inline-block bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 text-xs px-2 py-1 rounded"
-                    >
-                      {service.name}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              <div className="text-xs text-gray-600 dark:text-gray-400">
-                <div className="grid grid-cols-2 gap-1">
-                  {Object.entries(stylist.workingHours).map(([day, hours]) => (
-                    <div key={day} className="flex justify-between">
-                      <span className="capitalize">{day.slice(0, 3)}:</span>
-                      <span>{hours.isWorking ? `${hours.start}-${hours.end}` : 'Off'}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
+      <AlertDialog.Root open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialog.Portal>
+          <AlertDialog.Overlay className="fixed inset-0 bg-black/50 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 z-50" />
+          <AlertDialog.Content className="fixed left-[50%] top-[50%] max-h-[85vh] w-[90vw] max-w-[500px] translate-x-[-50%] translate-y-[-50%] rounded-lg bg-white dark:bg-gray-800 p-6 shadow-lg border border-gray-200 dark:border-gray-700 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] z-50">
+            <AlertDialog.Title className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+              Delete Stylist
+            </AlertDialog.Title>
+            <AlertDialog.Description className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+              Are you sure you want to delete this stylist? This action cannot be undone.
+            </AlertDialog.Description>
+            <div className="flex gap-3 justify-end">
+              <AlertDialog.Cancel asChild>
+                <button className="px-4 py-2 text-sm bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">
+                  No
+                </button>
+              </AlertDialog.Cancel>
+              <AlertDialog.Action asChild>
+                <button
+                  onClick={confirmDeleteStylist}
+                  className="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                >
+                  Yes, Delete
+                </button>
+              </AlertDialog.Action>
             </div>
-          ))}
-        </div>
-      )}
-
-      {/* Add/Edit Stylist Modal */}
-      <StylistModal
-        isOpen={showAddModal || !!editingStylist}
-        onClose={() => {
-          setShowAddModal(false);
-          setEditingStylist(null);
-        }}
-        stylist={editingStylist}
-        onSave={async () => {
-          await fetchStylists();
-          setShowAddModal(false);
-          setEditingStylist(null);
-        }}
-      />
-    </div>
+          </AlertDialog.Content>
+        </AlertDialog.Portal>
+      </AlertDialog.Root>
+    </>
   );
 }
 
