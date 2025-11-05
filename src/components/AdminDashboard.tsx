@@ -5,6 +5,10 @@ import type { TimeSlot, Appointment } from '../types';
 import EditAppointmentModal from './EditAppointmentModal';
 import StylistManagement from './StylistManagement';
 import { formatDisplayDate } from '@/lib/timeUtils';
+import * as Tabs from '@radix-ui/react-tabs';
+import * as Select from '@radix-ui/react-select';
+import * as Checkbox from '@radix-ui/react-checkbox';
+import { TextField } from './ui/TextField';
 
 const AdminDashboard: React.FC = () => {
   const {
@@ -561,43 +565,33 @@ const AdminDashboard: React.FC = () => {
       </div>
 
       {/* Tab Navigation */}
-      <div className="border-b border-gray-200 dark:border-gray-700 mb-8">
-        <nav className="-mb-px flex space-x-8">
-          <button
-            onClick={() => setActiveTab('appointments')}
-            className={`py-3 px-2 border-b-2 font-semibold text-base transition-colors ${
-              activeTab === 'appointments'
-                ? 'border-accent text-accent dark:text-accent'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
-            }`}
+      <Tabs.Root
+        value={activeTab}
+        onValueChange={value => setActiveTab(value as typeof activeTab)}
+        className="mb-[var(--space-8)]"
+      >
+        <Tabs.List className="flex gap-[var(--space-6)] border-b border-[var(--gray-6)]">
+          <Tabs.Trigger
+            value="appointments"
+            className="px-[var(--space-2)] py-[var(--space-3)] text-[length:var(--font-size-3)] font-semibold border-b-2 border-transparent data-[state=active]:border-[var(--accent-9)] data-[state=active]:text-[var(--accent-11)] text-[var(--gray-11)] hover:text-[var(--gray-12)] transition-colors"
           >
             Appointments
-          </button>
-          <button
-            onClick={() => setActiveTab('stylists')}
-            className={`py-3 px-2 border-b-2 font-semibold text-base transition-colors ${
-              activeTab === 'stylists'
-                ? 'border-accent text-accent dark:text-accent'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
-            }`}
+          </Tabs.Trigger>
+          <Tabs.Trigger
+            value="stylists"
+            className="px-[var(--space-2)] py-[var(--space-3)] text-[length:var(--font-size-3)] font-semibold border-b-2 border-transparent data-[state=active]:border-[var(--accent-9)] data-[state=active]:text-[var(--accent-11)] text-[var(--gray-11)] hover:text-[var(--gray-12)] transition-colors"
           >
             Stylists
-          </button>
-          <button
-            onClick={() => setActiveTab('availability')}
-            className={`py-3 px-2 border-b-2 font-semibold text-base transition-colors ${
-              activeTab === 'availability'
-                ? 'border-accent text-accent dark:text-accent'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
-            }`}
+          </Tabs.Trigger>
+          <Tabs.Trigger
+            value="availability"
+            className="px-[var(--space-2)] py-[var(--space-3)] text-[length:var(--font-size-3)] font-semibold border-b-2 border-transparent data-[state=active]:border-[var(--accent-9)] data-[state=active]:text-[var(--accent-11)] text-[var(--gray-11)] hover:text-[var(--gray-12)] transition-colors"
           >
             Availability & Settings
-          </button>
-        </nav>
-      </div>
+          </Tabs.Trigger>
+        </Tabs.List>
 
-      {activeTab === 'appointments' && (
-        <div>
+        <Tabs.Content value="appointments">
           {/* Appointments Management Section */}
           <div className="mb-8">
             <div className="flex justify-between items-center mb-4">
@@ -624,20 +618,65 @@ const AdminDashboard: React.FC = () => {
                   </button>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <label className="text-sm text-gray-600 dark:text-gray-400">Per page:</label>
-                  <select
-                    value={itemsPerPage}
-                    onChange={e => {
-                      setItemsPerPage(Number(e.target.value));
+                  <label className="text-[length:var(--font-size-2)] text-[var(--gray-11)]">
+                    Per page:
+                  </label>
+                  <Select.Root
+                    value={itemsPerPage.toString()}
+                    onValueChange={value => {
+                      setItemsPerPage(Number(value));
                       setCurrentPage(1);
                     }}
-                    className="px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-yellow-500 focus:border-yellow-500 dark:bg-gray-600 dark:border-gray-500 dark:text-white"
                   >
-                    <option value={10}>10</option>
-                    <option value={25}>25</option>
-                    <option value={50}>50</option>
-                    <option value={100}>100</option>
-                  </select>
+                    <Select.Trigger className="inline-flex items-center justify-between gap-[var(--space-2)] px-[var(--space-3)] py-[var(--space-2)] rounded-[var(--radius-2)] border border-[var(--gray-7)] bg-[var(--color-surface)] text-[length:var(--font-size-2)] text-[var(--gray-12)] hover:border-[var(--gray-8)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-8)] min-w-[70px]">
+                      <Select.Value />
+                      <Select.Icon>
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M19 9l-7 7-7-7"
+                          />
+                        </svg>
+                      </Select.Icon>
+                    </Select.Trigger>
+                    <Select.Portal>
+                      <Select.Content className="overflow-hidden bg-[var(--color-panel-solid)] rounded-[var(--radius-2)] border border-[var(--gray-6)] shadow-lg">
+                        <Select.Viewport className="p-[var(--space-1)]">
+                          <Select.Item
+                            value="10"
+                            className="relative flex items-center px-[var(--space-3)] py-[var(--space-2)] rounded-[var(--radius-1)] text-[length:var(--font-size-2)] text-[var(--gray-12)] hover:bg-[var(--accent-4)] focus:bg-[var(--accent-4)] outline-none cursor-pointer data-[highlighted]:bg-[var(--accent-4)]"
+                          >
+                            <Select.ItemText>10</Select.ItemText>
+                          </Select.Item>
+                          <Select.Item
+                            value="25"
+                            className="relative flex items-center px-[var(--space-3)] py-[var(--space-2)] rounded-[var(--radius-1)] text-[length:var(--font-size-2)] text-[var(--gray-12)] hover:bg-[var(--accent-4)] focus:bg-[var(--accent-4)] outline-none cursor-pointer data-[highlighted]:bg-[var(--accent-4)]"
+                          >
+                            <Select.ItemText>25</Select.ItemText>
+                          </Select.Item>
+                          <Select.Item
+                            value="50"
+                            className="relative flex items-center px-[var(--space-3)] py-[var(--space-2)] rounded-[var(--radius-1)] text-[length:var(--font-size-2)] text-[var(--gray-12)] hover:bg-[var(--accent-4)] focus:bg-[var(--accent-4)] outline-none cursor-pointer data-[highlighted]:bg-[var(--accent-4)]"
+                          >
+                            <Select.ItemText>50</Select.ItemText>
+                          </Select.Item>
+                          <Select.Item
+                            value="100"
+                            className="relative flex items-center px-[var(--space-3)] py-[var(--space-2)] rounded-[var(--radius-1)] text-[length:var(--font-size-2)] text-[var(--gray-12)] hover:bg-[var(--accent-4)] focus:bg-[var(--accent-4)] outline-none cursor-pointer data-[highlighted]:bg-[var(--accent-4)]"
+                          >
+                            <Select.ItemText>100</Select.ItemText>
+                          </Select.Item>
+                        </Select.Viewport>
+                      </Select.Content>
+                    </Select.Portal>
+                  </Select.Root>
                 </div>
               </div>
             </div>
@@ -646,36 +685,127 @@ const AdminDashboard: React.FC = () => {
             <div className="mb-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
               <div className="flex flex-wrap items-center gap-4">
                 <div className="flex items-center space-x-2">
-                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <label className="text-[length:var(--font-size-2)] font-medium text-[var(--gray-12)]">
                     Date Filter:
                   </label>
-                  <select
+                  <Select.Root
                     value={dateFilter}
-                    onChange={e => setDateFilter(e.target.value as any)}
-                    className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-accent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                    onValueChange={value => setDateFilter(value as any)}
                   >
-                    <option value="all">All Dates</option>
-                    <option value="today">Today</option>
-                    <option value="week">This Week</option>
-                    <option value="month">This Month</option>
-                    <option value="custom">Custom Range</option>
-                  </select>
+                    <Select.Trigger className="inline-flex items-center justify-between gap-[var(--space-2)] px-[var(--space-3)] py-[var(--space-2)] rounded-[var(--radius-2)] border border-[var(--gray-7)] bg-[var(--color-surface)] text-[length:var(--font-size-2)] text-[var(--gray-12)] hover:border-[var(--gray-8)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-8)] min-w-[140px]">
+                      <Select.Value />
+                      <Select.Icon>
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M19 9l-7 7-7-7"
+                          />
+                        </svg>
+                      </Select.Icon>
+                    </Select.Trigger>
+                    <Select.Portal>
+                      <Select.Content className="overflow-hidden bg-[var(--color-panel-solid)] rounded-[var(--radius-2)] border border-[var(--gray-6)] shadow-lg">
+                        <Select.Viewport className="p-[var(--space-1)]">
+                          <Select.Item
+                            value="all"
+                            className="relative flex items-center px-[var(--space-3)] py-[var(--space-2)] rounded-[var(--radius-1)] text-[length:var(--font-size-2)] text-[var(--gray-12)] hover:bg-[var(--accent-4)] focus:bg-[var(--accent-4)] outline-none cursor-pointer data-[highlighted]:bg-[var(--accent-4)]"
+                          >
+                            <Select.ItemText>All Dates</Select.ItemText>
+                          </Select.Item>
+                          <Select.Item
+                            value="today"
+                            className="relative flex items-center px-[var(--space-3)] py-[var(--space-2)] rounded-[var(--radius-1)] text-[length:var(--font-size-2)] text-[var(--gray-12)] hover:bg-[var(--accent-4)] focus:bg-[var(--accent-4)] outline-none cursor-pointer data-[highlighted]:bg-[var(--accent-4)]"
+                          >
+                            <Select.ItemText>Today</Select.ItemText>
+                          </Select.Item>
+                          <Select.Item
+                            value="week"
+                            className="relative flex items-center px-[var(--space-3)] py-[var(--space-2)] rounded-[var(--radius-1)] text-[length:var(--font-size-2)] text-[var(--gray-12)] hover:bg-[var(--accent-4)] focus:bg-[var(--accent-4)] outline-none cursor-pointer data-[highlighted]:bg-[var(--accent-4)]"
+                          >
+                            <Select.ItemText>This Week</Select.ItemText>
+                          </Select.Item>
+                          <Select.Item
+                            value="month"
+                            className="relative flex items-center px-[var(--space-3)] py-[var(--space-2)] rounded-[var(--radius-1)] text-[length:var(--font-size-2)] text-[var(--gray-12)] hover:bg-[var(--accent-4)] focus:bg-[var(--accent-4)] outline-none cursor-pointer data-[highlighted]:bg-[var(--accent-4)]"
+                          >
+                            <Select.ItemText>This Month</Select.ItemText>
+                          </Select.Item>
+                          <Select.Item
+                            value="custom"
+                            className="relative flex items-center px-[var(--space-3)] py-[var(--space-2)] rounded-[var(--radius-1)] text-[length:var(--font-size-2)] text-[var(--gray-12)] hover:bg-[var(--accent-4)] focus:bg-[var(--accent-4)] outline-none cursor-pointer data-[highlighted]:bg-[var(--accent-4)]"
+                          >
+                            <Select.ItemText>Custom Range</Select.ItemText>
+                          </Select.Item>
+                        </Select.Viewport>
+                      </Select.Content>
+                    </Select.Portal>
+                  </Select.Root>
                 </div>
 
                 <div className="flex items-center space-x-2">
-                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <label className="text-[length:var(--font-size-2)] font-medium text-[var(--gray-12)]">
                     Status:
                   </label>
-                  <select
+                  <Select.Root
                     value={statusFilter}
-                    onChange={e => setStatusFilter(e.target.value as any)}
-                    className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-accent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                    onValueChange={value => setStatusFilter(value as any)}
                   >
-                    <option value="all">All Status</option>
-                    <option value="today">Today</option>
-                    <option value="upcoming">Upcoming</option>
-                    <option value="past">Past</option>
-                  </select>
+                    <Select.Trigger className="inline-flex items-center justify-between gap-[var(--space-2)] px-[var(--space-3)] py-[var(--space-2)] rounded-[var(--radius-2)] border border-[var(--gray-7)] bg-[var(--color-surface)] text-[length:var(--font-size-2)] text-[var(--gray-12)] hover:border-[var(--gray-8)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-8)] min-w-[120px]">
+                      <Select.Value />
+                      <Select.Icon>
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M19 9l-7 7-7-7"
+                          />
+                        </svg>
+                      </Select.Icon>
+                    </Select.Trigger>
+                    <Select.Portal>
+                      <Select.Content className="overflow-hidden bg-[var(--color-panel-solid)] rounded-[var(--radius-2)] border border-[var(--gray-6)] shadow-lg">
+                        <Select.Viewport className="p-[var(--space-1)]">
+                          <Select.Item
+                            value="all"
+                            className="relative flex items-center px-[var(--space-3)] py-[var(--space-2)] rounded-[var(--radius-1)] text-[length:var(--font-size-2)] text-[var(--gray-12)] hover:bg-[var(--accent-4)] focus:bg-[var(--accent-4)] outline-none cursor-pointer data-[highlighted]:bg-[var(--accent-4)]"
+                          >
+                            <Select.ItemText>All Status</Select.ItemText>
+                          </Select.Item>
+                          <Select.Item
+                            value="today"
+                            className="relative flex items-center px-[var(--space-3)] py-[var(--space-2)] rounded-[var(--radius-1)] text-[length:var(--font-size-2)] text-[var(--gray-12)] hover:bg-[var(--accent-4)] focus:bg-[var(--accent-4)] outline-none cursor-pointer data-[highlighted]:bg-[var(--accent-4)]"
+                          >
+                            <Select.ItemText>Today</Select.ItemText>
+                          </Select.Item>
+                          <Select.Item
+                            value="upcoming"
+                            className="relative flex items-center px-[var(--space-3)] py-[var(--space-2)] rounded-[var(--radius-1)] text-[length:var(--font-size-2)] text-[var(--gray-12)] hover:bg-[var(--accent-4)] focus:bg-[var(--accent-4)] outline-none cursor-pointer data-[highlighted]:bg-[var(--accent-4)]"
+                          >
+                            <Select.ItemText>Upcoming</Select.ItemText>
+                          </Select.Item>
+                          <Select.Item
+                            value="past"
+                            className="relative flex items-center px-[var(--space-3)] py-[var(--space-2)] rounded-[var(--radius-1)] text-[length:var(--font-size-2)] text-[var(--gray-12)] hover:bg-[var(--accent-4)] focus:bg-[var(--accent-4)] outline-none cursor-pointer data-[highlighted]:bg-[var(--accent-4)]"
+                          >
+                            <Select.ItemText>Past</Select.ItemText>
+                          </Select.Item>
+                        </Select.Viewport>
+                      </Select.Content>
+                    </Select.Portal>
+                  </Select.Root>
                 </div>
 
                 {dateFilter === 'custom' && (
@@ -684,15 +814,15 @@ const AdminDashboard: React.FC = () => {
                       type="date"
                       value={customFromDate}
                       onChange={e => setCustomFromDate(e.target.value)}
-                      className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-accent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                      className="px-[var(--space-3)] py-[var(--space-2)] border border-[var(--gray-7)] rounded-[var(--radius-2)] text-[length:var(--font-size-2)] bg-[var(--color-surface)] text-[var(--gray-12)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-8)] focus-visible:border-[var(--accent-8)] hover:border-[var(--gray-8)] transition-colors"
                       placeholder="From date"
                     />
-                    <span className="text-gray-500 dark:text-gray-400">to</span>
+                    <span className="text-[var(--gray-11)]">to</span>
                     <input
                       type="date"
                       value={customToDate}
                       onChange={e => setCustomToDate(e.target.value)}
-                      className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-accent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                      className="px-[var(--space-3)] py-[var(--space-2)] border border-[var(--gray-7)] rounded-[var(--radius-2)] text-[length:var(--font-size-2)] bg-[var(--color-surface)] text-[var(--gray-12)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-8)] focus-visible:border-[var(--accent-8)] hover:border-[var(--gray-8)] transition-colors"
                       placeholder="To date"
                     />
                   </div>
@@ -705,7 +835,7 @@ const AdminDashboard: React.FC = () => {
                       placeholder="Search..."
                       value={searchTerm}
                       onChange={e => setSearchTerm(e.target.value)}
-                      className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                      className="pl-10 pr-4 py-[var(--space-2)] border border-[var(--gray-7)] rounded-[var(--radius-2)] bg-[var(--color-surface)] text-[var(--gray-12)] placeholder:text-[var(--gray-9)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-8)] focus-visible:border-[var(--accent-8)] hover:border-[var(--gray-8)] transition-colors"
                     />
                     <svg
                       className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400"
@@ -818,15 +948,30 @@ const AdminDashboard: React.FC = () => {
                     <thead className="bg-gray-100 dark:bg-gray-800">
                       <tr>
                         <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
-                          <input
-                            type="checkbox"
+                          <Checkbox.Root
                             checked={
                               selectedAppointments.size === paginatedAppointments.length &&
                               paginatedAppointments.length > 0
                             }
-                            onChange={handleSelectAll}
-                            className="rounded border-gray-300 text-accent focus:ring-accent"
-                          />
+                            onCheckedChange={handleSelectAll}
+                            className="flex items-center justify-center w-5 h-5 rounded-[var(--radius-1)] border border-[var(--gray-7)] bg-[var(--color-surface)] hover:border-[var(--gray-8)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-8)] data-[state=checked]:bg-accent data-[state=checked]:border-[var(--accent-9)]"
+                          >
+                            <Checkbox.Indicator>
+                              <svg
+                                className="w-4 h-4 text-white"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={3}
+                                  d="M5 13l4 4L19 7"
+                                />
+                              </svg>
+                            </Checkbox.Indicator>
+                          </Checkbox.Root>
                         </th>
                         <SortableHeader field="date">Date & Time</SortableHeader>
                         <SortableHeader field="customer">Customer</SortableHeader>
@@ -851,12 +996,27 @@ const AdminDashboard: React.FC = () => {
                           className={`hover:bg-gray-50 dark:hover:bg-gray-800 ${selectedAppointments.has(appointment.id) ? 'bg-accent-soft dark:bg-accent-soft' : ''}`}
                         >
                           <td className="px-6 py-4 whitespace-nowrap">
-                            <input
-                              type="checkbox"
+                            <Checkbox.Root
                               checked={selectedAppointments.has(appointment.id)}
-                              onChange={() => handleSelectAppointment(appointment.id)}
-                              className="rounded border-gray-300 text-accent focus:ring-accent"
-                            />
+                              onCheckedChange={() => handleSelectAppointment(appointment.id)}
+                              className="flex items-center justify-center w-5 h-5 rounded-[var(--radius-1)] border border-[var(--gray-7)] bg-[var(--color-surface)] hover:border-[var(--gray-8)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-8)] data-[state=checked]:bg-accent data-[state=checked]:border-[var(--accent-9)]"
+                            >
+                              <Checkbox.Indicator>
+                                <svg
+                                  className="w-4 h-4 text-white"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={3}
+                                    d="M5 13l4 4L19 7"
+                                  />
+                                </svg>
+                              </Checkbox.Indicator>
+                            </Checkbox.Root>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
@@ -1070,17 +1230,13 @@ const AdminDashboard: React.FC = () => {
               </div>
             )}
           </div>
-        </div>
-      )}
+        </Tabs.Content>
 
-      {activeTab === 'stylists' && (
-        <div>
+        <Tabs.Content value="stylists">
           <StylistManagement onClose={() => {}} />
-        </div>
-      )}
+        </Tabs.Content>
 
-      {activeTab === 'availability' && (
-        <div>
+        <Tabs.Content value="availability">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
             {/* Operating Hours */}
             <div className="bg-white dark:bg-gray-800 p-6 rounded-xl">
@@ -1089,19 +1245,37 @@ const AdminDashboard: React.FC = () => {
                 {Object.entries(weeklySchedule).map(([day, schedule]) => (
                   <div key={day} className="grid grid-cols-4 gap-3 items-center">
                     <div className="flex items-center">
-                      <input
-                        type="checkbox"
+                      <Checkbox.Root
                         id={`${day}-open`}
                         checked={schedule.isOpen}
-                        onChange={e =>
+                        onCheckedChange={checked =>
                           setWeeklySchedule({
                             ...weeklySchedule,
-                            [day]: { ...schedule, isOpen: e.target.checked },
+                            [day]: { ...schedule, isOpen: checked === true },
                           })
                         }
-                        className="mr-3 h-5 w-5 rounded border-gray-300 text-accent focus:ring-accent"
-                      />
-                      <label htmlFor={`${day}-open`} className="text-sm font-medium capitalize">
+                        className="flex items-center justify-center w-5 h-5 mr-3 rounded-[var(--radius-1)] border border-[var(--gray-7)] bg-[var(--color-surface)] hover:border-[var(--gray-8)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-8)] data-[state=checked]:bg-accent data-[state=checked]:border-[var(--accent-9)]"
+                      >
+                        <Checkbox.Indicator>
+                          <svg
+                            className="w-4 h-4 text-white"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={3}
+                              d="M5 13l4 4L19 7"
+                            />
+                          </svg>
+                        </Checkbox.Indicator>
+                      </Checkbox.Root>
+                      <label
+                        htmlFor={`${day}-open`}
+                        className="text-[length:var(--font-size-2)] font-medium capitalize text-[var(--gray-12)]"
+                      >
                         {day}
                       </label>
                     </div>
@@ -1115,10 +1289,12 @@ const AdminDashboard: React.FC = () => {
                         })
                       }
                       disabled={!schedule.isOpen}
-                      className="p-2 border rounded-lg text-sm bg-gray-50 dark:bg-gray-700 dark:border-gray-600 disabled:opacity-50"
+                      className="px-[var(--space-3)] py-[var(--space-2)] border border-[var(--gray-7)] rounded-[var(--radius-2)] text-[length:var(--font-size-2)] bg-[var(--color-surface)] text-[var(--gray-12)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-8)] focus-visible:border-[var(--accent-8)] hover:border-[var(--gray-8)] disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-[var(--gray-2)] transition-colors"
                       step="1800"
                     />
-                    <span className="text-center text-sm">to</span>
+                    <span className="text-center text-[length:var(--font-size-2)] text-[var(--gray-11)]">
+                      to
+                    </span>
                     <input
                       type="time"
                       value={schedule.closingTime}
@@ -1129,7 +1305,7 @@ const AdminDashboard: React.FC = () => {
                         })
                       }
                       disabled={!schedule.isOpen}
-                      className="p-2 border rounded-lg text-sm bg-gray-50 dark:bg-gray-700 dark:border-gray-600 disabled:opacity-50"
+                      className="px-[var(--space-3)] py-[var(--space-2)] border border-[var(--gray-7)] rounded-[var(--radius-2)] text-[length:var(--font-size-2)] bg-[var(--color-surface)] text-[var(--gray-12)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-8)] focus-visible:border-[var(--accent-8)] hover:border-[var(--gray-8)] disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-[var(--gray-2)] transition-colors"
                       step="1800"
                     />
                   </div>
@@ -1183,51 +1359,31 @@ const AdminDashboard: React.FC = () => {
             <div className="bg-white dark:bg-gray-800 p-6 rounded-xl">
               <h3 className="text-2xl font-bold mb-4">Business Information</h3>
               <div className="space-y-4">
-                <div>
-                  <label
-                    htmlFor="businessName"
-                    className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-                  >
-                    Business Name
-                  </label>
-                  <input
-                    type="text"
-                    id="businessName"
-                    value={businessName}
-                    onChange={e => setBusinessName(e.target.value)}
-                    className="w-full p-3 border rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600"
-                  />
-                </div>
-                <div>
-                  <label
-                    htmlFor="businessAddress"
-                    className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-                  >
-                    Address
-                  </label>
-                  <input
-                    type="text"
-                    id="businessAddress"
-                    value={businessAddress}
-                    onChange={e => setBusinessAddress(e.target.value)}
-                    className="w-full p-3 border rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600"
-                  />
-                </div>
-                <div>
-                  <label
-                    htmlFor="businessPhone"
-                    className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-                  >
-                    Phone Number
-                  </label>
-                  <input
-                    type="tel"
-                    id="businessPhone"
-                    value={businessPhone}
-                    onChange={e => setBusinessPhone(e.target.value)}
-                    className="w-full p-3 border rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600"
-                  />
-                </div>
+                <TextField
+                  label="Business Name"
+                  id="businessName"
+                  value={businessName}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    setBusinessName(e.target.value)
+                  }
+                />
+                <TextField
+                  label="Address"
+                  id="businessAddress"
+                  value={businessAddress}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    setBusinessAddress(e.target.value)
+                  }
+                />
+                <TextField
+                  label="Phone Number"
+                  type="tel"
+                  id="businessPhone"
+                  value={businessPhone}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    setBusinessPhone(e.target.value)
+                  }
+                />
               </div>
             </div>
           </div>
@@ -1531,8 +1687,8 @@ const AdminDashboard: React.FC = () => {
               </div>
             )}
           </div>
-        </div>
-      )}
+        </Tabs.Content>
+      </Tabs.Root>
 
       {/* Edit Appointment Modal */}
       <EditAppointmentModal
