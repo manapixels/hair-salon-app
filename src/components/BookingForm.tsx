@@ -22,6 +22,8 @@ import { StylistCardSkeleton } from './loaders/StylistCardSkeleton';
 import { ErrorState } from './ErrorState';
 import { EmptyState } from './EmptyState';
 import { useDelayedLoading } from '@/hooks/useDelayedLoading';
+import { TextField } from './ui/TextField';
+import { Button } from '@radix-ui/themes';
 
 // Get the salon's timezone from environment variable or default to Asia/Singapore
 const SALON_TIMEZONE = process.env.NEXT_PUBLIC_GOOGLE_CALENDAR_TIMEZONE || 'Asia/Singapore';
@@ -487,45 +489,29 @@ const ConfirmationForm: React.FC<{
         onSubmit={handleSubmit}
         className="space-y-4 max-w-lg bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg"
       >
-        <div>
-          <label
-            htmlFor="name"
-            className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-          >
-            Full Name
-          </label>
-          <input
-            type="text"
-            id="name"
-            value={name}
-            onChange={e => setName(e.target.value)}
-            disabled={!!user}
-            className="mt-1 block w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-accent focus:border-accent disabled:bg-gray-100 dark:disabled:bg-gray-700"
-            required
-          />
-        </div>
-        <div>
-          <label
-            htmlFor="email"
-            className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-          >
-            Email Address
-          </label>
-          <input
-            type="email"
-            id="email"
-            value={email}
-            onChange={e => setEmail(e.target.value)}
-            disabled={!!user}
-            className="mt-1 block w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-accent focus:border-accent disabled:bg-gray-100 dark:disabled:bg-gray-700"
-            required
-          />
-        </div>
-        {error && <p className="text-red-500 text-sm">{error}</p>}
-        <button
+        <TextField
+          label="Full Name"
+          id="name"
+          type="text"
+          value={name}
+          onChange={e => setName(e.target.value)}
+          disabled={!!user}
+          required
+        />
+        <TextField
+          label="Email Address"
+          id="email"
+          type="email"
+          value={email}
+          onChange={e => setEmail(e.target.value)}
+          disabled={!!user}
+          required
+        />
+        {error && <p className="text-[length:var(--font-size-2)] text-[var(--red-11)]">{error}</p>}
+        <Button
           type="submit"
           disabled={isSubmitting}
-          className="w-full flex items-center justify-center gap-2 py-4 px-6 border border-transparent rounded-lg shadow-xl text-lg font-bold bg-accent hover:bg-accent focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent disabled:bg-accent transition-all"
+          className="w-full flex items-center justify-center gap-2 py-4 px-6 rounded-lg text-lg font-bold bg-accent"
           aria-label={isSubmitting ? 'Booking in progress' : 'Confirm your appointment'}
         >
           {isSubmitting ? (
@@ -546,7 +532,7 @@ const ConfirmationForm: React.FC<{
               Confirm Appointment
             </>
           )}
-        </button>
+        </Button>
 
         {/* WhatsApp Fallback */}
         {showWhatsAppFallback && (

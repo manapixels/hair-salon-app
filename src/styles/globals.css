@@ -18,7 +18,7 @@ body {
 }
 
 .radix-themes {
-	--cursor-button: pointer;
+  --cursor-button: pointer;
 }
 
 @layer utilities {

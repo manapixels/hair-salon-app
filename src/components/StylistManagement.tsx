@@ -1,9 +1,13 @@
 import Image from 'next/image';
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
-import { motion, AnimatePresence } from 'framer-motion';
 import type { Stylist, Service } from '../types';
 import { SALON_SERVICES } from '../constants';
+import * as Dialog from '@radix-ui/react-dialog';
+import * as Checkbox from '@radix-ui/react-checkbox';
+import { Button } from '@radix-ui/themes';
+import { TextField } from './ui/TextField';
+import { TextArea } from './ui/TextArea';
 
 interface StylistManagementProps {
   onClose?: () => void;
@@ -351,216 +355,231 @@ function StylistModal({ isOpen, onClose, stylist, onSave }: StylistModalProps) {
   }
 
   return (
-    <AnimatePresence>
-      {isOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"
-          >
-            <div className="p-6">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {stylist ? 'Edit Stylist' : 'Add New Stylist'}
-                </h2>
+    <Dialog.Root open={isOpen} onOpenChange={open => !open && onClose()}>
+      <Dialog.Portal>
+        <Dialog.Overlay className="fixed inset-0 bg-black/50 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 z-50" />
+        <Dialog.Content className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-[var(--color-panel-solid)] rounded-[var(--radius-4)] border border-[var(--gray-6)] shadow-lg data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%]">
+          <div className="p-[var(--space-6)]">
+            <div className="flex justify-between items-center mb-[var(--space-6)]">
+              <Dialog.Title className="text-[length:var(--font-size-6)] font-bold text-[var(--gray-12)]">
+                {stylist ? 'Edit Stylist' : 'Add New Stylist'}
+              </Dialog.Title>
+              <Dialog.Close asChild>
                 <button
                   onClick={onClose}
-                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                  className="text-[var(--gray-11)] hover:text-[var(--gray-12)] transition-colors"
                 >
-                  <i className="fas fa-times text-xl"></i>
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
                 </button>
+              </Dialog.Close>
+            </div>
+
+            {error && (
+              <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+                {error}
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="space-y-[var(--space-6)]">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-[var(--space-4)]">
+                <TextField
+                  label="Name *"
+                  type="text"
+                  value={formData.name}
+                  onChange={e => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                  required
+                />
+                <TextField
+                  label="Email *"
+                  type="email"
+                  value={formData.email}
+                  onChange={e => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                  required
+                />
               </div>
 
-              {error && (
-                <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
-                  {error}
-                </div>
-              )}
+              <TextArea
+                label="Bio"
+                value={formData.bio}
+                onChange={e => setFormData(prev => ({ ...prev, bio: e.target.value }))}
+                rows={3}
+                placeholder="Brief description of the stylist's experience and style"
+              />
 
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Name *
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.name}
-                      onChange={e => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-yellow-500 focus:border-yellow-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Email *
-                    </label>
-                    <input
-                      type="email"
-                      value={formData.email}
-                      onChange={e => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-yellow-500 focus:border-yellow-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Bio
-                  </label>
-                  <textarea
-                    value={formData.bio}
-                    onChange={e => setFormData(prev => ({ ...prev, bio: e.target.value }))}
-                    rows={3}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-yellow-500 focus:border-yellow-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                    placeholder="Brief description of the stylist's experience and style"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Specialties *
-                  </label>
-                  <div className="grid grid-cols-1 gap-3 max-h-60 overflow-y-auto border border-gray-200 dark:border-gray-600 rounded-md p-3">
-                    {SALON_SERVICES.map(service => {
-                      const isSelected = formData.specialtyIds.includes(service.id);
-                      return (
-                        <label
-                          key={service.id}
-                          className={`flex items-center p-3 rounded-lg border cursor-pointer transition-colors ${
-                            isSelected
-                              ? 'border-yellow-500 bg-yellow-50 dark:bg-yellow-900/20'
-                              : 'border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
-                          }`}
+              <div>
+                <label className="block text-[length:var(--font-size-2)] font-medium text-[var(--gray-12)] mb-[var(--space-2)]">
+                  Specialties *
+                </label>
+                <div className="grid grid-cols-1 gap-[var(--space-3)] max-h-60 overflow-y-auto border border-[var(--gray-6)] rounded-[var(--radius-3)] p-[var(--space-3)]">
+                  {SALON_SERVICES.map(service => {
+                    const isSelected = formData.specialtyIds.includes(service.id);
+                    return (
+                      <label
+                        key={service.id}
+                        className={`flex items-center p-[var(--space-3)] rounded-[var(--radius-3)] border cursor-pointer transition-colors ${
+                          isSelected
+                            ? 'border-[var(--accent-8)] bg-[var(--accent-3)]'
+                            : 'border-[var(--gray-6)] hover:bg-[var(--gray-3)]'
+                        }`}
+                      >
+                        <Checkbox.Root
+                          checked={isSelected}
+                          onCheckedChange={() => handleSpecialtyToggle(service.id)}
+                          className="flex items-center justify-center w-5 h-5 mr-3 rounded-[var(--radius-1)] border border-[var(--gray-7)] bg-[var(--color-surface)] hover:border-[var(--gray-8)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-8)] data-[state=checked]:bg-accent data-[state=checked]:border-[var(--accent-9)]"
                         >
-                          <input
-                            type="checkbox"
-                            checked={isSelected}
-                            onChange={() => handleSpecialtyToggle(service.id)}
-                            className="mr-3 text-yellow-600 focus:ring-yellow-500"
-                          />
-                          <div className="flex-1">
-                            <div className="flex justify-between items-start">
-                              <div>
-                                <h4 className="font-medium text-gray-900 dark:text-white">
-                                  {service.name}
-                                </h4>
-                                <p className="text-sm text-gray-600 dark:text-gray-400">
-                                  {service.description}
-                                </p>
+                          <Checkbox.Indicator>
+                            <svg
+                              className="w-4 h-4 text-white"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={3}
+                                d="M5 13l4 4L19 7"
+                              />
+                            </svg>
+                          </Checkbox.Indicator>
+                        </Checkbox.Root>
+                        <div className="flex-1">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <h4 className="font-medium text-[var(--gray-12)]">{service.name}</h4>
+                              <p className="text-[length:var(--font-size-2)] text-[var(--gray-11)]">
+                                {service.description}
+                              </p>
+                            </div>
+                            <div className="text-right">
+                              <div className="font-semibold text-[var(--gray-12)]">
+                                ${service.price}
                               </div>
-                              <div className="text-right">
-                                <div className="font-semibold text-gray-900 dark:text-white">
-                                  ${service.price}
-                                </div>
-                                <div className="text-sm text-gray-600 dark:text-gray-400">
-                                  {service.duration} min
-                                </div>
+                              <div className="text-[length:var(--font-size-2)] text-[var(--gray-11)]">
+                                {service.duration} min
                               </div>
                             </div>
                           </div>
-                        </label>
-                      );
-                    })}
-                  </div>
+                        </div>
+                      </label>
+                    );
+                  })}
                 </div>
+              </div>
 
-                {/* Blocked Dates Section */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Blocked Dates (Holidays/Days Off)
-                  </label>
-                  <div className="border border-gray-200 dark:border-gray-600 rounded-md p-3">
-                    <div className="space-y-2 mb-3">
-                      {formData.blockedDates.length === 0 ? (
-                        <p className="text-sm text-gray-500 dark:text-gray-400 italic">
-                          No blocked dates. Stylist is available according to their schedule.
-                        </p>
-                      ) : (
-                        formData.blockedDates.map(date => (
-                          <div
-                            key={date}
-                            className="flex items-center justify-between bg-gray-50 dark:bg-gray-700 p-2 rounded"
-                          >
-                            <span className="text-sm text-gray-900 dark:text-white">{date}</span>
-                            <button
-                              type="button"
-                              onClick={() =>
-                                setFormData(prev => ({
-                                  ...prev,
-                                  blockedDates: prev.blockedDates.filter(d => d !== date),
-                                }))
-                              }
-                              className="text-red-600 hover:text-red-800 text-sm"
-                            >
-                              Remove
-                            </button>
-                          </div>
-                        ))
-                      )}
-                    </div>
-                    <div className="flex gap-2">
-                      <input
-                        type="date"
-                        value={newBlockedDate}
-                        onChange={e => setNewBlockedDate(e.target.value)}
-                        className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                        min={new Date().toISOString().split('T')[0]}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (newBlockedDate && !formData.blockedDates.includes(newBlockedDate)) {
-                            setFormData(prev => ({
-                              ...prev,
-                              blockedDates: [...prev.blockedDates, newBlockedDate].sort(),
-                            }));
-                            setNewBlockedDate('');
-                          }
-                        }}
-                        disabled={!newBlockedDate}
-                        className="px-4 py-2 bg-yellow-600 text-white rounded text-sm hover:bg-yellow-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        Add
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex gap-3 pt-4">
-                  <button
-                    type="button"
-                    onClick={onClose}
-                    className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={isLoading || formData.specialtyIds.length === 0}
-                    className="flex-1 px-4 py-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {isLoading ? (
-                      <span className="flex items-center justify-center">
-                        <i className="fas fa-spinner fa-spin mr-2"></i>
-                        {stylist ? 'Updating...' : 'Creating...'}
-                      </span>
-                    ) : stylist ? (
-                      'Update Stylist'
+              {/* Blocked Dates Section */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Blocked Dates (Holidays/Days Off)
+                </label>
+                <div className="border border-gray-200 dark:border-gray-600 rounded-md p-3">
+                  <div className="space-y-2 mb-3">
+                    {formData.blockedDates.length === 0 ? (
+                      <p className="text-sm text-gray-500 dark:text-gray-400 italic">
+                        No blocked dates. Stylist is available according to their schedule.
+                      </p>
                     ) : (
-                      'Create Stylist'
+                      formData.blockedDates.map(date => (
+                        <div
+                          key={date}
+                          className="flex items-center justify-between bg-gray-50 dark:bg-gray-700 p-2 rounded"
+                        >
+                          <span className="text-sm text-gray-900 dark:text-white">{date}</span>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setFormData(prev => ({
+                                ...prev,
+                                blockedDates: prev.blockedDates.filter(d => d !== date),
+                              }))
+                            }
+                            className="text-red-600 hover:text-red-800 text-sm"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      ))
                     )}
-                  </button>
+                  </div>
+                  <div className="flex gap-2">
+                    <input
+                      type="date"
+                      value={newBlockedDate}
+                      onChange={e => setNewBlockedDate(e.target.value)}
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                      min={new Date().toISOString().split('T')[0]}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (newBlockedDate && !formData.blockedDates.includes(newBlockedDate)) {
+                          setFormData(prev => ({
+                            ...prev,
+                            blockedDates: [...prev.blockedDates, newBlockedDate].sort(),
+                          }));
+                          setNewBlockedDate('');
+                        }
+                      }}
+                      disabled={!newBlockedDate}
+                      className="px-4 py-2 bg-yellow-600 text-white rounded text-sm hover:bg-yellow-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Add
+                    </button>
+                  </div>
                 </div>
-              </form>
-            </div>
-          </motion.div>
-        </div>
-      )}
-    </AnimatePresence>
+              </div>
+
+              <div className="flex gap-[var(--space-3)] pt-[var(--space-4)]">
+                <Button type="button" onClick={onClose} variant="outline" className="flex-1">
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={isLoading || formData.specialtyIds.length === 0}
+                  className="flex-1 bg-accent"
+                >
+                  {isLoading ? (
+                    <span className="flex items-center justify-center">
+                      <svg
+                        className="animate-spin -ml-1 mr-2 h-4 w-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        ></path>
+                      </svg>
+                      {stylist ? 'Updating...' : 'Creating...'}
+                    </span>
+                  ) : stylist ? (
+                    'Update Stylist'
+                  ) : (
+                    'Create Stylist'
+                  )}
+                </Button>
+              </div>
+            </form>
+          </div>
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
   );
 }

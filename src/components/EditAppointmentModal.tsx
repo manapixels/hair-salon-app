@@ -7,6 +7,7 @@ import type { Appointment, Service } from '../types';
 import { SALON_SERVICES } from '../constants';
 import { Button, Checkbox, Dialog, Select } from '@radix-ui/themes';
 import { formatTime12Hour } from '@/lib/timeUtils';
+import { TextField } from './ui/TextField';
 
 interface EditAppointmentModalProps {
   isOpen: boolean;
@@ -148,43 +149,28 @@ export default function EditAppointmentModal({
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-            <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Customer Name *
-              </label>
-              <input
-                type="text"
-                value={formData.customerName}
-                onChange={e => setFormData(prev => ({ ...prev, customerName: e.target.value }))}
-                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-accent dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                required
-              />
-            </div>
-            <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Customer Email *
-              </label>
-              <input
-                type="email"
-                value={formData.customerEmail}
-                onChange={e => setFormData(prev => ({ ...prev, customerEmail: e.target.value }))}
-                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-accent dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                required
-              />
-            </div>
-            <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Date *
-              </label>
-              <input
-                type="date"
-                value={formData.date}
-                onChange={e => setFormData(prev => ({ ...prev, date: e.target.value }))}
-                min={format(new Date(), 'yyyy-MM-dd')}
-                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-accent dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                required
-              />
-            </div>
+            <TextField
+              label="Customer Name *"
+              type="text"
+              value={formData.customerName}
+              onChange={e => setFormData(prev => ({ ...prev, customerName: e.target.value }))}
+              required
+            />
+            <TextField
+              label="Customer Email *"
+              type="email"
+              value={formData.customerEmail}
+              onChange={e => setFormData(prev => ({ ...prev, customerEmail: e.target.value }))}
+              required
+            />
+            <TextField
+              label="Date *"
+              type="date"
+              value={formData.date}
+              onChange={e => setFormData(prev => ({ ...prev, date: e.target.value }))}
+              min={format(new Date(), 'yyyy-MM-dd')}
+              required
+            />
             <div>
               <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Time *

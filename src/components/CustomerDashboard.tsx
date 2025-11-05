@@ -11,6 +11,8 @@ import { EmptyState } from './EmptyState';
 import { useDelayedLoading } from '../hooks/useDelayedLoading';
 import { formatDisplayDate } from '@/lib/timeUtils';
 import type { Appointment } from '@/types';
+import { TextField } from './ui/TextField';
+import { Button } from '@radix-ui/themes';
 
 export default function CustomerDashboard() {
   const { user, refreshSession } = useAuth();
@@ -217,29 +219,27 @@ export default function CustomerDashboard() {
                 </label>
                 {isEditingName ? (
                   <div className="space-y-2">
-                    <input
+                    <TextField
                       type="text"
                       value={newName}
                       onChange={e => setNewName(e.target.value)}
-                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg
-                               bg-white dark:bg-gray-700 text-gray-900 dark:text-white
-                               focus:ring-2 focus:ring-accent focus:border-accent"
                       placeholder="Enter your display name"
                       maxLength={50}
                     />
                     <div className="flex space-x-2">
-                      <button
+                      <Button
                         onClick={handleNameSave}
-                        className="text-sm bg-accent px-4 py-2 rounded-lg hover:bg-accent font-semibold"
+                        className="text-sm bg-accent px-4 py-2 rounded-lg font-semibold"
                       >
                         Save
-                      </button>
-                      <button
+                      </Button>
+                      <Button
                         onClick={handleNameCancel}
-                        className="text-sm bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500 font-semibold"
+                        variant="outline"
+                        className="text-sm px-4 py-2 rounded-lg font-semibold"
                       >
                         Cancel
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 ) : (
