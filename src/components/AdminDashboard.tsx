@@ -1,16 +1,17 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { toast, type ExternalToast } from 'sonner';
 import { useBooking } from '../context/BookingContext';
 import type { TimeSlot, Appointment } from '../types';
 import EditAppointmentModal from './EditAppointmentModal';
 import StylistManagement from './StylistManagement';
-import { formatDisplayDate } from '@/lib/timeUtils';
+import { formatDisplayDate, formatTime12Hour } from '@/lib/timeUtils';
 import * as Tabs from '@radix-ui/react-tabs';
 import * as Select from '@radix-ui/react-select';
 import * as Checkbox from '@radix-ui/react-checkbox';
 import * as AlertDialog from '@radix-ui/react-alert-dialog';
 import { TextField } from './ui/TextField';
 import { LoadingSpinner } from './loaders/LoadingSpinner';
+import { LoadingButton } from './loaders/LoadingButton';
 
 const AdminDashboard: React.FC = () => {
   const {
@@ -27,12 +28,12 @@ const AdminDashboard: React.FC = () => {
   const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
   const [loading, setLoading] = useState(false);
   const [appointmentsLoading, setAppointmentsLoading] = useState(true);
-  const [weeklySchedule, setWeeklySchedule] = useState(adminSettings.weeklySchedule);
-  const [closedDates, setClosedDates] = useState<string[]>(adminSettings.closedDates);
+  const [weeklySchedule, setWeeklySchedule] = useState(adminSettings.weeklySchedule || {});
+  const [closedDates, setClosedDates] = useState<string[]>(adminSettings.closedDates || []);
   const [newClosedDate, setNewClosedDate] = useState('');
-  const [businessName, setBusinessName] = useState(adminSettings.businessName);
-  const [businessAddress, setBusinessAddress] = useState(adminSettings.businessAddress);
-  const [businessPhone, setBusinessPhone] = useState(adminSettings.businessPhone);
+  const [businessName, setBusinessName] = useState(adminSettings.businessName || '');
+  const [businessAddress, setBusinessAddress] = useState(adminSettings.businessAddress || '');
+  const [businessPhone, setBusinessPhone] = useState(adminSettings.businessPhone || '');
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -55,6 +56,9 @@ const AdminDashboard: React.FC = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
   const [previousAppointmentIds, setPreviousAppointmentIds] = useState<Set<string>>(new Set());
+  const [isSavingSettings, setIsSavingSettings] = useState(false);
+  const [selectedCalendarDate, setSelectedCalendarDate] = useState<Date | null>(null);
+  const [currentMonth, setCurrentMonth] = useState(new Date());
 
   // AlertDialog states
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
@@ -82,11 +86,13 @@ const AdminDashboard: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    setWeeklySchedule(adminSettings.weeklySchedule);
-    setClosedDates(adminSettings.closedDates);
-    setBusinessName(adminSettings.businessName);
-    setBusinessAddress(adminSettings.businessAddress);
-    setBusinessPhone(adminSettings.businessPhone);
+    if (adminSettings) {
+      setWeeklySchedule(adminSettings.weeklySchedule || {});
+      setClosedDates(adminSettings.closedDates || []);
+      setBusinessName(adminSettings.businessName || '');
+      setBusinessAddress(adminSettings.businessAddress || '');
+      setBusinessPhone(adminSettings.businessPhone || '');
+    }
   }, [adminSettings]);
 
   useEffect(() => {
@@ -156,6 +162,7 @@ const AdminDashboard: React.FC = () => {
   };
 
   const handleSettingsSave = async () => {
+    setIsSavingSettings(true);
     const toastId = toast.loading('Saving settings...');
     try {
       await saveAdminSettings({
@@ -169,6 +176,8 @@ const AdminDashboard: React.FC = () => {
       toast.success('Settings saved successfully!', { id: toastId });
     } catch (error) {
       toast.error('Failed to save settings.', { id: toastId });
+    } finally {
+      setIsSavingSettings(false);
     }
   };
 
@@ -281,43 +290,9 @@ const AdminDashboard: React.FC = () => {
     }
   };
 
-  // Helper function to get date range based on filter
-  const getDateRange = () => {
-    const today = new Date();
-    const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-    const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59);
-
-    switch (dateFilter) {
-      case 'today':
-        return { from: startOfDay, to: endOfDay };
-      case 'week':
-        const startOfWeek = new Date(today);
-        startOfWeek.setDate(today.getDate() - today.getDay());
-        startOfWeek.setHours(0, 0, 0, 0);
-        const endOfWeek = new Date(startOfWeek);
-        endOfWeek.setDate(startOfWeek.getDate() + 6);
-        endOfWeek.setHours(23, 59, 59, 999);
-        return { from: startOfWeek, to: endOfWeek };
-      case 'month':
-        const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-        const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0, 23, 59, 59);
-        return { from: startOfMonth, to: endOfMonth };
-      case 'custom':
-        if (customFromDate && customToDate) {
-          const from = new Date(customFromDate);
-          from.setHours(0, 0, 0, 0);
-          const to = new Date(customToDate);
-          to.setHours(23, 59, 59, 999);
-          return { from, to };
-        }
-        return null;
-      default:
-        return null;
-    }
-  };
-
-  const filteredAppointments = (Array.isArray(appointments) ? appointments : []).filter(
-    appointment => {
+  // Memoize filtered appointments for performance
+  const filteredAppointments = useMemo(() => {
+    return (Array.isArray(appointments) ? appointments : []).filter(appointment => {
       // Enhanced text search filter
       if (searchTerm) {
         const term = searchTerm.toLowerCase();
@@ -341,6 +316,47 @@ const AdminDashboard: React.FC = () => {
       }
 
       // Date range filter
+      const getDateRange = () => {
+        const today = new Date();
+        const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+        const endOfDay = new Date(
+          today.getFullYear(),
+          today.getMonth(),
+          today.getDate(),
+          23,
+          59,
+          59,
+        );
+
+        switch (dateFilter) {
+          case 'today':
+            return { from: startOfDay, to: endOfDay };
+          case 'week':
+            const startOfWeek = new Date(today);
+            startOfWeek.setDate(today.getDate() - today.getDay());
+            startOfWeek.setHours(0, 0, 0, 0);
+            const endOfWeek = new Date(startOfWeek);
+            endOfWeek.setDate(startOfWeek.getDate() + 6);
+            endOfWeek.setHours(23, 59, 59, 999);
+            return { from: startOfWeek, to: endOfWeek };
+          case 'month':
+            const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+            const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0, 23, 59, 59);
+            return { from: startOfMonth, to: endOfMonth };
+          case 'custom':
+            if (customFromDate && customToDate) {
+              const from = new Date(customFromDate);
+              from.setHours(0, 0, 0, 0);
+              const to = new Date(customToDate);
+              to.setHours(23, 59, 59, 999);
+              return { from, to };
+            }
+            return null;
+          default:
+            return null;
+        }
+      };
+
       const dateRange = getDateRange();
       if (dateRange) {
         const appointmentDate = new Date(appointment.date);
@@ -383,41 +399,111 @@ const AdminDashboard: React.FC = () => {
       }
 
       return true;
-    },
-  );
+    });
+  }, [appointments, searchTerm, dateFilter, statusFilter, customFromDate, customToDate]);
 
-  // Sort filtered appointments
-  const sortedAppointments = [...filteredAppointments].sort((a, b) => {
-    let comparison = 0;
+  // Memoize sorted appointments for performance
+  const sortedAppointments = useMemo(() => {
+    return [...filteredAppointments].sort((a, b) => {
+      let comparison = 0;
 
-    switch (sortField) {
-      case 'date':
-        comparison = new Date(a.date).getTime() - new Date(b.date).getTime();
-        if (comparison === 0) {
-          // If dates are the same, sort by time
-          comparison = a.time.localeCompare(b.time);
+      switch (sortField) {
+        case 'date':
+          comparison = new Date(a.date).getTime() - new Date(b.date).getTime();
+          if (comparison === 0) {
+            // If dates are the same, sort by time
+            comparison = a.time.localeCompare(b.time);
+          }
+          break;
+        case 'customer':
+          comparison = a.customerName.localeCompare(b.customerName);
+          break;
+        case 'stylist':
+          const stylistA = a.stylist?.name || 'No stylist assigned';
+          const stylistB = b.stylist?.name || 'No stylist assigned';
+          comparison = stylistA.localeCompare(stylistB);
+          break;
+        case 'price':
+          comparison = a.totalPrice - b.totalPrice;
+          break;
+        case 'duration':
+          comparison = a.totalDuration - b.totalDuration;
+          break;
+        default:
+          comparison = 0;
+      }
+
+      return sortDirection === 'asc' ? comparison : -comparison;
+    });
+  }, [filteredAppointments, sortField, sortDirection]);
+
+  // Calculate KPIs
+  const kpis = useMemo(() => {
+    const today = new Date();
+    const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const endOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59);
+
+    const startOfWeek = new Date(today);
+    startOfWeek.setDate(today.getDate() - today.getDay());
+    startOfWeek.setHours(0, 0, 0, 0);
+    const endOfWeek = new Date(startOfWeek);
+    endOfWeek.setDate(startOfWeek.getDate() + 6);
+    endOfWeek.setHours(23, 59, 59, 999);
+
+    const appointmentsList = Array.isArray(appointments) ? appointments : [];
+
+    const todayAppts = appointmentsList.filter(
+      a => new Date(a.date) >= startOfToday && new Date(a.date) <= endOfToday,
+    );
+
+    const weekAppts = appointmentsList.filter(
+      a => new Date(a.date) >= startOfWeek && new Date(a.date) <= endOfWeek,
+    );
+
+    const upcomingAppts = appointmentsList.filter(a => new Date(a.date) > endOfToday);
+
+    return {
+      today: todayAppts.length,
+      thisWeek: weekAppts.length,
+      upcoming: upcomingAppts.length,
+      weekRevenue: weekAppts.reduce((sum, a) => sum + a.totalPrice, 0),
+    };
+  }, [appointments]);
+
+  // Helper function to get date range based on filter
+  const getDateRange = () => {
+    const today = new Date();
+    const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59);
+
+    switch (dateFilter) {
+      case 'today':
+        return { from: startOfDay, to: endOfDay };
+      case 'week':
+        const startOfWeek = new Date(today);
+        startOfWeek.setDate(today.getDate() - today.getDay());
+        startOfWeek.setHours(0, 0, 0, 0);
+        const endOfWeek = new Date(startOfWeek);
+        endOfWeek.setDate(startOfWeek.getDate() + 6);
+        endOfWeek.setHours(23, 59, 59, 999);
+        return { from: startOfWeek, to: endOfWeek };
+      case 'month':
+        const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+        const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0, 23, 59, 59);
+        return { from: startOfMonth, to: endOfMonth };
+      case 'custom':
+        if (customFromDate && customToDate) {
+          const from = new Date(customFromDate);
+          from.setHours(0, 0, 0, 0);
+          const to = new Date(customToDate);
+          to.setHours(23, 59, 59, 999);
+          return { from, to };
         }
-        break;
-      case 'customer':
-        comparison = a.customerName.localeCompare(b.customerName);
-        break;
-      case 'stylist':
-        const stylistA = a.stylist?.name || 'No stylist assigned';
-        const stylistB = b.stylist?.name || 'No stylist assigned';
-        comparison = stylistA.localeCompare(stylistB);
-        break;
-      case 'price':
-        comparison = a.totalPrice - b.totalPrice;
-        break;
-      case 'duration':
-        comparison = a.totalDuration - b.totalDuration;
-        break;
+        return null;
       default:
-        comparison = 0;
+        return null;
     }
-
-    return sortDirection === 'asc' ? comparison : -comparison;
-  });
+  };
 
   // Pagination logic
   const totalPages = Math.ceil(sortedAppointments.length / itemsPerPage);
@@ -513,6 +599,93 @@ const AdminDashboard: React.FC = () => {
     return () => clearInterval(interval);
   }, [isRefreshing, fetchAndSetAppointments, activeTab, appointments, previousAppointmentIds]);
 
+  // Helper function to get appointment urgency
+  const getAppointmentUrgency = (appointment: Appointment) => {
+    const now = new Date();
+    const appointmentDateTime = new Date(appointment.date);
+    const [hours, minutes] = appointment.time.split(':').map(Number);
+    appointmentDateTime.setHours(hours, minutes, 0, 0);
+
+    const diffMs = appointmentDateTime.getTime() - now.getTime();
+    const diffHours = diffMs / (1000 * 60 * 60);
+
+    if (diffHours < 0) return 'past';
+    if (diffHours < 2) return 'urgent';
+    if (diffHours < 24) return 'today';
+    if (diffHours < 168) return 'week';
+    return 'future';
+  };
+
+  // Helper function to get time until appointment
+  const getTimeUntil = (appointment: Appointment) => {
+    const now = new Date();
+    const appointmentDateTime = new Date(appointment.date);
+    const [hours, minutes] = appointment.time.split(':').map(Number);
+    appointmentDateTime.setHours(hours, minutes, 0, 0);
+
+    const diffMs = appointmentDateTime.getTime() - now.getTime();
+    const diffMinutes = Math.floor(diffMs / (1000 * 60));
+    const diffHours = Math.floor(diffMinutes / 60);
+
+    if (diffMinutes < 0) return 'past';
+    if (diffMinutes < 60) return `in ${diffMinutes}m`;
+    if (diffHours < 24) return `in ${diffHours}h`;
+    return null;
+  };
+
+  // Calendar helper functions
+  const getDaysInMonth = (date: Date) => {
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    const startingDayOfWeek = firstDay.getDay();
+
+    const days: (Date | null)[] = [];
+
+    // Add empty slots for days before month starts
+    for (let i = 0; i < startingDayOfWeek; i++) {
+      days.push(null);
+    }
+
+    // Add all days in month
+    for (let day = 1; day <= daysInMonth; day++) {
+      days.push(new Date(year, month, day));
+    }
+
+    return days;
+  };
+
+  const getAppointmentCountForDate = (date: Date) => {
+    const dateStr = date.toISOString().split('T')[0];
+    return appointments.filter(apt => {
+      const aptDate =
+        apt.date instanceof Date
+          ? apt.date.toISOString().split('T')[0]
+          : String(apt.date).split('T')[0];
+      return aptDate === dateStr;
+    }).length;
+  };
+
+  const isSameDay = (date1: Date | null, date2: Date | null) => {
+    if (!date1 || !date2) return false;
+    return (
+      date1.getFullYear() === date2.getFullYear() &&
+      date1.getMonth() === date2.getMonth() &&
+      date1.getDate() === date2.getDate()
+    );
+  };
+
+  const handleCalendarDateClick = (date: Date) => {
+    setSelectedCalendarDate(date);
+    setDateFilter('custom');
+    const dateStr = date.toISOString().split('T')[0];
+    setCustomFromDate(dateStr);
+    setCustomToDate(dateStr);
+    setCurrentPage(1); // Reset to first page
+  };
+
   // Sortable header component
   const SortableHeader = ({
     field,
@@ -526,16 +699,43 @@ const AdminDashboard: React.FC = () => {
     <th
       className={`px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${className}`}
       onClick={() => handleSort(field)}
+      aria-sort={
+        sortField === field ? (sortDirection === 'asc' ? 'ascending' : 'descending') : 'none'
+      }
+      role="columnheader"
+      tabIndex={0}
+      onKeyDown={e => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          handleSort(field);
+        }
+      }}
     >
       <div className="flex items-center space-x-1">
         <span>{children}</span>
-        <div className="flex flex-col">
-          <i
-            className={`fas fa-caret-up text-xs ${sortField === field && sortDirection === 'asc' ? 'text-yellow-500' : 'text-gray-400'}`}
-          ></i>
-          <i
-            className={`fas fa-caret-down text-xs -mt-1 ${sortField === field && sortDirection === 'desc' ? 'text-yellow-500' : 'text-gray-400'}`}
-          ></i>
+        <div className="flex flex-col" aria-hidden="true">
+          <svg
+            className={`w-3 h-3 ${sortField === field && sortDirection === 'asc' ? 'text-accent' : 'text-gray-400'}`}
+            fill="currentColor"
+            viewBox="0 0 20 20"
+          >
+            <path
+              fillRule="evenodd"
+              d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z"
+              clipRule="evenodd"
+            />
+          </svg>
+          <svg
+            className={`w-3 h-3 -mt-1 ${sortField === field && sortDirection === 'desc' ? 'text-accent' : 'text-gray-400'}`}
+            fill="currentColor"
+            viewBox="0 0 20 20"
+          >
+            <path
+              fillRule="evenodd"
+              d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+              clipRule="evenodd"
+            />
+          </svg>
         </div>
       </div>
     </th>
@@ -578,10 +778,103 @@ const AdminDashboard: React.FC = () => {
         </Tabs.List>
 
         <Tabs.Content value="appointments">
+          {/* KPI Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400">Today</h3>
+                <svg
+                  className="w-5 h-5 text-blue-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                  />
+                </svg>
+              </div>
+              <p className="text-3xl font-bold text-gray-900 dark:text-gray-100">{kpis.today}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Appointments today</p>
+            </div>
+
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400">This Week</h3>
+                <svg
+                  className="w-5 h-5 text-green-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                  />
+                </svg>
+              </div>
+              <p className="text-3xl font-bold text-gray-900 dark:text-gray-100">{kpis.thisWeek}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                Appointments this week
+              </p>
+            </div>
+
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400">Upcoming</h3>
+                <svg
+                  className="w-5 h-5 text-yellow-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
+                  />
+                </svg>
+              </div>
+              <p className="text-3xl font-bold text-gray-900 dark:text-gray-100">{kpis.upcoming}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Future appointments</p>
+            </div>
+
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                  Week Revenue
+                </h3>
+                <svg
+                  className="w-5 h-5 text-accent"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+              </div>
+              <p className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+                ${kpis.weekRevenue}
+              </p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Revenue this week</p>
+            </div>
+          </div>
+
           {/* Appointments Management Section */}
           <div className="mb-8">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xl font-semibold">Customer Appointment Management</h3>
+              <h3 className="text-xl font-semibold">Appointments</h3>
               <div className="flex items-center space-x-4">
                 <div className="text-sm text-gray-500 dark:text-gray-400">
                   Showing {startIndex + 1}-{Math.min(endIndex, sortedAppointments.length)} of{' '}
@@ -795,13 +1088,14 @@ const AdminDashboard: React.FC = () => {
                 </div>
 
                 {dateFilter === 'custom' && (
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center space-x-2 animate-in fade-in slide-in-from-left-2 duration-200">
                     <input
                       type="date"
                       value={customFromDate}
                       onChange={e => setCustomFromDate(e.target.value)}
                       className="px-[var(--space-3)] py-[var(--space-2)] border border-[var(--gray-7)] rounded-[var(--radius-2)] text-[length:var(--font-size-2)] bg-[var(--color-surface)] text-[var(--gray-12)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-8)] focus-visible:border-[var(--accent-8)] hover:border-[var(--gray-8)] transition-colors"
                       placeholder="From date"
+                      aria-label="Custom date range start"
                     />
                     <span className="text-[var(--gray-11)]">to</span>
                     <input
@@ -810,6 +1104,7 @@ const AdminDashboard: React.FC = () => {
                       onChange={e => setCustomToDate(e.target.value)}
                       className="px-[var(--space-3)] py-[var(--space-2)] border border-[var(--gray-7)] rounded-[var(--radius-2)] text-[length:var(--font-size-2)] bg-[var(--color-surface)] text-[var(--gray-12)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-8)] focus-visible:border-[var(--accent-8)] hover:border-[var(--gray-8)] transition-colors"
                       placeholder="To date"
+                      aria-label="Custom date range end"
                     />
                   </div>
                 )}
@@ -858,25 +1153,61 @@ const AdminDashboard: React.FC = () => {
 
             {/* Bulk Actions Toolbar */}
             {selectedAppointments.size > 0 && (
-              <div className="mb-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+              <div className="mb-4 p-4 bg-accent-soft border-2 border-accent/20 rounded-lg animate-in slide-in-from-top-2 fade-in duration-300 shadow-sm">
                 <div className="flex items-center justify-between">
-                  <div className="text-sm font-medium text-yellow-800 dark:text-yellow-200">
-                    {selectedAppointments.size} appointment
-                    {selectedAppointments.size > 1 ? 's' : ''} selected
+                  <div className="flex items-center space-x-3">
+                    <div className="flex items-center justify-center w-8 h-8 bg-accent rounded-full">
+                      <svg
+                        className="w-5 h-5 text-white"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M5 13l4 4L19 7"
+                        />
+                      </svg>
+                    </div>
+                    <div>
+                      <div className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                        {selectedAppointments.size} appointment
+                        {selectedAppointments.size > 1 ? 's' : ''} selected
+                      </div>
+                      <div className="text-xs text-gray-600 dark:text-gray-400">
+                        Bulk actions available
+                      </div>
+                    </div>
                   </div>
                   <div className="flex items-center space-x-2">
                     <button
                       onClick={() => setBulkCancelDialogOpen(true)}
-                      className="px-3 py-1 text-sm bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+                      className="px-4 py-2 text-sm font-medium bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all hover:shadow-md active:scale-95"
+                      aria-label={`Cancel ${selectedAppointments.size} selected appointments`}
                     >
-                      <i className="fas fa-trash mr-1"></i>
+                      <svg
+                        className="w-4 h-4 inline mr-1.5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                        />
+                      </svg>
                       Cancel Selected
                     </button>
                     <button
                       onClick={() => setSelectedAppointments(new Set())}
-                      className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                      className="px-4 py-2 text-sm font-medium border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-all active:scale-95"
+                      aria-label="Clear selection"
                     >
-                      Clear Selection
+                      Clear
                     </button>
                   </div>
                 </div>
@@ -888,208 +1219,434 @@ const AdminDashboard: React.FC = () => {
                 <LoadingSpinner size="md" message="Loading appointments..." />
               </div>
             ) : filteredAppointments.length === 0 ? (
-              <div className="bg-gray-50 dark:bg-gray-700 p-6 rounded-lg text-center">
-                <p className="text-gray-500 dark:text-gray-400">
-                  {appointments.length === 0
-                    ? 'No appointments booked yet.'
-                    : 'No appointments match your search.'}
-                </p>
+              <div className="bg-white dark:bg-gray-800 p-12 rounded-lg text-center border-2 border-dashed border-gray-300 dark:border-gray-600">
+                <div className="flex flex-col items-center space-y-4">
+                  <div className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center">
+                    {appointments.length === 0 ? (
+                      <svg
+                        className="w-8 h-8 text-gray-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                        />
+                      </svg>
+                    ) : (
+                      <svg
+                        className="w-8 h-8 text-gray-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                        />
+                      </svg>
+                    )}
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">
+                      {appointments.length === 0 ? 'No Appointments Yet' : 'No Results Found'}
+                    </h3>
+                    <p className="text-gray-500 dark:text-gray-400 text-sm">
+                      {appointments.length === 0
+                        ? 'Appointments will appear here once customers start booking.'
+                        : 'Try adjusting your filters or search terms.'}
+                    </p>
+                  </div>
+                  {(dateFilter !== 'all' || statusFilter !== 'all' || searchTerm) && (
+                    <button
+                      onClick={() => {
+                        setDateFilter('all');
+                        setStatusFilter('all');
+                        setSearchTerm('');
+                        setCustomFromDate('');
+                        setCustomToDate('');
+                      }}
+                      className="mt-4 px-4 py-2 text-sm font-medium bg-accent text-white rounded-lg hover:bg-accent/90 transition-colors"
+                    >
+                      Clear All Filters
+                    </button>
+                  )}
+                </div>
               </div>
             ) : (
-              <div className="bg-white dark:bg-gray-700 rounded-lg shadow overflow-hidden">
-                <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-600">
-                    <thead className="bg-gray-100 dark:bg-gray-800">
-                      <tr>
-                        <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
-                          <Checkbox.Root
-                            checked={
-                              selectedAppointments.size === paginatedAppointments.length &&
-                              paginatedAppointments.length > 0
-                            }
-                            onCheckedChange={handleSelectAll}
-                            className="flex items-center justify-center w-5 h-5 rounded-[var(--radius-1)] border border-[var(--gray-7)] bg-[var(--color-surface)] hover:border-[var(--gray-8)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-8)] data-[state=checked]:bg-accent data-[state=checked]:border-[var(--accent-9)]"
-                          >
-                            <Checkbox.Indicator>
-                              <svg
-                                className="w-4 h-4 text-white"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={3}
-                                  d="M5 13l4 4L19 7"
-                                />
-                              </svg>
-                            </Checkbox.Indicator>
-                          </Checkbox.Root>
-                        </th>
-                        <SortableHeader field="date">Date & Time</SortableHeader>
-                        <SortableHeader field="customer">Customer</SortableHeader>
-                        <SortableHeader field="stylist">Stylist</SortableHeader>
-                        <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
-                          Services
-                        </th>
-                        <SortableHeader field="duration">Duration</SortableHeader>
-                        <SortableHeader field="price">Price</SortableHeader>
-                        <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
-                          Status
-                        </th>
-                        <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
-                          Actions
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                      {paginatedAppointments.map(appointment => (
-                        <tr
-                          key={appointment.id}
-                          className={`hover:bg-gray-50 dark:hover:bg-gray-800 ${selectedAppointments.has(appointment.id) ? 'bg-accent-soft dark:bg-accent-soft' : ''}`}
-                        >
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <Checkbox.Root
-                              checked={selectedAppointments.has(appointment.id)}
-                              onCheckedChange={() => handleSelectAppointment(appointment.id)}
-                              className="flex items-center justify-center w-5 h-5 rounded-[var(--radius-1)] border border-[var(--gray-7)] bg-[var(--color-surface)] hover:border-[var(--gray-8)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-8)] data-[state=checked]:bg-accent data-[state=checked]:border-[var(--accent-9)]"
-                            >
-                              <Checkbox.Indicator>
-                                <svg
-                                  className="w-4 h-4 text-white"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  viewBox="0 0 24 24"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={3}
-                                    d="M5 13l4 4L19 7"
-                                  />
-                                </svg>
-                              </Checkbox.Indicator>
-                            </Checkbox.Root>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                              {formatDisplayDate(appointment.date)}
-                            </div>
-                            <div className="text-sm text-gray-500 dark:text-gray-400">
-                              {appointment.time}
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                              {appointment.customerName}
-                            </div>
-                            <div className="text-sm text-gray-500 dark:text-gray-400">
-                              {appointment.customerEmail}
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm text-gray-900 dark:text-gray-100">
-                              {appointment.stylist
-                                ? appointment.stylist.name
-                                : 'No stylist assigned'}
-                            </div>
-                          </td>
-                          <td className="px-6 py-4">
-                            <div className="text-sm text-gray-900 dark:text-gray-100">
-                              {appointment.services.map(s => s.name).join(', ')}
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                            {appointment.totalDuration} mins
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
-                            ${appointment.totalPrice}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            {(() => {
-                              const status = (appointment as any).status || 'SCHEDULED';
-                              if (status === 'COMPLETED') {
-                                return (
-                                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-                                    Completed
-                                  </span>
-                                );
-                              } else if (status === 'NO_SHOW') {
-                                return (
-                                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300">
-                                    No-Show
-                                  </span>
-                                );
-                              } else if (status === 'CANCELLED') {
-                                return (
-                                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">
-                                    Cancelled
-                                  </span>
-                                );
-                              } else {
-                                return (
-                                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-                                    Scheduled
-                                  </span>
-                                );
-                              }
-                            })()}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                            <div className="flex space-x-4">
-                              <button
-                                onClick={() => handleEditAppointment(appointment)}
-                                className="text-accent hover:text-accent dark:text-accent dark:hover:text-accent transition-colors"
-                                title="Edit appointment"
-                              >
-                                <svg
-                                  className="h-5 w-5"
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  viewBox="0 0 20 20"
-                                  fill="currentColor"
-                                >
-                                  <path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" />
-                                  <path
-                                    fillRule="evenodd"
-                                    d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z"
-                                    clipRule="evenodd"
-                                  />
-                                </svg>
-                              </button>
-                              <button
-                                onClick={() => handleCancelAppointment(appointment)}
-                                className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 transition-colors"
-                                title="Cancel appointment"
-                              >
-                                <svg
-                                  className="h-5 w-5"
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  viewBox="0 0 20 20"
-                                  fill="currentColor"
-                                >
-                                  <path
-                                    fillRule="evenodd"
-                                    d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z"
-                                    clipRule="evenodd"
-                                  />
-                                </svg>
-                              </button>
-                              {(() => {
-                                const status = (appointment as any).status || 'SCHEDULED';
-                                const completedAt = (appointment as any).completedAt;
-                                const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-                                const isRecentlyCompleted =
-                                  status === 'COMPLETED' &&
-                                  completedAt &&
-                                  new Date(completedAt) > sevenDaysAgo;
+              /* CALENDAR + TABLE VIEW */
+              <div className="flex gap-6">
+                {/* Calendar Column */}
+                <div className="flex-shrink-0 w-80 bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+                  {/* Month Navigation */}
+                  <div className="flex items-center justify-between mb-4">
+                    <button
+                      onClick={() =>
+                        setCurrentMonth(
+                          new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1),
+                        )
+                      }
+                      className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+                      aria-label="Previous month"
+                    >
+                      <svg
+                        className="w-5 h-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M15 19l-7-7 7-7"
+                        />
+                      </svg>
+                    </button>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                      {currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                    </h3>
+                    <button
+                      onClick={() =>
+                        setCurrentMonth(
+                          new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1),
+                        )
+                      }
+                      className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+                      aria-label="Next month"
+                    >
+                      <svg
+                        className="w-5 h-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M9 5l7 7-7 7"
+                        />
+                      </svg>
+                    </button>
+                  </div>
 
-                                if (isRecentlyCompleted) {
-                                  return (
+                  {/* Clear Selection Button */}
+                  {selectedCalendarDate && (
+                    <button
+                      onClick={() => {
+                        setSelectedCalendarDate(null);
+                        setDateFilter('all');
+                        setCustomFromDate('');
+                        setCustomToDate('');
+                      }}
+                      className="w-full mb-3 px-3 py-1.5 text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+                    >
+                      Clear date filter
+                    </button>
+                  )}
+
+                  {/* Day Labels */}
+                  <div className="grid grid-cols-7 gap-1 mb-2">
+                    {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, i) => (
+                      <div
+                        key={i}
+                        className="text-center text-xs font-semibold text-gray-600 dark:text-gray-400 py-1"
+                      >
+                        {day}
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Calendar Grid */}
+                  <div className="grid grid-cols-7 gap-1">
+                    {getDaysInMonth(currentMonth).map((date, index) => {
+                      if (!date) {
+                        return <div key={`empty-${index}`} className="aspect-square" />;
+                      }
+
+                      const appointmentCount = getAppointmentCountForDate(date);
+                      const isSelected = isSameDay(date, selectedCalendarDate);
+                      const isToday = isSameDay(date, new Date());
+                      const hasAppointments = appointmentCount > 0;
+
+                      return (
+                        <button
+                          key={date.toISOString()}
+                          onClick={() => handleCalendarDateClick(date)}
+                          className={`
+                            aspect-square p-1 rounded-lg text-sm transition-all relative
+                            ${
+                              isSelected
+                                ? 'bg-accent text-white font-semibold shadow-md'
+                                : isToday
+                                  ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-900 dark:text-blue-100 font-semibold'
+                                  : hasAppointments
+                                    ? 'bg-green-50 dark:bg-green-900/20 text-gray-900 dark:text-gray-100 hover:bg-green-100 dark:hover:bg-green-900/30'
+                                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+                            }
+                          `}
+                          title={
+                            hasAppointments
+                              ? `${appointmentCount} appointment${appointmentCount > 1 ? 's' : ''}`
+                              : undefined
+                          }
+                        >
+                          <span className="block">{date.getDate()}</span>
+                          {hasAppointments && !isSelected && (
+                            <span className="absolute bottom-0.5 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-green-500 dark:bg-green-400 rounded-full" />
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Legend */}
+                  <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 space-y-2 text-xs">
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded bg-blue-100 dark:bg-blue-900/30" />
+                      <span className="text-gray-600 dark:text-gray-400">Today</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800" />
+                      <span className="text-gray-600 dark:text-gray-400">Has appointments</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded bg-accent" />
+                      <span className="text-gray-600 dark:text-gray-400">Selected</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Table Column */}
+                <div className="flex-1 min-w-0">
+                  {paginatedAppointments.length === 0 ? (
+                    <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-12">
+                      <div className="flex flex-col items-center justify-center text-center">
+                        <div className="mb-4 p-4 bg-gray-100 dark:bg-gray-700 rounded-full">
+                          <svg
+                            className="w-12 h-12 text-gray-400 dark:text-gray-500"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                            />
+                          </svg>
+                        </div>
+                        <div>
+                          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">
+                            {appointments.length === 0 ? 'No Appointments Yet' : 'No Results Found'}
+                          </h3>
+                          <p className="text-gray-500 dark:text-gray-400 text-sm">
+                            {appointments.length === 0
+                              ? 'Appointments will appear here once customers start booking.'
+                              : selectedCalendarDate
+                                ? `No appointments on ${formatDisplayDate(selectedCalendarDate.toISOString())}`
+                                : 'Try adjusting your filters or search terms.'}
+                          </p>
+                        </div>
+                        {(dateFilter !== 'all' ||
+                          statusFilter !== 'all' ||
+                          searchTerm ||
+                          selectedCalendarDate) && (
+                          <button
+                            onClick={() => {
+                              setDateFilter('all');
+                              setStatusFilter('all');
+                              setSearchTerm('');
+                              setCustomFromDate('');
+                              setCustomToDate('');
+                              setSelectedCalendarDate(null);
+                            }}
+                            className="mt-4 px-4 py-2 text-sm font-medium bg-accent text-white rounded-lg hover:bg-accent/90 transition-colors"
+                          >
+                            Clear All Filters
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="bg-white dark:bg-gray-700 rounded-lg shadow overflow-hidden">
+                      <div className="overflow-x-auto">
+                        <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-600">
+                          <thead className="bg-gray-100 dark:bg-gray-800">
+                            <tr>
+                              <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+                                <Checkbox.Root
+                                  checked={
+                                    selectedAppointments.size === paginatedAppointments.length &&
+                                    paginatedAppointments.length > 0
+                                  }
+                                  onCheckedChange={handleSelectAll}
+                                  className="flex items-center justify-center w-5 h-5 rounded-[var(--radius-1)] border border-[var(--gray-7)] bg-[var(--color-surface)] hover:border-[var(--gray-8)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-8)] data-[state=checked]:bg-accent data-[state=checked]:border-[var(--accent-9)]"
+                                >
+                                  <Checkbox.Indicator>
+                                    <svg
+                                      className="w-4 h-4 text-white"
+                                      fill="none"
+                                      stroke="currentColor"
+                                      viewBox="0 0 24 24"
+                                    >
+                                      <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={3}
+                                        d="M5 13l4 4L19 7"
+                                      />
+                                    </svg>
+                                  </Checkbox.Indicator>
+                                </Checkbox.Root>
+                              </th>
+                              <SortableHeader field="date">Date & Time</SortableHeader>
+                              <SortableHeader field="customer">Customer</SortableHeader>
+                              <SortableHeader field="stylist">Stylist</SortableHeader>
+                              <SortableHeader field="price">Services & Price</SortableHeader>
+                              <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+                                Status
+                              </th>
+                              <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+                                Actions
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                            {paginatedAppointments.map(appointment => (
+                              <tr
+                                key={appointment.id}
+                                className={`hover:bg-gray-50 dark:hover:bg-gray-800 ${selectedAppointments.has(appointment.id) ? 'bg-accent-soft dark:bg-accent-soft' : ''}`}
+                              >
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                  <Checkbox.Root
+                                    checked={selectedAppointments.has(appointment.id)}
+                                    onCheckedChange={() => handleSelectAppointment(appointment.id)}
+                                    className="flex items-center justify-center w-5 h-5 rounded-[var(--radius-1)] border border-[var(--gray-7)] bg-[var(--color-surface)] hover:border-[var(--gray-8)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-8)] data-[state=checked]:bg-accent data-[state=checked]:border-[var(--accent-9)]"
+                                  >
+                                    <Checkbox.Indicator>
+                                      <svg
+                                        className="w-4 h-4 text-white"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                      >
+                                        <path
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                          strokeWidth={3}
+                                          d="M5 13l4 4L19 7"
+                                        />
+                                      </svg>
+                                    </Checkbox.Indicator>
+                                  </Checkbox.Root>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                  <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                    {formatDisplayDate(appointment.date)}
+                                  </div>
+                                  <div className="text-sm text-gray-500 dark:text-gray-400">
+                                    {(() => {
+                                      const [hours, minutes] = appointment.time
+                                        .split(':')
+                                        .map(Number);
+                                      const startTime = formatTime12Hour(appointment.time);
+                                      const endMinutes =
+                                        hours * 60 + minutes + appointment.totalDuration;
+                                      const endHours = Math.floor(endMinutes / 60);
+                                      const endMins = endMinutes % 60;
+                                      const endTime = formatTime12Hour(
+                                        `${endHours}:${String(endMins).padStart(2, '0')}`,
+                                      );
+                                      return `${startTime}-${endTime} (${appointment.totalDuration}m)`;
+                                    })()}
+                                  </div>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                  <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                    {appointment.customerName}
+                                  </div>
+                                  <div className="text-sm text-gray-500 dark:text-gray-400">
+                                    {appointment.customerEmail}
+                                  </div>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                  <div className="text-sm text-gray-900 dark:text-gray-100">
+                                    {appointment.stylist
+                                      ? appointment.stylist.name
+                                      : 'No stylist assigned'}
+                                  </div>
+                                </td>
+                                <td className="px-6 py-4">
+                                  <div className="text-sm text-gray-900 dark:text-gray-100 mb-1">
+                                    {appointment.services.map(s => s.name).join(', ')}
+                                  </div>
+                                  <div className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                                    ${appointment.totalPrice}
+                                  </div>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                  {(() => {
+                                    const status = (appointment as any).status || 'SCHEDULED';
+                                    if (status === 'COMPLETED') {
+                                      return (
+                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                                          Completed
+                                        </span>
+                                      );
+                                    } else if (status === 'NO_SHOW') {
+                                      return (
+                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300">
+                                          No-Show
+                                        </span>
+                                      );
+                                    } else if (status === 'CANCELLED') {
+                                      return (
+                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">
+                                          Cancelled
+                                        </span>
+                                      );
+                                    } else {
+                                      return (
+                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                                          Scheduled
+                                        </span>
+                                      );
+                                    }
+                                  })()}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                  <div className="flex space-x-4">
                                     <button
-                                      onClick={() => handleMarkNoShow(appointment)}
-                                      className="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
-                                      title="Mark as no-show"
+                                      onClick={() => handleEditAppointment(appointment)}
+                                      className="text-accent hover:text-accent dark:text-accent dark:hover:text-accent transition-colors"
+                                      title="Edit appointment"
+                                    >
+                                      <svg
+                                        className="h-5 w-5"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        viewBox="0 0 20 20"
+                                        fill="currentColor"
+                                      >
+                                        <path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" />
+                                        <path
+                                          fillRule="evenodd"
+                                          d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z"
+                                          clipRule="evenodd"
+                                        />
+                                      </svg>
+                                    </button>
+                                    <button
+                                      onClick={() => handleCancelAppointment(appointment)}
+                                      className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 transition-colors"
+                                      title="Cancel appointment"
                                     >
                                       <svg
                                         className="h-5 w-5"
@@ -1099,88 +1656,130 @@ const AdminDashboard: React.FC = () => {
                                       >
                                         <path
                                           fillRule="evenodd"
-                                          d="M10 18a8 8 0 100-16 8 8 0 000 16zM7 9a1 1 0 000 2h6a1 1 0 100-2H7z"
+                                          d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z"
                                           clipRule="evenodd"
                                         />
                                       </svg>
                                     </button>
-                                  );
-                                }
-                                return null;
-                              })()}
+                                    {(() => {
+                                      const status = (appointment as any).status || 'SCHEDULED';
+                                      const completedAt = (appointment as any).completedAt;
+                                      const sevenDaysAgo = new Date(
+                                        Date.now() - 7 * 24 * 60 * 60 * 1000,
+                                      );
+                                      const isRecentlyCompleted =
+                                        status === 'COMPLETED' &&
+                                        completedAt &&
+                                        new Date(completedAt) > sevenDaysAgo;
+
+                                      if (isRecentlyCompleted) {
+                                        return (
+                                          <button
+                                            onClick={() => handleMarkNoShow(appointment)}
+                                            className="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
+                                            title="Mark as no-show"
+                                          >
+                                            <svg
+                                              className="h-5 w-5"
+                                              xmlns="http://www.w3.org/2000/svg"
+                                              viewBox="0 0 20 20"
+                                              fill="currentColor"
+                                            >
+                                              <path
+                                                fillRule="evenodd"
+                                                d="M10 18a8 8 0 100-16 8 8 0 000 16zM7 9a1 1 0 000 2h6a1 1 0 100-2H7z"
+                                                clipRule="evenodd"
+                                              />
+                                            </svg>
+                                          </button>
+                                        );
+                                      }
+                                      return null;
+                                    })()}
+                                  </div>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+
+                      {/* Pagination Controls */}
+                      {totalPages > 1 && (
+                        <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+                          <div className="flex items-center justify-between">
+                            <div className="text-sm text-gray-700 dark:text-gray-300">
+                              Page {currentPage} of {totalPages}
                             </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-
-                {/* Pagination Controls */}
-                {totalPages > 1 && (
-                  <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
-                    <div className="flex items-center justify-between">
-                      <div className="text-sm text-gray-700 dark:text-gray-300">
-                        Page {currentPage} of {totalPages}
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <button
-                          onClick={() => setCurrentPage(1)}
-                          disabled={currentPage === 1}
-                          className="px-3 py-1 text-sm border rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                          title="First page"
-                        >
-                          &laquo;
-                        </button>
-                        <button
-                          onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                          disabled={currentPage === 1}
-                          className="px-3 py-1 text-sm border rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                          title="Previous page"
-                        >
-                          &lsaquo;
-                        </button>
-
-                        {/* Page numbers */}
-                        {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                          const pageNum =
-                            Math.max(1, Math.min(totalPages - 4, currentPage - 2)) + i;
-                          if (pageNum > totalPages) return null;
-                          return (
-                            <button
-                              key={pageNum}
-                              onClick={() => setCurrentPage(pageNum)}
-                              className={`px-3 py-1 text-sm border rounded-lg ${
-                                currentPage === pageNum
-                                  ? 'bg-accent border-accent'
-                                  : 'hover:bg-gray-100 dark:hover:bg-gray-700'
-                              }`}
+                            <nav
+                              className="flex items-center space-x-2"
+                              role="navigation"
+                              aria-label="Pagination"
                             >
-                              {pageNum}
-                            </button>
-                          );
-                        })}
+                              <button
+                                onClick={() => setCurrentPage(1)}
+                                disabled={currentPage === 1}
+                                className="px-3 py-1 text-sm border rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                aria-label="Go to first page"
+                              >
+                                &laquo;
+                              </button>
+                              <button
+                                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                                disabled={currentPage === 1}
+                                className="px-3 py-1 text-sm border rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                aria-label="Go to previous page"
+                              >
+                                &lsaquo;
+                              </button>
 
-                        <button
-                          onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                          disabled={currentPage === totalPages}
-                          className="px-3 py-1 text-sm border rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                          title="Next page"
-                        >
-                          &rsaquo;
-                        </button>
-                        <button
-                          onClick={() => setCurrentPage(totalPages)}
-                          disabled={currentPage === totalPages}
-                          className="px-3 py-1 text-sm border rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                          title="Last page"
-                        >
-                          &raquo;
-                        </button>
-                      </div>
+                              {/* Page numbers */}
+                              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                                const pageNum =
+                                  Math.max(1, Math.min(totalPages - 4, currentPage - 2)) + i;
+                                if (pageNum > totalPages) return null;
+                                return (
+                                  <button
+                                    key={pageNum}
+                                    onClick={() => setCurrentPage(pageNum)}
+                                    className={`px-3 py-1 text-sm border rounded-lg transition-colors ${
+                                      currentPage === pageNum
+                                        ? 'bg-accent border-accent text-white font-semibold'
+                                        : 'hover:bg-gray-100 dark:hover:bg-gray-700'
+                                    }`}
+                                    aria-label={`Go to page ${pageNum}`}
+                                    aria-current={currentPage === pageNum ? 'page' : undefined}
+                                  >
+                                    {pageNum}
+                                  </button>
+                                );
+                              })}
+
+                              <button
+                                onClick={() =>
+                                  setCurrentPage(Math.min(totalPages, currentPage + 1))
+                                }
+                                disabled={currentPage === totalPages}
+                                className="px-3 py-1 text-sm border rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                aria-label="Go to next page"
+                              >
+                                &rsaquo;
+                              </button>
+                              <button
+                                onClick={() => setCurrentPage(totalPages)}
+                                disabled={currentPage === totalPages}
+                                className="px-3 py-1 text-sm border rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                aria-label="Go to last page"
+                              >
+                                &raquo;
+                              </button>
+                            </nav>
+                          </div>
+                        </div>
+                      )}
                     </div>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
             )}
           </div>
@@ -1196,74 +1795,75 @@ const AdminDashboard: React.FC = () => {
             <div className="bg-white dark:bg-gray-800 p-6 rounded-xl">
               <h3 className="text-2xl font-bold mb-4">Weekly Schedule</h3>
               <div className="space-y-3">
-                {Object.entries(weeklySchedule).map(([day, schedule]) => (
-                  <div key={day} className="grid grid-cols-4 gap-3 items-center">
-                    <div className="flex items-center">
-                      <Checkbox.Root
-                        id={`${day}-open`}
-                        checked={schedule.isOpen}
-                        onCheckedChange={checked =>
+                {weeklySchedule &&
+                  Object.entries(weeklySchedule).map(([day, schedule]) => (
+                    <div key={day} className="grid grid-cols-4 gap-3 items-center">
+                      <div className="flex items-center">
+                        <Checkbox.Root
+                          id={`${day}-open`}
+                          checked={schedule.isOpen}
+                          onCheckedChange={checked =>
+                            setWeeklySchedule({
+                              ...weeklySchedule,
+                              [day]: { ...schedule, isOpen: checked === true },
+                            })
+                          }
+                          className="flex items-center justify-center w-5 h-5 mr-3 rounded-[var(--radius-1)] border border-[var(--gray-7)] bg-[var(--color-surface)] hover:border-[var(--gray-8)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-8)] data-[state=checked]:bg-accent data-[state=checked]:border-[var(--accent-9)]"
+                        >
+                          <Checkbox.Indicator>
+                            <svg
+                              className="w-4 h-4 text-white"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={3}
+                                d="M5 13l4 4L19 7"
+                              />
+                            </svg>
+                          </Checkbox.Indicator>
+                        </Checkbox.Root>
+                        <label
+                          htmlFor={`${day}-open`}
+                          className="text-[length:var(--font-size-2)] font-medium capitalize text-[var(--gray-12)]"
+                        >
+                          {day}
+                        </label>
+                      </div>
+                      <input
+                        type="time"
+                        value={schedule.openingTime}
+                        onChange={e =>
                           setWeeklySchedule({
                             ...weeklySchedule,
-                            [day]: { ...schedule, isOpen: checked === true },
+                            [day]: { ...schedule, openingTime: e.target.value },
                           })
                         }
-                        className="flex items-center justify-center w-5 h-5 mr-3 rounded-[var(--radius-1)] border border-[var(--gray-7)] bg-[var(--color-surface)] hover:border-[var(--gray-8)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-8)] data-[state=checked]:bg-accent data-[state=checked]:border-[var(--accent-9)]"
-                      >
-                        <Checkbox.Indicator>
-                          <svg
-                            className="w-4 h-4 text-white"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={3}
-                              d="M5 13l4 4L19 7"
-                            />
-                          </svg>
-                        </Checkbox.Indicator>
-                      </Checkbox.Root>
-                      <label
-                        htmlFor={`${day}-open`}
-                        className="text-[length:var(--font-size-2)] font-medium capitalize text-[var(--gray-12)]"
-                      >
-                        {day}
-                      </label>
+                        disabled={!schedule.isOpen}
+                        className="px-[var(--space-3)] py-[var(--space-2)] border border-[var(--gray-7)] rounded-[var(--radius-2)] text-[length:var(--font-size-2)] bg-[var(--color-surface)] text-[var(--gray-12)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-8)] focus-visible:border-[var(--accent-8)] hover:border-[var(--gray-8)] disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-[var(--gray-2)] transition-colors"
+                        step="1800"
+                      />
+                      <span className="text-center text-[length:var(--font-size-2)] text-[var(--gray-11)]">
+                        to
+                      </span>
+                      <input
+                        type="time"
+                        value={schedule.closingTime}
+                        onChange={e =>
+                          setWeeklySchedule({
+                            ...weeklySchedule,
+                            [day]: { ...schedule, closingTime: e.target.value },
+                          })
+                        }
+                        disabled={!schedule.isOpen}
+                        className="px-[var(--space-3)] py-[var(--space-2)] border border-[var(--gray-7)] rounded-[var(--radius-2)] text-[length:var(--font-size-2)] bg-[var(--color-surface)] text-[var(--gray-12)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-8)] focus-visible:border-[var(--accent-8)] hover:border-[var(--gray-8)] disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-[var(--gray-2)] transition-colors"
+                        step="1800"
+                      />
                     </div>
-                    <input
-                      type="time"
-                      value={schedule.openingTime}
-                      onChange={e =>
-                        setWeeklySchedule({
-                          ...weeklySchedule,
-                          [day]: { ...schedule, openingTime: e.target.value },
-                        })
-                      }
-                      disabled={!schedule.isOpen}
-                      className="px-[var(--space-3)] py-[var(--space-2)] border border-[var(--gray-7)] rounded-[var(--radius-2)] text-[length:var(--font-size-2)] bg-[var(--color-surface)] text-[var(--gray-12)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-8)] focus-visible:border-[var(--accent-8)] hover:border-[var(--gray-8)] disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-[var(--gray-2)] transition-colors"
-                      step="1800"
-                    />
-                    <span className="text-center text-[length:var(--font-size-2)] text-[var(--gray-11)]">
-                      to
-                    </span>
-                    <input
-                      type="time"
-                      value={schedule.closingTime}
-                      onChange={e =>
-                        setWeeklySchedule({
-                          ...weeklySchedule,
-                          [day]: { ...schedule, closingTime: e.target.value },
-                        })
-                      }
-                      disabled={!schedule.isOpen}
-                      className="px-[var(--space-3)] py-[var(--space-2)] border border-[var(--gray-7)] rounded-[var(--radius-2)] text-[length:var(--font-size-2)] bg-[var(--color-surface)] text-[var(--gray-12)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-8)] focus-visible:border-[var(--accent-8)] hover:border-[var(--gray-8)] disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-[var(--gray-2)] transition-colors"
-                      step="1800"
-                    />
-                  </div>
-                ))}
+                  ))}
               </div>
 
               {/* Closed Dates Section */}
@@ -1344,286 +1944,54 @@ const AdminDashboard: React.FC = () => {
 
           {/* Save Button */}
           <div className="mt-8 flex justify-end">
-            <button
+            <LoadingButton
+              loading={isSavingSettings}
+              loadingText="Saving..."
               onClick={handleSettingsSave}
-              className="bg-accent px-8 py-3 rounded-lg hover:bg-accent transition-colors font-semibold text-base"
+              className="bg-accent px-8 py-3 rounded-lg hover:bg-accent/90 transition-colors font-semibold text-base shadow-sm hover:shadow-md active:scale-98"
             >
               Save Settings
-            </button>
-          </div>
-
-          {/* Stats Card */}
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-xl mt-8">
-            <h3 className="text-xl font-semibold mb-2">Appointments Today</h3>
-            <p className="text-5xl font-bold text-accent">
-              {
-                (Array.isArray(appointments) ? appointments : []).filter(
-                  a => new Date(a.date).toDateString() === new Date().toDateString(),
-                ).length
-              }
-            </p>
-          </div>
-
-          {/* Appointments Management Section */}
-          <div className="mb-8">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xl font-semibold">Customer Appointment Management</h3>
-              <div className="flex items-center space-x-4">
-                <div className="relative">
-                  <input
-                    type="text"
-                    placeholder="Search appointments..."
-                    value={searchTerm}
-                    onChange={e => setSearchTerm(e.target.value)}
-                    className="pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-yellow-500 focus:border-yellow-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                  />
-                  <i className="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-                </div>
-                <div className="text-sm text-gray-500 dark:text-gray-400">
-                  {filteredAppointments.length} of {appointments.length} appointments
-                </div>
-              </div>
-            </div>
-            {appointmentsLoading ? (
-              <div className="bg-gray-50 dark:bg-gray-700 p-6 rounded-lg text-center">
-                <LoadingSpinner size="md" message="Loading appointments..." />
-              </div>
-            ) : filteredAppointments.length === 0 ? (
-              <div className="bg-gray-50 dark:bg-gray-700 p-6 rounded-lg text-center">
-                <p className="text-gray-500 dark:text-gray-400">
-                  {appointments.length === 0
-                    ? 'No appointments booked yet.'
-                    : 'No appointments match your search.'}
-                </p>
-              </div>
-            ) : (
-              <div className="bg-white dark:bg-gray-700 rounded-lg shadow overflow-hidden">
-                <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-600">
-                    <thead className="bg-gray-50 dark:bg-gray-800">
-                      <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                          Date & Time
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                          Customer
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                          Services
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                          Duration
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                          Price
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                          Actions
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-200 dark:divide-gray-600">
-                      {paginatedAppointments.map(appointment => (
-                        <tr
-                          key={appointment.id}
-                          className={`hover:bg-gray-50 dark:hover:bg-gray-600 ${selectedAppointments.has(appointment.id) ? 'bg-yellow-50 dark:bg-yellow-900/20' : ''}`}
-                        >
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <Checkbox.Root
-                              checked={selectedAppointments.has(appointment.id)}
-                              onCheckedChange={() => handleSelectAppointment(appointment.id)}
-                              className="flex items-center justify-center w-5 h-5 rounded-[var(--radius-1)] border border-[var(--gray-7)] bg-[var(--color-surface)] hover:border-[var(--gray-8)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-8)] data-[state=checked]:bg-accent data-[state=checked]:border-[var(--accent-9)]"
-                            >
-                              <Checkbox.Indicator>
-                                <svg
-                                  className="w-4 h-4 text-white"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  viewBox="0 0 24 24"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={3}
-                                    d="M5 13l4 4L19 7"
-                                  />
-                                </svg>
-                              </Checkbox.Indicator>
-                            </Checkbox.Root>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="flex items-center space-x-2">
-                              <div>
-                                <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                  {formatDisplayDate(appointment.date)}
-                                </div>
-                                <div className="text-sm text-gray-500 dark:text-gray-400">
-                                  {appointment.time}
-                                </div>
-                              </div>
-                              <div className="flex-shrink-0">
-                                {(() => {
-                                  const appointmentDate = new Date(appointment.date);
-                                  const today = new Date();
-                                  const startOfToday = new Date(
-                                    today.getFullYear(),
-                                    today.getMonth(),
-                                    today.getDate(),
-                                  );
-                                  const endOfToday = new Date(
-                                    today.getFullYear(),
-                                    today.getMonth(),
-                                    today.getDate(),
-                                    23,
-                                    59,
-                                    59,
-                                  );
-
-                                  if (
-                                    appointmentDate >= startOfToday &&
-                                    appointmentDate <= endOfToday
-                                  ) {
-                                    return (
-                                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-                                        <i className="fas fa-clock mr-1"></i>
-                                        Today
-                                      </span>
-                                    );
-                                  } else if (appointmentDate > endOfToday) {
-                                    return (
-                                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-                                        <i className="fas fa-calendar-plus mr-1"></i>
-                                        Upcoming
-                                      </span>
-                                    );
-                                  } else {
-                                    return (
-                                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300">
-                                        <i className="fas fa-history mr-1"></i>
-                                        Past
-                                      </span>
-                                    );
-                                  }
-                                })()}
-                              </div>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                              {appointment.customerName}
-                            </div>
-                            <div className="text-sm text-gray-500 dark:text-gray-400">
-                              {appointment.customerEmail}
-                            </div>
-                          </td>
-                          <td className="px-6 py-4">
-                            <div className="text-sm text-gray-900 dark:text-gray-100">
-                              {appointment.services.map(s => s.name).join(', ')}
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                            {appointment.totalDuration} mins
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
-                            ${appointment.totalPrice}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            {(() => {
-                              const status = (appointment as any).status || 'SCHEDULED';
-                              if (status === 'COMPLETED') {
-                                return (
-                                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-                                    <i className="fas fa-check-circle mr-1"></i>
-                                    Completed
-                                  </span>
-                                );
-                              } else if (status === 'NO_SHOW') {
-                                return (
-                                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300">
-                                    <i className="fas fa-user-slash mr-1"></i>
-                                    No-Show
-                                  </span>
-                                );
-                              } else if (status === 'CANCELLED') {
-                                return (
-                                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">
-                                    <i className="fas fa-times-circle mr-1"></i>
-                                    Cancelled
-                                  </span>
-                                );
-                              } else {
-                                return (
-                                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-                                    <i className="fas fa-calendar-check mr-1"></i>
-                                    Scheduled
-                                  </span>
-                                );
-                              }
-                            })()}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                            <div className="flex space-x-2">
-                              <button
-                                onClick={() => handleEditAppointment(appointment)}
-                                className="text-yellow-600 hover:text-yellow-900 dark:text-yellow-400 dark:hover:text-yellow-300 transition-colors"
-                                title="Edit appointment"
-                              >
-                                <i className="fas fa-edit"></i>
-                              </button>
-                              <button
-                                onClick={() => handleCancelAppointment(appointment)}
-                                className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 transition-colors"
-                                title="Cancel appointment"
-                              >
-                                <i className="fas fa-trash"></i>
-                              </button>
-                              {(() => {
-                                const status = (appointment as any).status || 'SCHEDULED';
-                                const completedAt = (appointment as any).completedAt;
-                                const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-                                const isRecentlyCompleted =
-                                  status === 'COMPLETED' &&
-                                  completedAt &&
-                                  new Date(completedAt) > sevenDaysAgo;
-
-                                if (isRecentlyCompleted) {
-                                  return (
-                                    <button
-                                      onClick={() => handleMarkNoShow(appointment)}
-                                      className="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
-                                      title="Mark as no-show"
-                                    >
-                                      <i className="fas fa-user-slash"></i>
-                                    </button>
-                                  );
-                                }
-                                return null;
-                              })()}
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            )}
+            </LoadingButton>
           </div>
 
           <div>
-            <h3 className="text-xl font-semibold mb-3">Manage Availability</h3>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-semibold">Manage Availability</h3>
+
+              {/* Color Legend */}
+              <div className="flex items-center space-x-4 text-xs">
+                <div className="flex items-center space-x-1.5">
+                  <div className="w-3 h-3 rounded bg-green-100 dark:bg-green-800 border border-green-300 dark:border-green-700"></div>
+                  <span className="text-gray-700 dark:text-gray-300">Available</span>
+                </div>
+                <div className="flex items-center space-x-1.5">
+                  <div className="w-3 h-3 rounded bg-gray-300 dark:bg-gray-600 border border-gray-400 dark:border-gray-500"></div>
+                  <span className="text-gray-700 dark:text-gray-300">Blocked</span>
+                </div>
+                <div className="flex items-center space-x-1.5">
+                  <div className="w-3 h-3 rounded bg-red-500 border border-red-600"></div>
+                  <span className="text-gray-700 dark:text-gray-300">Booked</span>
+                </div>
+              </div>
+            </div>
+
             <input
               type="date"
               value={selectedDate.toISOString().split('T')[0]}
               onChange={e => setSelectedDate(new Date(e.target.value))}
               className="w-full md:w-auto p-2 border rounded-md bg-white dark:bg-gray-600 dark:border-gray-500 mb-4"
+              aria-label="Select date to manage availability"
             />
             {loading ? (
               <div className="flex items-center justify-center p-8">
                 <LoadingSpinner size="md" message="Loading time slots..." />
               </div>
             ) : (
-              <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-3">
+              <div
+                className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-3"
+                role="group"
+                aria-label="Time slot management grid"
+              >
                 {timeSlots.map(({ time, available }) => {
                   const isBooked = appointments.some(
                     a =>

@@ -2,30 +2,34 @@
  * API Route: /api/admin/settings
  * Handles getting and updating admin settings.
  */
+import { NextResponse } from 'next/server';
 import {
   getAdminSettings,
   updateAdminSettings as dbUpdateAdminSettings,
 } from '../../../../lib/database';
 
 // GET /api/admin/settings
-export async function handleGet() {
+export async function GET() {
   try {
     const settings = getAdminSettings();
-    return { status: 200, body: settings };
+    return NextResponse.json(settings);
   } catch (error: any) {
-    return { status: 500, body: { message: error.message } };
+    return NextResponse.json({ message: error.message }, { status: 500 });
   }
 }
 
 // POST /api/admin/settings
-export async function handlePost(requestBody: any) {
-  if (!requestBody) {
-    return { status: 400, body: { message: 'Bad Request: Missing request body.' } };
-  }
+export async function POST(request: Request) {
   try {
+    const requestBody = await request.json();
+
+    if (!requestBody) {
+      return NextResponse.json({ message: 'Bad Request: Missing request body.' }, { status: 400 });
+    }
+
     const updatedSettings = dbUpdateAdminSettings(requestBody);
-    return { status: 200, body: updatedSettings };
+    return NextResponse.json(updatedSettings);
   } catch (error: any) {
-    return { status: 500, body: { message: error.message } };
+    return NextResponse.json({ message: error.message }, { status: 500 });
   }
 }
