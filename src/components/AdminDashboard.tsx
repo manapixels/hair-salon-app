@@ -745,9 +745,6 @@ const AdminDashboard: React.FC = () => {
     <div className="bg-gray-50 dark:bg-gray-900 p-8 rounded-2xl shadow-lg">
       <div className="flex items-center justify-between mb-8">
         <h2 className="text-4xl font-bold text-gray-800 dark:text-gray-200">Salon Management</h2>
-        <span className="px-4 py-2 text-sm font-semibold rounded-full bg-accent-soft text-accent dark:bg-accent-soft dark:text-accent">
-          Admin
-        </span>
       </div>
 
       {/* Tab Navigation */}

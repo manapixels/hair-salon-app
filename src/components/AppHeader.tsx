@@ -6,6 +6,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { Button } from '@radix-ui/themes';
 import { cn } from '@/lib/utils';
+import * as Avatar from '@radix-ui/react-avatar';
+import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 
 type View = 'booking' | 'admin' | 'dashboard';
 
@@ -86,9 +88,9 @@ export default function AppHeader({ view, onViewChange, onLoginClick }: AppHeade
           </h1>
         </div>
         <div className="flex items-center gap-4">
-          <div className="hidden items-center gap-1 sm:flex">
+          <div className="hidden items-center gap-3 sm:flex">
             <Button
-              variant={activeView === 'booking' ? 'solid' : 'soft'}
+              variant={activeView === 'booking' ? 'solid' : 'ghost'}
               className={cn('', activeView !== 'booking' && 'text-gray-600 dark:text-gray-300')}
               onClick={() => {
                 if (activeView !== 'booking') {
@@ -104,7 +106,7 @@ export default function AppHeader({ view, onViewChange, onLoginClick }: AppHeade
             {user && user.role === 'CUSTOMER' && (
               <div className="relative">
                 <Button
-                  variant={activeView === 'dashboard' ? 'solid' : 'soft'}
+                  variant={activeView === 'dashboard' ? 'solid' : 'ghost'}
                   className={cn(
                     '',
                     activeView !== 'dashboard' && 'text-gray-600 dark:text-gray-300',
@@ -152,21 +154,91 @@ export default function AppHeader({ view, onViewChange, onLoginClick }: AppHeade
               </Button>
             )}
             {user ? (
-              <>
-                <span className="hidden  text-gray-600 md:inline dark:text-gray-200">
-                  Welcome, {user.name}!
-                </span>
-                <Button
-                  variant="soft"
-                  onClick={async () => {
-                    await logout();
-                    router.push('/');
-                    toast.success('Logged out successfully');
-                  }}
-                >
-                  Logout
-                </Button>
-              </>
+              <DropdownMenu.Root>
+                <DropdownMenu.Trigger asChild>
+                  <button
+                    className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full bg-accent text-white transition-opacity hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2"
+                    aria-label="User menu"
+                  >
+                    <Avatar.Root className="h-10 w-10">
+                      <Avatar.Image
+                        src={user.avatar}
+                        alt={user.name}
+                        className="h-full w-full rounded-full object-cover"
+                      />
+                      <Avatar.Fallback className="flex h-full w-full items-center justify-center rounded-full bg-accent text-sm font-semibold text-white">
+                        {user.name
+                          .split(' ')
+                          .map(n => n[0])
+                          .join('')
+                          .toUpperCase()
+                          .slice(0, 2)}
+                      </Avatar.Fallback>
+                    </Avatar.Root>
+                  </button>
+                </DropdownMenu.Trigger>
+
+                <DropdownMenu.Portal>
+                  <DropdownMenu.Content
+                    className="min-w-[220px] rounded-lg border border-gray-200 bg-white p-1.5 shadow-lg dark:border-gray-700 dark:bg-gray-800"
+                    sideOffset={5}
+                    align="end"
+                  >
+                    <div className="px-3 py-2.5 border-b border-gray-100 dark:border-gray-700">
+                      <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                        {user.name}
+                      </p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">{user.email}</p>
+                      <span className="mt-1.5 inline-block rounded-full bg-accent/10 px-2 py-0.5 text-[10px] font-medium text-accent">
+                        {user.role === 'ADMIN' ? 'Admin' : 'Customer'}
+                      </span>
+                    </div>
+
+                    {user.role === 'CUSTOMER' && activeView !== 'dashboard' && (
+                      <DropdownMenu.Item
+                        className="flex cursor-pointer items-center gap-2.5 rounded-md px-3 py-2 text-sm text-gray-700 outline-none transition-colors hover:bg-gray-100 focus:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700 dark:focus:bg-gray-700"
+                        onSelect={() => router.push('/dashboard')}
+                      >
+                        <i className="fa-solid fa-user w-4 text-center" aria-hidden="true"></i>
+                        <span>Dashboard</span>
+                      </DropdownMenu.Item>
+                    )}
+
+                    {user.role === 'ADMIN' && activeView !== 'admin' && (
+                      <DropdownMenu.Item
+                        className="flex cursor-pointer items-center gap-2.5 rounded-md px-3 py-2 text-sm text-gray-700 outline-none transition-colors hover:bg-gray-100 focus:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700 dark:focus:bg-gray-700"
+                        onSelect={() => router.push('/admin')}
+                      >
+                        <i
+                          className="fa-solid fa-user-shield w-4 text-center"
+                          aria-hidden="true"
+                        ></i>
+                        <span>Admin Panel</span>
+                      </DropdownMenu.Item>
+                    )}
+
+                    {((user.role === 'CUSTOMER' && activeView !== 'dashboard') ||
+                      (user.role === 'ADMIN' && activeView !== 'admin')) && (
+                      <DropdownMenu.Separator className="my-1.5 h-px bg-gray-100 dark:bg-gray-700" />
+                    )}
+
+                    <DropdownMenu.Item
+                      className="flex cursor-pointer items-center gap-2.5 rounded-md px-3 py-2 text-sm text-red-600 outline-none transition-colors hover:bg-red-50 focus:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20 dark:focus:bg-red-900/20"
+                      onSelect={async () => {
+                        await logout();
+                        router.push('/');
+                        toast.success('Logged out successfully');
+                      }}
+                    >
+                      <i
+                        className="fa-solid fa-sign-out-alt w-4 text-center"
+                        aria-hidden="true"
+                      ></i>
+                      <span>Logout</span>
+                    </DropdownMenu.Item>
+                  </DropdownMenu.Content>
+                </DropdownMenu.Portal>
+              </DropdownMenu.Root>
             ) : (
               onLoginClick && (
                 <Button onClick={onLoginClick}>
