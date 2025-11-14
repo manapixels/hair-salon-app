@@ -1,15 +1,20 @@
 import { useState, useEffect, useMemo } from 'react';
 import { toast, type ExternalToast } from 'sonner';
 import { useBooking } from '../context/BookingContext';
-import type { TimeSlot, Appointment } from '../types';
+import type { Appointment } from '../types';
 import EditAppointmentModal from './EditAppointmentModal';
 import StylistManagement from './StylistManagement';
+import AvailabilityModeToggle, {
+  type AvailabilityMode,
+} from './admin/availability/AvailabilityModeToggle';
+import SalonAvailability from './admin/availability/SalonAvailability';
+import StylistAvailability from './admin/availability/StylistAvailability';
+import SettingsLayout from './admin/settings/SettingsLayout';
 import { formatDisplayDate, formatTime12Hour } from '@/lib/timeUtils';
 import * as Tabs from '@radix-ui/react-tabs';
 import * as Select from '@radix-ui/react-select';
 import * as Checkbox from '@radix-ui/react-checkbox';
 import * as AlertDialog from '@radix-ui/react-alert-dialog';
-import { TextField } from './ui/TextField';
 import { LoadingSpinner } from './loaders/LoadingSpinner';
 import { LoadingButton } from './loaders/LoadingButton';
 
@@ -24,22 +29,14 @@ const AdminDashboard: React.FC = () => {
     fetchAndSetAppointments,
     saveAdminSettings,
   } = useBooking();
-  const [selectedDate, setSelectedDate] = useState(new Date());
-  const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
-  const [loading, setLoading] = useState(false);
   const [appointmentsLoading, setAppointmentsLoading] = useState(true);
-  const [weeklySchedule, setWeeklySchedule] = useState(adminSettings.weeklySchedule || {});
-  const [closedDates, setClosedDates] = useState<string[]>(adminSettings.closedDates || []);
-  const [newClosedDate, setNewClosedDate] = useState('');
-  const [businessName, setBusinessName] = useState(adminSettings.businessName || '');
-  const [businessAddress, setBusinessAddress] = useState(adminSettings.businessAddress || '');
-  const [businessPhone, setBusinessPhone] = useState(adminSettings.businessPhone || '');
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [activeTab, setActiveTab] = useState<'appointments' | 'stylists' | 'availability'>(
-    'appointments',
-  );
+  const [activeTab, setActiveTab] = useState<
+    'appointments' | 'stylists' | 'availability' | 'settings'
+  >('appointments');
+  const [availabilityMode, setAvailabilityMode] = useState<AvailabilityMode>('salon-wide');
   const [dateFilter, setDateFilter] = useState<'all' | 'today' | 'week' | 'month' | 'custom'>(
     'all',
   );
@@ -56,7 +53,6 @@ const AdminDashboard: React.FC = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
   const [previousAppointmentIds, setPreviousAppointmentIds] = useState<Set<string>>(new Set());
-  const [isSavingSettings, setIsSavingSettings] = useState(false);
   const [selectedCalendarDate, setSelectedCalendarDate] = useState<Date | null>(null);
   const [currentMonth, setCurrentMonth] = useState(new Date());
 
@@ -84,102 +80,6 @@ const AdminDashboard: React.FC = () => {
     loadInitialData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  useEffect(() => {
-    if (adminSettings) {
-      setWeeklySchedule(adminSettings.weeklySchedule || {});
-      setClosedDates(adminSettings.closedDates || []);
-      setBusinessName(adminSettings.businessName || '');
-      setBusinessAddress(adminSettings.businessAddress || '');
-      setBusinessPhone(adminSettings.businessPhone || '');
-    }
-  }, [adminSettings]);
-
-  useEffect(() => {
-    const fetchAndProcessSlots = async () => {
-      setLoading(true);
-      const availableSlotsList = await getAvailableSlots(selectedDate);
-
-      // Get day-specific schedule
-      const dayOfWeek = selectedDate.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
-      const daySchedule = weeklySchedule[dayOfWeek as keyof typeof weeklySchedule];
-      const allSlots =
-        daySchedule && daySchedule.isOpen
-          ? generateAllTimeSlots(daySchedule.openingTime, daySchedule.closingTime)
-          : [];
-
-      // Validate appointments is an array before filtering
-      const apptTimes = Array.isArray(appointments)
-        ? appointments
-            .filter(a => new Date(a.date).toDateString() === selectedDate.toDateString())
-            .map(a => a.time)
-        : [];
-
-      const processedSlots = allSlots.map(slot => {
-        let isAvailable = availableSlotsList.includes(slot.time) && !apptTimes.includes(slot.time);
-
-        return {
-          time: slot.time,
-          available: isAvailable,
-        };
-      });
-      setTimeSlots(processedSlots);
-      setLoading(false);
-    };
-
-    fetchAndProcessSlots();
-  }, [selectedDate, weeklySchedule, appointments, getAvailableSlots]);
-
-  const handleTimeSlotClick = async (time: string, isAvailable: boolean) => {
-    // Optimistic update
-    setTimeSlots(prev =>
-      prev.map(slot => (slot.time === time ? { ...slot, available: !isAvailable } : slot)),
-    );
-    try {
-      if (isAvailable) {
-        await blockTimeSlot(selectedDate, time);
-      } else {
-        await unblockTimeSlot(selectedDate, time);
-      }
-    } catch (error) {
-      // Revert on error
-      setTimeSlots(prev =>
-        prev.map(slot => (slot.time === time ? { ...slot, available: isAvailable } : slot)),
-      );
-      toast.error('Failed to update slot.');
-    }
-  };
-
-  const generateAllTimeSlots = (start: string, end: string) => {
-    const slots: TimeSlot[] = [];
-    let currentTime = new Date(`1970-01-01T${start}:00`);
-    const endTime = new Date(`1970-01-01T${end}:00`);
-    while (currentTime < endTime) {
-      slots.push({ time: currentTime.toTimeString().substring(0, 5), available: true });
-      currentTime.setMinutes(currentTime.getMinutes() + 30);
-    }
-    return slots;
-  };
-
-  const handleSettingsSave = async () => {
-    setIsSavingSettings(true);
-    const toastId = toast.loading('Saving settings...');
-    try {
-      await saveAdminSettings({
-        ...adminSettings,
-        weeklySchedule,
-        closedDates,
-        businessName,
-        businessAddress,
-        businessPhone,
-      });
-      toast.success('Settings saved successfully!', { id: toastId });
-    } catch (error) {
-      toast.error('Failed to save settings.', { id: toastId });
-    } finally {
-      setIsSavingSettings(false);
-    }
-  };
 
   const handleEditAppointment = (appointment: Appointment) => {
     setSelectedAppointment(appointment);
@@ -770,7 +670,13 @@ const AdminDashboard: React.FC = () => {
             value="availability"
             className="px-[var(--space-2)] py-[var(--space-3)] text-[length:var(--font-size-3)] font-semibold border-b-2 border-transparent data-[state=active]:border-[var(--accent-9)] data-[state=active]:text-[var(--accent-11)] text-[var(--gray-11)] hover:text-[var(--gray-12)] transition-colors"
           >
-            Availability & Settings
+            Availability
+          </Tabs.Trigger>
+          <Tabs.Trigger
+            value="settings"
+            className="px-[var(--space-2)] py-[var(--space-3)] text-[length:var(--font-size-3)] font-semibold border-b-2 border-transparent data-[state=active]:border-[var(--accent-9)] data-[state=active]:text-[var(--accent-11)] text-[var(--gray-11)] hover:text-[var(--gray-12)] transition-colors"
+          >
+            Settings
           </Tabs.Trigger>
         </Tabs.List>
 
@@ -1787,246 +1693,23 @@ const AdminDashboard: React.FC = () => {
         </Tabs.Content>
 
         <Tabs.Content value="availability">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-            {/* Operating Hours */}
-            <div className="bg-white dark:bg-gray-800 p-6 rounded-xl">
-              <h3 className="text-2xl font-bold mb-4">Weekly Schedule</h3>
-              <div className="space-y-3">
-                {weeklySchedule &&
-                  Object.entries(weeklySchedule).map(([day, schedule]) => (
-                    <div key={day} className="grid grid-cols-4 gap-3 items-center">
-                      <div className="flex items-center">
-                        <Checkbox.Root
-                          id={`${day}-open`}
-                          checked={schedule.isOpen}
-                          onCheckedChange={checked =>
-                            setWeeklySchedule({
-                              ...weeklySchedule,
-                              [day]: { ...schedule, isOpen: checked === true },
-                            })
-                          }
-                          className="flex items-center justify-center w-5 h-5 mr-3 rounded-[var(--radius-1)] border border-[var(--gray-7)] bg-[var(--color-surface)] hover:border-[var(--gray-8)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-8)] data-[state=checked]:bg-accent data-[state=checked]:border-[var(--accent-9)]"
-                        >
-                          <Checkbox.Indicator>
-                            <svg
-                              className="w-4 h-4 text-white"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={3}
-                                d="M5 13l4 4L19 7"
-                              />
-                            </svg>
-                          </Checkbox.Indicator>
-                        </Checkbox.Root>
-                        <label
-                          htmlFor={`${day}-open`}
-                          className="text-[length:var(--font-size-2)] font-medium capitalize text-[var(--gray-12)]"
-                        >
-                          {day}
-                        </label>
-                      </div>
-                      <input
-                        type="time"
-                        value={schedule.openingTime}
-                        onChange={e =>
-                          setWeeklySchedule({
-                            ...weeklySchedule,
-                            [day]: { ...schedule, openingTime: e.target.value },
-                          })
-                        }
-                        disabled={!schedule.isOpen}
-                        className="px-[var(--space-3)] py-[var(--space-2)] border border-[var(--gray-7)] rounded-[var(--radius-2)] text-[length:var(--font-size-2)] bg-[var(--color-surface)] text-[var(--gray-12)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-8)] focus-visible:border-[var(--accent-8)] hover:border-[var(--gray-8)] disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-[var(--gray-2)] transition-colors"
-                        step="1800"
-                      />
-                      <span className="text-center text-[length:var(--font-size-2)] text-[var(--gray-11)]">
-                        to
-                      </span>
-                      <input
-                        type="time"
-                        value={schedule.closingTime}
-                        onChange={e =>
-                          setWeeklySchedule({
-                            ...weeklySchedule,
-                            [day]: { ...schedule, closingTime: e.target.value },
-                          })
-                        }
-                        disabled={!schedule.isOpen}
-                        className="px-[var(--space-3)] py-[var(--space-2)] border border-[var(--gray-7)] rounded-[var(--radius-2)] text-[length:var(--font-size-2)] bg-[var(--color-surface)] text-[var(--gray-12)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-8)] focus-visible:border-[var(--accent-8)] hover:border-[var(--gray-8)] disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-[var(--gray-2)] transition-colors"
-                        step="1800"
-                      />
-                    </div>
-                  ))}
-              </div>
+          <AvailabilityModeToggle mode={availabilityMode} onChange={setAvailabilityMode} />
 
-              {/* Closed Dates Section */}
-              <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
-                <h4 className="text-lg font-semibold mb-3">Special Closed Dates</h4>
-                <div className="space-y-2">
-                  {closedDates.map(date => (
-                    <div
-                      key={date}
-                      className="flex items-center justify-between bg-gray-100 dark:bg-gray-700 p-3 rounded-lg"
-                    >
-                      <span className="text-sm font-medium">{date}</span>
-                      <button
-                        onClick={() => setClosedDates(closedDates.filter(d => d !== date))}
-                        className="text-red-600 hover:text-red-800 text-sm"
-                      >
-                        Remove
-                      </button>
-                    </div>
-                  ))}
-                  <div className="flex gap-2 pt-2">
-                    <input
-                      type="date"
-                      value={newClosedDate}
-                      onChange={e => setNewClosedDate(e.target.value)}
-                      className="flex-1 p-2 border rounded-lg text-sm bg-white dark:bg-gray-700 dark:border-gray-600"
-                      min={new Date().toISOString().split('T')[0]}
-                    />
-                    <button
-                      onClick={() => {
-                        if (newClosedDate && !closedDates.includes(newClosedDate)) {
-                          setClosedDates([...closedDates, newClosedDate].sort());
-                          setNewClosedDate('');
-                        }
-                      }}
-                      disabled={!newClosedDate}
-                      className="px-4 py-2 bg-accent rounded-lg text-sm font-semibold hover:bg-accent disabled:opacity-50"
-                    >
-                      Add Date
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Business Information */}
-            <div className="bg-white dark:bg-gray-800 p-6 rounded-xl">
-              <h3 className="text-2xl font-bold mb-4">Business Information</h3>
-              <div className="space-y-4">
-                <TextField
-                  label="Business Name"
-                  id="businessName"
-                  value={businessName}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    setBusinessName(e.target.value)
-                  }
-                />
-                <TextField
-                  label="Address"
-                  id="businessAddress"
-                  value={businessAddress}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    setBusinessAddress(e.target.value)
-                  }
-                />
-                <TextField
-                  label="Phone Number"
-                  type="tel"
-                  id="businessPhone"
-                  value={businessPhone}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    setBusinessPhone(e.target.value)
-                  }
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Save Button */}
-          <div className="mt-8 flex justify-end">
-            <LoadingButton
-              loading={isSavingSettings}
-              loadingText="Saving..."
-              onClick={handleSettingsSave}
-              className="bg-accent px-8 py-3 rounded-lg hover:bg-accent/90 transition-colors font-semibold text-base shadow-sm hover:shadow-md active:scale-98"
-            >
-              Save Settings
-            </LoadingButton>
-          </div>
-
-          <div>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-semibold">Manage Availability</h3>
-
-              {/* Color Legend */}
-              <div className="flex items-center space-x-4 text-xs">
-                <div className="flex items-center space-x-1.5">
-                  <div className="w-3 h-3 rounded bg-green-100 dark:bg-green-800 border border-green-300 dark:border-green-700"></div>
-                  <span className="text-gray-700 dark:text-gray-300">Available</span>
-                </div>
-                <div className="flex items-center space-x-1.5">
-                  <div className="w-3 h-3 rounded bg-gray-300 dark:bg-gray-600 border border-gray-400 dark:border-gray-500"></div>
-                  <span className="text-gray-700 dark:text-gray-300">Blocked</span>
-                </div>
-                <div className="flex items-center space-x-1.5">
-                  <div className="w-3 h-3 rounded bg-red-500 border border-red-600"></div>
-                  <span className="text-gray-700 dark:text-gray-300">Booked</span>
-                </div>
-              </div>
-            </div>
-
-            <input
-              type="date"
-              value={selectedDate.toISOString().split('T')[0]}
-              onChange={e => setSelectedDate(new Date(e.target.value))}
-              className="w-full md:w-auto p-2 border rounded-md bg-white dark:bg-gray-600 dark:border-gray-500 mb-4"
-              aria-label="Select date to manage availability"
+          {availabilityMode === 'salon-wide' ? (
+            <SalonAvailability
+              adminSettings={adminSettings}
+              appointments={appointments}
+              getAvailableSlots={getAvailableSlots}
+              blockTimeSlot={blockTimeSlot}
+              unblockTimeSlot={unblockTimeSlot}
             />
-            {loading ? (
-              <div className="flex items-center justify-center p-8">
-                <LoadingSpinner size="md" message="Loading time slots..." />
-              </div>
-            ) : (
-              <div
-                className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-3"
-                role="group"
-                aria-label="Time slot management grid"
-              >
-                {timeSlots.map(({ time, available }) => {
-                  const isBooked = appointments.some(
-                    a =>
-                      new Date(a.date).toDateString() === selectedDate.toDateString() &&
-                      a.time === time,
-                  );
-                  let buttonClass = '';
-                  if (isBooked) {
-                    buttonClass = 'bg-red-500 text-white cursor-not-allowed';
-                  } else if (available) {
-                    buttonClass =
-                      'bg-green-100 dark:bg-green-800 text-green-800 dark:text-green-100 hover:bg-green-200 dark:hover:bg-green-700';
-                  } else {
-                    buttonClass =
-                      'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 hover:bg-gray-400 dark:hover:bg-gray-500';
-                  }
+          ) : (
+            <StylistAvailability onNavigateToStylists={() => setActiveTab('stylists')} />
+          )}
+        </Tabs.Content>
 
-                  return (
-                    <button
-                      key={time}
-                      onClick={() => !isBooked && handleTimeSlotClick(time, available)}
-                      disabled={isBooked}
-                      className={`p-3 rounded-md text-sm font-medium transition-colors text-center ${buttonClass}`}
-                    >
-                      {time}
-                      {isBooked && <span className="block text-xs mt-1">Booked</span>}
-                      {!isBooked &&
-                        (available ? (
-                          <span className="block text-xs mt-1">Available</span>
-                        ) : (
-                          <span className="block text-xs mt-1">Blocked</span>
-                        ))}
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-          </div>
+        <Tabs.Content value="settings">
+          <SettingsLayout adminSettings={adminSettings} onSave={saveAdminSettings} />
         </Tabs.Content>
       </Tabs.Root>
 
