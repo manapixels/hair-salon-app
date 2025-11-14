@@ -49,7 +49,11 @@ export default function ScheduleSettings({ weeklySchedule, onChange }: ScheduleS
 
       <div className="space-y-[var(--space-3)]">
         {DAYS.map(day => {
-          const schedule = weeklySchedule[day];
+          const schedule = weeklySchedule?.[day] || {
+            isOpen: true,
+            openingTime: '09:00',
+            closingTime: '17:00',
+          };
           return (
             <div
               key={day}

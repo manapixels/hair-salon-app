@@ -29,12 +29,16 @@ export default function SalonAvailability({
 
       // Get day-specific schedule
       const dayOfWeek = selectedDate.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
-      const daySchedule =
-        adminSettings.weeklySchedule[dayOfWeek as keyof typeof adminSettings.weeklySchedule];
-      const allSlots =
-        daySchedule && daySchedule.isOpen
-          ? generateAllTimeSlots(daySchedule.openingTime, daySchedule.closingTime)
-          : [];
+      const daySchedule = adminSettings?.weeklySchedule?.[
+        dayOfWeek as keyof typeof adminSettings.weeklySchedule
+      ] || {
+        isOpen: true,
+        openingTime: '09:00',
+        closingTime: '17:00',
+      };
+      const allSlots = daySchedule.isOpen
+        ? generateAllTimeSlots(daySchedule.openingTime, daySchedule.closingTime)
+        : [];
 
       // Validate appointments is an array before filtering
       const apptTimes = Array.isArray(appointments)
@@ -44,7 +48,10 @@ export default function SalonAvailability({
         : [];
 
       const processedSlots = allSlots.map(slot => {
-        let isAvailable = availableSlotsList.includes(slot.time) && !apptTimes.includes(slot.time);
+        // availableSlotsList contains slots that are NOT blocked and NOT booked (from backend)
+        // If a slot is in availableSlotsList, it's available
+        // If not in the list, it means it's blocked or booked
+        const isAvailable = availableSlotsList.includes(slot.time);
 
         return {
           time: slot.time,
@@ -202,40 +209,6 @@ export default function SalonAvailability({
           })}
         </div>
       )}
-
-      {/* Help Text */}
-      <div className="p-[var(--space-4)] bg-[var(--blue-3)] border border-[var(--blue-6)] rounded-[var(--radius-3)]">
-        <div className="flex items-start space-x-[var(--space-3)]">
-          <svg
-            className="w-5 h-5 text-[var(--blue-11)] flex-shrink-0 mt-0.5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
-          <div className="text-[length:var(--font-size-2)] text-[var(--gray-12)]">
-            <p className="font-medium mb-1">How Time Blocking Works</p>
-            <ul className="text-[var(--gray-11)] space-y-1 list-disc list-inside">
-              <li>
-                <strong>Green</strong> slots are available for customer booking
-              </li>
-              <li>
-                <strong>Gray</strong> slots are blocked and hidden from customers
-              </li>
-              <li>
-                <strong>Red</strong> slots already have confirmed appointments
-              </li>
-              <li>Click any available or blocked slot to toggle its status</li>
-            </ul>
-          </div>
-        </div>
-      </div>
     </div>
   );
 }

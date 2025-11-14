@@ -85,17 +85,15 @@ export default function StylistManagement({ onClose }: StylistManagementProps) {
 
   if (isLoading) {
     return (
-      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg">
-        <div className="flex items-center justify-center h-64">
-          <LoadingSpinner size="md" message="Loading stylists..." />
-        </div>
+      <div className="flex items-center justify-center h-64">
+        <LoadingSpinner size="md" message="Loading stylists..." />
       </div>
     );
   }
 
   return (
     <>
-      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg">
+      <div>
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Stylist Management</h2>
           <div className="flex space-x-3">
@@ -138,7 +136,7 @@ export default function StylistManagement({ onClose }: StylistManagementProps) {
             {stylists.map(stylist => (
               <div
                 key={stylist.id}
-                className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg border border-gray-200 dark:border-gray-600"
+                className="bg-white dark:bg-gray-700 p-4 rounded-lg border border-gray-200 dark:border-gray-600"
               >
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center">
