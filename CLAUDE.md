@@ -17,6 +17,7 @@ npm run typecheck && npm run lint
 - **Auth**: OAuth-only (WhatsApp/Telegram) with secure HTTP-only cookies
 - **AI**: Google Gemini for chat functionality
 - **Integrations**: Google Calendar, WhatsApp/Telegram messaging
+- **Design System**: Radix UI + CSS Variables + Lucide Icons (see `docs/DESIGN_SYSTEM.md`)
 
 ## 📁 Project Structure
 
@@ -134,6 +135,52 @@ node scripts/create-admin.js promote <email>  # Promote user to admin
 4. **API routes** use App Router format with middleware
 5. **Security first** - always use session middleware for protected routes
 6. **Loading states** - use standardized components (see Loading States section below)
+7. **UI Components** - use design system from `/src/components/ui/` (see `docs/DESIGN_SYSTEM.md`)
+
+---
+
+## 🎨 UI/UX Design System
+
+**Comprehensive guide:** `docs/DESIGN_SYSTEM.md`
+
+### Quick Reference
+
+**Component Library** (`/src/components/ui/`)
+
+- `Button` - 5 variants, loading states, full Radix integration
+- `Card` - Interactive/selectable cards with checkmark indicator
+- `Modal` - Dialog wrapper with consistent API
+- `Input`, `Textarea`, `Select` - Form fields with validation
+- `Badge` - Status indicators (success, warning, danger, info)
+- `IconButton` - Icon-only buttons with accessibility
+
+**Import Pattern:**
+
+```tsx
+import { Button, Card, Modal, Input, Badge } from '@/components/ui';
+import { Calendar, User, Settings } from '@/lib/icons';
+```
+
+**CSS Variables:**
+
+- Colors: `var(--accent-9)`, `var(--gray-12)`, `var(--green-11)`, etc.
+- Spacing: `var(--space-1)` through `var(--space-12)`
+- Radius: `var(--radius-1)` through `var(--radius-6)`
+- Typography: `var(--font-size-1)` through `var(--font-size-9)`
+
+**Icon System:**
+
+- Lucide React (primary) - Modern, tree-shakeable icons
+- Custom brand icons: `WhatsAppIcon`, `TelegramIcon`
+- Migration map from FontAwesome in `/src/lib/icons.tsx`
+
+**See `docs/DESIGN_SYSTEM.md` for:**
+
+- Complete component API documentation
+- CSS variable reference and migration helpers
+- Accessibility requirements
+- Framer Motion animation patterns
+- Code examples and quick-start snippets
 
 ---
 
@@ -395,6 +442,16 @@ text: `Your appointment is confirmed for ${date}, ${time}`;
 4. ✅ **Always use formatTime12Hour()** for user-facing times (never raw HH:MM)
 5. ❌ **Never** show ISO strings or YYYY-MM-DD to end users
 6. ❌ **Never** show 24-hour time format (14:00) to end users
+
+---
+
+## 📚 Documentation Index
+
+- **Main Guide**: `CLAUDE.md` (this file) - Development guidelines and implementation patterns
+- **Design System**: `docs/DESIGN_SYSTEM.md` - UI components, CSS variables, icons, accessibility
+- **AI Agents**: `AGENTS.md` - Gemini AI, Telegram bot, WhatsApp chat, retention engine
+- **Telegram Testing**: `docs/TELEGRAM_TESTING_GUIDE.md` - Bot testing procedures
+- **Implementation Plans**: `docs/implementation-plans/` - Detailed feature specifications
 
 ---
 

@@ -4,10 +4,10 @@ import { useAuth } from '../context/AuthContext';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
-import { Button } from '@radix-ui/themes';
-import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui';
 import * as Avatar from '@radix-ui/react-avatar';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
+import { Scissors, Calendar, User, Shield, Bell, LogIn, LogOut } from '@/lib/icons';
 
 type View = 'booking' | 'admin' | 'dashboard';
 
@@ -81,17 +81,15 @@ export default function AppHeader({ view, onViewChange, onLoginClick }: AppHeade
   return (
     <header className="border-b border-gray-100 bg-white/90 shadow-sm backdrop-blur-sm dark:border-gray-800 dark:bg-gray-900/90">
       <nav className="container mx-auto flex items-center justify-between px-4 py-2 sm:px-6 lg:px-8">
-        <div className="flex items-center">
-          <i className="fa-solid fa-scissors mr-3 text-3xl text-accent"></i>
-          <h1 className="text-2xl font-bold tracking-tight text-gray-800 dark:text-white">
-            Luxe Cuts
-          </h1>
+        <div className="flex items-center gap-1.5">
+          <Scissors className="h-6 w-6 text-[var(--accent-11)]" aria-hidden="true" />
+          <h1 className="text-2xl font-bold tracking-tight text-[var(--gray-12)]">Luxe Cuts</h1>
         </div>
         <div className="flex items-center gap-4">
           <div className="hidden items-center gap-3 sm:flex">
             <Button
               variant={activeView === 'booking' ? 'solid' : 'ghost'}
-              className={cn('', activeView !== 'booking' && 'text-gray-600 dark:text-gray-300')}
+              size="md"
               onClick={() => {
                 if (activeView !== 'booking') {
                   router.push('/');
@@ -99,7 +97,7 @@ export default function AppHeader({ view, onViewChange, onLoginClick }: AppHeade
                 }
               }}
             >
-              <i className="fa-solid fa-calendar-check" aria-hidden="true"></i>
+              <Calendar className="h-4 w-4" aria-hidden="true" />
               Book Online
             </Button>
 
@@ -107,10 +105,7 @@ export default function AppHeader({ view, onViewChange, onLoginClick }: AppHeade
               <div className="relative">
                 <Button
                   variant={activeView === 'dashboard' ? 'solid' : 'ghost'}
-                  className={cn(
-                    '',
-                    activeView !== 'dashboard' && 'text-gray-600 dark:text-gray-300',
-                  )}
+                  size="md"
                   onClick={() => {
                     if (activeView !== 'dashboard') {
                       router.push('/dashboard');
@@ -118,7 +113,7 @@ export default function AppHeader({ view, onViewChange, onLoginClick }: AppHeade
                     }
                   }}
                 >
-                  <i className="fa-solid fa-user" aria-hidden="true"></i>
+                  <User className="h-4 w-4" aria-hidden="true" />
                   Dashboard
                 </Button>
                 <NotificationBadge count={appointmentCount} />
@@ -128,7 +123,7 @@ export default function AppHeader({ view, onViewChange, onLoginClick }: AppHeade
             {user?.role === 'ADMIN' && (
               <Button
                 variant={activeView === 'admin' ? 'solid' : 'soft'}
-                className={cn('', activeView !== 'admin' && 'text-gray-600 dark:text-gray-300')}
+                size="md"
                 onClick={() => {
                   if (activeView !== 'admin') {
                     router.push('/admin');
@@ -136,22 +131,21 @@ export default function AppHeader({ view, onViewChange, onLoginClick }: AppHeade
                   }
                 }}
               >
-                <i className="fa-solid fa-user-shield" aria-hidden="true"></i>
+                <Shield className="h-4 w-4" aria-hidden="true" />
                 Admin
               </Button>
             )}
           </div>
           <div className="flex items-center gap-3">
             {user && user.role === 'CUSTOMER' && (
-              <Button
-                variant="soft"
-                className="relative h-11 w-11 rounded-full border border-gray-200 p-0 text-gray-600 hover:text-accent sm:hidden dark:border-gray-700 dark:text-gray-300"
+              <button
+                className="relative flex h-11 w-11 items-center justify-center rounded-full border border-[var(--gray-6)] bg-[var(--color-panel)] text-[var(--gray-11)] transition-colors hover:bg-[var(--gray-3)] hover:text-[var(--accent-11)] sm:hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-8)]"
                 onClick={() => router.push('/dashboard')}
                 aria-label={`Dashboard, ${appointmentCount} upcoming appointment${appointmentCount !== 1 ? 's' : ''}`}
               >
-                <i className="fa-regular fa-bell text-xl" aria-hidden="true"></i>
+                <Bell className="h-5 w-5" aria-hidden="true" />
                 <NotificationBadge count={appointmentCount} />
-              </Button>
+              </button>
             )}
             {user ? (
               <DropdownMenu.Root>
@@ -199,7 +193,7 @@ export default function AppHeader({ view, onViewChange, onLoginClick }: AppHeade
                         className="flex cursor-pointer items-center gap-2.5 rounded-md px-3 py-2 text-sm text-gray-700 outline-none transition-colors hover:bg-gray-100 focus:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700 dark:focus:bg-gray-700"
                         onSelect={() => router.push('/dashboard')}
                       >
-                        <i className="fa-solid fa-user w-4 text-center" aria-hidden="true"></i>
+                        <User className="h-4 w-4" aria-hidden="true" />
                         <span>Dashboard</span>
                       </DropdownMenu.Item>
                     )}
@@ -209,10 +203,7 @@ export default function AppHeader({ view, onViewChange, onLoginClick }: AppHeade
                         className="flex cursor-pointer items-center gap-2.5 rounded-md px-3 py-2 text-sm text-gray-700 outline-none transition-colors hover:bg-gray-100 focus:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700 dark:focus:bg-gray-700"
                         onSelect={() => router.push('/admin')}
                       >
-                        <i
-                          className="fa-solid fa-user-shield w-4 text-center"
-                          aria-hidden="true"
-                        ></i>
+                        <Shield className="h-4 w-4" aria-hidden="true" />
                         <span>Admin Panel</span>
                       </DropdownMenu.Item>
                     )}
@@ -230,10 +221,7 @@ export default function AppHeader({ view, onViewChange, onLoginClick }: AppHeade
                         toast.success('Logged out successfully');
                       }}
                     >
-                      <i
-                        className="fa-solid fa-sign-out-alt w-4 text-center"
-                        aria-hidden="true"
-                      ></i>
+                      <LogOut className="h-4 w-4" aria-hidden="true" />
                       <span>Logout</span>
                     </DropdownMenu.Item>
                   </DropdownMenu.Content>
@@ -241,8 +229,8 @@ export default function AppHeader({ view, onViewChange, onLoginClick }: AppHeade
               </DropdownMenu.Root>
             ) : (
               onLoginClick && (
-                <Button onClick={onLoginClick}>
-                  <i className="fa-solid fa-sign-in-alt" aria-hidden="true"></i>
+                <Button variant="solid" size="md" onClick={onLoginClick}>
+                  <LogIn className="h-4 w-4" aria-hidden="true" />
                   Sign In
                 </Button>
               )

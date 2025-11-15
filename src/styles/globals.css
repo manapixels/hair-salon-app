@@ -2,26 +2,39 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  @apply bg-gray-50 dark:bg-gray-900;
+@layer base {
+  :root {
+    /* Radix Themes provides CSS variables automatically, but we can add aliases for easier migration */
+    /* These allow us to use familiar Tailwind names while using Radix under the hood */
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--gray-12);
+  }
 }
 
 /* React Phone Number Input Styling */
 .phone-input-wrapper .PhoneInputInput {
-  @apply w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg
-         focus:ring-2 focus:ring-green-500 focus:border-transparent
-         dark:bg-gray-800 dark:text-white;
+  @apply w-full px-[var(--space-3)] py-[var(--space-2)]
+         border border-[var(--gray-7)] rounded-[var(--radius-2)]
+         focus:ring-2 focus:ring-[var(--accent-8)] focus:border-transparent
+         bg-[var(--color-surface)] text-[var(--gray-12)];
 }
 
 .phone-input-wrapper .PhoneInputCountry {
-  @apply dark:bg-gray-800 border-gray-300 dark:border-gray-600;
+  @apply bg-[var(--color-surface)] border-[var(--gray-7)];
 }
 
 .radix-themes {
   --cursor-button: pointer;
 }
 
+/* Radix CSS Variable Utilities - Simplified Migration Helpers */
 @layer utilities {
+  /* ========================================
+     ACCENT COLOR UTILITIES (Primary Brand Color)
+     ======================================== */
   .bg-accent {
     background-color: var(--accent-9);
     color: var(--accent-contrast);
@@ -33,6 +46,10 @@ body {
   }
 
   .bg-accent-soft {
+    background-color: var(--accent-3);
+  }
+
+  .hover\:bg-accent-soft:hover {
     background-color: var(--accent-4);
   }
 
@@ -40,12 +57,16 @@ body {
     border-color: var(--accent-8);
   }
 
+  .hover\:border-accent:hover {
+    border-color: var(--accent-9);
+  }
+
   .text-accent {
-    color: var(--accent-9);
+    color: var(--accent-11);
   }
 
   .hover\:text-accent:hover {
-    color: var(--accent-10);
+    color: var(--accent-12);
   }
 
   .ring-accent {
@@ -56,45 +77,156 @@ body {
     outline-color: var(--accent-9);
   }
 
-  .disabled\:bg-accent:disabled {
-    background-color: var(--accent-6);
+  /* ========================================
+     SURFACE & PANEL UTILITIES
+     ======================================== */
+  .bg-surface {
+    background-color: var(--color-surface);
   }
 
-  .focus\:ring-accent:focus {
-    --tw-ring-color: var(--accent-8);
+  .bg-panel {
+    background-color: var(--color-panel);
   }
 
-  .focus\:border-accent:focus {
-    border-color: var(--accent-9);
+  .bg-panel-solid {
+    background-color: var(--color-panel-solid);
   }
 
-  .hover\:border-accent:hover {
-    border-color: var(--accent-8);
+  /* ========================================
+     GRAY SCALE UTILITIES
+     ======================================== */
+  .bg-gray-subtle {
+    background-color: var(--gray-2);
   }
 
-  /* Dark mode accent utilities */
-  .dark .dark\:bg-accent {
-    background-color: var(--accent-9);
-    color: var(--accent-contrast);
+  .bg-gray-ui {
+    background-color: var(--gray-3);
   }
 
-  .dark .dark\:bg-accent-soft {
-    background-color: var(--accent-3);
+  .hover\:bg-gray-ui:hover {
+    background-color: var(--gray-4);
   }
 
-  .dark .dark\:hover\:bg-accent:hover {
-    background-color: var(--accent-4);
+  .bg-gray-hover {
+    background-color: var(--gray-4);
   }
 
-  .dark .dark\:text-accent {
-    color: var(--accent-11);
+  .bg-gray-active {
+    background-color: var(--gray-5);
   }
 
-  .dark .dark\:hover\:text-accent:hover {
-    color: var(--accent-11);
+  .border-gray {
+    border-color: var(--gray-6);
   }
 
-  .dark .dark\:border-accent {
-    border-color: var(--accent-8);
+  .border-gray-hover {
+    border-color: var(--gray-7);
+  }
+
+  .hover\:border-gray-hover:hover {
+    border-color: var(--gray-8);
+  }
+
+  .border-gray-solid {
+    border-color: var(--gray-8);
+  }
+
+  .text-gray-subtle {
+    color: var(--gray-11);
+  }
+
+  .text-gray {
+    color: var(--gray-12);
+  }
+
+  /* ========================================
+     SEMANTIC COLOR UTILITIES
+     ======================================== */
+
+  /* Success/Green */
+  .bg-success {
+    background-color: var(--green-9);
+    color: white;
+  }
+
+  .bg-success-soft {
+    background-color: var(--green-3);
+    color: var(--green-11);
+  }
+
+  .text-success {
+    color: var(--green-11);
+  }
+
+  .border-success {
+    border-color: var(--green-8);
+  }
+
+  /* Warning/Orange */
+  .bg-warning {
+    background-color: var(--orange-9);
+    color: white;
+  }
+
+  .bg-warning-soft {
+    background-color: var(--orange-3);
+    color: var(--orange-11);
+  }
+
+  .text-warning {
+    color: var(--orange-11);
+  }
+
+  .border-warning {
+    border-color: var(--orange-8);
+  }
+
+  /* Danger/Red */
+  .bg-danger {
+    background-color: var(--red-9);
+    color: white;
+  }
+
+  .bg-danger-soft {
+    background-color: var(--red-3);
+    color: var(--red-11);
+  }
+
+  .text-danger {
+    color: var(--red-11);
+  }
+
+  .border-danger {
+    border-color: var(--red-8);
+  }
+
+  /* Info/Blue */
+  .bg-info {
+    background-color: var(--blue-9);
+    color: white;
+  }
+
+  .bg-info-soft {
+    background-color: var(--blue-3);
+    color: var(--blue-11);
+  }
+
+  .text-info {
+    color: var(--blue-11);
+  }
+
+  .border-info {
+    border-color: var(--blue-8);
+  }
+
+  /* ========================================
+     FOCUS & INTERACTION UTILITIES
+     ======================================== */
+  .focus-ring-accent {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-8)] focus-visible:ring-offset-2;
+  }
+
+  .focus-ring-danger {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--red-8)] focus-visible:ring-offset-2;
   }
 }

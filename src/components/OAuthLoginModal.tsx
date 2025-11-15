@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import TelegramLoginWidget from './TelegramLoginWidget';
 import WhatsAppOTPLogin from './WhatsAppOTPLogin';
 import { Button, Dialog } from '@radix-ui/themes';
+import { X, WhatsAppIcon, TelegramIcon } from '@/lib/icons';
 
 interface OAuthLoginModalProps {
   isOpen: boolean;
@@ -72,7 +73,7 @@ export default function OAuthLoginModal({ isOpen, onClose }: OAuthLoginModalProp
           </div>
           <Dialog.Close>
             <Button variant="ghost" className="h-10 w-10 rounded-full p-0 text-gray-500">
-              <i className="fa-solid fa-xmark" aria-hidden="true"></i>
+              <X className="h-5 w-5" aria-hidden="true" />
               <span className="sr-only">Close sign in modal</span>
             </Button>
           </Dialog.Close>
@@ -90,7 +91,7 @@ export default function OAuthLoginModal({ isOpen, onClose }: OAuthLoginModalProp
               onClick={handleWhatsAppLogin}
               className="w-full border border-[#1ebe5d] bg-[#25D366] text-white hover:bg-[#1ebe5d]"
             >
-              <i className="fa-brands fa-whatsapp text-lg" aria-hidden="true"></i>
+              <WhatsAppIcon className="h-5 w-5" />
               Continue with WhatsApp
             </Button>
 
@@ -100,7 +101,7 @@ export default function OAuthLoginModal({ isOpen, onClose }: OAuthLoginModalProp
               disabled={!telegramBotUsername || !!telegramError}
               className="w-full bg-[#0088cc] text-white hover:bg-[#007ab8] disabled:bg-[#8ccae8]"
             >
-              <i className="fa-brands fa-telegram text-lg" aria-hidden="true"></i>
+              <TelegramIcon className="h-5 w-5" />
               {showTelegramWidget ? 'Hide Telegram' : 'Continue with Telegram'}
             </Button>
 

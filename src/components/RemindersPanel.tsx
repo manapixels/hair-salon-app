@@ -1,13 +1,14 @@
 'use client';
 
 import ReminderTesting from './ReminderTesting';
+import { Bell, Info, Settings } from '@/lib/icons';
 
 export default function RemindersPanel() {
   return (
     <div className="space-y-6">
       <div className="bg-white dark:bg-gray-900 rounded-lg shadow-md p-6">
         <div className="flex items-center space-x-2 mb-4">
-          <i className="fa-solid fa-bell text-accent text-xl"></i>
+          <Bell className="h-6 w-6 text-accent" aria-hidden="true" />
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
             Appointment Reminders
           </h1>
@@ -15,7 +16,7 @@ export default function RemindersPanel() {
 
         <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-6">
           <div className="flex items-start space-x-3">
-            <i className="fa-solid fa-info-circle text-blue-600 mt-1"></i>
+            <Info className="h-5 w-5 text-blue-600 mt-1" aria-hidden="true" />
             <div>
               <h3 className="font-semibold text-blue-800 dark:text-blue-200 mb-1">
                 How Appointment Reminders Work
@@ -33,8 +34,8 @@ export default function RemindersPanel() {
         <ReminderTesting />
 
         <div className="mt-8 bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
-          <h3 className="font-semibold text-gray-900 dark:text-white mb-3">
-            <i className="fa-solid fa-cog mr-2"></i>
+          <h3 className="font-semibold text-gray-900 dark:text-white mb-3 flex items-center">
+            <Settings className="h-5 w-5 mr-2" aria-hidden="true" />
             Automated Setup
           </h3>
           <div className="text-sm text-gray-600 dark:text-gray-400 space-y-2">

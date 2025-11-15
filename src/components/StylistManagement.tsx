@@ -10,6 +10,7 @@ import { Button } from '@radix-ui/themes';
 import { TextField } from './ui/TextField';
 import { TextArea } from './ui/TextArea';
 import { LoadingSpinner } from './loaders/LoadingSpinner';
+import { Plus, X, Users, User, Edit, Delete } from '@/lib/icons';
 
 interface StylistManagementProps {
   onClose?: () => void;
@@ -99,17 +100,18 @@ export default function StylistManagement({ onClose }: StylistManagementProps) {
           <div className="flex space-x-3">
             <button
               onClick={() => setShowAddModal(true)}
-              className="bg-yellow-600 text-white px-4 py-2 rounded-md hover:bg-yellow-700 transition-colors"
+              className="bg-yellow-600 text-white px-4 py-2 rounded-md hover:bg-yellow-700 transition-colors flex items-center"
             >
-              <i className="fas fa-plus mr-2"></i>
+              <Plus className="h-4 w-4 mr-2" aria-hidden="true" />
               Add Stylist
             </button>
             {onClose && (
               <button
                 onClick={onClose}
                 className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+                aria-label="Close stylist management"
               >
-                <i className="fas fa-times text-xl"></i>
+                <X className="h-5 w-5" aria-hidden="true" />
               </button>
             )}
           </div>
@@ -117,7 +119,7 @@ export default function StylistManagement({ onClose }: StylistManagementProps) {
 
         {stylists.length === 0 ? (
           <div className="bg-gray-50 dark:bg-gray-700 p-8 rounded-lg text-center">
-            <i className="fas fa-users text-4xl text-gray-400 mb-4"></i>
+            <Users className="h-16 w-16 text-gray-400 mx-auto mb-4" aria-hidden="true" />
             <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
               No stylists yet
             </h3>
@@ -150,7 +152,10 @@ export default function StylistManagement({ onClose }: StylistManagementProps) {
                       />
                     ) : (
                       <div className="w-12 h-12 bg-gray-300 dark:bg-gray-600 rounded-full flex items-center justify-center mr-3">
-                        <i className="fas fa-user text-gray-600 dark:text-gray-400"></i>
+                        <User
+                          className="h-6 w-6 text-gray-600 dark:text-gray-400"
+                          aria-hidden="true"
+                        />
                       </div>
                     )}
                     <div>
@@ -165,15 +170,17 @@ export default function StylistManagement({ onClose }: StylistManagementProps) {
                       onClick={() => setEditingStylist(stylist)}
                       className="text-yellow-600 hover:text-yellow-700"
                       title="Edit stylist"
+                      aria-label="Edit stylist"
                     >
-                      <i className="fas fa-edit"></i>
+                      <Edit className="h-4 w-4" aria-hidden="true" />
                     </button>
                     <button
                       onClick={() => handleDeleteStylist(stylist.id)}
                       className="text-red-600 hover:text-red-700"
                       title="Delete stylist"
+                      aria-label="Delete stylist"
                     >
-                      <i className="fas fa-trash"></i>
+                      <Delete className="h-4 w-4" aria-hidden="true" />
                     </button>
                   </div>
                 </div>

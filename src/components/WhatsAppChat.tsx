@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { toast } from 'sonner';
 import type { WhatsAppMessage } from '../types';
+import { Scissors, Info, Send } from '@/lib/icons';
 
 const WhatsAppChat: React.FC = () => {
   const [messages, setMessages] = useState<WhatsAppMessage[]>([
@@ -97,7 +98,7 @@ const WhatsAppChat: React.FC = () => {
   return (
     <div className="flex flex-col h-[75vh] max-w-2xl mx-auto bg-gray-200 dark:bg-gray-900 shadow-2xl rounded-lg overflow-hidden">
       <div className="bg-green-800 text-white p-3 flex items-center">
-        <i className="fa-solid fa-scissors text-2xl mr-3"></i>
+        <Scissors className="h-6 w-6 mr-3" aria-hidden="true" />
         <div>
           <h3 className="font-bold">Luxe Cuts Assistant</h3>
           <p className="text-xs">Online</p>
@@ -106,9 +107,9 @@ const WhatsAppChat: React.FC = () => {
       <div className="flex-1 p-4 space-y-4 overflow-y-auto bg-gray-100 dark:bg-gray-800">
         <div className="text-center p-3 mb-2 bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-200 rounded-lg text-sm shadow-sm">
           <p>
-            <i className="fa-solid fa-circle-info mr-2"></i>This is a simulation of our AI
-            assistant. You can test its capabilities here, or use the QR code in the &quot;Book
-            Online&quot; tab to chat on your own WhatsApp!
+            <Info className="inline h-4 w-4 mr-2" aria-hidden="true" />
+            This is a simulation of our AI assistant. You can test its capabilities here, or use the
+            QR code in the &quot;Book Online&quot; tab to chat on your own WhatsApp!
           </p>
         </div>
         {messages.map(msg => (
@@ -128,8 +129,9 @@ const WhatsAppChat: React.FC = () => {
         <button
           onClick={handleSend}
           className="ml-3 bg-green-600 text-white p-3 rounded-full hover:bg-green-700"
+          aria-label="Send message"
         >
-          <i className="fa-solid fa-paper-plane"></i>
+          <Send className="h-5 w-5" aria-hidden="true" />
         </button>
       </div>
     </div>

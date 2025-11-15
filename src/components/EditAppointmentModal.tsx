@@ -8,6 +8,7 @@ import { SALON_SERVICES } from '../constants';
 import { Button, Checkbox, Dialog, Select } from '@radix-ui/themes';
 import { formatTime12Hour } from '@/lib/timeUtils';
 import { TextField } from './ui/TextField';
+import { X } from '@/lib/icons';
 
 interface EditAppointmentModalProps {
   isOpen: boolean;
@@ -135,7 +136,7 @@ export default function EditAppointmentModal({
           </div>
           <Dialog.Close>
             <Button variant="ghost" className="h-10 w-10 rounded-full p-0 text-gray-500">
-              <i className="fa-solid fa-xmark" aria-hidden="true"></i>
+              <X className="h-5 w-5" aria-hidden="true" />
               <span className="sr-only">Close edit appointment modal</span>
             </Button>
           </Dialog.Close>

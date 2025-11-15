@@ -15,6 +15,7 @@ import {
 } from '@/lib/timeUtils';
 import { cn } from '@/lib/utils';
 import { LoadingSpinner } from './loaders/LoadingSpinner';
+import { X } from '@/lib/icons';
 
 interface RescheduleModalProps {
   appointment: Appointment;
@@ -143,7 +144,7 @@ export default function RescheduleModal({
               className="h-10 w-10 rounded-full p-0 text-gray-500"
               disabled={isRescheduling}
             >
-              <i className="fa-solid fa-xmark" aria-hidden="true"></i>
+              <X className="h-5 w-5" aria-hidden="true" />
               <span className="sr-only">Close reschedule modal</span>
             </Button>
           </Dialog.Close>
@@ -190,7 +191,7 @@ export default function RescheduleModal({
               type="date"
               value={toDateInputValue(selectedDate)}
               min={getMinDateForInput()}
-              onChange={e => {
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                 const [year, month, day] = e.target.value.split('-').map(Number);
                 setSelectedDate(new Date(year, month - 1, day));
               }}

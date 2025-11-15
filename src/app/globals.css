@@ -2,56 +2,89 @@
 @tailwind components;
 @tailwind utilities;
 
-/* React DatePicker Dark Mode Support */
+@layer base {
+  :root {
+    /* Radix Themes provides CSS variables automatically */
+    /* These are already available: --accent-1 through --accent-12, --gray-1 through --gray-12, etc. */
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--gray-12);
+  }
+}
+
+/* React Phone Number Input Styling */
+.phone-input-wrapper .PhoneInputInput {
+  @apply w-full px-[var(--space-3)] py-[var(--space-2)]
+         border border-[var(--gray-7)] rounded-[var(--radius-2)]
+         focus:ring-2 focus:ring-[var(--accent-8)] focus:border-transparent
+         bg-[var(--color-surface)] text-[var(--gray-12)];
+}
+
+.phone-input-wrapper .PhoneInputCountry {
+  @apply bg-[var(--color-surface)] border-[var(--gray-7)];
+}
+
+/* React DatePicker with Radix Variables */
 .react-datepicker {
-  @apply dark:bg-gray-800 dark:border-gray-700;
+  background-color: var(--color-panel);
+  border-color: var(--gray-6);
 }
 
 .react-datepicker__header {
-  @apply dark:bg-gray-900 dark:border-gray-700;
+  background-color: var(--gray-2);
+  border-color: var(--gray-6);
 }
 
 .react-datepicker__current-month,
 .react-datepicker__day-name {
-  @apply dark:text-gray-200;
+  color: var(--gray-12);
 }
 
 .react-datepicker__day {
-  @apply dark:text-gray-300 dark:hover:bg-accent-soft;
+  color: var(--gray-12);
+}
+
+.react-datepicker__day:hover {
+  background-color: var(--accent-3);
 }
 
 .react-datepicker__day--selected,
 .react-datepicker__day--keyboard-selected {
-  @apply dark:bg-accent dark:text-white;
+  background-color: var(--accent-9);
+  color: var(--accent-contrast);
 }
 
 .react-datepicker__day--disabled {
-  @apply dark:text-gray-600;
+  color: var(--gray-8);
 }
 
 .react-datepicker__navigation-icon::before {
-  @apply dark:border-gray-400;
+  border-color: var(--gray-9);
 }
 
 .react-datepicker__triangle {
-  @apply dark:hidden;
+  display: none;
 }
 
-/* Custom Scrollbar */
+/* Custom Scrollbar with Radix Variables */
 .custom-scrollbar::-webkit-scrollbar {
-  @apply w-2;
+  width: 8px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
-  @apply bg-gray-100 dark:bg-gray-800 rounded-full;
+  background-color: var(--gray-3);
+  border-radius: var(--radius-3);
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  @apply bg-gray-300 dark:bg-gray-600 rounded-full;
+  background-color: var(--gray-7);
+  border-radius: var(--radius-3);
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  @apply bg-gray-400 dark:bg-gray-500;
+  background-color: var(--gray-8);
 }
 
 /* Screen Reader Only Utility */
@@ -76,6 +109,145 @@
   overflow: visible;
   clip: auto;
   white-space: normal;
+}
+
+.radix-themes {
+  --cursor-button: pointer;
+}
+
+/* Radix CSS Variable Utilities - Migration Helpers */
+@layer utilities {
+  /* ========================================
+     ACCENT COLOR UTILITIES (Primary Brand)
+     ======================================== */
+  .bg-accent {
+    background-color: var(--accent-9);
+    color: var(--accent-contrast);
+  }
+
+  .hover\:bg-accent:hover {
+    background-color: var(--accent-10);
+    color: var(--accent-contrast);
+  }
+
+  .bg-accent-soft {
+    background-color: var(--accent-3);
+  }
+
+  .hover\:bg-accent-soft:hover {
+    background-color: var(--accent-4);
+  }
+
+  .border-accent {
+    border-color: var(--accent-8);
+  }
+
+  .hover\:border-accent:hover {
+    border-color: var(--accent-9);
+  }
+
+  .text-accent {
+    color: var(--accent-11);
+  }
+
+  .hover\:text-accent:hover {
+    color: var(--accent-12);
+  }
+
+  .ring-accent {
+    --tw-ring-color: var(--accent-8);
+  }
+
+  /* ========================================
+     SURFACE & PANEL UTILITIES
+     ======================================== */
+  .bg-surface {
+    background-color: var(--color-surface);
+  }
+
+  .bg-panel {
+    background-color: var(--color-panel);
+  }
+
+  /* ========================================
+     SEMANTIC COLOR UTILITIES
+     ======================================== */
+
+  /* Success/Green */
+  .bg-success {
+    background-color: var(--green-9);
+    color: white;
+  }
+
+  .bg-success-soft {
+    background-color: var(--green-3);
+    color: var(--green-11);
+  }
+
+  .text-success {
+    color: var(--green-11);
+  }
+
+  .border-success {
+    border-color: var(--green-6);
+  }
+
+  /* Warning/Orange */
+  .bg-warning {
+    background-color: var(--orange-9);
+    color: white;
+  }
+
+  .bg-warning-soft {
+    background-color: var(--orange-3);
+    color: var(--orange-11);
+  }
+
+  .text-warning {
+    color: var(--orange-11);
+  }
+
+  .border-warning {
+    border-color: var(--orange-6);
+  }
+
+  /* Danger/Red */
+  .bg-danger {
+    background-color: var(--red-9);
+    color: white;
+  }
+
+  .bg-danger-soft {
+    background-color: var(--red-3);
+    color: var(--red-11);
+  }
+
+  .text-danger {
+    color: var(--red-11);
+  }
+
+  .border-danger {
+    border-color: var(--red-6);
+  }
+
+  /* Info/Blue */
+  .bg-info {
+    background-color: var(--blue-9);
+    color: white;
+  }
+
+  .bg-info-soft {
+    background-color: var(--blue-3);
+    color: var(--blue-11);
+  }
+
+  .text-info {
+    color: var(--blue-11);
+  }
+
+  .border-info {
+    border-color: var(--blue-6);
+  }
 }
 
 /* Reduced Motion Support */

@@ -3,6 +3,17 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
 import * as AlertDialog from '@radix-ui/react-alert-dialog';
+import {
+  Bell,
+  MessageCircle,
+  Calendar,
+  Send,
+  Spinner,
+  AlertTriangle,
+  List,
+  Check,
+  X,
+} from '@/lib/icons';
 
 interface ReminderResult {
   appointmentId: string;
@@ -141,8 +152,8 @@ export default function ReminderTesting() {
   return (
     <div className="space-y-6">
       <div className="bg-white dark:bg-gray-900 rounded-lg shadow-md p-6">
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-          <i className="fa-solid fa-bell mr-2"></i>
+        <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+          <Bell className="h-5 w-5 mr-2" aria-hidden="true" />
           Appointment Reminders Testing
         </h2>
 
@@ -152,7 +163,7 @@ export default function ReminderTesting() {
             disabled={loading}
             className="flex flex-col items-center p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors disabled:opacity-50"
           >
-            <i className="fa-solid fa-message text-blue-600 text-2xl mb-2"></i>
+            <MessageCircle className="h-8 w-8 text-blue-600 mb-2" aria-hidden="true" />
             <span className="font-medium text-blue-800 dark:text-blue-200">
               Test Message Format
             </span>
@@ -166,7 +177,7 @@ export default function ReminderTesting() {
             disabled={loading}
             className="flex flex-col items-center p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg hover:bg-green-100 dark:hover:bg-green-900/40 transition-colors disabled:opacity-50"
           >
-            <i className="fa-solid fa-calendar-check text-green-600 text-2xl mb-2"></i>
+            <Calendar className="h-8 w-8 text-green-600 mb-2" aria-hidden="true" />
             <span className="font-medium text-green-800 dark:text-green-200">Check Upcoming</span>
             <span className="text-sm text-green-600 dark:text-green-300 text-center">
               View appointments needing reminders
@@ -178,7 +189,7 @@ export default function ReminderTesting() {
             disabled={loading}
             className="flex flex-col items-center p-4 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg hover:bg-orange-100 dark:hover:bg-orange-900/40 transition-colors disabled:opacity-50"
           >
-            <i className="fa-solid fa-paper-plane text-orange-600 text-2xl mb-2"></i>
+            <Send className="h-8 w-8 text-orange-600 mb-2" aria-hidden="true" />
             <span className="font-medium text-orange-800 dark:text-orange-200">Send Reminders</span>
             <span className="text-sm text-orange-600 dark:text-orange-300 text-center">
               Send actual reminders to customers
@@ -188,8 +199,8 @@ export default function ReminderTesting() {
 
         {loading && (
           <div className="text-center py-4">
-            <div className="text-gray-600 dark:text-gray-400">
-              <i className="fa-solid fa-spinner fa-spin mr-2"></i>
+            <div className="text-gray-600 dark:text-gray-400 flex items-center justify-center">
+              <Spinner className="h-4 w-4 mr-2 animate-spin" aria-hidden="true" />
               Processing...
             </div>
           </div>
@@ -197,8 +208,8 @@ export default function ReminderTesting() {
 
         {error && (
           <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-4">
-            <div className="text-red-800 dark:text-red-200">
-              <i className="fa-solid fa-exclamation-triangle mr-2"></i>
+            <div className="text-red-800 dark:text-red-200 flex items-center">
+              <AlertTriangle className="h-4 w-4 mr-2" aria-hidden="true" />
               {error}
             </div>
           </div>
@@ -206,8 +217,8 @@ export default function ReminderTesting() {
 
         {testResult && (
           <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
-            <h3 className="font-semibold text-gray-900 dark:text-white mb-3">
-              <i className="fa-solid fa-clipboard-list mr-2"></i>
+            <h3 className="font-semibold text-gray-900 dark:text-white mb-3 flex items-center">
+              <List className="h-5 w-5 mr-2" aria-hidden="true" />
               Test Results
             </h3>
 
@@ -275,15 +286,15 @@ export default function ReminderTesting() {
                         <div className="font-medium">
                           Appointment {result.appointmentId.slice(-6)}
                         </div>
-                        <div className="text-xs">
+                        <div className="text-xs flex items-center">
                           {result.success ? (
                             <>
-                              <i className="fa-solid fa-check mr-1"></i>
+                              <Check className="h-3 w-3 mr-1" aria-hidden="true" />
                               Sent via {result.method}
                             </>
                           ) : (
                             <>
-                              <i className="fa-solid fa-times mr-1"></i>
+                              <X className="h-3 w-3 mr-1" aria-hidden="true" />
                               {result.error}
                             </>
                           )}

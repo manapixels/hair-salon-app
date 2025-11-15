@@ -28,8 +28,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <link rel="icon" type="image/svg+xml" href="/vite.svg" />
       </head>
-      <body className="bg-gray-50 dark:bg-gray-900">
-        <Theme accentColor="gold" grayColor="olive" radius="large">
+      <body>
+        <Theme accentColor="gold" grayColor="olive" radius="large" appearance="inherit">
           <AuthProvider>
             <BookingProvider>{children}</BookingProvider>
           </AuthProvider>
