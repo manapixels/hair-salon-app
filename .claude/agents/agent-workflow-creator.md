@@ -238,7 +238,7 @@ model: sonnet
 
 ## Project-Specific Context
 
-For the **Luxe Cuts Hair Salon App**:
+For the **Signature Trims Hair Salon App**:
 
 ### Key Domain Areas
 

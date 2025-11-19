@@ -1,6 +1,6 @@
 # AGENTS.md
 
-**Luxe Cuts AI Agents** - Comprehensive guide to AI/bot systems powering automated booking, customer engagement, and retention.
+**Signature Trims AI Agents** - Comprehensive guide to AI/bot systems powering automated booking, customer engagement, and retention.
 
 ---
 

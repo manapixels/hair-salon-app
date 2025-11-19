@@ -7,7 +7,7 @@ const WhatsAppChat: React.FC = () => {
   const [messages, setMessages] = useState<WhatsAppMessage[]>([
     {
       id: '1',
-      text: 'Welcome to Luxe Cuts! How can I help you today? You can ask about our services, book, or cancel an appointment.',
+      text: 'Welcome to Signature Trims! How can I help you today? You can ask about our services, book, or cancel an appointment.',
       sender: 'bot',
     },
   ]);
@@ -100,7 +100,7 @@ const WhatsAppChat: React.FC = () => {
       <div className="bg-green-800 text-white p-3 flex items-center">
         <Scissors className="h-6 w-6 mr-3" aria-hidden="true" />
         <div>
-          <h3 className="font-bold">Luxe Cuts Assistant</h3>
+          <h3 className="font-bold">Signature Trims Assistant</h3>
           <p className="text-xs">Online</p>
         </div>
       </div>

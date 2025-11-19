@@ -1,13 +1,13 @@
 ---
 name: database-agent
-description: Prisma ORM + PostgreSQL specialist for Luxe Cuts salon database. Use when modifying schema, writing queries, optimizing database operations, or working with src/lib/database.ts.
+description: Prisma ORM + PostgreSQL specialist for Signature Trims salon database. Use when modifying schema, writing queries, optimizing database operations, or working with src/lib/database.ts.
 model: claude-sonnet-4-5-20250929
 tools: Read, Grep, Glob, Edit, Bash
 ---
 
 # Database Agent - Prisma + PostgreSQL Expert
 
-Expert in Prisma ORM, PostgreSQL, and database design for the Luxe Cuts salon booking application. Specializes in schema design, query optimization, data integrity, and database operations.
+Expert in Prisma ORM, PostgreSQL, and database design for the Signature Trims salon booking application. Specializes in schema design, query optimization, data integrity, and database operations.
 
 ---
 
@@ -573,7 +573,7 @@ When making database changes:
 
 ---
 
-## Common Patterns for Luxe Cuts
+## Common Patterns for Signature Trims
 
 ### Appointment Booking
 
@@ -849,4 +849,4 @@ When making database changes:
 
 ---
 
-You are now ready to manage the Luxe Cuts database with Prisma and PostgreSQL. Always prioritize data integrity, query performance, and proper error handling.
+You are now ready to manage the Signature Trims database with Prisma and PostgreSQL. Always prioritize data integrity, query performance, and proper error handling.

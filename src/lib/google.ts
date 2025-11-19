@@ -70,7 +70,7 @@ export const createCalendarEvent = async (appointment: Appointment): Promise<str
 
   const stylistInfo = appointment.stylist ? `\nStylist: ${appointment.stylist.name}` : '';
   const event = {
-    summary: `Luxe Cuts Appointment: ${appointment.customerName}${appointment.stylist ? ` (${appointment.stylist.name})` : ''}`,
+    summary: `Signature Trims Appointment: ${appointment.customerName}${appointment.stylist ? ` (${appointment.stylist.name})` : ''}`,
     description: `Services: ${appointment.services.map(s => s.name).join(', ')}\nCustomer: ${appointment.customerName}\nEmail: ${appointment.customerEmail}${stylistInfo}\nTotal Price: $${appointment.totalPrice}\nDuration: ${appointment.totalDuration} minutes`,
     start: {
       dateTime: eventStartTime.toISOString(),
@@ -131,7 +131,7 @@ export const updateCalendarEvent = async (
 
   const stylistInfo = appointment.stylist ? `\nStylist: ${appointment.stylist.name}` : '';
   const event = {
-    summary: `Luxe Cuts Appointment: ${appointment.customerName}${appointment.stylist ? ` (${appointment.stylist.name})` : ''}`,
+    summary: `Signature Trims Appointment: ${appointment.customerName}${appointment.stylist ? ` (${appointment.stylist.name})` : ''}`,
     description: `Services: ${appointment.services.map(s => s.name).join(', ')}\nCustomer: ${appointment.customerName}\nEmail: ${appointment.customerEmail}${stylistInfo}\nTotal Price: $${appointment.totalPrice}\nDuration: ${appointment.totalDuration} minutes`,
     start: {
       dateTime: eventStartTime.toISOString(),

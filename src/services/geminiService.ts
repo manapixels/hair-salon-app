@@ -186,7 +186,7 @@ export const handleWhatsAppMessage = async (
 When booking appointments, ALWAYS use this customer's name and email automatically. DO NOT ask them to provide it again - they are already logged in and authenticated.`
       : '';
 
-  const systemInstruction = `You are a friendly and efficient AI assistant for 'Luxe Cuts' hair salon.
+  const systemInstruction = `You are a friendly and efficient AI assistant for 'Signature Trims' hair salon.
 Your goal is to help users inquire about services, book appointments, cancel them, view their appointments, and modify existing bookings.
 Today's date is ${formatDisplayDate(new Date())}.
 Do not ask for information you can derive, like the year if the user says "next Tuesday".

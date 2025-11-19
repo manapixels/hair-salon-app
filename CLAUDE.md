@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-**Luxe Cuts** - Next.js 14 hair salon booking app with OAuth authentication, AI chat, and comprehensive management features.
+**Signature Trims** - Next.js 14 hair salon booking app with OAuth authentication, AI chat, and comprehensive management features.
 
 ## 🚀 Quick Start
 

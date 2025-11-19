@@ -176,7 +176,7 @@ export interface InlineKeyboard {
 export async function handleStartCommand(user: User | null): Promise<CommandResponse> {
   const userName = user?.name || 'there';
 
-  const text = `👋 *Welcome to Luxe Cuts Hair Salon, ${userName}!*
+  const text = `👋 *Welcome to Signature Trims Hair Salon, ${userName}!*
 
 I'm your personal booking assistant. I can help you with:
 
@@ -1533,7 +1533,7 @@ ${stylistName ? `👤 *Stylist:* ${stylistName}\n` : ''}📅 *Date:* ${formatDis
 
 🔔 You'll receive a reminder 24 hours before your appointment via ${user.authProvider === 'telegram' ? 'Telegram' : 'WhatsApp'}.
 
-Thank you for choosing Luxe Cuts! 💇`,
+Thank you for choosing Signature Trims! 💇`,
         parseMode: 'Markdown',
         editPreviousMessage: true,
       };
@@ -2194,7 +2194,7 @@ No previous step found. Let's start fresh!`,
         };
 
         return {
-          text: `✅ *Booking Confirmed!*\n\n${servicesToBook.map(s => `✂️ ${s.name}`).join('\n')}\n📅 ${formattedDate}\n🕐 ${bookingContext.time}\n💰 $${servicesToBook.reduce((sum, s) => sum + s.price, 0)}\n\nYou'll receive a confirmation email at ${bookingContext.customerEmail} shortly.\n\nThank you for choosing Luxe Cuts!`,
+          text: `✅ *Booking Confirmed!*\n\n${servicesToBook.map(s => `✂️ ${s.name}`).join('\n')}\n📅 ${formattedDate}\n🕐 ${bookingContext.time}\n💰 $${servicesToBook.reduce((sum, s) => sum + s.price, 0)}\n\nYou'll receive a confirmation email at ${bookingContext.customerEmail} shortly.\n\nThank you for choosing Signature Trims!`,
           keyboard,
           parseMode: 'Markdown',
           editPreviousMessage: true, // Edit the confirmation question
@@ -2237,7 +2237,7 @@ export function getWhatsAppQuickReplies(): string[] {
 export function formatWhatsAppWelcome(userName?: string): string {
   const name = userName || 'there';
 
-  return `👋 *Welcome to Luxe Cuts Hair Salon, ${name}!*
+  return `👋 *Welcome to Signature Trims Hair Salon, ${name}!*
 
 I'm your personal booking assistant. Here's what I can help you with:
 

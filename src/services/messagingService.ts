@@ -164,7 +164,7 @@ function formatAppointmentMessage(
     case 'confirmation':
       return `🎉 *Appointment Confirmed!*
 
-*Luxe Cuts Hair Salon*
+*Signature Trims Hair Salon*
 
 📅 *Date:* ${date}
 🕐 *Time:* ${appointment.time}
@@ -179,7 +179,7 @@ Thank you for booking with us! We look forward to seeing you.
     case 'reminder':
       return `⏰ *Appointment Reminder*
 
-*Luxe Cuts Hair Salon*
+*Signature Trims Hair Salon*
 
 Your appointment is tomorrow:
 
@@ -192,7 +192,7 @@ See you soon! 💇‍♀️`;
     case 'cancellation':
       return `❌ *Appointment Cancelled*
 
-*Luxe Cuts Hair Salon*
+*Signature Trims Hair Salon*
 
 Your appointment has been cancelled:
 
@@ -205,7 +205,7 @@ We hope to see you again soon! Book anytime through our website or chat.`;
     case 'reschedule':
       return `🔄 *Appointment Rescheduled!*
 
-*Luxe Cuts Hair Salon*
+*Signature Trims Hair Salon*
 
 Your appointment has been successfully rescheduled:
 
@@ -216,12 +216,12 @@ Your appointment has been successfully rescheduled:
 ⏱️ *Duration:* ${appointment.totalDuration} minutes
 ${appointment.stylist ? `👤 *Stylist:* ${appointment.stylist.name}` : ''}
 
-Thank you for choosing Luxe Cuts! We look forward to seeing you at your new appointment time.
+Thank you for choosing Signature Trims! We look forward to seeing you at your new appointment time.
 
 💡 *Tip:* Please arrive 5-10 minutes early for your appointment.`;
 
     default:
-      return 'Appointment update from Luxe Cuts Hair Salon';
+      return 'Appointment update from Signature Trims Hair Salon';
   }
 }
 

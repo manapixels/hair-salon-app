@@ -1,6 +1,6 @@
 # Implementation Plans Archive
 
-This directory contains detailed implementation plans for major features and improvements to the Luxe Cuts hair salon booking system.
+This directory contains detailed implementation plans for major features and improvements to the Signature Trims hair salon booking system.
 
 ## 📋 Plans
 

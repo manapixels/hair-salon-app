@@ -66,7 +66,7 @@ export function generateWinBackMessage(user: UserData): string {
     ? Math.floor((Date.now() - new Date(user.lastVisitDate).getTime()) / (7 * 24 * 60 * 60 * 1000))
     : 0;
 
-  return `We miss you, ${user.name}! It's been ${weeksSince} weeks since we saw you at Luxe Cuts.
+  return `We miss you, ${user.name}! It's been ${weeksSince} weeks since we saw you at Signature Trims.
 
 Your chair is waiting. 💈
 

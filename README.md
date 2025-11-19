@@ -1,4 +1,4 @@
-# Luxe Cuts - Hair Salon Booking App
+# Signature Trims - Hair Salon Booking App
 
 A modern Next.js 14 hair salon booking application featuring multi-provider authentication, AI-powered WhatsApp integration, and comprehensive admin management tools.
 

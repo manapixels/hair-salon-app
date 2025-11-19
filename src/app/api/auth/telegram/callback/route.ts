@@ -78,7 +78,7 @@ export async function GET(request: NextRequest) {
 
     // Send login confirmation message via Telegram
     if (authData.id) {
-      const welcomeMessage = `🎉 *Welcome to Luxe Cuts!*
+      const welcomeMessage = `🎉 *Welcome to Signature Trims!*
 
 You've successfully logged in to our hair salon booking system.
 
@@ -90,7 +90,7 @@ You've successfully logged in to our hair salon booking system.
 
 Ready to book your next appointment? Visit our website or chat with me anytime!
 
-Thank you for choosing Luxe Cuts! 💇‍♀️`;
+Thank you for choosing Signature Trims! 💇‍♀️`;
 
       // Send welcome message (non-blocking, don't wait for result)
       sendTelegramMessage(authData.id, welcomeMessage).catch(error => {

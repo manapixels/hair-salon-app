@@ -1,4 +1,4 @@
-# Luxe Cuts Design System
+# Signature Trims Design System
 
 **Complete Radix UI + CSS Variables Migration Guide**
 

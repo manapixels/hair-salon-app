@@ -109,7 +109,7 @@ async function main() {
       },
       closedDates: [],
       blockedSlots: {},
-      businessName: 'Luxe Cuts Hair Salon',
+      businessName: 'Signature Trims Hair Salon',
       businessAddress: '123 Main St, Your City, ST 12345',
       businessPhone: '(555) 123-4567',
     },

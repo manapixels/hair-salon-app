@@ -68,7 +68,7 @@ export default function OAuthLoginModal({ isOpen, onClose }: OAuthLoginModalProp
           <div>
             <Dialog.Title>Sign In</Dialog.Title>
             <Dialog.Description>
-              Choose your preferred messaging platform to continue to Luxe Cuts.
+              Choose your preferred messaging platform to continue to Signature Trims.
             </Dialog.Description>
           </div>
           <Dialog.Close>

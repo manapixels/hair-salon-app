@@ -79,11 +79,13 @@ export default function AppHeader({ view, onViewChange, onLoginClick }: AppHeade
   }, [user]);
 
   return (
-    <header className="border-b border-gray-100 bg-white/90 shadow-sm backdrop-blur-sm dark:border-gray-800 dark:bg-gray-900/90">
+    <header className="sticky top-0 z-50 border-b border-gray-100 bg-white/90 shadow-sm backdrop-blur-sm dark:border-gray-800 dark:bg-gray-900/90">
       <nav className="container mx-auto flex items-center justify-between px-4 py-2 sm:px-6 lg:px-8">
         <div className="flex items-center gap-1.5">
           <Scissors className="h-6 w-6 text-[var(--accent-11)]" aria-hidden="true" />
-          <h1 className="text-2xl font-bold tracking-tight text-[var(--gray-12)]">Luxe Cuts</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-[var(--gray-12)]">
+            Signature Trims
+          </h1>
         </div>
         <div className="flex items-center gap-4">
           <div className="hidden items-center gap-3 sm:flex">

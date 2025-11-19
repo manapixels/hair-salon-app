@@ -136,7 +136,7 @@ model AdminSettings {
   blockedSlots Json   @default("{}")
   
   // Business Information
-  businessName    String   @default("Luxe Cuts Hair Salon")
+  businessName    String   @default("Signature Trims Hair Salon")
   businessAddress String   @default("123 Main St, Your City, ST 12345")
   businessPhone   String   @default("(555) 123-4567")
   

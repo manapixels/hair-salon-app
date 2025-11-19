@@ -311,7 +311,7 @@ async function handleLoginCommand(
     console.log('[LOGIN-WEBHOOK] Sending complete login link to user...');
 
     const loginUrl = `${process.env.NEXTAUTH_URL}/api/auth/telegram/verify-login?token=${loginToken}`;
-    const message = `🎉 *Welcome to Luxe Cuts!*
+    const message = `🎉 *Welcome to Signature Trims!*
 
 Click the button below to complete your login:
 

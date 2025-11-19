@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
     globalThis.otpStore.set(phoneNumber, otpData);
 
     // Send OTP via WhatsApp
-    const message = `🔐 Your Luxe Cuts verification code is: *${otp}*
+    const message = `🔐 Your Signature Trims verification code is: *${otp}*
 
 This code expires in 10 minutes. Don't share this code with anyone.
 

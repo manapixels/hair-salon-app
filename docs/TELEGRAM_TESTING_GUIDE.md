@@ -455,7 +455,7 @@ After Phase 1 deployment, track:
    👩‍💇 Stylist: Sarah Johnson
    💰 Total: $50
    ⏱️ Duration: 30 minutes
-   📍 Location: Luxe Cuts Hair Salon
+   📍 Location: Signature Trims Hair Salon
 
    Looking forward to seeing you! ✨
 

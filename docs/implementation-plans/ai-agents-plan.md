@@ -1,8 +1,8 @@
-# Luxe Cuts Hair Salon – AI Agent Implementation Plan (v3 – Polished)
+# Signature Trims Hair Salon – AI Agent Implementation Plan (v3 – Polished)
 
 ## Overview
 
-Optimized, production-first roadmap for Luxe Cuts salon app AI enhancement. All modules are actionable, testable, robust, and mapped to business value. Retrofits previous feedback for code correctness, delivery reliability, and maintainable future scaling.
+Optimized, production-first roadmap for Signature Trims salon app AI enhancement. All modules are actionable, testable, robust, and mapped to business value. Retrofits previous feedback for code correctness, delivery reliability, and maintainable future scaling.
 
 ---
 

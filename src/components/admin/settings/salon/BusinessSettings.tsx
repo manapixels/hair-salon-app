@@ -32,7 +32,7 @@ export default function BusinessSettings({
           type="text"
           value={businessName}
           onChange={e => onChange('businessName', e.target.value)}
-          placeholder="e.g., Luxe Cuts Hair Salon"
+          placeholder="e.g., Signature Trims Hair Salon"
           required
         />
 

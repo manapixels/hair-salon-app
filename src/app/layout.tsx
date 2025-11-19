@@ -9,7 +9,7 @@ import '@radix-ui/themes/styles.css';
 import 'dotenv/config';
 
 export const metadata: Metadata = {
-  title: 'Luxe Cuts - Salon Booking',
+  title: 'Signature Trims - Salon Booking',
   description: 'Professional hair salon booking system',
   viewport: 'width=device-width, initial-scale=1.0',
 };

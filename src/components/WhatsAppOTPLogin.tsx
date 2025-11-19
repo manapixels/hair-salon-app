@@ -128,7 +128,7 @@ export default function WhatsAppOTPLogin({ onSuccess, onBack }: WhatsAppOTPLogin
 
       // Trigger auth refresh
       window.dispatchEvent(new Event('auth-refresh'));
-      toast.success('Login successful! Welcome to Luxe Cuts.');
+      toast.success('Login successful! Welcome to Signature Trims.');
       onSuccess();
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : 'Verification failed';

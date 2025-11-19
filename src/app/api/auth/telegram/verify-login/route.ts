@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
 <html>
 <head>
   <title>Complete Your Login</title>
-  <meta property="og:title" content="Complete Your Login to Luxe Cuts" />
+  <meta property="og:title" content="Complete Your Login to Signature Trims" />
   <meta property="og:description" content="Click to complete your Telegram login" />
 </head>
 <body>

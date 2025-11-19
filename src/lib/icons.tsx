@@ -1,7 +1,7 @@
 /**
  * Icon System - Lucide React + Radix Icons
  *
- * This file provides a centralized icon system for the Luxe Cuts app.
+ * This file provides a centralized icon system for the Signature Trims app.
  * All icons are imported from lucide-react with fallbacks to @radix-ui/react-icons
  */
 

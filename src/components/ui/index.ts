@@ -1,5 +1,5 @@
 /**
- * Luxe Cuts Design System - UI Component Library
+ * Signature Trims Design System - UI Component Library
  *
  * Standardized components using Radix UI primitives and CSS variables
  */

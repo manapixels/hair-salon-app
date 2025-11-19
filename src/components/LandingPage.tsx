@@ -3,12 +3,13 @@
 import { Theme, Button, Heading, Text, Grid, Container, Section } from '@radix-ui/themes';
 import Image from 'next/image';
 import BookingForm from './BookingForm';
+import ServicesSection from './ServicesSection';
 
 export default function LandingPage() {
   return (
     <div className="bg-[#FDFCF8] min-h-screen text-stone-900 font-serif">
       {/* Hero Section */}
-      <section className="relative h-[80vh] flex items-center justify-center overflow-hidden">
+      <section className="relative h-[65vh] min-h-[500px] flex items-center justify-center overflow-hidden rounded-xl">
         <div className="absolute inset-0 z-0">
           <Image
             src="https://images.unsplash.com/photo-1633681926022-84c23e8cb2d6?q=80&w=2574&auto=format&fit=crop"
@@ -25,7 +26,7 @@ export default function LandingPage() {
             Est. 2024
           </Text>
           <h1 className="text-6xl md:text-8xl font-light mb-8 tracking-tight text-stone-900">
-            Luxe Cuts
+            Signature Trims
           </h1>
           <p className="text-xl md:text-2xl italic font-light mb-10 text-stone-800 max-w-xl mx-auto leading-relaxed">
             &quot;Where artistry meets elegance. A sanctuary for your style.&quot;
@@ -42,6 +43,9 @@ export default function LandingPage() {
           </Button>
         </div>
       </section>
+
+      {/* Services Section */}
+      <ServicesSection />
 
       {/* Booking Section */}
       <Section size="3" className="bg-[#FDFCF8]" id="booking-section">
@@ -101,7 +105,7 @@ export default function LandingPage() {
               },
             ].map(stylist => (
               <div key={stylist.name} className="group">
-                <div className="aspect-[3/4] overflow-hidden mb-6 bg-stone-100">
+                <div className="relative aspect-[3/4] overflow-hidden mb-6 bg-stone-100">
                   <Image
                     src={stylist.img}
                     alt={stylist.name}

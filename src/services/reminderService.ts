@@ -114,7 +114,7 @@ Hi ${appointment.user?.name || appointment.customerName}! Your appointment is *t
 ✂️ *${serviceNames}*
 ${appointment.stylist ? `👤 ${appointment.stylist.name} • ` : ''}💰 $${appointment.totalPrice}
 ⏱️ ${appointment.totalDuration} mins
-📍 Luxe Cuts Hair Salon
+📍 Signature Trims Hair Salon
 ━━━━━━━━━━━━━━━━━━━━━
 
 Looking forward to seeing you! ✨
