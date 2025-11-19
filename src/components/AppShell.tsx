@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import BookingForm from './BookingForm';
+import LandingPage from './LandingPage';
 import AdminDashboard from './AdminDashboard';
 import CustomerDashboard from './CustomerDashboard';
 import AppHeader from './AppHeader';
@@ -60,13 +60,13 @@ export default function AppShell() {
   const renderView = () => {
     switch (view) {
       case 'booking':
-        return <BookingForm />;
+        return <LandingPage />;
       case 'admin':
         return user?.role === 'ADMIN' ? <AdminDashboard /> : <p>Access Denied.</p>;
       case 'dashboard':
         return user ? <CustomerDashboard /> : <p>Please sign in to access your dashboard.</p>;
       default:
-        return <BookingForm />;
+        return <LandingPage />;
     }
   };
 

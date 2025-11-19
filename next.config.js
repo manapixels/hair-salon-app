@@ -5,6 +5,14 @@ const nextConfig = {
     GEMINI_API_KEY: process.env.GEMINI_API_KEY,
     API_KEY: process.env.GEMINI_API_KEY,
   },
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+      },
+    ],
+  },
 };
 
 module.exports = nextConfig;
