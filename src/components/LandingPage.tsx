@@ -25,9 +25,9 @@ export default function LandingPage() {
           <Text size="2" className="uppercase tracking-[0.3em] mb-6 block text-stone-800 font-sans">
             Est. 2024
           </Text>
-          <h1 className="text-6xl md:text-8xl font-light mb-8 tracking-tight text-stone-900">
-            Signature Trims
-          </h1>
+          <div className="relative w-64 h-32 mx-auto mb-8">
+            <Image src="/logo.svg" alt="Signature Trims" fill className="object-contain" priority />
+          </div>
           <p className="text-xl md:text-2xl italic font-light mb-10 text-stone-800 max-w-xl mx-auto leading-relaxed">
             &quot;Where artistry meets elegance. A sanctuary for your style.&quot;
           </p>

@@ -10,6 +10,8 @@ import AvailabilityModeToggle, {
 import SalonAvailability from './admin/availability/SalonAvailability';
 import StylistAvailability from './admin/availability/StylistAvailability';
 import SettingsLayout from './admin/settings/SettingsLayout';
+import ChatDashboard from './admin/ChatDashboard';
+import KnowledgeBaseManager from './admin/KnowledgeBaseManager';
 import { formatDisplayDate, formatTime12Hour } from '@/lib/timeUtils';
 import * as Tabs from '@radix-ui/react-tabs';
 import * as Select from '@radix-ui/react-select';
@@ -37,7 +39,7 @@ const AdminDashboard: React.FC = () => {
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState<
-    'appointments' | 'stylists' | 'availability' | 'settings'
+    'appointments' | 'stylists' | 'availability' | 'settings' | 'chat' | 'knowledge-base'
   >('appointments');
   const [availabilityMode, setAvailabilityMode] = useState<AvailabilityMode>('salon-wide');
   const [dateFilter, setDateFilter] = useState<'all' | 'today' | 'week' | 'month' | 'custom'>(
@@ -687,6 +689,20 @@ const AdminDashboard: React.FC = () => {
               role="tab"
             >
               Settings
+            </Tabs.Trigger>
+            <Tabs.Trigger
+              value="chat"
+              className="px-3 py-3 text-base font-semibold border-b-2 border-transparent data-[state=active]:border-accent data-[state=active]:text-accent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+              role="tab"
+            >
+              Chat Management
+            </Tabs.Trigger>
+            <Tabs.Trigger
+              value="knowledge-base"
+              className="px-3 py-3 text-base font-semibold border-b-2 border-transparent data-[state=active]:border-accent data-[state=active]:text-accent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+              role="tab"
+            >
+              Knowledge Base
             </Tabs.Trigger>
           </Tabs.List>
 
@@ -1855,6 +1871,14 @@ const AdminDashboard: React.FC = () => {
 
           <Tabs.Content value="settings" className="focus:outline-none" role="tabpanel">
             <SettingsLayout adminSettings={adminSettings} onSave={saveAdminSettings} />
+          </Tabs.Content>
+
+          <Tabs.Content value="chat" className="focus:outline-none" role="tabpanel">
+            <ChatDashboard />
+          </Tabs.Content>
+
+          <Tabs.Content value="knowledge-base" className="focus:outline-none" role="tabpanel">
+            <KnowledgeBaseManager />
           </Tabs.Content>
         </Tabs.Root>
 

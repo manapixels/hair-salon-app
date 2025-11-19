@@ -9,6 +9,8 @@ import {
   handleMessagingWithUserContext,
   findUserByWhatsAppPhone,
 } from '@/services/messagingUserService';
+import { checkRateLimit } from '@/services/rateLimitService';
+import crypto from 'crypto';
 import {
   handleStartCommand,
   handleServicesCommand,
@@ -236,12 +238,36 @@ function extractIncomingMessage(message: any): string | null {
     }
   }
 
+  if (message.type === 'image') {
+    return '[IMAGE]';
+  }
+
   return null;
 }
 
-async function processWhatsAppMessage(from: string, incomingMessage: string): Promise<string> {
+async function processWhatsAppMessage(
+  from: string,
+  incomingMessage: string,
+  media?: { mimeType: string; data: string; id: string },
+): Promise<string> {
   const userId = from;
   const trimmedMessage = incomingMessage.trim();
+
+  // If it's an image, we skip command processing and go straight to natural language
+  if (incomingMessage === '[IMAGE]' && media) {
+    try {
+      const { reply, buttons } = await handleMessagingWithUserContext(
+        'I sent an image.', // Context for the AI
+        'whatsapp',
+        from,
+        media,
+      );
+      return formatButtonsForWhatsApp(userId, buttons, reply).text;
+    } catch (error) {
+      console.error('WhatsApp image handling failed:', error);
+      return "Sorry, I'm having trouble processing that image right now.";
+    }
+  }
 
   const storedOptions = getCommandOptions(userId);
   const option = resolveCommandOption(storedOptions, trimmedMessage);
@@ -274,6 +300,7 @@ async function processWhatsAppMessage(from: string, incomingMessage: string): Pr
       incomingMessage,
       'whatsapp',
       from,
+      media,
     );
     return formatButtonsForWhatsApp(userId, buttons, reply).text;
   } catch (error) {
@@ -282,10 +309,51 @@ async function processWhatsAppMessage(from: string, incomingMessage: string): Pr
   }
 }
 
+/**
+ * Verify WhatsApp webhook signature
+ * @param body - Raw request body
+ * @param signature - X-Hub-Signature-256 header value
+ * @returns true if signature is valid
+ */
+function verifyWebhookSignature(body: string, signature: string | null): boolean {
+  const appSecret = process.env.WHATSAPP_APP_SECRET;
+
+  if (!appSecret) {
+    console.warn('[WhatsApp] WHATSAPP_APP_SECRET not set, skipping signature verification');
+    return true; // Allow in dev environments without secret
+  }
+
+  if (!signature) {
+    console.error('[WhatsApp] Missing X-Hub-Signature-256 header');
+    return false;
+  }
+
+  try {
+    const hmac = crypto.createHmac('sha256', appSecret);
+    const expectedSignature = 'sha256=' + hmac.update(body).digest('hex');
+
+    // Use timing-safe comparison to prevent timing attacks
+    return crypto.timingSafeEqual(Buffer.from(expectedSignature), Buffer.from(signature));
+  } catch (error) {
+    console.error('[WhatsApp] Error verifying signature:', error);
+    return false;
+  }
+}
+
 // POST handler for receiving WhatsApp messages
 export async function POST(request: Request) {
   try {
-    const requestBody = await request.json();
+    // Get raw body for signature verification
+    const rawBody = await request.text();
+
+    // Verify webhook signature
+    const signature = request.headers.get('X-Hub-Signature-256');
+    if (!verifyWebhookSignature(rawBody, signature)) {
+      console.error('[WhatsApp] Invalid webhook signature');
+      return Response.json({ error: 'Invalid signature' }, { status: 403 });
+    }
+
+    const requestBody = JSON.parse(rawBody);
 
     console.log('Received WhatsApp webhook payload:', JSON.stringify(requestBody, null, 2));
 
@@ -299,6 +367,69 @@ export async function POST(request: Request) {
     const from = message.from;
     const incomingMessage = extractIncomingMessage(message);
 
+    // Rate limiting check
+    const rateLimitResult = checkRateLimit(from);
+    if (!rateLimitResult.allowed) {
+      console.warn(`[WhatsApp] Rate limit exceeded for ${from}`);
+      const retryMessage = rateLimitResult.retryAfter
+        ? `You're sending too many messages. Please try again in ${rateLimitResult.retryAfter} seconds.`
+        : "You're sending too many messages. Please slow down.";
+
+      await sendWhatsAppReply(from, retryMessage);
+      return Response.json({ success: true, rateLimited: true }, { status: 200 });
+    }
+
+    let media = undefined;
+    if (message.type === 'image') {
+      const imageId = message.image.id;
+      const mimeType = message.image.mime_type || 'image/jpeg';
+
+      try {
+        // Download image from WhatsApp servers
+        const accessToken = process.env.WHATSAPP_ACCESS_TOKEN;
+        if (accessToken) {
+          // Get image URL
+          const mediaUrlResponse = await fetch(`https://graph.facebook.com/v19.0/${imageId}`, {
+            headers: { Authorization: `Bearer ${accessToken}` },
+          });
+
+          if (mediaUrlResponse.ok) {
+            const mediaData = await mediaUrlResponse.json();
+            const imageUrl = mediaData.url;
+
+            // Download actual image
+            const imageResponse = await fetch(imageUrl, {
+              headers: { Authorization: `Bearer ${accessToken}` },
+            });
+
+            if (imageResponse.ok) {
+              const arrayBuffer = await imageResponse.arrayBuffer();
+              const base64 = Buffer.from(arrayBuffer).toString('base64');
+
+              media = {
+                mimeType,
+                data: base64,
+                id: imageId,
+              };
+              console.log('Successfully downloaded WhatsApp image:', imageId);
+            } else {
+              console.error('Failed to download image from URL:', imageResponse.statusText);
+              media = { mimeType, data: '', id: imageId };
+            }
+          } else {
+            console.error('Failed to get image URL:', mediaUrlResponse.statusText);
+            media = { mimeType, data: '', id: imageId };
+          }
+        } else {
+          console.warn('WHATSAPP_ACCESS_TOKEN not set, cannot download image');
+          media = { mimeType, data: '', id: imageId };
+        }
+      } catch (error) {
+        console.error('Error downloading WhatsApp image:', error);
+        media = { mimeType, data: '', id: imageId };
+      }
+    }
+
     if (!from || !incomingMessage) {
       console.log('Unsupported message type or missing sender.');
       return Response.json(
@@ -307,7 +438,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const replyText = await processWhatsAppMessage(from, incomingMessage);
+    const replyText = await processWhatsAppMessage(from, incomingMessage, media);
     await sendWhatsAppReply(from, replyText);
 
     return Response.json({ success: true }, { status: 200 });

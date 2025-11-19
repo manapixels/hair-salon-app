@@ -13,6 +13,8 @@ import {
   updateAppointmentCalendarId,
   getAdminSettings,
 } from '../lib/database';
+import { searchKnowledgeBase } from './knowledgeBaseService';
+import { flagConversation, isFlagged } from './conversationHistory';
 import { createCalendarEvent, updateCalendarEvent } from '../lib/google';
 import { sendAppointmentConfirmation } from './messagingService';
 import { formatDisplayDate, formatTime12Hour } from '@/lib/timeUtils';
@@ -35,6 +37,39 @@ const getServicesList: FunctionDeclaration = {
   name: 'getServicesList',
   description: 'Get the list of available hair salon services with their prices and descriptions.',
   parameters: { type: Type.OBJECT, properties: {} },
+};
+
+const searchKnowledgeBaseTool: FunctionDeclaration = {
+  name: 'searchKnowledgeBase',
+  description:
+    'Search the knowledge base for answers to general questions about the salon (policies, products, parking, etc.).',
+  parameters: {
+    type: Type.OBJECT,
+    properties: {
+      query: {
+        type: Type.STRING,
+        description: 'The search query to find relevant information.',
+      },
+    },
+    required: ['query'],
+  },
+};
+
+const flagForAdminTool: FunctionDeclaration = {
+  name: 'flagForAdmin',
+  description:
+    'Flag the conversation for a human admin to review when you are unsure how to help or if the user asks for a human.',
+  parameters: {
+    type: Type.OBJECT,
+    properties: {
+      reason: {
+        type: Type.STRING,
+        description:
+          'The reason why you are flagging this conversation (e.g., "User asking about unknown service", "User requested human").',
+      },
+    },
+    required: ['reason'],
+  },
 };
 
 const checkAvailability: FunctionDeclaration = {
@@ -164,12 +199,37 @@ export const handleWhatsAppMessage = async (
     date?: string;
     time?: string;
   } | null,
+  userPattern?: {
+    favoriteService?: string;
+    favoriteStylistId?: string;
+    typicalTime?: string;
+  },
+  media?: { mimeType: string; data: string; id: string },
 ): Promise<MessageResponse> => {
+  const startTime = Date.now();
+  const logEntry: any = {
+    timestamp: new Date().toISOString(),
+    userId: userContext?.email || 'unknown',
+    input: userInput,
+    toolsCalled: [],
+  };
+
   if (!API_KEY || !ai) {
     return {
       text: "I'm sorry, my connection to my brain is currently offline. Please try again later.",
     };
   }
+
+  // Check if conversation is already flagged
+  if (userContext?.email && (await isFlagged(userContext.email))) {
+    return {
+      text: "I'm still checking on that for you with our team. Thanks for your patience!",
+    };
+  }
+  // Also check by phone/telegram ID if available (passed in userContext or derived)
+  // Note: Ideally we'd check by the platform ID, but userContext is what we have here.
+  // The caller (messagingUserService) should handle the 'isFlagged' check before calling this if possible,
+  // but we add a safeguard here.
 
   const allServices = await getServices();
   const servicesListString = allServices
@@ -186,11 +246,30 @@ export const handleWhatsAppMessage = async (
 When booking appointments, ALWAYS use this customer's name and email automatically. DO NOT ask them to provide it again - they are already logged in and authenticated.`
       : '';
 
+  // Build user pattern string
+  const userPatternString =
+    userPattern && Object.keys(userPattern).length > 0
+      ? `\n\nIMPORTANT - User's Usual Pattern:
+- Favorite Service: ${userPattern.favoriteService || 'Unknown'}
+- Favorite Stylist: ${userPattern.favoriteStylistId || 'Any'}
+- Typical Time: ${userPattern.typicalTime || 'Unknown'}
+
+If the user asks to "book the usual" or "same as always", use the information above to suggest a booking.`
+      : '';
+
   const systemInstruction = `You are a friendly and efficient AI assistant for 'Signature Trims' hair salon.
 Your goal is to help users inquire about services, book appointments, cancel them, view their appointments, and modify existing bookings.
 Today's date is ${formatDisplayDate(new Date())}.
 Do not ask for information you can derive, like the year if the user says "next Tuesday".
-Be conversational and helpful.${userContextString}
+Be conversational and helpful.${userContextString}${userPatternString}
+
+IMPORTANT - Knowledge Base:
+For general questions about the salon (cancellation policy, parking, products, etc.), ALWAYS use the 'searchKnowledgeBase' tool to find the answer. Do not make up answers.
+
+IMPORTANT - Human Handoff:
+If you are unsure about how to answer a question, or if the user explicitly asks to speak to a human/admin, use the 'flagForAdmin' tool.
+- Do not try to guess if you don't know.
+- Do not say "I will contact the admin" without actually using the tool.
 
 IMPORTANT - Conversation Context:
 If you see messages in the conversation history that start with "System Context:", these contain information the user already provided via button clicks:
@@ -243,9 +322,24 @@ ${servicesListString}
     }
     conversationContext += `User: ${userInput}`;
 
+    // Construct content parts
+    const parts: any[] = [{ text: conversationContext }];
+
+    // Add image if present
+    if (media && media.data) {
+      parts.push({
+        inlineData: {
+          mimeType: media.mimeType,
+          data: media.data,
+        },
+      });
+    } else if (media && media.id) {
+      parts.push({ text: `\n[User sent an image with ID: ${media.id}]` });
+    }
+
     const response: GenerateContentResponse = await ai.models.generateContent({
       model: 'gemini-2.5-flash',
-      contents: conversationContext,
+      contents: [{ role: 'user', parts }],
       config: {
         systemInstruction,
         tools: [
@@ -257,18 +351,78 @@ ${servicesListString}
               cancelAppointment,
               listMyAppointments,
               modifyAppointment,
+              searchKnowledgeBaseTool,
+              flagForAdminTool,
             ],
           },
         ],
       },
     });
 
+    // Log model response
+    logEntry.modelResponse = response;
+
+    // Check confidence score for auto-escalation (if available in response)
+    // Note: Gemini doesn't directly expose confidence, but we can infer from candidates
+    const hasLowConfidence =
+      response.candidates?.[0]?.finishReason === 'SAFETY' ||
+      response.candidates?.[0]?.finishReason === 'RECITATION';
+
+    if (hasLowConfidence && userContext?.email) {
+      console.warn(`[Confidence] Low confidence response detected for ${userContext.email}`);
+      await flagConversation(
+        userContext.email,
+        'Low confidence AI response - automatic escalation',
+      );
+      return {
+        text: "That's a great question! Let me double-check with the team to be sure. I'll get back to you shortly.",
+      };
+    }
+
     if (response.functionCalls && response.functionCalls.length > 0) {
       const fc = response.functionCalls[0];
       const { name, args } = fc;
 
+      logEntry.toolsCalled.push({ name, args });
+
       if (name === 'getServicesList') {
         return { text: `Here are the services we offer:\n\n${servicesListString}` };
+      }
+
+      if (name === 'searchKnowledgeBase') {
+        const query = args?.query as string;
+        const answer = await searchKnowledgeBase(query);
+
+        if (answer) {
+          return { text: answer };
+        } else {
+          // KB doesn't have the answer - auto-flag for admin review
+          if (userContext?.email) {
+            await flagConversation(userContext.email, `Knowledge base query not found: "${query}"`);
+          }
+
+          return {
+            text: "That's a great question! Let me double-check with the team to be sure. I'll get back to you shortly.",
+          };
+        }
+      }
+
+      if (name === 'flagForAdmin') {
+        const reason = args?.reason as string;
+        // We need a user ID to flag. We use email if available, otherwise we might need the platform ID.
+        // Since handleWhatsAppMessage doesn't strictly take the platform ID, we rely on userContext.email
+        // or we need to update the signature.
+        // For now, we'll assume userContext.email is the key, or we log a warning.
+
+        if (userContext?.email) {
+          await flagConversation(userContext.email, reason);
+        } else {
+          console.warn('Cannot flag conversation: No user email provided in context.');
+        }
+
+        return {
+          text: "That's a great question! Let me double-check with the team to be sure. I'll get back to you shortly.",
+        };
       }
 
       if (name === 'checkAvailability') {
@@ -555,6 +709,15 @@ ${servicesListString}
       }
     } else if (response.text) {
       const text = response.text;
+      logEntry.finalResponse = text;
+
+      // Safety Check
+      if (safetyCheck(text)) {
+        console.warn(`[Safety] Blocked response: ${text}`);
+        return {
+          text: "I apologize, but I can't provide that specific information. Is there anything else I can help you with regarding our salon services?",
+        };
+      }
 
       // Detect if the AI is asking for confirmation (Yes/No questions)
       const confirmationPatterns = [
@@ -647,5 +810,27 @@ ${servicesListString}
     return {
       text: "Sorry, I'm having trouble understanding right now. Please try again in a moment.",
     };
+  } finally {
+    // Log the full trajectory
+    console.log(`[Trajectory] ${JSON.stringify(logEntry, null, 2)}`);
   }
 };
+
+/**
+ * Basic safety check for response content
+ * Returns true if content is unsafe/should be blocked
+ */
+function safetyCheck(text: string): boolean {
+  const blockedKeywords = [
+    'password',
+    'credit card',
+    'social security',
+    'fuck',
+    'shit',
+    'asshole', // Basic profanity filter
+    'ignore all previous instructions', // Prompt injection attempt
+  ];
+
+  const lowerText = text.toLowerCase();
+  return blockedKeywords.some(keyword => lowerText.includes(keyword));
+}

@@ -11,6 +11,87 @@ import {
   setBookingContext,
   getBookingContext,
 } from './conversationHistory';
+import { Appointment } from '../types';
+
+interface UserPattern {
+  favoriteService?: string;
+  favoriteStylistId?: string;
+  typicalTime?: string; // e.g., "Sunday mornings"
+}
+
+/**
+ * Analyze message for implicit feedback (sentiment)
+ */
+function analyzeSentiment(message: string): 'positive' | 'negative' | 'neutral' {
+  const lower = message.toLowerCase();
+
+  const positiveKeywords = ['thank', 'great', 'good', 'awesome', 'perfect', 'love', 'helpful'];
+  const negativeKeywords = [
+    'bad',
+    'wrong',
+    'stupid',
+    'useless',
+    'hate',
+    'terrible',
+    'human',
+    'agent',
+    'person',
+  ];
+
+  if (positiveKeywords.some(k => lower.includes(k))) return 'positive';
+  if (negativeKeywords.some(k => lower.includes(k))) return 'negative';
+  return 'neutral';
+}
+
+/**
+ * Helper to calculate user patterns from past appointments
+ */
+export const calculateUserPattern = (appointments: any[]): UserPattern => {
+  if (!appointments || appointments.length === 0) return {};
+
+  const serviceCounts: Record<string, number> = {};
+  const stylistCounts: Record<string, number> = {};
+  const dayTimeCounts: Record<string, number> = {};
+
+  appointments.forEach(apt => {
+    // Count services
+    if (Array.isArray(apt.services)) {
+      apt.services.forEach((s: any) => {
+        serviceCounts[s.name] = (serviceCounts[s.name] || 0) + 1;
+      });
+    }
+
+    // Count stylists
+    if (apt.stylistId) {
+      stylistCounts[apt.stylistId] = (stylistCounts[apt.stylistId] || 0) + 1;
+    }
+
+    // Count day/time patterns (e.g., "Sunday Morning")
+    const date = new Date(apt.date);
+    const day = date.toLocaleDateString('en-US', { weekday: 'long' });
+    const hour = parseInt(apt.time.split(':')[0]);
+    let timeOfDay = 'Afternoon';
+    if (hour < 12) timeOfDay = 'Morning';
+    else if (hour >= 17) timeOfDay = 'Evening';
+
+    const key = `${day} ${timeOfDay}`;
+    dayTimeCounts[key] = (dayTimeCounts[key] || 0) + 1;
+  });
+
+  // Find favorites
+  const getTop = (counts: Record<string, number>) =>
+    Object.entries(counts).sort((a, b) => b[1] - a[1])[0]?.[0];
+
+  return {
+    favoriteService: getTop(serviceCounts),
+    favoriteStylistId: getTop(stylistCounts),
+    typicalTime: getTop(dayTimeCounts),
+  };
+};
+
+/**
+ * Find user by WhatsApp phone number
+ */
 
 /**
  * Find user by WhatsApp phone number
@@ -59,6 +140,7 @@ export async function handleMessagingWithUserContext(
   message: string,
   platform: 'whatsapp' | 'telegram',
   platformId: string | number, // phone number for WhatsApp, chat ID for Telegram
+  media?: { mimeType: string; data: string; id: string },
 ): Promise<{
   reply: string;
   buttons?: Array<{ text: string; data: string }>;
@@ -116,6 +198,16 @@ export async function handleMessagingWithUserContext(
 
       // Import and use the existing handler with user context
       const { handleWhatsAppMessage } = await import('./geminiService');
+
+      // Calculate user pattern
+      let userPattern = {};
+      try {
+        const pastAppointments = await findAppointmentsByEmail(user.email);
+        userPattern = calculateUserPattern(pastAppointments);
+      } catch (e) {
+        console.error('Failed to fetch appointments for pattern:', e);
+      }
+
       const response = await handleWhatsAppMessage(
         enhancedMessage,
         enhancedChatHistory,
@@ -124,7 +216,18 @@ export async function handleMessagingWithUserContext(
           email: user.email,
         },
         bookingContext, // Pass booking context for validation
+        userPattern,
+        media,
       );
+
+      // Implicit Feedback Monitoring
+      const sentiment = analyzeSentiment(message);
+      if (sentiment !== 'neutral') {
+        console.log(
+          `[Feedback] User ${user.email || platformId} sentiment: ${sentiment} (Message: "${message}")`,
+        );
+        // In a real app, we would store this in a database for analytics
+      }
 
       // Store the conversation
       addMessage(platformId.toString(), message, 'user');
@@ -170,12 +273,34 @@ export async function handleMessagingWithUserContext(
     enhancedChatHistory.push({ text: contextMessage, sender: 'bot' });
   }
 
+  // Calculate user pattern if user is known
+  let userPattern = {};
+  if (user) {
+    try {
+      const pastAppointments = await findAppointmentsByEmail(user.email);
+      userPattern = calculateUserPattern(pastAppointments);
+    } catch (e) {
+      console.error('Failed to fetch appointments for pattern:', e);
+    }
+  }
+
   const response = await handleWhatsAppMessage(
     message,
     enhancedChatHistory,
     userContext,
     bookingContext, // Pass booking context for validation
+    userPattern,
+    media,
   );
+
+  // Implicit Feedback Monitoring
+  const sentiment = analyzeSentiment(message);
+  if (sentiment !== 'neutral') {
+    console.log(
+      `[Feedback] User ${user?.email || platformId} sentiment: ${sentiment} (Message: "${message}")`,
+    );
+    // In a real app, we would store this in a database for analytics
+  }
 
   // Store the conversation
   addMessage(platformId.toString(), message, 'user');

@@ -112,6 +112,19 @@ model Appointment {
   @@map("appointments")
 }
 
+model KnowledgeBase {
+  id        String   @id @default(cuid())
+  question  String
+  answer    String   @db.Text
+  tags      String[]
+  embedding Json?    // Vector embedding (stored as JSON array)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([question])
+  @@map("knowledge_base")
+}
+
 model LoginToken {
   id        String   @id @default(cuid())
   token     String   @unique
@@ -169,4 +182,20 @@ model RetentionMessage {
   deliveryError      String?
 
   @@map("retention_messages")
+}
+
+model FlaggedConversation {
+  id          String    @id @default(cuid())
+  userId      String    // Platform ID (phone number for WhatsApp, chat ID for Telegram)
+  platform    String    // 'whatsapp' | 'telegram'
+  reason      String
+  lastMessage String    @db.Text
+  flaggedAt   DateTime  @default(now())
+  resolvedAt  DateTime?
+  isResolved  Boolean   @default(false)
+  resolvedBy  String?   // Admin who resolved it
+
+  @@index([userId, isResolved])
+  @@index([isResolved, flaggedAt])
+  @@map("flagged_conversations")
 }

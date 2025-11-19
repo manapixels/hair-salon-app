@@ -26,7 +26,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <head>
-        <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+        <link rel="icon" type="image/svg+xml" href="/logo.svg" />
       </head>
       <body>
         <Theme accentColor="gold" grayColor="sand" radius="none" appearance="light">

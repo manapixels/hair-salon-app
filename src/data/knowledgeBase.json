@@ -1,0 +1,34 @@
+[
+  {
+    "question": "What is your cancellation policy?",
+    "answer": "We require at least 24 hours notice for cancellations. Cancellations made within 24 hours of the appointment time may be subject to a 50% cancellation fee."
+  },
+  {
+    "question": "Do you accept walk-ins?",
+    "answer": "We recommend booking an appointment to guarantee a slot, but we do accept walk-ins if we have availability."
+  },
+  {
+    "question": "What brands of products do you use?",
+    "answer": "We use premium hair care products including Kerastase, Oribe, and Bumble and bumble."
+  },
+  {
+    "question": "Do you offer gift cards?",
+    "answer": "Yes, we offer digital gift cards that can be purchased on our website or physical gift cards available at the salon."
+  },
+  {
+    "question": "Is there parking available?",
+    "answer": "Yes, we have a free customer parking lot behind the building. There is also street parking available."
+  },
+  {
+    "question": "Do you do kids' haircuts?",
+    "answer": "Yes, we offer haircuts for children of all ages. We have special booster seats and a patient team!"
+  },
+  {
+    "question": "How long does a color service take?",
+    "answer": "A single process color usually takes about 1.5 to 2 hours. Highlights or balayage can take 3 to 4 hours depending on hair length and thickness."
+  },
+  {
+    "question": "Do you offer consultations?",
+    "answer": "Yes, we offer free 15-minute consultations if you're unsure about what service to book or want to discuss a major change."
+  }
+]

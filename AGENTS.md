@@ -121,7 +121,7 @@ Confirmation Message (WhatsApp/Telegram)
 node scripts/setup-telegram-webhook.js
 
 # Test commands
-See docs/TELEGRAM_TESTING_GUIDE.md
+See ../telegram/TELEGRAM_TESTING_GUIDE.md
 ```
 
 ---
@@ -356,7 +356,7 @@ WHATSAPP_PHONE_NUMBER_ID=your_phone_number_id
 npm test -- geminiService.test.ts
 
 # Manual testing
-# Telegram: See docs/TELEGRAM_TESTING_GUIDE.md
+# Telegram: See ../telegram/TELEGRAM_TESTING_GUIDE.md
 # WhatsApp: Use test business account
 
 # Reminder testing
@@ -384,7 +384,7 @@ curl -X POST http://localhost:3000/api/reminders/test
 
 ---
 
-## 🚀 Future Enhancements (See `docs/implementation-plans/ai-agents-plan.md`)
+## 🚀 Future Enhancements (See `../implementation-plans/ai-agents-plan.md`)
 
 ### **Phase 1: NLU Helpers**
 
@@ -414,12 +414,12 @@ curl -X POST http://localhost:3000/api/reminders/test
 
 ## 🔗 Related Files
 
-- **Implementation Plan**: `docs/implementation-plans/ai-agents-plan.md`
-- **Design System**: `docs/DESIGN_SYSTEM.md` - UI components for chat interfaces
-- **Telegram Testing**: `docs/TELEGRAM_TESTING_GUIDE.md`
-- **Coding Guidelines**: `CLAUDE.md`
-- **Services Directory**: `src/services/`
-- **API Routes**: `src/app/api/chat/`, `src/app/api/telegram/`
+- **Implementation Plan**: `../implementation-plans/ai-agents-plan.md`
+- **Design System**: `../design/DESIGN_SYSTEM.md` - UI components for chat interfaces
+- **Telegram Testing**: `../telegram/TELEGRAM_TESTING_GUIDE.md`
+- **Coding Guidelines**: `../../CLAUDE.md`
+- **Services Directory**: `../../src/services/`
+- **API Routes**: `../../src/app/api/chat/`, `../../src/app/api/telegram/`
 
 ---
 

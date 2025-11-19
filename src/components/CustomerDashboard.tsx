@@ -32,12 +32,30 @@ export default function CustomerDashboard() {
   // AlertDialog states
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const [appointmentToCancelId, setAppointmentToCancelId] = useState<string | null>(null);
+  const [userPattern, setUserPattern] = useState<{
+    favoriteService?: string;
+    favoriteStylistId?: string;
+    typicalTime?: string;
+  } | null>(null);
 
   useEffect(() => {
     if (user) {
       fetchUserAppointments();
+      fetchUserPattern();
     }
   }, [user]);
+
+  const fetchUserPattern = async () => {
+    try {
+      const response = await fetch('/api/user/pattern');
+      if (response.ok) {
+        const data = await response.json();
+        setUserPattern(data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch user pattern:', error);
+    }
+  };
 
   const fetchUserAppointments = async () => {
     try {
@@ -194,6 +212,36 @@ export default function CustomerDashboard() {
         <div className="lg:col-span-1">
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Your Profile</h2>
+
+            {/* User Pattern / "The Usual" */}
+            <div className="mb-8 p-4 bg-accent/5 rounded-xl border border-accent/10">
+              <h3 className="text-sm font-semibold text-accent mb-3 uppercase tracking-wider">
+                Your Usual
+              </h3>
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600 dark:text-gray-400">Favorite Service</span>
+                  <span className="font-medium text-gray-900 dark:text-white">
+                    {userPattern?.favoriteService || 'Not enough data yet'}
+                  </span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600 dark:text-gray-400">Favorite Stylist</span>
+                  <span className="font-medium text-gray-900 dark:text-white">
+                    {userPattern?.favoriteStylistId || 'Not enough data yet'}
+                  </span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600 dark:text-gray-400">Typical Time</span>
+                  <span className="font-medium text-gray-900 dark:text-white">
+                    {userPattern?.typicalTime || 'Not enough data yet'}
+                  </span>
+                </div>
+              </div>
+              <p className="text-xs text-gray-500 mt-3 italic">
+                Tip: You can ask the AI to &quot;book the usual&quot;!
+              </p>
+            </div>
 
             <div className="space-y-6">
               <div>

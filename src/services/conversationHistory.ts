@@ -4,15 +4,15 @@
  * Stores recent conversation history for messaging platforms (WhatsApp, Telegram)
  * to maintain context between messages.
  *
- * NOTE: This uses in-memory storage. For production, consider:
- * - Redis for distributed/serverless environments
- * - Database for persistent history
+ * NOTE: Flagged conversations are now persisted to database for production reliability.
+ * Chat history still uses in-memory storage with auto-cleanup.
  */
 
 import type { WhatsAppMessage } from '../types';
+import { prisma } from '../lib/prisma';
 
 // Store conversation history: userId -> messages
-const conversationStore = new Map<string, Pick<WhatsAppMessage, 'text' | 'sender'>[]>();
+const history: Record<string, Pick<WhatsAppMessage, 'text' | 'sender'>[]> = {};
 
 // Store booking context: userId -> booking details
 interface BookingContext {
@@ -40,7 +40,16 @@ interface BookingContext {
   currentWeekOffset?: number; // Week offset for date picker pagination (0 = current week)
   lastCommandOptions?: CommandOption[]; // Stored options for WhatsApp command replies
 }
-const bookingContextStore = new Map<string, BookingContext>();
+
+interface FlaggedState {
+  isFlagged: boolean;
+  reason?: string;
+  timestamp?: number;
+}
+
+const bookingContexts: Record<string, BookingContext> = {};
+const flaggedStates: Record<string, FlaggedState> = {};
+const lastActivity: Record<string, number> = {};
 
 export interface CommandOption {
   id: string; // Display index (e.g., "1", "2")
@@ -52,91 +61,246 @@ export interface CommandOption {
 const MAX_MESSAGES_PER_CONVERSATION = 20;
 
 // Conversation timeout (30 minutes)
-const CONVERSATION_TIMEOUT_MS = 30 * 60 * 1000;
+const TIMEOUT_MS = 30 * 60 * 1000;
 
-// Track last activity time for each conversation
-const lastActivityStore = new Map<string, number>();
+/**
+ * Helper to check and clear old conversation data for a user.
+ * Updates last activity timestamp.
+ */
+function checkTimeout(userId: string): void {
+  const now = Date.now();
+  if (lastActivity[userId] && now - lastActivity[userId] > TIMEOUT_MS) {
+    delete history[userId];
+    delete bookingContexts[userId];
+    delete flaggedStates[userId];
+    delete lastActivity[userId];
+  }
+  lastActivity[userId] = now;
+}
 
 /**
  * Add a message to the conversation history
  */
 export function addMessage(userId: string, message: string, sender: 'user' | 'bot'): void {
-  let history = conversationStore.get(userId) || [];
+  checkTimeout(userId);
+  let userHistory = history[userId] || [];
 
-  history.push({ text: message, sender });
+  userHistory.push({ text: message, sender });
 
   // Keep only the last N messages
-  if (history.length > MAX_MESSAGES_PER_CONVERSATION) {
-    history = history.slice(-MAX_MESSAGES_PER_CONVERSATION);
+  if (userHistory.length > MAX_MESSAGES_PER_CONVERSATION) {
+    userHistory = userHistory.slice(-MAX_MESSAGES_PER_CONVERSATION);
   }
 
-  conversationStore.set(userId, history);
-  lastActivityStore.set(userId, Date.now());
+  history[userId] = userHistory;
 }
 
 /**
  * Get conversation history for a user
  */
 export function getHistory(userId: string): Pick<WhatsAppMessage, 'text' | 'sender'>[] {
-  // Check if conversation has timed out
-  const lastActivity = lastActivityStore.get(userId);
-  if (lastActivity && Date.now() - lastActivity > CONVERSATION_TIMEOUT_MS) {
-    // Clear old conversation
-    conversationStore.delete(userId);
-    lastActivityStore.delete(userId);
-    return [];
-  }
-
-  return conversationStore.get(userId) || [];
+  checkTimeout(userId);
+  return history[userId] || [];
 }
 
 /**
  * Clear conversation history for a user
  */
 export function clearHistory(userId: string): void {
-  conversationStore.delete(userId);
-  lastActivityStore.delete(userId);
-  bookingContextStore.delete(userId);
+  delete history[userId];
+  delete lastActivity[userId];
+  delete bookingContexts[userId];
+  delete flaggedStates[userId];
 }
 
 /**
- * Set booking context for a user
+ * Set the booking context for a user
  */
 export function setBookingContext(userId: string, context: Partial<BookingContext>): void {
-  const existing = bookingContextStore.get(userId) || {};
-  bookingContextStore.set(userId, { ...existing, ...context });
-  lastActivityStore.set(userId, Date.now());
+  checkTimeout(userId);
+  const existing = bookingContexts[userId] || {};
+  bookingContexts[userId] = { ...existing, ...context };
 }
 
 /**
- * Get booking context for a user
+ * Get the booking context for a user
  */
 export function getBookingContext(userId: string): BookingContext | null {
-  // Check if conversation has timed out
-  const lastActivity = lastActivityStore.get(userId);
-  if (lastActivity && Date.now() - lastActivity > CONVERSATION_TIMEOUT_MS) {
-    // Clear old context
-    bookingContextStore.delete(userId);
-    return null;
-  }
-
-  return bookingContextStore.get(userId) || null;
+  checkTimeout(userId);
+  return bookingContexts[userId] || null;
 }
 
 /**
- * Clear booking context for a user
+ * Clear booking context
  */
 export function clearBookingContext(userId: string): void {
-  bookingContextStore.delete(userId);
+  delete bookingContexts[userId];
 }
+
+// --- FLAGGING SYSTEM (DATABASE-BACKED) ---
+
+export const flagConversation = async (
+  userId: string,
+  reason: string,
+  platform: 'whatsapp' | 'telegram' = 'whatsapp',
+) => {
+  checkTimeout(userId);
+
+  // Get last message from history
+  const chatHistory = getHistory(userId);
+  const lastMessage =
+    chatHistory.length > 0 ? chatHistory[chatHistory.length - 1].text : 'No message';
+
+  try {
+    // Create in database
+    await prisma.flaggedConversation.create({
+      data: {
+        userId,
+        platform,
+        reason,
+        lastMessage,
+        isResolved: false,
+      },
+    });
+
+    // Also update in-memory for backward compatibility
+    flaggedStates[userId] = {
+      isFlagged: true,
+      reason,
+      timestamp: Date.now(),
+    };
+
+    console.log(`[Conversation History] Flagged conversation for user ${userId}: ${reason}`);
+  } catch (error) {
+    console.error('Error flagging conversation in database:', error);
+    // Fallback to in-memory only
+    flaggedStates[userId] = {
+      isFlagged: true,
+      reason,
+      timestamp: Date.now(),
+    };
+  }
+};
+
+export const resolveFlag = async (userId: string, resolvedBy?: string) => {
+  checkTimeout(userId);
+
+  try {
+    // Update database
+    await prisma.flaggedConversation.updateMany({
+      where: {
+        userId,
+        isResolved: false,
+      },
+      data: {
+        isResolved: true,
+        resolvedAt: new Date(),
+        resolvedBy,
+      },
+    });
+
+    // Clear in-memory
+    if (flaggedStates[userId]) {
+      delete flaggedStates[userId];
+    }
+
+    console.log(`[Conversation History] Resolved flag for user ${userId}`);
+  } catch (error) {
+    console.error('Error resolving flag in database:', error);
+    // Fallback: clear in-memory only
+    if (flaggedStates[userId]) {
+      delete flaggedStates[userId];
+    }
+  }
+};
+
+export const isFlagged = async (userId: string): Promise<boolean> => {
+  checkTimeout(userId);
+
+  try {
+    // Check database first
+    const dbFlag = await prisma.flaggedConversation.findFirst({
+      where: {
+        userId,
+        isResolved: false,
+      },
+    });
+
+    if (dbFlag) {
+      return true;
+    }
+
+    // Fallback to in-memory
+    return flaggedStates[userId]?.isFlagged || false;
+  } catch (error) {
+    console.error('Error checking flag in database:', error);
+    // Fallback to in-memory
+    return flaggedStates[userId]?.isFlagged || false;
+  }
+};
+
+export const getFlagReason = async (userId: string): Promise<string | undefined> => {
+  checkTimeout(userId);
+
+  try {
+    const dbFlag = await prisma.flaggedConversation.findFirst({
+      where: {
+        userId,
+        isResolved: false,
+      },
+      orderBy: {
+        flaggedAt: 'desc',
+      },
+    });
+
+    if (dbFlag) {
+      return dbFlag.reason;
+    }
+
+    // Fallback to in-memory
+    return flaggedStates[userId]?.reason;
+  } catch (error) {
+    console.error('Error getting flag reason from database:', error);
+    return flaggedStates[userId]?.reason;
+  }
+};
+
+export const getAllFlaggedUsers = async (): Promise<string[]> => {
+  try {
+    const dbFlags = await prisma.flaggedConversation.findMany({
+      where: {
+        isResolved: false,
+      },
+      select: {
+        userId: true,
+      },
+      distinct: ['userId'],
+    });
+
+    const dbUserIds = dbFlags.map(f => f.userId);
+
+    // Merge with in-memory (for backwards compatibility during transition)
+    const memoryUserIds = Object.keys(flaggedStates).filter(
+      userId => flaggedStates[userId].isFlagged,
+    );
+
+    // Combine and deduplicate
+    return Array.from(new Set([...dbUserIds, ...memoryUserIds]));
+  } catch (error) {
+    console.error('Error getting flagged users from database:', error);
+    // Fallback to in-memory only
+    return Object.keys(flaggedStates).filter(userId => flaggedStates[userId].isFlagged);
+  }
+};
 
 /**
  * Store the latest selectable command options for a user (used by WhatsApp flows)
  */
 export function setCommandOptions(userId: string, options: CommandOption[]): void {
-  const existing = bookingContextStore.get(userId) || {};
-  bookingContextStore.set(userId, { ...existing, lastCommandOptions: options });
-  lastActivityStore.set(userId, Date.now());
+  checkTimeout(userId);
+  const existing = bookingContexts[userId] || {};
+  bookingContexts[userId] = { ...existing, lastCommandOptions: options };
+  lastActivity[userId] = Date.now();
 }
 
 /**
@@ -149,14 +313,17 @@ export function getCommandOptions(userId: string): CommandOption[] | undefined {
 /**
  * Clear stored command options for a user
  */
+/**
+ * Clear stored command options for a user
+ */
 export function clearCommandOptions(userId: string): void {
-  const existing = bookingContextStore.get(userId);
+  const existing = bookingContexts[userId];
   if (!existing || existing.lastCommandOptions === undefined) {
     return;
   }
 
   const { lastCommandOptions: _ignored, ...rest } = existing;
-  bookingContextStore.set(userId, rest);
+  bookingContexts[userId] = rest;
 }
 
 /**
@@ -232,11 +399,12 @@ export function cleanupOldConversations(): number {
   const now = Date.now();
   let cleaned = 0;
 
-  lastActivityStore.forEach((lastActivity, userId) => {
-    if (now - lastActivity > CONVERSATION_TIMEOUT_MS) {
-      conversationStore.delete(userId);
-      bookingContextStore.delete(userId);
-      lastActivityStore.delete(userId);
+  Object.keys(lastActivity).forEach(userId => {
+    if (now - lastActivity[userId] > TIMEOUT_MS) {
+      delete history[userId];
+      delete bookingContexts[userId];
+      delete flaggedStates[userId];
+      delete lastActivity[userId];
       cleaned++;
     }
   });

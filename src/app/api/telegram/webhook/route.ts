@@ -9,6 +9,7 @@ import { handleMessagingWithUserContext } from '../../../../services/messagingUs
 import { createUserFromOAuth, findUserByTelegramId } from '@/lib/database';
 import { randomBytes } from 'crypto';
 import { prisma } from '@/lib/prisma';
+import { checkRateLimit } from '@/services/rateLimitService';
 import {
   handleStartCommand,
   handleServicesCommand,
@@ -350,6 +351,18 @@ export async function POST(request: Request) {
     const chatId = message.chat.id;
     const incomingMessage = message.text;
     const user = message.from;
+
+    // Rate limiting check
+    const rateLimitResult = checkRateLimit(chatId.toString());
+    if (!rateLimitResult.allowed) {
+      console.warn(`[Telegram] Rate limit exceeded for chat ${chatId}`);
+      const retryMessage = rateLimitResult.retryAfter
+        ? `⏱️ You're sending too many messages. Please try again in ${rateLimitResult.retryAfter} seconds.`
+        : "⏱️ You're sending too many messages. Please slow down.";
+
+      await sendTelegramReply(chatId, retryMessage);
+      return Response.json({ success: true, rateLimited: true }, { status: 200 });
+    }
 
     try {
       // Check for /start command with login parameter

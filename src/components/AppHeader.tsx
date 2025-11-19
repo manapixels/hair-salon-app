@@ -8,6 +8,7 @@ import { Button } from '@/components/ui';
 import * as Avatar from '@radix-ui/react-avatar';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import { Scissors, Calendar, User, Shield, Bell, LogIn, LogOut } from '@/lib/icons';
+import Image from 'next/image';
 
 type View = 'booking' | 'admin' | 'dashboard';
 
@@ -82,10 +83,14 @@ export default function AppHeader({ view, onViewChange, onLoginClick }: AppHeade
     <header className="sticky top-0 z-50 border-b border-gray-100 bg-white/90 shadow-sm backdrop-blur-sm dark:border-gray-800 dark:bg-gray-900/90">
       <nav className="container mx-auto flex items-center justify-between px-4 py-2 sm:px-6 lg:px-8">
         <div className="flex items-center gap-1.5">
-          <Scissors className="h-6 w-6 text-[var(--accent-11)]" aria-hidden="true" />
-          <h1 className="text-2xl font-bold tracking-tight text-[var(--gray-12)]">
-            Signature Trims
-          </h1>
+          <div className="relative h-10 w-40">
+            <Image
+              src="/logo.svg"
+              alt="Signature Trims"
+              fill
+              className="object-contain object-left"
+            />
+          </div>
         </div>
         <div className="flex items-center gap-4">
           <div className="hidden items-center gap-3 sm:flex">

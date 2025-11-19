@@ -68,6 +68,7 @@
     "uuid": "^13.0.0"
   },
   "devDependencies": {
+    "@types/jest": "^30.0.0",
     "@types/node": "^22",
     "@types/react": "^18.3.24",
     "@types/react-dom": "^18.2.0",
