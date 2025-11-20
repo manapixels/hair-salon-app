@@ -1,8 +1,15 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import { toast } from 'sonner';
-import { SALON_SERVICES } from '@/constants';
-import type { Service, TimeSlot, Appointment, Stylist } from '@/types';
+
+import type {
+  Service,
+  TimeSlot,
+  Appointment,
+  Stylist,
+  ServiceCategory,
+  ServiceAddon,
+} from '@/types';
 import { useBooking } from '@/context/BookingContext';
 import { useAuth } from '@/context/AuthContext';
 import { toZonedTime } from 'date-fns-tz';
@@ -22,7 +29,13 @@ import { EmptyState } from './EmptyState';
 import { useDelayedLoading } from '@/hooks/useDelayedLoading';
 import { TextField } from './ui/TextField';
 import { Button, Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
-import { Check, CheckCircle, User, WhatsAppIcon } from '@/lib/icons';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
+import { Check, CheckCircle, User, WhatsAppIcon, Search } from '@/lib/icons';
 
 // Get the salon's timezone from environment variable or default to Asia/Singapore
 const SALON_TIMEZONE = process.env.NEXT_PUBLIC_GOOGLE_CALENDAR_TIMEZONE || 'Asia/Singapore';
@@ -34,47 +47,435 @@ const getTodayInSalonTimezone = (): Date => {
 };
 
 const ServiceSelector: React.FC<{
+  categories: ServiceCategory[];
   selectedServices: Service[];
+  selectedAddons: string[];
   onServiceToggle: (service: Service) => void;
-}> = ({ selectedServices, onServiceToggle }) => (
-  <div>
-    <h2 className="text-2xl font-semibold mb-4 text-gray-800 dark:text-gray-200">
-      1. Select Services
-    </h2>
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      {SALON_SERVICES.map(service => {
-        const isSelected = selectedServices.some(s => s.id === service.id);
-        return (
-          <Card
-            key={service.id}
-            variant="interactive"
-            selected={isSelected}
-            showCheckmark
-            onClick={() => onServiceToggle(service)}
-            className="cursor-pointer"
+  onAddonToggle: (addonId: string, serviceId: string) => void;
+  loading: boolean;
+}> = ({
+  categories,
+  selectedServices,
+  selectedAddons,
+  onServiceToggle,
+  onAddonToggle,
+  loading,
+}) => {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeCategory, setActiveCategory] = useState<string>('all');
+  const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
+  const [activeFilter, setActiveFilter] = useState<string | null>(null);
+
+  // Initialize expanded categories
+  useEffect(() => {
+    if (categories.length > 0 && expandedCategories.length === 0) {
+      // Default to first category expanded
+      setExpandedCategories([categories[0].id]);
+    }
+  }, [categories, expandedCategories]);
+
+  const toggleCategory = (categoryId: string) => {
+    setExpandedCategories(prev =>
+      prev.includes(categoryId) ? prev.filter(id => id !== categoryId) : [...prev, categoryId],
+    );
+  };
+
+  const filteredCategories = useMemo(() => {
+    let result = categories;
+
+    // Apply search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      result = categories
+        .map(category => ({
+          ...category,
+          items: category.items.filter(
+            service =>
+              service.name.toLowerCase().includes(query) ||
+              service.subtitle?.toLowerCase().includes(query) ||
+              service.description?.toLowerCase().includes(query) ||
+              service.tags.some(tag => tag.toLowerCase().includes(query)),
+          ),
+        }))
+        .filter(category => category.items.length > 0);
+    }
+
+    // Apply quick filters
+    if (activeFilter) {
+      result = result
+        .map(category => ({
+          ...category,
+          items: category.items.filter(service => {
+            switch (activeFilter) {
+              case 'quick':
+                return service.duration <= 45;
+              case 'budget':
+                return service.basePrice <= 50;
+              case 'premium':
+                return service.basePrice >= 150;
+              case 'popular':
+                return service.popularityScore >= 80;
+              default:
+                return true;
+            }
+          }),
+        }))
+        .filter(category => category.items.length > 0);
+    }
+
+    return result;
+  }, [categories, searchQuery, activeFilter]);
+
+  // Auto-expand categories when searching
+  useEffect(() => {
+    if (searchQuery.trim()) {
+      setExpandedCategories(filteredCategories.map(c => c.id));
+    }
+  }, [searchQuery, filteredCategories]);
+
+  // Helper to get filtered categories for the current view
+
+  // Helper to get filtered categories for the current view
+  const displayCategories = useMemo(() => {
+    if (searchQuery.trim()) return filteredCategories;
+    if (activeCategory === 'all') return categories;
+    return categories.filter(c => c.id === activeCategory);
+  }, [filteredCategories, categories, activeCategory, searchQuery]);
+
+  if (loading) {
+    return (
+      <div className="space-y-4">
+        <h2 className="text-2xl font-semibold mb-4 text-gray-800 dark:text-gray-200">
+          1. Select Services
+        </h2>
+        <div className="flex justify-center p-8">
+          <LoadingSpinner message="Loading services..." />
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <h2 className="text-2xl font-semibold mb-4 text-gray-800 dark:text-gray-200">
+        1. Select Services
+      </h2>
+
+      {/* Search Bar */}
+      <div className="relative mb-4">
+        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+          <Search className="h-5 w-5 text-gray-400" />
+        </div>
+        <input
+          type="text"
+          placeholder="Search services (e.g., 'cut', 'color', 'treatment')..."
+          className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-stone-900 focus:border-stone-900 sm:text-sm transition duration-150 ease-in-out"
+          value={searchQuery}
+          onChange={e => {
+            setSearchQuery(e.target.value);
+            if (e.target.value.trim()) {
+              setActiveCategory('all');
+              setActiveFilter(null);
+            }
+          }}
+        />
+      </div>
+
+      {/* Quick Filters */}
+      {!searchQuery.trim() && (
+        <div className="flex flex-wrap gap-2 mb-6">
+          <button
+            onClick={() => setActiveFilter(activeFilter === 'quick' ? null : 'quick')}
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+              activeFilter === 'quick'
+                ? 'bg-stone-900 text-white'
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            }`}
           >
-            <CardHeader>
-              <div className="flex justify-between items-start">
-                <CardTitle>{service.name}</CardTitle>
-                <span className="text-[length:var(--font-size-5)] font-semibold text-[var(--gray-12)]">
-                  ${service.price}
-                </span>
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+            Quick (Under 45 min)
+          </button>
+          <button
+            onClick={() => setActiveFilter(activeFilter === 'budget' ? null : 'budget')}
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+              activeFilter === 'budget'
+                ? 'bg-stone-900 text-white'
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            }`}
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+            Budget (Under $50)
+          </button>
+          <button
+            onClick={() => setActiveFilter(activeFilter === 'premium' ? null : 'premium')}
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+              activeFilter === 'premium'
+                ? 'bg-stone-900 text-white'
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            }`}
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"
+              />
+            </svg>
+            Premium
+          </button>
+          <button
+            onClick={() => setActiveFilter(activeFilter === 'popular' ? null : 'popular')}
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+              activeFilter === 'popular'
+                ? 'bg-stone-900 text-white'
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            }`}
+          >
+            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+            </svg>
+            Popular
+          </button>
+        </div>
+      )}
+
+      {/* Category Tabs (Desktop) */}
+      {!searchQuery.trim() && (
+        <div className="hidden md:flex space-x-2 mb-6 overflow-x-auto pb-2">
+          <button
+            onClick={() => setActiveCategory('all')}
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors whitespace-nowrap ${
+              activeCategory === 'all'
+                ? 'bg-stone-900 text-white'
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            }`}
+          >
+            All Services
+          </button>
+          {categories.map(category => (
+            <button
+              key={category.id}
+              onClick={() => setActiveCategory(category.id)}
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-colors whitespace-nowrap ${
+                activeCategory === category.id
+                  ? 'bg-stone-900 text-white'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              {category.title}
+            </button>
+          ))}
+        </div>
+      )}
+
+      <div className="space-y-8">
+        {displayCategories.length === 0 ? (
+          <div className="text-center py-8 text-gray-500">
+            No services found matching &ldquo;{searchQuery}&rdquo;
+          </div>
+        ) : (
+          <Accordion
+            type="multiple"
+            value={expandedCategories}
+            onValueChange={setExpandedCategories}
+            className="w-full space-y-4"
+          >
+            {displayCategories.map(category => (
+              <div
+                key={category.id}
+                className={
+                  !searchQuery.trim() && activeCategory !== 'all' && activeCategory !== category.id
+                    ? 'hidden'
+                    : ''
+                }
+              >
+                <AccordionItem value={category.id} className="border-none">
+                  <AccordionTrigger className="w-full flex items-center justify-between text-lg font-medium text-gray-700 dark:text-gray-300 mb-3 uppercase tracking-wide sticky top-0 bg-[#FDFCF8] px-4 py-3 z-10 hover:text-stone-900 transition-colors rounded-md hover:no-underline group">
+                    <div className="flex flex-col items-start text-left">
+                      <span>{category.title}</span>
+                      {category.description && (
+                        <span className="text-xs font-normal normal-case text-[var(--gray-10)] tracking-normal mt-0.5">
+                          {category.description}
+                          {category.priceRangeMin && category.priceRangeMax && (
+                            <>
+                              {' '}
+                              • ${category.priceRangeMin}-${category.priceRangeMax}
+                            </>
+                          )}
+                        </span>
+                      )}
+                    </div>
+                  </AccordionTrigger>
+
+                  <AccordionContent>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2 duration-200 pt-2">
+                      {category.items.map(service => {
+                        const isSelected = selectedServices.some(s => s.id === service.id);
+                        return (
+                          <Card
+                            key={service.id}
+                            variant="interactive"
+                            selected={isSelected}
+                            showCheckmark
+                            onClick={() => onServiceToggle(service)}
+                            className="cursor-pointer h-full"
+                          >
+                            <CardHeader className="pb-2">
+                              <div className="flex justify-between items-start gap-2">
+                                <div className="flex-1">
+                                  <CardTitle className="text-base">{service.name}</CardTitle>
+                                  {service.subtitle && (
+                                    <p className="text-xs text-[var(--gray-10)] mt-0.5">
+                                      {service.subtitle}
+                                    </p>
+                                  )}
+                                </div>
+                                <span className="text-sm font-semibold text-[var(--gray-12)] shrink-0">
+                                  {service.price}
+                                </span>
+                              </div>
+                            </CardHeader>
+                            <CardContent>
+                              {service.description && (
+                                <p className="text-sm text-[var(--gray-11)] mb-2">
+                                  {service.description}
+                                </p>
+                              )}
+                              <div className="flex items-center gap-3 text-xs text-[var(--gray-10)] mb-3">
+                                <span>{service.duration} mins</span>
+                                {service.popularityScore >= 80 && (
+                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[var(--accent-3)] text-[var(--accent-11)] font-medium">
+                                    <svg
+                                      className="w-3 h-3"
+                                      fill="currentColor"
+                                      viewBox="0 0 20 20"
+                                    >
+                                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                    </svg>
+                                    Popular
+                                  </span>
+                                )}
+                              </div>
+
+                              {/* Add-ons Section */}
+                              {isSelected && service.addons && service.addons.length > 0 && (
+                                <div
+                                  className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700"
+                                  onClick={e => e.stopPropagation()}
+                                >
+                                  <div className="flex items-center justify-between mb-3">
+                                    <p className="text-xs font-semibold text-[var(--gray-11)] uppercase tracking-wide">
+                                      Enhance Your Service
+                                    </p>
+                                    {service.addons.some(a => a.isRecommended) && (
+                                      <span className="text-xs px-2 py-0.5 rounded-full bg-[var(--accent-3)] text-[var(--accent-11)] font-medium">
+                                        Recommended
+                                      </span>
+                                    )}
+                                  </div>
+                                  <div className="space-y-2">
+                                    {service.addons.map(addon => {
+                                      const isAddonSelected = selectedAddons.includes(addon.id);
+                                      return (
+                                        <label
+                                          key={addon.id}
+                                          htmlFor={addon.id}
+                                          className={`
+                                            flex items-start gap-2 p-2 rounded-lg border cursor-pointer
+                                            transition-all
+                                            ${
+                                              isAddonSelected
+                                                ? 'border-[var(--accent-8)] bg-[var(--accent-2)]'
+                                                : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                                            }
+                                          `}
+                                        >
+                                          <input
+                                            type="checkbox"
+                                            id={addon.id}
+                                            checked={isAddonSelected}
+                                            onChange={() => onAddonToggle(addon.id, service.id)}
+                                            className="mt-0.5 h-4 w-4 rounded border-gray-300 text-accent focus:ring-accent shrink-0"
+                                          />
+                                          <div className="flex-1 min-w-0">
+                                            <div className="flex items-start justify-between gap-2">
+                                              <span className="text-sm font-medium text-[var(--gray-12)]">
+                                                {addon.name}
+                                              </span>
+                                              <span className="text-sm font-semibold text-[var(--gray-12)] shrink-0">
+                                                {addon.price}
+                                              </span>
+                                            </div>
+                                            {addon.description && (
+                                              <p className="text-xs text-[var(--gray-11)] mt-1">
+                                                {addon.description}
+                                              </p>
+                                            )}
+                                            {addon.benefits && addon.benefits.length > 0 && (
+                                              <ul className="mt-1.5 space-y-0.5">
+                                                {addon.benefits.map((benefit, i) => (
+                                                  <li
+                                                    key={i}
+                                                    className="text-xs text-[var(--gray-10)] flex items-center gap-1"
+                                                  >
+                                                    <svg
+                                                      className="w-3 h-3 text-green-600 shrink-0"
+                                                      fill="currentColor"
+                                                      viewBox="0 0 20 20"
+                                                    >
+                                                      <path
+                                                        fillRule="evenodd"
+                                                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                                        clipRule="evenodd"
+                                                      />
+                                                    </svg>
+                                                    {benefit}
+                                                  </li>
+                                                ))}
+                                              </ul>
+                                            )}
+                                            {addon.isPopular && (
+                                              <p className="text-xs text-[var(--accent-11)] mt-1.5 font-medium">
+                                                ⭐ Popular choice
+                                              </p>
+                                            )}
+                                          </div>
+                                        </label>
+                                      );
+                                    })}
+                                  </div>
+                                </div>
+                              )}
+                            </CardContent>
+                          </Card>
+                        );
+                      })}
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
               </div>
-            </CardHeader>
-            <CardContent>
-              <p className="text-[length:var(--font-size-2)] text-[var(--gray-11)] mb-2">
-                {service.description}
-              </p>
-              <p className="text-[length:var(--font-size-1)] text-[var(--gray-10)]">
-                {service.duration} mins
-              </p>
-            </CardContent>
-          </Card>
-        );
-      })}
+            ))}
+          </Accordion>
+        )}
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 const StylistSelector: React.FC<{
   selectedServices: Service[];
@@ -552,6 +953,7 @@ const BookingSummary: React.FC<{
   selectedTime: string | null;
   totalPrice: number;
   totalDuration: number;
+  selectedAddons: string[];
   onClear: () => void;
 }> = ({
   selectedServices,
@@ -560,6 +962,7 @@ const BookingSummary: React.FC<{
   selectedTime,
   totalPrice,
   totalDuration,
+  selectedAddons,
   onClear,
 }) => {
   return (
@@ -576,9 +979,26 @@ const BookingSummary: React.FC<{
         <>
           <div className="space-y-3 mb-4">
             {selectedServices.map(s => (
-              <div key={s.id} className="flex justify-between text-sm">
-                <span className="text-gray-700 dark:text-gray-300">{s.name}</span>
-                <span className="font-semibold">${s.price}</span>
+              <div key={s.id}>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-700 dark:text-gray-300">{s.name}</span>
+                  <span className="font-semibold">${s.basePrice}</span>
+                </div>
+                {s.addons &&
+                  s.addons.map(addon => {
+                    if (selectedAddons.includes(addon.id)) {
+                      return (
+                        <div
+                          key={addon.id}
+                          className="flex justify-between text-xs text-gray-500 pl-4 mt-1"
+                        >
+                          <span>+ {addon.name}</span>
+                          <span>{addon.price}</span>
+                        </div>
+                      );
+                    }
+                    return null;
+                  })}
               </div>
             ))}
           </div>
@@ -611,13 +1031,33 @@ const BookingSummary: React.FC<{
 };
 
 const BookingForm: React.FC = () => {
+  const [categories, setCategories] = useState<ServiceCategory[]>([]);
+  const [loadingServices, setLoadingServices] = useState(true);
   const [selectedServices, setSelectedServices] = useState<Service[]>([]);
+  const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
   const [selectedStylist, setSelectedStylist] = useState<Stylist | null>(null);
   const [selectedDate, setSelectedDate] = useState(getTodayInSalonTimezone());
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [bookingConfirmed, setBookingConfirmed] = useState<Appointment | null>(null);
   const { createAppointment } = useBooking();
+
+  useEffect(() => {
+    const fetchServices = async () => {
+      try {
+        const response = await fetch('/api/services');
+        if (!response.ok) throw new Error('Failed to fetch services');
+        const data = await response.json();
+        setCategories(data);
+      } catch (error) {
+        console.error('Error loading services:', error);
+        toast.error('Failed to load services. Please try refreshing the page.');
+      } finally {
+        setLoadingServices(false);
+      }
+    };
+    fetchServices();
+  }, []);
 
   // Smart reset logic: only reset when necessary
   useEffect(() => {
@@ -635,13 +1075,23 @@ const BookingForm: React.FC = () => {
   const { totalPrice, totalDuration } = useMemo(() => {
     return selectedServices.reduce(
       (acc, service) => {
-        acc.totalPrice += service.price;
+        acc.totalPrice += service.basePrice;
         acc.totalDuration += service.duration;
+
+        // Add add-ons cost
+        if (service.addons) {
+          service.addons.forEach(addon => {
+            if (selectedAddons.includes(addon.id)) {
+              acc.totalPrice += addon.basePrice;
+            }
+          });
+        }
+
         return acc;
       },
       { totalPrice: 0, totalDuration: 0 },
     );
-  }, [selectedServices]);
+  }, [selectedServices, selectedAddons]);
 
   // Generate WhatsApp URL with booking details
   const whatsappUrl = useMemo(() => {
@@ -663,9 +1113,25 @@ Please confirm availability. Thank you!`;
     setSelectedServices(prev => {
       const isSelected = prev.some(s => s.id === service.id);
       if (isSelected) {
-        return prev.filter(s => s.id !== service.id);
+        // Remove service and its addons
+        const newServices = prev.filter(s => s.id !== service.id);
+        if (service.addons) {
+          const addonIds = service.addons.map(a => a.id);
+          setSelectedAddons(current => current.filter(id => !addonIds.includes(id)));
+        }
+        return newServices;
       } else {
         return [...prev, service];
+      }
+    });
+  };
+
+  const handleAddonToggle = (addonId: string, serviceId: string) => {
+    setSelectedAddons(prev => {
+      if (prev.includes(addonId)) {
+        return prev.filter(id => id !== addonId);
+      } else {
+        return [...prev, addonId];
       }
     });
   };
@@ -679,10 +1145,16 @@ Please confirm availability. Thank you!`;
 
     const toastId = toast.loading('Booking your appointment...');
     try {
+      // Filter services to only include selected add-ons
+      const servicesWithSelectedAddons = selectedServices.map(service => ({
+        ...service,
+        addons: service.addons?.filter(addon => selectedAddons.includes(addon.id)) || [],
+      }));
+
       const confirmedAppt = await createAppointment({
         date: selectedDate,
         time: selectedTime,
-        services: selectedServices,
+        services: servicesWithSelectedAddons,
         stylistId: selectedStylist?.id,
         customerName: name,
         customerEmail: email,
@@ -700,6 +1172,7 @@ Please confirm availability. Thank you!`;
 
   const handleReset = () => {
     setSelectedServices([]);
+    setSelectedAddons([]);
     setSelectedStylist(null);
     setSelectedDate(getTodayInSalonTimezone());
     setSelectedTime(null);
@@ -751,8 +1224,12 @@ Please confirm availability. Thank you!`;
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
       <div className="lg:col-span-2 space-y-8">
         <ServiceSelector
+          categories={categories}
           selectedServices={selectedServices}
+          selectedAddons={selectedAddons}
           onServiceToggle={handleServiceToggle}
+          onAddonToggle={handleAddonToggle}
+          loading={loadingServices}
         />
 
         {selectedServices.length > 0 && (
@@ -791,6 +1268,7 @@ Please confirm availability. Thank you!`;
           selectedTime={selectedTime}
           totalPrice={totalPrice}
           totalDuration={totalDuration}
+          selectedAddons={selectedAddons}
           onClear={handleReset}
         />
       </div>

@@ -208,7 +208,7 @@ const AdminDashboard: React.FC = () => {
           appointment.customerEmail.toLowerCase().includes(term) ||
           // Services
           appointment.services.some(s => s.name.toLowerCase().includes(term)) ||
-          appointment.services.some(s => s.description.toLowerCase().includes(term)) ||
+          appointment.services.some(s => s.description?.toLowerCase().includes(term)) ||
           // Appointment details
           appointment.id.toLowerCase().includes(term) ||
           appointment.time.includes(term) ||

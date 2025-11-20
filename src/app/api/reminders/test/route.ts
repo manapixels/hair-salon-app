@@ -60,8 +60,30 @@ export const POST = withAdminAuth(async (request: NextRequest, { user }) => {
         date: new Date(Date.now() + 24 * 60 * 60 * 1000), // Tomorrow
         time: '10:00',
         services: [
-          { id: 1, name: "Men's Haircut", description: '', price: 25, duration: 30 },
-          { id: 2, name: 'Beard Trim', description: '', price: 15, duration: 15 },
+          {
+            id: '1',
+            name: "Men's Haircut",
+            description: '',
+            price: '$25',
+            basePrice: 25,
+            duration: 30,
+            popularityScore: 90,
+            tags: [],
+            categoryId: 'cut',
+            isActive: true,
+          },
+          {
+            id: '2',
+            name: 'Beard Trim',
+            description: '',
+            price: '$15',
+            basePrice: 15,
+            duration: 15,
+            popularityScore: 80,
+            tags: [],
+            categoryId: 'cut',
+            isActive: true,
+          },
         ],
         stylistId: 'stylist-1',
         stylist: {

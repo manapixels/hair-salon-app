@@ -582,7 +582,7 @@ export async function handleCallbackQuery(
   if (callbackData.startsWith('book_service_')) {
     const serviceId = parseInt(callbackData.replace('book_service_', ''));
     const services = await getServices();
-    const service = services.find(s => s.id === serviceId);
+    const service = services.find(s => String(s.id) === String(serviceId));
 
     if (!service) {
       return createErrorResponse('not_found', 'The selected service is no longer available.');
@@ -714,7 +714,7 @@ ${selectedServiceNames.map(s => `• ${s}`).join('\n')}
   if (callbackData.startsWith('add_service_')) {
     const serviceId = parseInt(callbackData.replace('add_service_', ''));
     const services = await getServices();
-    const service = services.find(s => s.id === serviceId);
+    const service = services.find(s => String(s.id) === String(serviceId));
 
     if (!service) {
       return createErrorResponse('not_found', 'The selected service is no longer available.');
@@ -735,7 +735,7 @@ ${selectedServiceNames.map(s => `• ${s}`).join('\n')}
 
     const totalPrice = services
       .filter(s => updatedServices.includes(s.name))
-      .reduce((sum, s) => sum + s.price, 0);
+      .reduce((sum, s) => sum + s.basePrice, 0);
     const totalDuration = services
       .filter(s => updatedServices.includes(s.name))
       .reduce((sum, s) => sum + s.duration, 0);
@@ -791,7 +791,7 @@ Would you like to add more?`,
       // No stylists available, skip to date/time
       const services = await getServices();
       const selectedServices = services.filter(s => context.services?.includes(s.name));
-      const totalPrice = selectedServices.reduce((sum, s) => sum + s.price, 0);
+      const totalPrice = selectedServices.reduce((sum, s) => sum + s.basePrice, 0);
       const totalDuration = selectedServices.reduce((sum, s) => sum + s.duration, 0);
 
       return {
@@ -824,7 +824,7 @@ For example: "October 20th at 2:00 PM"${!user?.email ? "\n\nI'll also need your 
 
     const services = await getServices();
     const selectedServices = services.filter(s => context.services?.includes(s.name));
-    const totalPrice = selectedServices.reduce((sum, s) => sum + s.price, 0);
+    const totalPrice = selectedServices.reduce((sum, s) => sum + s.basePrice, 0);
     const totalDuration = selectedServices.reduce((sum, s) => sum + s.duration, 0);
 
     // Add Back button to keyboard
@@ -2194,7 +2194,7 @@ No previous step found. Let's start fresh!`,
         };
 
         return {
-          text: `✅ *Booking Confirmed!*\n\n${servicesToBook.map(s => `✂️ ${s.name}`).join('\n')}\n📅 ${formattedDate}\n🕐 ${bookingContext.time}\n💰 $${servicesToBook.reduce((sum, s) => sum + s.price, 0)}\n\nYou'll receive a confirmation email at ${bookingContext.customerEmail} shortly.\n\nThank you for choosing Signature Trims!`,
+          text: `✅ *Booking Confirmed!*\n\n${servicesToBook.map(s => `✂️ ${s.name}`).join('\n')}\n📅 ${formattedDate}\n🕐 ${bookingContext.time}\n💰 $${servicesToBook.reduce((sum, s) => sum + s.basePrice, 0)}\n\nYou'll receive a confirmation email at ${bookingContext.customerEmail} shortly.\n\nThank you for choosing Signature Trims!`,
           keyboard,
           parseMode: 'Markdown',
           editPreviousMessage: true, // Edit the confirmation question
@@ -2267,7 +2267,7 @@ async function rebuildMultiServiceStep(
 
   const totalPrice = services
     .filter(s => selectedServices.includes(s.name))
-    .reduce((sum, s) => sum + s.price, 0);
+    .reduce((sum, s) => sum + s.basePrice, 0);
   const totalDuration = services
     .filter(s => selectedServices.includes(s.name))
     .reduce((sum, s) => sum + s.duration, 0);
@@ -2301,7 +2301,7 @@ async function rebuildStylistStep(
 
   const services = await getServices();
   const selectedServices = services.filter(s => state.services?.includes(s.name));
-  const totalPrice = selectedServices.reduce((sum, s) => sum + s.price, 0);
+  const totalPrice = selectedServices.reduce((sum, s) => sum + s.basePrice, 0);
   const totalDuration = selectedServices.reduce((sum, s) => sum + s.duration, 0);
 
   const keyboard: InlineKeyboard = {

@@ -645,7 +645,7 @@ ${servicesListString}
               };
             }
             updateData.services = servicesToUpdate;
-            updateData.totalPrice = servicesToUpdate.reduce((sum, s) => sum + s.price, 0);
+            updateData.totalPrice = servicesToUpdate.reduce((sum, s) => sum + s.basePrice, 0);
             updateData.totalDuration = servicesToUpdate.reduce((sum, s) => sum + s.duration, 0);
           }
 

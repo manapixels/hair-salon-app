@@ -2,7 +2,7 @@ import Image from 'next/image';
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import type { Stylist, Service } from '../types';
-import { SALON_SERVICES } from '../constants';
+// Services are now fetched from API instead of hardcoded constants
 import * as Dialog from '@radix-ui/react-dialog';
 import * as Checkbox from '@radix-ui/react-checkbox';
 import * as AlertDialog from '@radix-ui/react-alert-dialog';
@@ -18,6 +18,7 @@ interface StylistManagementProps {
 
 export default function StylistManagement({ onClose }: StylistManagementProps) {
   const [stylists, setStylists] = useState<Stylist[]>([]);
+  const [availableServices, setAvailableServices] = useState<Service[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingStylist, setEditingStylist] = useState<Stylist | null>(null);
@@ -28,7 +29,19 @@ export default function StylistManagement({ onClose }: StylistManagementProps) {
 
   useEffect(() => {
     fetchStylists();
+    fetchServices();
   }, []);
+
+  const fetchServices = async () => {
+    try {
+      const response = await fetch('/api/services');
+      const data = await response.json();
+      const allServices = data.flatMap((category: any) => category.items);
+      setAvailableServices(allServices);
+    } catch (err) {
+      console.error('Failed to fetch services:', err);
+    }
+  };
 
   const fetchStylists = async () => {
     try {
@@ -228,6 +241,7 @@ export default function StylistManagement({ onClose }: StylistManagementProps) {
             setEditingStylist(null);
           }}
           stylist={editingStylist}
+          availableServices={availableServices}
           onSave={async () => {
             await fetchStylists();
             setShowAddModal(false);
@@ -272,16 +286,17 @@ interface StylistModalProps {
   isOpen: boolean;
   onClose: () => void;
   stylist: Stylist | null;
+  availableServices: Service[];
   onSave: () => void;
 }
 
-function StylistModal({ isOpen, onClose, stylist, onSave }: StylistModalProps) {
+function StylistModal({ isOpen, onClose, stylist, availableServices, onSave }: StylistModalProps) {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     bio: '',
     avatar: '',
-    specialtyIds: [] as number[],
+    specialtyIds: [] as string[],
     workingHours: getDefaultWorkingHours(),
     blockedDates: [] as string[],
   });
@@ -359,7 +374,7 @@ function StylistModal({ isOpen, onClose, stylist, onSave }: StylistModalProps) {
     }
   };
 
-  const handleSpecialtyToggle = (serviceId: number) => {
+  const handleSpecialtyToggle = (serviceId: string) => {
     setFormData(prev => ({
       ...prev,
       specialtyIds: prev.specialtyIds.includes(serviceId)
@@ -448,7 +463,7 @@ function StylistModal({ isOpen, onClose, stylist, onSave }: StylistModalProps) {
                   Specialties *
                 </label>
                 <div className="grid grid-cols-1 gap-[var(--space-3)] max-h-60 overflow-y-auto border border-[var(--gray-6)] rounded-[var(--radius-3)] p-[var(--space-3)]">
-                  {SALON_SERVICES.map(service => {
+                  {availableServices.map(service => {
                     const isSelected = formData.specialtyIds.includes(service.id);
                     return (
                       <label

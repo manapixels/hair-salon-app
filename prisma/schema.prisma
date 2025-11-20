@@ -55,17 +55,59 @@ model User {
   @@map("users")
 }
 
+model ServiceCategory {
+  id            String    @id @default(cuid())
+  title         String
+  description   String?   // e.g., "Professional cuts and styling"
+  icon          String?   // Icon name reference
+  priceRangeMin Int?      // Category price range minimum
+  priceRangeMax Int?      // Category price range maximum
+  sortOrder     Int       @default(0) // Control category display order
+  items         Service[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@map("service_categories")
+}
+
 model Service {
-  id          Int    @id @default(autoincrement())
-  name        String
-  description String
-  price       Int
-  duration    Int // in minutes
-  isActive    Boolean @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id              String          @id @default(cuid())
+  name            String
+  subtitle        String?         // Short tagline (e.g., "Classic cut with styling")
+  description     String?         // Full description
+  price           String          // Display price (e.g. "$80-100" or "From $70")
+  basePrice       Int             // Numeric base price for calculations
+  maxPrice        Int?            // Maximum price for variable pricing
+  duration        Int             // in minutes
+  imageUrl        String?         // Service photo URL
+  popularityScore Int             @default(0) // For "Popular" badges
+  tags            String[]        @default([]) // e.g., ["quick", "budget", "premium"]
+  categoryId      String
+  category        ServiceCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  addons          ServiceAddon[]
+  isActive        Boolean         @default(true)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
 
   @@map("services")
+}
+
+model ServiceAddon {
+  id            String   @id @default(cuid())
+  name          String
+  description   String?  // Explain what this add-on includes
+  benefits      String[] @default([]) // e.g., ["Longer-lasting style", "Adds volume"]
+  price         String   // Display price (e.g., "+$5")
+  basePrice     Int      // Numeric price
+  duration      Int      @default(0) // Additional time in minutes
+  isRecommended Boolean  @default(false) // Show "Recommended" badge
+  isPopular     Boolean  @default(false) // Show popularity stats
+  serviceId     String
+  service       Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("service_addons")
 }
 
 model Stylist {

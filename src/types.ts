@@ -1,9 +1,42 @@
-export interface Service {
-  id: number;
+export interface ServiceAddon {
+  id: string;
   name: string;
-  description: string;
-  price: number;
+  description?: string;
+  benefits?: string[];
+  price: string;
+  basePrice: number;
+  duration: number;
+  isRecommended: boolean;
+  isPopular: boolean;
+  serviceId: string;
+}
+
+export interface Service {
+  id: string;
+  name: string;
+  subtitle?: string;
+  description?: string;
+  price: string;
+  basePrice: number;
+  maxPrice?: number;
   duration: number; // in minutes
+  imageUrl?: string;
+  popularityScore: number;
+  tags: string[];
+  categoryId: string;
+  addons?: ServiceAddon[];
+  isActive: boolean;
+}
+
+export interface ServiceCategory {
+  id: string;
+  title: string;
+  description?: string;
+  icon?: string;
+  priceRangeMin?: number;
+  priceRangeMax?: number;
+  sortOrder: number;
+  items: Service[];
 }
 
 export interface TimeSlot {

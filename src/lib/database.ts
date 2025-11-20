@@ -7,13 +7,15 @@ import type {
   CreateAppointmentInput,
   StylistSummary,
 } from '../types';
-import { SALON_SERVICES } from '../constants';
 import { prisma } from './prisma';
 
 /**
  * DATABASE FUNCTIONS USING PRISMA + NEON
  * Persistent PostgreSQL database for production use
  */
+
+// Helper to normalize service ID for comparison (handles both string and number IDs)
+const normalizeServiceId = (id: any): string => String(id);
 
 // Initialize default admin user and settings on first run
 async function initializeDatabase() {
@@ -45,19 +47,8 @@ async function initializeDatabase() {
       });
     }
 
-    // Initialize services if they don't exist
-    const serviceCount = await prisma.service.count();
-    if (serviceCount === 0) {
-      await prisma.service.createMany({
-        data: SALON_SERVICES.map(service => ({
-          id: service.id,
-          name: service.name,
-          description: service.description,
-          price: service.price,
-          duration: service.duration,
-        })),
-      });
-    }
+    // Services are now seeded via prisma/seed.ts
+    // No need to initialize here
   } catch (error) {
     console.error('Database initialization error:', error);
   }
@@ -237,7 +228,13 @@ export const getServices = async (): Promise<Service[]> => {
   const services = await prisma.service.findMany({
     where: { isActive: true },
   });
-  return services;
+  return services.map(s => ({
+    ...s,
+    subtitle: s.subtitle ?? undefined,
+    description: s.description ?? undefined,
+    maxPrice: s.maxPrice ?? undefined,
+    imageUrl: s.imageUrl ?? undefined,
+  }));
 };
 
 // Appointment Management
@@ -261,8 +258,8 @@ export const getAppointments = async (): Promise<Appointment[]> => {
           bio: apt.stylist.bio ?? undefined,
           avatar: apt.stylist.avatar ?? undefined,
           specialties: Array.isArray(apt.stylist.specialties)
-            ? ((apt.stylist.specialties as number[])
-                .map(id => allServices.find(s => s.id === id))
+            ? ((apt.stylist.specialties as any[])
+                .map(id => allServices.find(s => s.id === normalizeServiceId(id)))
                 .filter(Boolean) as Service[])
             : [],
           workingHours: (apt.stylist.workingHours as any) || getDefaultWorkingHours(),
@@ -464,8 +461,20 @@ export const bookNewAppointment = async (
     : await getAvailability(appointmentData.date);
   const { totalPrice, totalDuration } = appointmentData.services.reduce(
     (acc, service) => {
-      acc.totalPrice += service.price;
+      acc.totalPrice += service.basePrice;
       acc.totalDuration += service.duration;
+
+      // Include selected add-ons in price and duration
+      if (service.addons && Array.isArray(service.addons)) {
+        service.addons.forEach(addon => {
+          acc.totalPrice += addon.basePrice;
+          // Add addon duration if it exists
+          if (addon.duration) {
+            acc.totalDuration += addon.duration;
+          }
+        });
+      }
+
       return acc;
     },
     { totalPrice: 0, totalDuration: 0 },
@@ -724,7 +733,7 @@ export const getStylists = async (): Promise<Stylist[]> => {
     avatar: stylist.avatar ?? undefined,
     specialties: Array.isArray(stylist.specialties)
       ? ((stylist.specialties as number[])
-          .map(id => allServices.find(s => s.id === id))
+          .map(id => allServices.find(s => s.id === normalizeServiceId(id)))
           .filter(Boolean) as Service[])
       : [],
     workingHours: (stylist.workingHours as any) || getDefaultWorkingHours(),
@@ -750,7 +759,7 @@ export const getStylistById = async (id: string): Promise<Stylist | null> => {
     avatar: stylist.avatar ?? undefined,
     specialties: Array.isArray(stylist.specialties)
       ? ((stylist.specialties as number[])
-          .map(id => allServices.find(s => s.id === id))
+          .map(id => allServices.find(s => s.id === normalizeServiceId(id)))
           .filter(Boolean) as Service[])
       : [],
     workingHours: (stylist.workingHours as any) || getDefaultWorkingHours(),
@@ -791,7 +800,7 @@ export const createStylist = async (stylistData: {
     bio: newStylist.bio ?? undefined,
     avatar: newStylist.avatar ?? undefined,
     specialties: stylistData.specialtyIds
-      .map(id => allServices.find(s => s.id === id))
+      .map(id => allServices.find(s => s.id === normalizeServiceId(id)))
       .filter(Boolean) as Service[],
     workingHours: (newStylist.workingHours as any) || defaultHours,
     blockedDates:
@@ -838,7 +847,7 @@ export const updateStylist = async (
     avatar: updatedStylist.avatar ?? undefined,
     specialties: Array.isArray(updatedStylist.specialties)
       ? ((updatedStylist.specialties as number[])
-          .map(id => allServices.find(s => s.id === id))
+          .map(id => allServices.find(s => s.id === normalizeServiceId(id)))
           .filter(Boolean) as Service[])
       : [],
     workingHours: (updatedStylist.workingHours as any) || getDefaultWorkingHours(),
@@ -861,7 +870,9 @@ export const getStylistsForServices = async (serviceIds: number[]): Promise<Styl
 
   return stylists.filter(stylist =>
     serviceIds.every(serviceId =>
-      stylist.specialties.some(specialty => specialty.id === serviceId),
+      stylist.specialties.some(
+        specialty => normalizeServiceId(specialty.id) === normalizeServiceId(serviceId),
+      ),
     ),
   );
 };
@@ -1230,8 +1241,8 @@ export const getUnsyncedAppointments = async (): Promise<Appointment[]> => {
           bio: apt.stylist.bio ?? undefined,
           avatar: apt.stylist.avatar ?? undefined,
           specialties: Array.isArray(apt.stylist.specialties)
-            ? ((apt.stylist.specialties as number[])
-                .map(id => allServices.find(s => s.id === id))
+            ? ((apt.stylist.specialties as any[])
+                .map(id => allServices.find(s => s.id === normalizeServiceId(id)))
                 .filter(Boolean) as Service[])
             : [],
           workingHours: (apt.stylist.workingHours as any) || getDefaultWorkingHours(),

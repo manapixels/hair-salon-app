@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import type { Appointment, Service } from '../types';
-import { SALON_SERVICES } from '../constants';
+// Services are now fetched from API instead of hardcoded constants
 import { Button, Checkbox, Dialog, Select } from '@radix-ui/themes';
 import { formatTime12Hour } from '@/lib/timeUtils';
 import { TextField } from './ui/TextField';
@@ -30,8 +30,25 @@ export default function EditAppointmentModal({
     time: '',
     services: [] as Service[],
   });
+  const [availableServices, setAvailableServices] = useState<Service[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    // Fetch available services
+    const fetchServices = async () => {
+      try {
+        const response = await fetch('/api/services');
+        const data = await response.json();
+        // Flatten categories to get all services
+        const allServices = data.flatMap((category: any) => category.items);
+        setAvailableServices(allServices);
+      } catch (err) {
+        console.error('Failed to fetch services:', err);
+      }
+    };
+    fetchServices();
+  }, []);
 
   useEffect(() => {
     if (appointment) {
@@ -63,7 +80,7 @@ export default function EditAppointmentModal({
   };
 
   const calculateTotals = () => {
-    const totalPrice = formData.services.reduce((sum, service) => sum + service.price, 0);
+    const totalPrice = formData.services.reduce((sum, service) => sum + service.basePrice, 0);
     const totalDuration = formData.services.reduce((sum, service) => sum + service.duration, 0);
     return { totalPrice, totalDuration };
   };
@@ -203,7 +220,7 @@ export default function EditAppointmentModal({
               Services *
             </label>
             <div className="grid max-h-64 grid-cols-1 gap-3 overflow-y-auto rounded-lg border border-gray-200 p-4 sm:grid-cols-2 dark:border-gray-600">
-              {SALON_SERVICES.map(service => {
+              {availableServices.map(service => {
                 const isSelected = formData.services.some(s => s.id === service.id);
                 const checkboxId = `service-${service.id}`;
 

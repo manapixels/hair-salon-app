@@ -3,7 +3,6 @@
 import { Theme, Button, Heading, Text, Grid, Container, Section } from '@radix-ui/themes';
 import Image from 'next/image';
 import BookingForm from './BookingForm';
-import ServicesSection from './ServicesSection';
 
 export default function LandingPage() {
   return (
@@ -12,13 +11,13 @@ export default function LandingPage() {
       <section className="relative h-[65vh] min-h-[500px] flex items-center justify-center overflow-hidden rounded-xl">
         <div className="absolute inset-0 z-0">
           <Image
-            src="https://images.unsplash.com/photo-1633681926022-84c23e8cb2d6?q=80&w=2574&auto=format&fit=crop"
+            src="/interior-illustration.png"
             alt="Salon Interior"
             fill
-            className="object-cover opacity-90 grayscale-[20%]"
+            className="object-cover"
             priority
           />
-          <div className="absolute inset-0 bg-white/30 backdrop-blur-[2px]"></div>
+          <div className="absolute inset-0 bg-white/30 backdrop-blur-[0px]"></div>
         </div>
 
         <div className="relative z-10 text-center max-w-3xl px-6">
@@ -43,9 +42,6 @@ export default function LandingPage() {
           </Button>
         </div>
       </section>
-
-      {/* Services Section */}
-      <ServicesSection />
 
       {/* Booking Section */}
       <Section size="3" className="bg-[#FDFCF8]" id="booking-section">

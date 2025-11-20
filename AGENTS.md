@@ -272,18 +272,6 @@ WHATSAPP_ACCESS_TOKEN=your_whatsapp_token
 TELEGRAM_BOT_TOKEN=your_telegram_bot_token
 
 # Optional: WhatsApp Business Phone ID
-WHATSAPP_PHONE_NUMBER_ID=your_phone_number_id
-```
-
----
-
-## 🎯 Development Guidelines
-
-### **Adding New AI Functions**
-
-1. **Define Function Declaration** (Gemini service)
-
-   ```typescript
    const newFunction: FunctionDeclaration = {
      name: 'functionName',
      description: 'Clear description for AI',
@@ -295,7 +283,7 @@ WHATSAPP_PHONE_NUMBER_ID=your_phone_number_id
        required: ['param1', 'param2'],
      },
    };
-   ```
+```
 
 2. **Implement Handler**
 
