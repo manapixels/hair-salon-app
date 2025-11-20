@@ -5,10 +5,10 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Clock, Tag, ArrowLeft, ChevronRight } from '@/lib/icons';
 import { notFound } from 'next/navigation';
-import ServiceDetailSections from '@/components/ServiceDetailSections';
-import ServiceBookingWrapper from '@/components/ServiceBookingWrapper';
-import AppHeader from '@/components/AppHeader';
-import AppFooter from '@/components/AppFooter';
+import ServiceDetailSections from '@/components/services/ServiceDetailSections';
+import ServiceBookingWrapper from '@/components/services/ServiceBookingWrapper';
+import AppHeader from '@/components/layout/AppHeader';
+import AppFooter from '@/components/layout/AppFooter';
 import { getServiceContent } from '@/data/serviceContent';
 
 // This is a server component

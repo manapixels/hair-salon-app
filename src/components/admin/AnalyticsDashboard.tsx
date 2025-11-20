@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
-import { LoadingSpinner } from '@/components/loaders/LoadingSpinner';
+import { LoadingSpinner } from '@/components/feedback/loaders/LoadingSpinner';
 
 interface AnalyticsData {
   flaggedConversations: {

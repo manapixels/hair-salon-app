@@ -3,11 +3,11 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
-import type { Appointment, Service } from '../types';
+import type { Appointment, Service } from '@/types';
 // Services are now fetched from API instead of hardcoded constants
 import { Button, Checkbox, Dialog, Select } from '@radix-ui/themes';
 import { formatTime12Hour } from '@/lib/timeUtils';
-import { TextField } from './ui/TextField';
+import { TextField } from '@/components/ui/TextField';
 import { X } from '@/lib/icons';
 
 interface EditAppointmentModalProps {

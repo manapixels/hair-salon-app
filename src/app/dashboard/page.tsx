@@ -3,10 +3,10 @@
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
-import CustomerDashboard from '@/components/CustomerDashboard';
-import AppHeader from '@/components/AppHeader';
-import AppFooter from '@/components/AppFooter';
-import { LoadingSpinner } from '@/components/loaders/LoadingSpinner';
+import CustomerDashboard from '@/components/views/CustomerDashboard';
+import AppHeader from '@/components/layout/AppHeader';
+import AppFooter from '@/components/layout/AppFooter';
+import { LoadingSpinner } from '@/components/feedback/loaders/LoadingSpinner';
 
 export default function DashboardPage() {
   const { user, isLoading } = useAuth();

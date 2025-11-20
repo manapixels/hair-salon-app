@@ -4,7 +4,7 @@ import SettingsSidebar, { type SettingsSection } from './SettingsSidebar';
 import BusinessSettings from './salon/BusinessSettings';
 import ScheduleSettings from './salon/ScheduleSettings';
 import ClosuresSettings from './salon/ClosuresSettings';
-import { LoadingButton } from '@/components/loaders/LoadingButton';
+import { LoadingButton } from '@/components/feedback/loaders/LoadingButton';
 import type { AdminSettings } from '@/types';
 
 interface SettingsLayoutProps {

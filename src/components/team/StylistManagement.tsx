@@ -1,15 +1,15 @@
 import Image from 'next/image';
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
-import type { Stylist, Service } from '../types';
+import type { Stylist, Service } from '@/types';
 // Services are now fetched from API instead of hardcoded constants
 import * as Dialog from '@radix-ui/react-dialog';
 import * as Checkbox from '@radix-ui/react-checkbox';
 import * as AlertDialog from '@radix-ui/react-alert-dialog';
 import { Button } from '@radix-ui/themes';
-import { TextField } from './ui/TextField';
-import { TextArea } from './ui/TextArea';
-import { LoadingSpinner } from './loaders/LoadingSpinner';
+import { TextField } from '../ui/TextField';
+import { TextArea } from '../ui/TextArea';
+import { LoadingSpinner } from '../feedback/loaders/LoadingSpinner';
 import { Plus, X, Users, User, Edit, Delete } from '@/lib/icons';
 
 interface StylistManagementProps {

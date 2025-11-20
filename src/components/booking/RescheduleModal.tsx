@@ -14,7 +14,7 @@ import {
   combineDateTimeToUTC,
 } from '@/lib/timeUtils';
 import { cn } from '@/lib/utils';
-import { LoadingSpinner } from './loaders/LoadingSpinner';
+import { LoadingSpinner } from '../feedback/loaders/LoadingSpinner';
 import { X } from '@/lib/icons';
 
 interface RescheduleModalProps {

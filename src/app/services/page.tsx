@@ -1,13 +1,13 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import ServiceCard from '@/components/ServiceCard';
-import AppHeader from '@/components/AppHeader';
-import AppFooter from '@/components/AppFooter';
+import ServiceCard from '@/components/services/ServiceCard';
+import AppHeader from '@/components/layout/AppHeader';
+import AppFooter from '@/components/layout/AppFooter';
 import { Heading, Text, Container, Section, Grid, Tabs } from '@radix-ui/themes';
 import { Service, ServiceCategory } from '@/types';
-import { LoadingSpinner } from '@/components/loaders/LoadingSpinner';
-import { ErrorState } from '@/components/ErrorState';
+import { LoadingSpinner } from '@/components/feedback/loaders/LoadingSpinner';
+import { ErrorState } from '@/components/feedback/ErrorState';
 import { Search, Sparkles } from '@/lib/icons';
 import Image from 'next/image';
 import Link from 'next/link';

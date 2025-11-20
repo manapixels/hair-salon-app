@@ -1,13 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import LandingPage from './LandingPage';
-import AdminDashboard from './AdminDashboard';
-import CustomerDashboard from './CustomerDashboard';
+import LandingPage from '../views/LandingPage';
+import AdminDashboard from '../views/AdminDashboard';
+import CustomerDashboard from '../views/CustomerDashboard';
 import AppHeader from './AppHeader';
 import AppFooter from './AppFooter';
-import OAuthLoginModal from './OAuthLoginModal';
-import { useAuth } from '../context/AuthContext';
+import OAuthLoginModal from '../auth/OAuthLoginModal';
+import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
 
 type View = 'booking' | 'admin' | 'dashboard' | 'services';

@@ -1,24 +1,24 @@
 import { useState, useEffect, useMemo } from 'react';
 import { toast, type ExternalToast } from 'sonner';
-import { useBooking } from '../context/BookingContext';
-import type { Appointment } from '../types';
-import EditAppointmentModal from './EditAppointmentModal';
-import StylistManagement from './StylistManagement';
+import { useBooking } from '@/context/BookingContext';
+import type { Appointment } from '@/types';
+import EditAppointmentModal from '../booking/EditAppointmentModal';
+import StylistManagement from '../team/StylistManagement';
 import AvailabilityModeToggle, {
   type AvailabilityMode,
-} from './admin/availability/AvailabilityModeToggle';
-import SalonAvailability from './admin/availability/SalonAvailability';
-import StylistAvailability from './admin/availability/StylistAvailability';
-import SettingsLayout from './admin/settings/SettingsLayout';
-import ChatDashboard from './admin/ChatDashboard';
-import KnowledgeBaseManager from './admin/KnowledgeBaseManager';
+} from '../admin/availability/AvailabilityModeToggle';
+import SalonAvailability from '../admin/availability/SalonAvailability';
+import StylistAvailability from '../admin/availability/StylistAvailability';
+import SettingsLayout from '../admin/settings/SettingsLayout';
+import ChatDashboard from '../admin/ChatDashboard';
+import KnowledgeBaseManager from '../admin/KnowledgeBaseManager';
 import { formatDisplayDate, formatTime12Hour } from '@/lib/timeUtils';
 import * as Tabs from '@radix-ui/react-tabs';
 import * as Select from '@radix-ui/react-select';
 import * as Checkbox from '@radix-ui/react-checkbox';
 import * as AlertDialog from '@radix-ui/react-alert-dialog';
-import { LoadingSpinner } from './loaders/LoadingSpinner';
-import { LoadingButton } from './loaders/LoadingButton';
+import { LoadingSpinner } from '../feedback/loaders/LoadingSpinner';
+import { LoadingButton } from '../feedback/loaders/LoadingButton';
 import { Button, Badge } from '@/components/ui';
 import { Refresh, Edit, Delete, X } from '@/lib/icons';
 import { DoubleArrowUpIcon } from '@radix-ui/react-icons';

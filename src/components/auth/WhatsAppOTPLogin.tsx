@@ -4,8 +4,8 @@ import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import PhoneInput from 'react-phone-number-input';
 import 'react-phone-number-input/style.css';
-import { LoadingButton } from './loaders/LoadingButton';
-import { LoadingSpinner } from './loaders/LoadingSpinner';
+import { LoadingButton } from '../feedback/loaders/LoadingButton';
+import { LoadingSpinner } from '../feedback/loaders/LoadingSpinner';
 
 interface WhatsAppOTPLoginProps {
   onSuccess: () => void;

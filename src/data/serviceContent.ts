@@ -1,4 +1,4 @@
-import { ServiceContent } from '@/components/ServiceDetailSections';
+import { ServiceContent } from '@/components/services/ServiceDetailSections';
 
 export const serviceContentMap: Record<string, ServiceContent> = {
   'hair-colouring': {

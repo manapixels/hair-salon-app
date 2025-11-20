@@ -3,10 +3,10 @@
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
-import AdminDashboard from '@/components/AdminDashboard';
-import AppHeader from '@/components/AppHeader';
-import AppFooter from '@/components/AppFooter';
-import { LoadingSpinner } from '@/components/loaders/LoadingSpinner';
+import AdminDashboard from '@/components/views/AdminDashboard';
+import AppHeader from '@/components/layout/AppHeader';
+import AppFooter from '@/components/layout/AppFooter';
+import { LoadingSpinner } from '@/components/feedback/loaders/LoadingSpinner';
 
 export default function AdminPage() {
   const { user, isLoading } = useAuth();

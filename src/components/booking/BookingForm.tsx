@@ -21,13 +21,13 @@ import {
   getDurationPercentage,
   formatDisplayDate,
 } from '@/lib/timeUtils';
-import CalendlyStyleDateTimePicker from './booking/CalendlyStyleDateTimePicker';
-import { LoadingSpinner } from './loaders/LoadingSpinner';
-import { StylistCardSkeleton } from './loaders/StylistCardSkeleton';
-import { ErrorState } from './ErrorState';
-import { EmptyState } from './EmptyState';
+import CalendlyStyleDateTimePicker from './CalendlyStyleDateTimePicker';
+import { LoadingSpinner } from '../feedback/loaders/LoadingSpinner';
+import { StylistCardSkeleton } from '../feedback/loaders/StylistCardSkeleton';
+import { ErrorState } from '../feedback/ErrorState';
+import { EmptyState } from '../feedback/EmptyState';
 import { useDelayedLoading } from '@/hooks/useDelayedLoading';
-import { TextField } from './ui/TextField';
+import { TextField } from '../ui/TextField';
 import { Button, Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
 import {
   Accordion,

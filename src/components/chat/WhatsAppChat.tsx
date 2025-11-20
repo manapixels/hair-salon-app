@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { toast } from 'sonner';
-import type { WhatsAppMessage } from '../types';
+import type { WhatsAppMessage } from '@/types';
 import { Scissors, Info, Send } from '@/lib/icons';
 
 const WhatsAppChat: React.FC = () => {

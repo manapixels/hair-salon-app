@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { formatDisplayDate } from '@/lib/timeUtils';
 import * as Select from '@radix-ui/react-select';
-import { LoadingSpinner } from '@/components/loaders/LoadingSpinner';
+import { LoadingSpinner } from '@/components/feedback/loaders/LoadingSpinner';
 import type { Stylist } from '@/types';
 
 interface StylistAvailabilityProps {

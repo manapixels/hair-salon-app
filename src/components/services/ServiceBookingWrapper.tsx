@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import BookingForm from './BookingForm';
+import BookingForm from '../booking/BookingForm';
 
 interface ServiceBookingWrapperProps {
   preSelectedServiceId?: string;

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Button, Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
 import { TextField } from '@/components/ui/TextField';
-import { LoadingSpinner } from '@/components/loaders/LoadingSpinner';
+import { LoadingSpinner } from '@/components/feedback/loaders/LoadingSpinner';
 import { toast } from 'sonner';
 import { Delete, Edit, Plus } from '@/lib/icons';
 

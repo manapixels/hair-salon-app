@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Button, Card, CardContent } from '@/components/ui';
-import { LoadingSpinner } from '@/components/loaders/LoadingSpinner';
+import { LoadingSpinner } from '@/components/feedback/loaders/LoadingSpinner';
 import { toast } from 'sonner';
 import { WhatsAppIcon, TelegramIcon } from '@/lib/icons';
 

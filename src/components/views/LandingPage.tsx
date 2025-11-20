@@ -2,10 +2,10 @@
 
 import { Button, Heading, Text, Grid, Container, Section, Badge } from '@radix-ui/themes';
 import Image from 'next/image';
-import BookingForm from './BookingForm';
-import LocationCard from './LocationCard';
-import TeamCard from './TeamCard';
-import { useBooking } from '../context/BookingContext';
+import BookingForm from '../booking/BookingForm';
+import LocationCard from '../locations/LocationCard';
+import TeamCard from '../team/TeamCard';
+import { useBooking } from '@/context/BookingContext';
 import { CheckCircle, Calendar } from '@/lib/icons';
 
 export default function LandingPage() {

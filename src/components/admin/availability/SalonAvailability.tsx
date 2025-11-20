@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import type { TimeSlot, Appointment, AdminSettings } from '@/types';
-import { LoadingSpinner } from '@/components/loaders/LoadingSpinner';
+import { LoadingSpinner } from '@/components/feedback/loaders/LoadingSpinner';
 
 interface SalonAvailabilityProps {
   adminSettings: AdminSettings;
