@@ -7,14 +7,27 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui';
 import * as Avatar from '@radix-ui/react-avatar';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
-import { Scissors, Calendar, User, Shield, Bell, LogIn, LogOut } from '@/lib/icons';
+import * as NavigationMenu from '@radix-ui/react-navigation-menu';
+import {
+  Scissors,
+  Calendar,
+  User,
+  Shield,
+  Bell,
+  LogIn,
+  LogOut,
+  Sparkles,
+  ChevronDown,
+} from '@/lib/icons';
 import Image from 'next/image';
+import Logo from './Logo';
+import { ServiceCategory } from '@/types';
 
-type View = 'booking' | 'admin' | 'dashboard';
+type View = 'booking' | 'admin' | 'dashboard' | 'services';
 
 interface AppHeaderProps {
-  view: View;
-  onViewChange: (view: View) => void;
+  view?: View;
+  onViewChange?: (view: View) => void;
   onLoginClick?: () => void;
 }
 
@@ -38,19 +51,37 @@ export default function AppHeader({ view, onViewChange, onLoginClick }: AppHeade
   const router = useRouter();
   const pathname = usePathname();
   const [appointmentCount, setAppointmentCount] = useState(0);
+  const [categories, setCategories] = useState<ServiceCategory[]>([]);
 
   const activeView: View = useMemo(() => {
     if (pathname?.startsWith('/admin')) return 'admin';
     if (pathname?.startsWith('/dashboard')) return 'dashboard';
+    if (pathname?.startsWith('/services')) return 'services';
     return 'booking';
   }, [pathname]);
 
   useEffect(() => {
-    if (activeView !== view) {
+    if (view && activeView !== view && onViewChange) {
       onViewChange(activeView);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeView]);
+
+  // Fetch services for the mega menu
+  useEffect(() => {
+    const fetchServices = async () => {
+      try {
+        const response = await fetch('/api/services');
+        if (response.ok) {
+          const data = await response.json();
+          setCategories(data);
+        }
+      } catch (error) {
+        console.error('Failed to fetch services for menu:', error);
+      }
+    };
+    fetchServices();
+  }, []);
 
   // Fetch appointment count for customers
   useEffect(() => {
@@ -79,33 +110,171 @@ export default function AppHeader({ view, onViewChange, onLoginClick }: AppHeade
     }
   }, [user]);
 
+  const handleNavigation = (targetView: View, path: string) => {
+    if (activeView !== targetView) {
+      router.push(path);
+      if (onViewChange) {
+        onViewChange(targetView);
+      }
+    }
+  };
+
   return (
-    <header className="sticky top-0 z-50 border-b border-gray-100 bg-white/90 shadow-sm backdrop-blur-sm dark:border-gray-800 dark:bg-gray-900/90">
-      <nav className="container mx-auto flex items-center justify-between px-4 py-2 sm:px-6 lg:px-8">
+    <header className="sticky top-0 z-50 border-b border-gray-100 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
+      <nav className="w-full flex items-center justify-between px-6 py-3 lg:px-12">
         <div className="flex items-center gap-1.5">
-          <div className="relative h-10 w-40">
-            <Image
-              src="/logo.svg"
-              alt="Signature Trims"
-              fill
-              className="object-contain object-left"
-            />
+          <div className="relative h-12 w-48 cursor-pointer" onClick={() => router.push('/')}>
+            <Logo className="h-full w-full text-black dark:text-white" />
           </div>
         </div>
         <div className="flex items-center gap-4">
-          <div className="hidden items-center gap-3 sm:flex">
+          <div className="hidden items-center gap-6 sm:flex">
+            {/* Mega Menu / Dropdown for Services */}
+            <div className="static group">
+              <button
+                className={`flex items-center gap-1 text-sm font-medium transition-colors h-full py-3 ${activeView === 'services' ? 'text-black font-semibold' : 'text-gray-600 hover:text-black dark:text-gray-300 dark:hover:text-white'}`}
+                onClick={() => handleNavigation('services', '/services')}
+              >
+                Our Services
+                <ChevronDown className="w-3 h-3" />
+              </button>
+
+              {/* Full Width Mega Menu Overlay */}
+              <div className="fixed left-0 top-[73px] w-screen bg-slate-800 text-white opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 ease-in-out z-50 shadow-2xl border-t border-slate-700">
+                <div className="container mx-auto px-6 lg:px-12 py-12">
+                  <div className="grid grid-cols-12 gap-12">
+                    {/* Left Column: Featured Services List */}
+                    <div className="col-span-5 space-y-2">
+                      {/* Featured Services - Direct links to service detail pages */}
+                      <div
+                        className="group/item flex items-center justify-between py-4 border-b border-slate-700 cursor-pointer hover:border-white transition-colors"
+                        onClick={() => router.push('/services/hair-colouring')}
+                      >
+                        <span className="text-2xl font-light tracking-wide group-hover/item:text-white text-slate-300 transition-colors">
+                          Hair Colouring
+                        </span>
+                        <div className="w-10 h-10 rounded-full border border-slate-600 flex items-center justify-center group-hover/item:border-white group-hover/item:bg-white group-hover/item:text-slate-900 transition-all">
+                          <ChevronDown className="w-5 h-5 -rotate-90" />
+                        </div>
+                      </div>
+
+                      <div
+                        className="group/item flex items-center justify-between py-4 border-b border-slate-700 cursor-pointer hover:border-white transition-colors"
+                        onClick={() => router.push('/services/balayage')}
+                      >
+                        <span className="text-2xl font-light tracking-wide group-hover/item:text-white text-slate-300 transition-colors">
+                          Balayage
+                        </span>
+                        <div className="w-10 h-10 rounded-full border border-slate-600 flex items-center justify-center group-hover/item:border-white group-hover/item:bg-white group-hover/item:text-slate-900 transition-all">
+                          <ChevronDown className="w-5 h-5 -rotate-90" />
+                        </div>
+                      </div>
+
+                      <div
+                        className="group/item flex items-center justify-between py-4 border-b border-slate-700 cursor-pointer hover:border-white transition-colors"
+                        onClick={() => router.push('/services/hair-rebonding')}
+                      >
+                        <span className="text-2xl font-light tracking-wide group-hover/item:text-white text-slate-300 transition-colors">
+                          Hair Rebonding
+                        </span>
+                        <div className="w-10 h-10 rounded-full border border-slate-600 flex items-center justify-center group-hover/item:border-white group-hover/item:bg-white group-hover/item:text-slate-900 transition-all">
+                          <ChevronDown className="w-5 h-5 -rotate-90" />
+                        </div>
+                      </div>
+
+                      <div
+                        className="group/item flex items-center justify-between py-4 border-b border-slate-700 cursor-pointer hover:border-white transition-colors"
+                        onClick={() => router.push('/services/scalp-treatment')}
+                      >
+                        <span className="text-2xl font-light tracking-wide group-hover/item:text-white text-slate-300 transition-colors">
+                          Scalp Treatment
+                        </span>
+                        <div className="w-10 h-10 rounded-full border border-slate-600 flex items-center justify-center group-hover/item:border-white group-hover/item:bg-white group-hover/item:text-slate-900 transition-all">
+                          <ChevronDown className="w-5 h-5 -rotate-90" />
+                        </div>
+                      </div>
+
+                      <div
+                        className="group/item flex items-center justify-between py-4 border-b border-slate-700 cursor-pointer hover:border-white transition-colors"
+                        onClick={() => router.push('/services/hair-perm')}
+                      >
+                        <span className="text-2xl font-light tracking-wide group-hover/item:text-white text-slate-300 transition-colors">
+                          Hair Perm
+                        </span>
+                        <div className="w-10 h-10 rounded-full border border-slate-600 flex items-center justify-center group-hover/item:border-white group-hover/item:bg-white group-hover/item:text-slate-900 transition-all">
+                          <ChevronDown className="w-5 h-5 -rotate-90" />
+                        </div>
+                      </div>
+
+                      <div className="pt-6">
+                        <button
+                          onClick={() => router.push('/services')}
+                          className="text-gold-400 hover:text-gold-300 text-sm uppercase tracking-widest font-semibold"
+                        >
+                          View All Services &rarr;
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Right Column: Circular Images */}
+                    <div className="col-span-7 flex items-center justify-center gap-8">
+                      {/* Image 1 - Balayage */}
+                      <div
+                        className="relative w-64 h-64 rounded-full overflow-hidden border-4 border-slate-700 shadow-xl group/img cursor-pointer hover:scale-105 transition-transform duration-500"
+                        onClick={() => router.push('/services/balayage')}
+                      >
+                        <Image
+                          src="https://images.unsplash.com/photo-1560869713-7d0a29430803?q=80&w=1000&auto=format&fit=crop"
+                          alt="Balayage"
+                          fill
+                          className="object-cover opacity-80 group-hover/img:opacity-100 transition-opacity"
+                        />
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/30 group-hover/img:bg-black/20 transition-colors">
+                          <span className="text-3xl font-serif text-white drop-shadow-md text-center px-4">
+                            Balayage
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Image 2 - Scalp Treatments */}
+                      <div
+                        className="relative w-64 h-64 rounded-full overflow-hidden border-4 border-slate-700 shadow-xl group/img cursor-pointer hover:scale-105 transition-transform duration-500 mt-16"
+                        onClick={() => router.push('/services/scalp-treatment')}
+                      >
+                        <Image
+                          src="https://images.unsplash.com/photo-1516975080664-ed2fc6a32937?q=80&w=1000&auto=format&fit=crop"
+                          alt="Scalp Treatment"
+                          fill
+                          className="object-cover opacity-80 group-hover/img:opacity-100 transition-opacity"
+                        />
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/30 group-hover/img:bg-black/20 transition-colors">
+                          <span className="text-3xl font-serif text-white drop-shadow-md text-center px-4">
+                            Scalp Treatment
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <button
+              className="text-sm font-medium text-gray-600 hover:text-black dark:text-gray-300 dark:hover:text-white transition-colors"
+              onClick={() => router.push('/#contact')}
+            >
+              Contact Us
+            </button>
+
+            <div className="h-6 w-px bg-gray-200 dark:bg-gray-700 mx-2"></div>
+
             <Button
-              variant={activeView === 'booking' ? 'solid' : 'ghost'}
+              variant={activeView === 'booking' ? 'solid' : 'outline'}
               size="md"
-              onClick={() => {
-                if (activeView !== 'booking') {
-                  router.push('/');
-                  onViewChange('booking');
-                }
-              }}
+              onClick={() => handleNavigation('booking', '/')}
             >
               <Calendar className="h-4 w-4" aria-hidden="true" />
-              Book Online
+              Book Now
             </Button>
 
             {user && user.role === 'CUSTOMER' && (
@@ -113,12 +282,7 @@ export default function AppHeader({ view, onViewChange, onLoginClick }: AppHeade
                 <Button
                   variant={activeView === 'dashboard' ? 'solid' : 'ghost'}
                   size="md"
-                  onClick={() => {
-                    if (activeView !== 'dashboard') {
-                      router.push('/dashboard');
-                      onViewChange('dashboard');
-                    }
-                  }}
+                  onClick={() => handleNavigation('dashboard', '/dashboard')}
                 >
                   <User className="h-4 w-4" aria-hidden="true" />
                   Dashboard
@@ -131,12 +295,7 @@ export default function AppHeader({ view, onViewChange, onLoginClick }: AppHeade
               <Button
                 variant={activeView === 'admin' ? 'solid' : 'soft'}
                 size="md"
-                onClick={() => {
-                  if (activeView !== 'admin') {
-                    router.push('/admin');
-                    onViewChange('admin');
-                  }
-                }}
+                onClick={() => handleNavigation('admin', '/admin')}
               >
                 <Shield className="h-4 w-4" aria-hidden="true" />
                 Admin

@@ -156,7 +156,7 @@ const ServiceSelector: React.FC<{
   }
 
   return (
-    <div>
+    <div id="service-selector">
       <h2 className="text-2xl font-semibold mb-4 text-gray-800 dark:text-gray-200">
         1. Select Services
       </h2>
@@ -1030,7 +1030,12 @@ const BookingSummary: React.FC<{
   );
 };
 
-const BookingForm: React.FC = () => {
+interface BookingFormProps {
+  preSelectedServiceId?: string;
+  disableAutoScroll?: boolean;
+}
+
+const BookingForm: React.FC<BookingFormProps> = ({ preSelectedServiceId, disableAutoScroll }) => {
   const [categories, setCategories] = useState<ServiceCategory[]>([]);
   const [loadingServices, setLoadingServices] = useState(true);
   const [selectedServices, setSelectedServices] = useState<Service[]>([]);
@@ -1058,6 +1063,33 @@ const BookingForm: React.FC = () => {
     };
     fetchServices();
   }, []);
+
+  // Auto-select service when pre-selected service ID is provided
+  useEffect(() => {
+    if (preSelectedServiceId && categories.length > 0 && selectedServices.length === 0) {
+      // Find the service across all categories
+      for (const category of categories) {
+        const service = category.items.find(s => s.id === preSelectedServiceId);
+        if (service) {
+          setSelectedServices([service]);
+
+          // Only show toast and scroll if auto-scroll is enabled (i.e., not on service detail pages)
+          if (!disableAutoScroll) {
+            toast.success(`${service.name} has been pre-selected for you!`);
+
+            setTimeout(() => {
+              const element = document.getElementById('service-selector');
+              if (element) {
+                element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }
+            }, 500);
+          }
+
+          break;
+        }
+      }
+    }
+  }, [preSelectedServiceId, categories, selectedServices.length, disableAutoScroll]);
 
   // Smart reset logic: only reset when necessary
   useEffect(() => {

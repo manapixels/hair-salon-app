@@ -97,6 +97,7 @@ export {
   List,
   Eye,
   EyeOff,
+  Tag,
 } from 'lucide-react';
 
 // Radix Icons (for specific Radix UI components that expect them)

@@ -10,7 +10,7 @@ import OAuthLoginModal from './OAuthLoginModal';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'sonner';
 
-type View = 'booking' | 'admin' | 'dashboard';
+type View = 'booking' | 'admin' | 'dashboard' | 'services';
 
 export default function AppShell() {
   const [view, setView] = useState<View>('booking');
