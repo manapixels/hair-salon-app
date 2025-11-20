@@ -1,15 +1,79 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { Button, Heading, Text, Grid, Container, Section, Badge } from '@radix-ui/themes';
 import Image from 'next/image';
+import Link from 'next/link';
 import BookingForm from '../booking/BookingForm';
 import LocationCard from '../locations/LocationCard';
 import TeamCard from '../team/TeamCard';
 import { useBooking } from '@/context/BookingContext';
-import { CheckCircle, Calendar } from '@/lib/icons';
+import { CheckCircle, Calendar, Sparkles } from '@/lib/icons';
+import type { Service, ServiceCategory } from '@/types';
+
+// Featured service names
+const FEATURED_SERVICE_NAMES = [
+  'Hair Colouring',
+  'Balayage',
+  'Hair Rebonding',
+  'Hair Treatment',
+  'Hair Perm',
+];
+
+// Service names with static pages
+const SERVICES_WITH_STATIC_PAGES: Record<string, string> = {
+  'Hair Colouring': '/services/hair-colouring',
+  Balayage: '/services/balayage',
+  'Hair Rebonding': '/services/hair-rebonding',
+  'Hair Treatment': '/services/hair-treatment',
+  'Hair Perm': '/services/hair-perm',
+};
+
+// Get service page URL
+function getServicePageUrl(serviceName: string): string | null {
+  return SERVICES_WITH_STATIC_PAGES[serviceName] || null;
+}
+
+// Get service image
+function getServiceImage(serviceName: string): string {
+  const imageMap: Record<string, string> = {
+    'Hair Colouring': '/background-images/hair-colouring.png',
+    Balayage: '/background-images/balayage.png',
+    'Hair Rebonding': '/background-images/hair-rebonding.png',
+    'Hair Treatment': '/background-images/hair-treatment.png',
+    'Hair Perm': '/background-images/hair-perm.png',
+  };
+  return imageMap[serviceName] || '/background-images/menu-service-bg.png';
+}
 
 export default function LandingPage() {
   const { adminSettings, isLoadingSettings } = useBooking();
+  const [categories, setCategories] = useState<ServiceCategory[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchServices = async () => {
+      try {
+        const response = await fetch('/api/services');
+        if (!response.ok) {
+          throw new Error('Failed to fetch services');
+        }
+        const data = await response.json();
+        setCategories(data);
+      } catch (err) {
+        console.error('Error fetching services:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchServices();
+  }, []);
+
+  // Extract featured services from categories
+  const featuredServices = categories
+    .flatMap(cat => cat.items)
+    .filter(service => FEATURED_SERVICE_NAMES.includes(service.name));
 
   return (
     <div className="bg-[#FDFCF8] min-h-screen text-stone-900 font-serif">
@@ -38,126 +102,91 @@ export default function LandingPage() {
         {!isLoadingSettings && <LocationCard address={adminSettings.businessAddress} />}
       </section>
 
-      {/* Services Summary Section */}
-      <Section size="3" className="bg-white">
-        <Container size="4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-            <div className="relative h-[500px] rounded-lg overflow-hidden">
-              <Image
-                src="https://images.unsplash.com/photo-1560869713-7d0a29430803?q=80&w=1000&auto=format&fit=crop"
-                alt="Hair Styling Service"
-                fill
-                className="object-cover"
-              />
-            </div>
-            <div>
-              <Text
-                size="2"
-                className="uppercase tracking-[0.2em] text-gold-600 font-sans mb-4 block"
-              >
-                Our Menu
-              </Text>
-              <Heading size="8" className="font-light mb-6">
-                Services & Treatments
-              </Heading>
-              <p className="text-stone-600 leading-relaxed font-sans mb-8 text-lg">
-                From precision cuts to transformative color and restorative treatments, our
-                comprehensive menu is designed to enhance your natural beauty. Experience the finest
-                in hair care.
-              </p>
-
-              <div className="space-y-6 mb-10">
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-full bg-stone-100 flex items-center justify-center shrink-0">
-                    <svg
-                      className="w-6 h-6 text-stone-900"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={1.5}
-                        d="M14.121 14.121L19 19m-7-7l7-7m-7 7l-2.879 2.879M12 12L9.121 9.121m0 5.758a3 3 0 10-4.243 4.243 3 3 0 004.243-4.243zm0-5.758a3 3 0 10-4.243-4.243 3 3 0 004.243 4.243z"
-                      />
-                    </svg>
-                  </div>
-                  <div>
-                    <Heading size="4" className="mb-1 font-normal">
-                      Haircuts
-                    </Heading>
-                    <Text className="text-stone-500">
-                      Tailored to your face shape and lifestyle.
-                    </Text>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-full bg-stone-100 flex items-center justify-center shrink-0">
-                    <svg
-                      className="w-6 h-6 text-stone-900"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={1.5}
-                        d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"
-                      />
-                    </svg>
-                  </div>
-                  <div>
-                    <Heading size="4" className="mb-1 font-normal">
-                      Coloring, Bayalage
-                    </Heading>
-                    <Text className="text-stone-500">
-                      Vibrant, long-lasting color and balayage.
-                    </Text>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-full bg-stone-100 flex items-center justify-center shrink-0">
-                    <svg
-                      className="w-6 h-6 text-stone-900"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={1.5}
-                        d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"
-                      />
-                    </svg>
-                  </div>
-                  <div>
-                    <Heading size="4" className="mb-1 font-normal">
-                      Treatment, Perm, Rebonding
-                    </Heading>
-                    <Text className="text-stone-500">
-                      Restorative care for healthy, shiny hair.
-                    </Text>
-                  </div>
-                </div>
+      {/* Featured Services Showcase */}
+      {!loading && featuredServices.length > 0 && (
+        <section className="py-16 md:py-24 bg-white">
+          <Container size="4">
+            <div className="text-center mb-12">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gold-50 text-gold-700 text-sm font-medium mb-4">
+                <Sparkles className="w-4 h-4" />
+                <span className="uppercase tracking-wider">Signature Selections</span>
               </div>
-
-              <Button
-                size="3"
-                variant="outline"
-                className="cursor-pointer hover:bg-stone-50"
-                onClick={() => (window.location.href = '/services')}
-              >
-                View Full Menu
-              </Button>
+              <Heading size="8" className="font-serif font-light mb-4">
+                Our Premium Services
+              </Heading>
+              <Text size="3" className="text-stone-600 max-w-2xl mx-auto">
+                Experience our most sought-after treatments, expertly crafted to deliver exceptional
+                results and lasting beauty.
+              </Text>
             </div>
-          </div>
-        </Container>
-      </Section>
+
+            {/* Featured Services Grid - Large Cards with Images */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {featuredServices.slice(0, 6).map(service => (
+                <div
+                  key={service.id}
+                  className="group relative overflow-hidden rounded-xl bg-stone-50 hover:shadow-2xl transition-all duration-500"
+                >
+                  {/* Service Image */}
+                  <div className="relative h-72 overflow-hidden">
+                    <Image
+                      src={service.imageUrl || getServiceImage(service.name)}
+                      alt={service.name}
+                      fill
+                      className="object-cover group-hover:scale-110 transition-transform duration-700"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
+
+                    {/* Price Badge */}
+                    <div className="absolute top-4 right-4 bg-white/95 backdrop-blur-sm px-4 py-2 rounded-full">
+                      <span className="text-stone-900 font-semibold">{service.price}</span>
+                    </div>
+
+                    {/* Service Name Overlay */}
+                    <div className="absolute bottom-0 left-0 right-0 p-6">
+                      <Heading size="6" className="font-serif text-white mb-1">
+                        {service.name}
+                      </Heading>
+                      {service.subtitle && (
+                        <Text size="2" className="text-white/80">
+                          {service.subtitle}
+                        </Text>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Service Details */}
+                  <div className="p-6">
+                    <div className="flex gap-3">
+                      {(() => {
+                        const serviceUrl = getServicePageUrl(service.name);
+                        return (
+                          <>
+                            {serviceUrl && (
+                              <Link
+                                href={serviceUrl}
+                                className="flex-1 py-3 bg-white text-stone-900 border-2 border-stone-900 rounded-lg hover:bg-stone-50 transition-colors duration-200 font-medium text-center"
+                              >
+                                Learn More
+                              </Link>
+                            )}
+                            <button
+                              onClick={() => (window.location.href = '/?book=true')}
+                              className={`py-3 bg-stone-900 text-white rounded-lg hover:bg-stone-800 transition-colors duration-200 font-medium ${serviceUrl ? 'flex-1' : 'w-full'}`}
+                            >
+                              Book Now
+                            </button>
+                          </>
+                        );
+                      })()}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Container>
+        </section>
+      )}
 
       {/* Booking Section */}
       <Section size="3" className="bg-[#FDFCF8]" id="booking-section">

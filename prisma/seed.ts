@@ -468,6 +468,41 @@ const CATEGORIES = [
         ],
       },
       {
+        name: 'Hair Treatment',
+        subtitle: 'Premium hair restoration',
+        description:
+          'Professional treatment to restore, nourish, and revitalize your hair. Experience deep conditioning, repair damaged strands, and achieve silky smooth, healthy-looking hair with our signature treatment blend.',
+        price: 'From $65',
+        basePrice: 65,
+        maxPrice: 95,
+        duration: 60,
+        imageUrl: '/background-images/hair-treatment.png',
+        popularityScore: 90,
+        tags: ['popular', 'treatment', 'restoration', 'signature'],
+        addons: [
+          {
+            name: 'Keratin Boost',
+            description: 'Extra keratin infusion for enhanced strength and shine',
+            benefits: ['Stronger hair', 'Enhanced shine', 'Longer-lasting results'],
+            price: '+$30',
+            basePrice: 30,
+            duration: 15,
+            isRecommended: true,
+            isPopular: true,
+          },
+          {
+            name: 'Scalp Massage Add-On',
+            description: 'Relaxing 10-minute scalp massage',
+            benefits: ['Deep relaxation', 'Better product absorption', 'Stress relief'],
+            price: '+$15',
+            basePrice: 15,
+            duration: 10,
+            isRecommended: false,
+            isPopular: true,
+          },
+        ],
+      },
+      {
         name: 'Hair Treatment - Essential',
         subtitle: 'Nourishing hair care',
         description:
