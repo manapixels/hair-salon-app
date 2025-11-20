@@ -42,7 +42,7 @@ export default function BusinessSettings({
           type="text"
           value={businessAddress}
           onChange={e => onChange('businessAddress', e.target.value)}
-          placeholder="e.g., 123 Main St, Your City, ST 12345"
+          placeholder="e.g., 123 Main St, Singapore 123456"
           required
         />
 
@@ -52,7 +52,7 @@ export default function BusinessSettings({
           type="tel"
           value={businessPhone}
           onChange={e => onChange('businessPhone', e.target.value)}
-          placeholder="e.g., (555) 123-4567"
+          placeholder="e.g., (65) 9876-5432"
           required
         />
       </div>

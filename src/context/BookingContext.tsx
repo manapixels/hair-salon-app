@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useState, useContext, ReactNode, useCallback } from 'react';
+import { createContext, useState, useContext, ReactNode, useCallback, useEffect } from 'react';
 import type { Appointment, AdminSettings, CreateAppointmentInput } from '@/types';
 import {
   getAvailableSlots as apiGetAvailableSlots,
@@ -14,6 +14,7 @@ import {
 interface BookingContextType {
   appointments: Appointment[];
   adminSettings: AdminSettings;
+  isLoadingSettings: boolean;
   setAdminSettings: React.Dispatch<React.SetStateAction<AdminSettings>>;
   fetchAndSetAppointments: () => Promise<void>;
   fetchAndSetAdminSettings: () => Promise<void>;
@@ -28,6 +29,7 @@ const BookingContext = createContext<BookingContextType | undefined>(undefined);
 
 export const BookingProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [isLoadingSettings, setIsLoadingSettings] = useState<boolean>(true);
   const [adminSettings, setAdminSettings] = useState<AdminSettings>({
     weeklySchedule: {
       monday: { isOpen: true, openingTime: '11:00', closingTime: '19:00' },
@@ -41,7 +43,7 @@ export const BookingProvider: React.FC<{ children: ReactNode }> = ({ children })
     closedDates: [],
     blockedSlots: {},
     businessName: 'Signature Trims Hair Salon',
-    businessAddress: '123 Main St, Your City, ST 12345',
+    businessAddress: '930 Yishun Avenue 1 #01-127, Singapore 760930',
     businessPhone: '(555) 123-4567',
   });
 
@@ -71,8 +73,16 @@ export const BookingProvider: React.FC<{ children: ReactNode }> = ({ children })
   }, []);
 
   const fetchAndSetAdminSettings = useCallback(async () => {
-    const settings = await getAdminSettings();
-    setAdminSettings(settings);
+    try {
+      setIsLoadingSettings(true);
+      const settings = await getAdminSettings();
+      setAdminSettings(settings);
+    } catch (error) {
+      console.error('Failed to fetch admin settings:', error);
+      // Keep default settings on error
+    } finally {
+      setIsLoadingSettings(false);
+    }
   }, []);
 
   const getAvailableSlots = useCallback(async (date: Date, stylistId?: string) => {
@@ -100,9 +110,15 @@ export const BookingProvider: React.FC<{ children: ReactNode }> = ({ children })
     setAdminSettings(updatedSettings);
   }, []);
 
+  // Fetch admin settings on mount
+  useEffect(() => {
+    fetchAndSetAdminSettings();
+  }, [fetchAndSetAdminSettings]);
+
   const value = {
     appointments,
     adminSettings,
+    isLoadingSettings,
     setAdminSettings,
     getAvailableSlots,
     createAppointment,

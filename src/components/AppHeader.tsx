@@ -140,68 +140,68 @@ export default function AppHeader({ view, onViewChange, onLoginClick }: AppHeade
               </button>
 
               {/* Full Width Mega Menu Overlay */}
-              <div className="fixed left-0 top-[73px] w-screen bg-slate-800 text-white opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 ease-in-out z-50 shadow-2xl border-t border-slate-700">
+              <div className="fixed left-0 top-[73px] w-screen bg-[var(--accent-9)] text-white opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 ease-in-out z-50 shadow-2xl border-t border-[var(--accent-8)]">
                 <div className="container mx-auto px-6 lg:px-12 py-12">
                   <div className="grid grid-cols-12 gap-12">
                     {/* Left Column: Featured Services List */}
                     <div className="col-span-5 space-y-2">
                       {/* Featured Services - Direct links to service detail pages */}
                       <div
-                        className="group/item flex items-center justify-between py-4 border-b border-slate-700 cursor-pointer hover:border-white transition-colors"
+                        className="group/item flex items-center justify-between py-4 border-b border-[var(--accent-7)] cursor-pointer hover:border-white transition-colors"
                         onClick={() => router.push('/services/hair-colouring')}
                       >
-                        <span className="text-2xl font-light tracking-wide group-hover/item:text-white text-slate-300 transition-colors">
+                        <span className="text-2xl font-light tracking-wide group-hover/item:text-white text-white/90 transition-colors">
                           Hair Colouring
                         </span>
-                        <div className="w-10 h-10 rounded-full border border-slate-600 flex items-center justify-center group-hover/item:border-white group-hover/item:bg-white group-hover/item:text-slate-900 transition-all">
+                        <div className="w-10 h-10 rounded-full border border-[var(--accent-8)] flex items-center justify-center group-hover/item:border-white group-hover/item:bg-white group-hover/item:text-[var(--accent-11)] transition-all">
                           <ChevronDown className="w-5 h-5 -rotate-90" />
                         </div>
                       </div>
 
                       <div
-                        className="group/item flex items-center justify-between py-4 border-b border-slate-700 cursor-pointer hover:border-white transition-colors"
+                        className="group/item flex items-center justify-between py-4 border-b border-[var(--accent-7)] cursor-pointer hover:border-white transition-colors"
                         onClick={() => router.push('/services/balayage')}
                       >
-                        <span className="text-2xl font-light tracking-wide group-hover/item:text-white text-slate-300 transition-colors">
+                        <span className="text-2xl font-light tracking-wide group-hover/item:text-white text-white/90 transition-colors">
                           Balayage
                         </span>
-                        <div className="w-10 h-10 rounded-full border border-slate-600 flex items-center justify-center group-hover/item:border-white group-hover/item:bg-white group-hover/item:text-slate-900 transition-all">
+                        <div className="w-10 h-10 rounded-full border border-[var(--accent-8)] flex items-center justify-center group-hover/item:border-white group-hover/item:bg-white group-hover/item:text-[var(--accent-11)] transition-all">
                           <ChevronDown className="w-5 h-5 -rotate-90" />
                         </div>
                       </div>
 
                       <div
-                        className="group/item flex items-center justify-between py-4 border-b border-slate-700 cursor-pointer hover:border-white transition-colors"
+                        className="group/item flex items-center justify-between py-4 border-b border-[var(--accent-7)] cursor-pointer hover:border-white transition-colors"
                         onClick={() => router.push('/services/hair-rebonding')}
                       >
-                        <span className="text-2xl font-light tracking-wide group-hover/item:text-white text-slate-300 transition-colors">
+                        <span className="text-2xl font-light tracking-wide group-hover/item:text-white text-white/90 transition-colors">
                           Hair Rebonding
                         </span>
-                        <div className="w-10 h-10 rounded-full border border-slate-600 flex items-center justify-center group-hover/item:border-white group-hover/item:bg-white group-hover/item:text-slate-900 transition-all">
+                        <div className="w-10 h-10 rounded-full border border-[var(--accent-8)] flex items-center justify-center group-hover/item:border-white group-hover/item:bg-white group-hover/item:text-[var(--accent-11)] transition-all">
                           <ChevronDown className="w-5 h-5 -rotate-90" />
                         </div>
                       </div>
 
                       <div
-                        className="group/item flex items-center justify-between py-4 border-b border-slate-700 cursor-pointer hover:border-white transition-colors"
+                        className="group/item flex items-center justify-between py-4 border-b border-[var(--accent-7)] cursor-pointer hover:border-white transition-colors"
                         onClick={() => router.push('/services/scalp-treatment')}
                       >
-                        <span className="text-2xl font-light tracking-wide group-hover/item:text-white text-slate-300 transition-colors">
+                        <span className="text-2xl font-light tracking-wide group-hover/item:text-white text-white/90 transition-colors">
                           Scalp Treatment
                         </span>
-                        <div className="w-10 h-10 rounded-full border border-slate-600 flex items-center justify-center group-hover/item:border-white group-hover/item:bg-white group-hover/item:text-slate-900 transition-all">
+                        <div className="w-10 h-10 rounded-full border border-[var(--accent-8)] flex items-center justify-center group-hover/item:border-white group-hover/item:bg-white group-hover/item:text-[var(--accent-11)] transition-all">
                           <ChevronDown className="w-5 h-5 -rotate-90" />
                         </div>
                       </div>
 
                       <div
-                        className="group/item flex items-center justify-between py-4 border-b border-slate-700 cursor-pointer hover:border-white transition-colors"
+                        className="group/item flex items-center justify-between py-4 border-b border-[var(--accent-7)] cursor-pointer hover:border-white transition-colors"
                         onClick={() => router.push('/services/hair-perm')}
                       >
-                        <span className="text-2xl font-light tracking-wide group-hover/item:text-white text-slate-300 transition-colors">
+                        <span className="text-2xl font-light tracking-wide group-hover/item:text-white text-white/90 transition-colors">
                           Hair Perm
                         </span>
-                        <div className="w-10 h-10 rounded-full border border-slate-600 flex items-center justify-center group-hover/item:border-white group-hover/item:bg-white group-hover/item:text-slate-900 transition-all">
+                        <div className="w-10 h-10 rounded-full border border-[var(--accent-8)] flex items-center justify-center group-hover/item:border-white group-hover/item:bg-white group-hover/item:text-[var(--accent-11)] transition-all">
                           <ChevronDown className="w-5 h-5 -rotate-90" />
                         </div>
                       </div>
@@ -216,42 +216,15 @@ export default function AppHeader({ view, onViewChange, onLoginClick }: AppHeade
                       </div>
                     </div>
 
-                    {/* Right Column: Circular Images */}
+                    {/* Right Column: Image */}
                     <div className="col-span-7 flex items-center justify-center gap-8">
-                      {/* Image 1 - Balayage */}
-                      <div
-                        className="relative w-64 h-64 rounded-full overflow-hidden border-4 border-slate-700 shadow-xl group/img cursor-pointer hover:scale-105 transition-transform duration-500"
-                        onClick={() => router.push('/services/balayage')}
-                      >
+                      <div className="relative hover:scale-105 transition-transform duration-500">
                         <Image
                           src="https://images.unsplash.com/photo-1560869713-7d0a29430803?q=80&w=1000&auto=format&fit=crop"
                           alt="Balayage"
                           fill
                           className="object-cover opacity-80 group-hover/img:opacity-100 transition-opacity"
                         />
-                        <div className="absolute inset-0 flex items-center justify-center bg-black/30 group-hover/img:bg-black/20 transition-colors">
-                          <span className="text-3xl font-serif text-white drop-shadow-md text-center px-4">
-                            Balayage
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Image 2 - Scalp Treatments */}
-                      <div
-                        className="relative w-64 h-64 rounded-full overflow-hidden border-4 border-slate-700 shadow-xl group/img cursor-pointer hover:scale-105 transition-transform duration-500 mt-16"
-                        onClick={() => router.push('/services/scalp-treatment')}
-                      >
-                        <Image
-                          src="https://images.unsplash.com/photo-1516975080664-ed2fc6a32937?q=80&w=1000&auto=format&fit=crop"
-                          alt="Scalp Treatment"
-                          fill
-                          className="object-cover opacity-80 group-hover/img:opacity-100 transition-opacity"
-                        />
-                        <div className="absolute inset-0 flex items-center justify-center bg-black/30 group-hover/img:bg-black/20 transition-colors">
-                          <span className="text-3xl font-serif text-white drop-shadow-md text-center px-4">
-                            Scalp Treatment
-                          </span>
-                        </div>
                       </div>
                     </div>
                   </div>

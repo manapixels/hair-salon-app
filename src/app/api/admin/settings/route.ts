@@ -11,7 +11,7 @@ import {
 // GET /api/admin/settings
 export async function GET() {
   try {
-    const settings = getAdminSettings();
+    const settings = await getAdminSettings();
     return NextResponse.json(settings);
   } catch (error: any) {
     return NextResponse.json({ message: error.message }, { status: 500 });
@@ -27,7 +27,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: 'Bad Request: Missing request body.' }, { status: 400 });
     }
 
-    const updatedSettings = dbUpdateAdminSettings(requestBody);
+    const updatedSettings = await dbUpdateAdminSettings(requestBody);
     return NextResponse.json(updatedSettings);
   } catch (error: any) {
     return NextResponse.json({ message: error.message }, { status: 500 });

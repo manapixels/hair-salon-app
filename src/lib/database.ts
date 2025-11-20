@@ -41,7 +41,7 @@ async function initializeDatabase() {
           closedDates: [],
           blockedSlots: {},
           businessName: 'Signature Trims Hair Salon',
-          businessAddress: '123 Main St, Your City, ST 12345',
+          businessAddress: '930 Yishun Avenue 1 #01-127, Singapore 760930',
           businessPhone: '(555) 123-4567',
         },
       });
@@ -292,7 +292,7 @@ export const getAdminSettings = async (): Promise<AdminSettings> => {
       closedDates: [],
       blockedSlots: {},
       businessName: 'Signature Trims Hair Salon',
-      businessAddress: '123 Main St, Your City, ST 12345',
+      businessAddress: '930 Yishun Avenue 1 #01-127, Singapore 760930',
       businessPhone: '(555) 123-4567',
     };
   }
@@ -345,7 +345,8 @@ export const updateAdminSettings = async (
         closedDates: (newSettings.closedDates ?? []) as any,
         blockedSlots: (newSettings.blockedSlots ?? {}) as any,
         businessName: newSettings.businessName ?? 'Signature Trims Hair Salon',
-        businessAddress: newSettings.businessAddress ?? '123 Main St, Your City, ST 12345',
+        businessAddress:
+          newSettings.businessAddress ?? '930 Yishun Avenue 1 #01-127, Singapore 760930',
         businessPhone: newSettings.businessPhone ?? '(555) 123-4567',
       },
     });

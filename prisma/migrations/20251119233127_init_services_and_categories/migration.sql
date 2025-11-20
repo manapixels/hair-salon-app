@@ -135,9 +135,9 @@ CREATE TABLE "public"."admin_settings" (
     "weeklySchedule" JSONB NOT NULL DEFAULT '{"monday":{"isOpen":true,"openingTime":"11:00","closingTime":"19:00"},"tuesday":{"isOpen":false,"openingTime":"11:00","closingTime":"19:00"},"wednesday":{"isOpen":true,"openingTime":"11:00","closingTime":"19:00"},"thursday":{"isOpen":true,"openingTime":"11:00","closingTime":"19:00"},"friday":{"isOpen":true,"openingTime":"11:00","closingTime":"19:00"},"saturday":{"isOpen":true,"openingTime":"11:00","closingTime":"19:00"},"sunday":{"isOpen":true,"openingTime":"11:00","closingTime":"19:00"}}',
     "closedDates" JSONB NOT NULL DEFAULT '[]',
     "blockedSlots" JSONB NOT NULL DEFAULT '{}',
-    "businessName" TEXT NOT NULL DEFAULT 'Signature Trims Hair Salon',
-    "businessAddress" TEXT NOT NULL DEFAULT '123 Main St, Your City, ST 12345',
-    "businessPhone" TEXT NOT NULL DEFAULT '(555) 123-4567',
+    "businessName" TEXT NOT NULL DEFAULT 'Signature Trims',
+    "businessAddress" TEXT NOT NULL DEFAULT '123 Main St, Singapore 123456',
+    "businessPhone" TEXT NOT NULL DEFAULT '(65) 9876-5432',
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "admin_settings_pkey" PRIMARY KEY ("id")

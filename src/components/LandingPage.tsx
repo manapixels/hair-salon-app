@@ -3,8 +3,12 @@
 import { Button, Heading, Text, Grid, Container, Section } from '@radix-ui/themes';
 import Image from 'next/image';
 import BookingForm from './BookingForm';
+import LocationCard from './LocationCard';
+import { useBooking } from '../context/BookingContext';
 
 export default function LandingPage() {
+  const { adminSettings, isLoadingSettings } = useBooking();
+
   return (
     <div className="bg-[#FDFCF8] min-h-screen text-stone-900 font-serif">
       {/* Hero Section */}
@@ -17,7 +21,6 @@ export default function LandingPage() {
             className="object-cover"
             priority
           />
-          <div className="absolute inset-0 bg-white/30 backdrop-blur-[0px]"></div>
         </div>
 
         <div className="relative z-10 text-center max-w-3xl px-6">
@@ -25,9 +28,12 @@ export default function LandingPage() {
             Est. 2024
           </Text>
           <p className="text-xl md:text-2xl italic font-light mb-10 text-stone-800 max-w-xl mx-auto leading-relaxed">
-            &quot;Where artistry meets elegance. A sanctuary for your style.&quot;
+            &quot;High-quality hair services at neighbourhood-friendly prices&quot;
           </p>
         </div>
+
+        {/* Location Card - Only show when settings are loaded */}
+        {!isLoadingSettings && <LocationCard address={adminSettings.businessAddress} />}
       </section>
 
       {/* Services Summary Section */}

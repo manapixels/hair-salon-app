@@ -192,7 +192,7 @@ model AdminSettings {
   
   // Business Information
   businessName    String   @default("Signature Trims Hair Salon")
-  businessAddress String   @default("123 Main St, Your City, ST 12345")
+  businessAddress String   @default("930 Yishun Avenue 1 #01-127, Singapore 760930")
   businessPhone   String   @default("(555) 123-4567")
   
   updatedAt    DateTime @updatedAt
