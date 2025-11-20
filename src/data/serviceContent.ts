@@ -361,7 +361,7 @@ export const serviceContentMap: Record<string, ServiceContent> = {
     ],
   },
 
-  'scalp-treatment': {
+  'hair-treatment': {
     serviceName: 'Scalp Treatment',
     overview: {
       whatIsIt:

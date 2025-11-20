@@ -141,10 +141,21 @@ export default function AppHeader({ view, onViewChange, onLoginClick }: AppHeade
 
               {/* Full Width Mega Menu Overlay */}
               <div className="fixed left-0 top-[73px] w-screen bg-[var(--accent-9)] text-white opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 ease-in-out z-50 shadow-2xl border-t border-[var(--accent-8)]">
-                <div className="container mx-auto px-6 lg:px-12 py-12">
-                  <div className="grid grid-cols-12 gap-12">
-                    {/* Left Column: Featured Services List */}
-                    <div className="col-span-5 space-y-2">
+                <div className="mx-auto">
+                  <div className="grid grid-cols-12">
+                    {/* Left Column: Image */}
+                    <div className="col-span-7 flex items-center justify-center gap-8">
+                      <div className="relative w-full h-full transition-transform duration-500">
+                        <Image
+                          src="/background-images/menu-service-bg.png"
+                          alt="Balayage"
+                          fill
+                          className="object-cover opacity-80 group-hover/img:opacity-100 transition-opacity rounded-lg"
+                        />
+                      </div>
+                    </div>
+                    {/* Right Column: Featured Services List */}
+                    <div className="col-span-5 space-y-2 px-6 lg:px-16 py-12">
                       {/* Featured Services - Direct links to service detail pages */}
                       <div
                         className="group/item flex items-center justify-between py-4 border-b border-[var(--accent-7)] cursor-pointer hover:border-white transition-colors"
@@ -187,7 +198,7 @@ export default function AppHeader({ view, onViewChange, onLoginClick }: AppHeade
                         onClick={() => router.push('/services/scalp-treatment')}
                       >
                         <span className="text-2xl font-light tracking-wide group-hover/item:text-white text-white/90 transition-colors">
-                          Scalp Treatment
+                          Hair Treatment
                         </span>
                         <div className="w-10 h-10 rounded-full border border-[var(--accent-8)] flex items-center justify-center group-hover/item:border-white group-hover/item:bg-white group-hover/item:text-[var(--accent-11)] transition-all">
                           <ChevronDown className="w-5 h-5 -rotate-90" />
@@ -213,18 +224,6 @@ export default function AppHeader({ view, onViewChange, onLoginClick }: AppHeade
                         >
                           View All Services &rarr;
                         </button>
-                      </div>
-                    </div>
-
-                    {/* Right Column: Image */}
-                    <div className="col-span-7 flex items-center justify-center gap-8">
-                      <div className="relative hover:scale-105 transition-transform duration-500">
-                        <Image
-                          src="https://images.unsplash.com/photo-1560869713-7d0a29430803?q=80&w=1000&auto=format&fit=crop"
-                          alt="Balayage"
-                          fill
-                          className="object-cover opacity-80 group-hover/img:opacity-100 transition-opacity"
-                        />
                       </div>
                     </div>
                   </div>

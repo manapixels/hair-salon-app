@@ -2,8 +2,7 @@ import React from 'react';
 import { prisma } from '@/lib/prisma';
 import { Heading, Text, Container } from '@radix-ui/themes';
 import Image from 'next/image';
-import Link from 'next/link';
-import { Clock, Tag, ArrowLeft, ChevronRight } from '@/lib/icons';
+import { Clock, Tag } from '@/lib/icons';
 import { notFound } from 'next/navigation';
 import ServiceDetailSections from '@/components/ServiceDetailSections';
 import ServiceBookingWrapper from '@/components/ServiceBookingWrapper';
@@ -11,35 +10,25 @@ import AppHeader from '@/components/AppHeader';
 import AppFooter from '@/components/AppFooter';
 import { getServiceContent } from '@/data/serviceContent';
 
-// This is a server component
-export default async function ServicePage({ params }: { params: { slug: string } }) {
-  // In a real app, we would probably have a 'slug' field in the database.
-  // For now, we'll try to match by ID or name, but since the URL is likely a slugified name,
-  // we might need to fetch all and find the match or assume the ID is passed (less pretty).
-  // Let's assume for this iteration that we are passing the ID or we handle a basic slug-to-name matching.
-
-  // Actually, to make it robust without schema changes right now, let's try to find by ID first.
-  // If the user clicks from the menu, we can pass the ID.
-  // But for SEO (which the user mentioned), a slug is better.
-  // Let's fetch all services and find the one that matches the slugified name.
-
-  const services = await prisma.service.findMany({
+// This is a static server component for Balayage
+export default async function BalayagePage() {
+  // Fetch the specific service from the database
+  const service = await prisma.service.findFirst({
+    where: {
+      name: 'Balayage',
+    },
     include: {
       addons: true,
       category: true,
     },
   });
 
-  const service = services.find(
-    s => s.name.toLowerCase().replace(/ /g, '-') === params.slug || s.id === params.slug,
-  );
-
   if (!service) {
     notFound();
   }
 
-  // Get rich content for this service if available
-  const serviceContent = getServiceContent(params.slug);
+  // Get rich content for this service
+  const serviceContent = getServiceContent('balayage');
 
   return (
     <>
@@ -48,10 +37,7 @@ export default async function ServicePage({ params }: { params: { slug: string }
         {/* Hero Section */}
         <div className="relative h-[60vh] min-h-[500px] w-full overflow-hidden">
           <Image
-            src={
-              service.imageUrl ||
-              'https://images.unsplash.com/photo-1560869713-7d0a29430803?q=80&w=1000&auto=format&fit=crop'
-            }
+            src={service.imageUrl || '/background-images/balayage.png'}
             alt={service.name}
             fill
             className="object-cover"
@@ -76,7 +62,7 @@ export default async function ServicePage({ params }: { params: { slug: string }
 
         {/* Quick Info Bar */}
         <div className="bg-white border-y border-stone-200 py-8 mb-16">
-          <Container size="4" className="px-6 md:px-12">
+          <Container size="3" className="px-6 md:px-12">
             <div className="flex flex-wrap justify-center gap-8 md:gap-16">
               <div className="text-center">
                 <div className="flex items-center justify-center gap-2 text-stone-500 mb-2">
@@ -112,7 +98,7 @@ export default async function ServicePage({ params }: { params: { slug: string }
         </div>
 
         {/* Main Content */}
-        <Container size="4" className="px-6 md:px-12 mb-20">
+        <Container size="3" className="px-6 md:px-12 mb-20">
           {/* Service Description */}
           <div className="mb-16">
             <Heading size="6" className="font-serif mb-6 text-stone-900 text-center">
@@ -195,4 +181,12 @@ export default async function ServicePage({ params }: { params: { slug: string }
       <AppFooter />
     </>
   );
+}
+
+export async function generateMetadata() {
+  return {
+    title: 'Balayage | Signature Trims',
+    description:
+      'Experience the art of balayage - a sophisticated hand-painting technique that creates natural, sun-kissed highlights with seamless dimension. Perfect for a low-maintenance, lived-in look that grows out beautifully.',
+  };
 }

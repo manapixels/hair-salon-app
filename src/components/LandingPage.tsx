@@ -1,10 +1,12 @@
 'use client';
 
-import { Button, Heading, Text, Grid, Container, Section } from '@radix-ui/themes';
+import { Button, Heading, Text, Grid, Container, Section, Badge } from '@radix-ui/themes';
 import Image from 'next/image';
 import BookingForm from './BookingForm';
 import LocationCard from './LocationCard';
+import TeamCard from './TeamCard';
 import { useBooking } from '../context/BookingContext';
+import { CheckCircle, Calendar } from '@/lib/icons';
 
 export default function LandingPage() {
   const { adminSettings, isLoadingSettings } = useBooking();
@@ -83,7 +85,7 @@ export default function LandingPage() {
                   </div>
                   <div>
                     <Heading size="4" className="mb-1 font-normal">
-                      Precision Cuts
+                      Haircuts
                     </Heading>
                     <Text className="text-stone-500">
                       Tailored to your face shape and lifestyle.
@@ -109,7 +111,7 @@ export default function LandingPage() {
                   </div>
                   <div>
                     <Heading size="4" className="mb-1 font-normal">
-                      Color Artistry
+                      Coloring, Bayalage
                     </Heading>
                     <Text className="text-stone-500">
                       Vibrant, long-lasting color and balayage.
@@ -135,7 +137,7 @@ export default function LandingPage() {
                   </div>
                   <div>
                     <Heading size="4" className="mb-1 font-normal">
-                      Treatments
+                      Treatment, Perm, Rebonding
                     </Heading>
                     <Text className="text-stone-500">
                       Restorative care for healthy, shiny hair.
@@ -181,63 +183,8 @@ export default function LandingPage() {
         </Container>
       </Section>
 
-      {/* Stylists - Gallery Style */}
-      <Section size="3" className="bg-white">
-        <Container size="4">
-          <div className="text-center mb-20">
-            <Text
-              size="2"
-              className="uppercase tracking-[0.2em] text-gold-600 font-sans mb-4 block"
-            >
-              The Team
-            </Text>
-            <Heading size="8" className="font-light">
-              Master Stylists
-            </Heading>
-          </div>
-
-          <Grid columns={{ initial: '1', sm: '2', md: '3' }} gap="8">
-            {[
-              {
-                name: 'Elena Rossi',
-                role: 'Creative Director',
-                img: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=1000&auto=format&fit=crop',
-              },
-              {
-                name: 'David Chen',
-                role: 'Color Specialist',
-                img: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=1000&auto=format&fit=crop',
-              },
-              {
-                name: 'Sarah James',
-                role: 'Senior Stylist',
-                img: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=1000&auto=format&fit=crop',
-              },
-            ].map(stylist => (
-              <div key={stylist.name} className="group">
-                <div className="relative aspect-[3/4] overflow-hidden mb-6 bg-stone-100">
-                  <Image
-                    src={stylist.img}
-                    alt={stylist.name}
-                    fill
-                    className="object-cover grayscale group-hover:grayscale-0 transition-all duration-700 ease-in-out transform group-hover:scale-105"
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                  />
-                </div>
-                <Heading size="4" className="font-normal mb-1">
-                  {stylist.name}
-                </Heading>
-                <Text
-                  size="2"
-                  className="text-stone-500 font-sans uppercase tracking-wider text-xs"
-                >
-                  {stylist.role}
-                </Text>
-              </div>
-            ))}
-          </Grid>
-        </Container>
-      </Section>
+      {/* The Team */}
+      <TeamCard />
     </div>
   );
 }

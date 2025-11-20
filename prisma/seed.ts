@@ -146,8 +146,7 @@ const CATEGORIES = [
         basePrice: 95,
         maxPrice: 150,
         duration: 120,
-        imageUrl:
-          'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?q=80&w=1200&auto=format&fit=crop',
+        imageUrl: '/background-images/hair-colouring.png',
         popularityScore: 85,
         tags: ['popular', 'color', 'transformation'],
         addons: [
@@ -182,8 +181,7 @@ const CATEGORIES = [
         basePrice: 150,
         maxPrice: 220,
         duration: 180,
-        imageUrl:
-          'https://images.unsplash.com/photo-1492106087820-71f1a00d2b11?q=80&w=1200&auto=format&fit=crop',
+        imageUrl: '/background-images/balayage.png',
         popularityScore: 95,
         tags: ['popular', 'premium', 'color', 'balayage'],
         addons: [
@@ -297,8 +295,7 @@ const CATEGORIES = [
         basePrice: 200,
         maxPrice: 300,
         duration: 180,
-        imageUrl:
-          'https://images.unsplash.com/photo-1519699047748-de8e457a634e?q=80&w=1200&auto=format&fit=crop',
+        imageUrl: '/background-images/hair-perm.png',
         popularityScore: 85,
         tags: ['popular', 'premium', 'curls', 'transformation'],
         addons: [
@@ -333,8 +330,7 @@ const CATEGORIES = [
         basePrice: 200,
         maxPrice: 300,
         duration: 180,
-        imageUrl:
-          'https://images.unsplash.com/photo-1487412912498-0447578fcca8?q=80&w=1200&auto=format&fit=crop',
+        imageUrl: '/background-images/hair-rebonding.png',
         popularityScore: 90,
         tags: ['popular', 'straightening', 'transformation'],
         addons: [
@@ -424,8 +420,7 @@ const CATEGORIES = [
         price: '$55',
         basePrice: 55,
         duration: 60,
-        imageUrl:
-          'https://images.unsplash.com/photo-1519415510236-718bdfcd89c8?q=80&w=1200&auto=format&fit=crop',
+        imageUrl: '/background-images/hair-treatment.png',
         popularityScore: 75,
         tags: ['scalp', 'wellness', 'popular'],
         addons: [

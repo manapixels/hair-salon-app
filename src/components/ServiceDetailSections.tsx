@@ -9,6 +9,7 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 import { Check, Sparkles, Clock } from '@/lib/icons';
+import Image from 'next/image';
 
 // Service-specific content interfaces
 export interface ProcessStep {
@@ -83,38 +84,6 @@ export default function ServiceDetailSections({ content }: ServiceDetailSections
         </Container>
       </section>
 
-      {/* Benefits Section */}
-      <section className="bg-gradient-to-b from-white to-stone-50 -mx-6 px-6 py-16 md:-mx-12 md:px-12">
-        <Container size="3" className="px-0">
-          <div className="text-center mb-12">
-            <Text className="uppercase tracking-[0.2em] text-xs font-sans text-stone-500 mb-3 block">
-              Why Choose This Service
-            </Text>
-            <Heading size="8" className="font-serif font-light text-stone-900">
-              The Benefits
-            </Heading>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {content.benefits.map((benefit, index) => (
-              <div
-                key={index}
-                className="bg-white p-6 rounded-xl border border-stone-100 shadow-sm hover:shadow-md transition-shadow"
-              >
-                <div className="w-12 h-12 rounded-full bg-gold-100 flex items-center justify-center mb-4">
-                  <Check className="w-6 h-6 text-gold-600" />
-                </div>
-                <Heading size="4" className="font-serif mb-3 text-stone-900">
-                  {benefit.title}
-                </Heading>
-                <Text className="text-stone-600 text-sm leading-relaxed">
-                  {benefit.description}
-                </Text>
-              </div>
-            ))}
-          </div>
-        </Container>
-      </section>
-
       {/* Process Steps Section */}
       <section>
         <Container size="3" className="px-0">
@@ -126,33 +95,53 @@ export default function ServiceDetailSections({ content }: ServiceDetailSections
               The Process
             </Heading>
           </div>
-          <div className="space-y-6">
-            {content.processSteps.map((step, index) => (
-              <div
-                key={index}
-                className="flex gap-6 items-start p-6 bg-white rounded-xl border border-stone-100 hover:border-gold-300 transition-colors"
-              >
-                <div className="shrink-0">
-                  <div className="w-14 h-14 rounded-full bg-stone-900 text-white flex items-center justify-center text-xl font-bold">
-                    {step.number}
-                  </div>
-                </div>
-                <div className="flex-1">
-                  <div className="flex items-start justify-between gap-4 mb-2">
-                    <Heading size="5" className="font-serif text-stone-900">
-                      {step.title}
-                    </Heading>
-                    {step.duration && (
-                      <div className="flex items-center gap-1.5 text-stone-500 text-sm shrink-0">
-                        <Clock className="w-4 h-4" />
-                        <span>{step.duration}</span>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+            {/* Image Placeholder */}
+            <div className="relative h-[500px] lg:h-[600px] rounded-xl overflow-hidden shadow-lg sticky top-8">
+              <Image
+                src="/background-images/hair-rebonding-2.png"
+                alt="Hair Rebonding Process"
+                fill
+                className="object-cover"
+              />
+            </div>
+
+            {/* Accordion Steps */}
+            <div>
+              <Accordion type="single" collapsible className="space-y-4">
+                {content.processSteps.map((step, index) => (
+                  <AccordionItem
+                    key={index}
+                    value={`step-${index}`}
+                    className="bg-white rounded-lg border border-stone-200 overflow-hidden"
+                  >
+                    <AccordionTrigger className="text-left hover:no-underline px-6 py-5">
+                      <div className="flex items-center gap-4 w-full">
+                        <div className="shrink-0 w-10 h-10 rounded-full bg-stone-900 text-white flex items-center justify-center text-lg font-bold">
+                          {step.number}
+                        </div>
+                        <div className="flex-1">
+                          <Heading size="4" className="font-serif text-stone-900">
+                            {step.title}
+                          </Heading>
+                        </div>
+                        {step.duration && (
+                          <div className="flex items-center gap-1.5 text-stone-500 text-sm shrink-0">
+                            <Clock className="w-4 h-4" />
+                            <span>{step.duration}</span>
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
-                  <Text className="text-stone-600 leading-relaxed">{step.description}</Text>
-                </div>
-              </div>
-            ))}
+                    </AccordionTrigger>
+                    <AccordionContent className="px-6 pb-5">
+                      <div className="pl-14">
+                        <Text className="text-stone-600 leading-relaxed">{step.description}</Text>
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                ))}
+              </Accordion>
+            </div>
           </div>
         </Container>
       </section>
@@ -185,32 +174,6 @@ export default function ServiceDetailSections({ content }: ServiceDetailSections
                 </AccordionItem>
               ))}
             </Accordion>
-          </div>
-        </Container>
-      </section>
-
-      {/* Aftercare Section */}
-      <section>
-        <Container size="3" className="px-0">
-          <div className="text-center mb-12">
-            <Text className="uppercase tracking-[0.2em] text-xs font-sans text-stone-500 mb-3 block">
-              Maintaining Your Results
-            </Text>
-            <Heading size="8" className="font-serif font-light text-stone-900">
-              Aftercare Tips
-            </Heading>
-          </div>
-          <div className="bg-white p-8 rounded-xl border border-stone-100 shadow-sm">
-            <ul className="space-y-4">
-              {content.aftercare.map((tip, index) => (
-                <li key={index} className="flex gap-4 items-start">
-                  <div className="shrink-0 w-6 h-6 rounded-full bg-gold-100 flex items-center justify-center mt-0.5">
-                    <Check className="w-4 h-4 text-gold-600" />
-                  </div>
-                  <Text className="text-stone-700 leading-relaxed flex-1">{tip}</Text>
-                </li>
-              ))}
-            </ul>
           </div>
         </Container>
       </section>

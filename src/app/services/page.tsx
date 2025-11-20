@@ -10,15 +10,30 @@ import { LoadingSpinner } from '@/components/loaders/LoadingSpinner';
 import { ErrorState } from '@/components/ErrorState';
 import { Search, Sparkles } from '@/lib/icons';
 import Image from 'next/image';
+import Link from 'next/link';
 
 // Featured service IDs (premium offerings)
 const FEATURED_SERVICE_NAMES = [
   'Hair Colouring',
   'Balayage',
   'Hair Rebonding',
-  'Scalp Treatment',
+  'Hair Treatment',
   'Hair Perm',
 ];
+
+// Service names with static pages
+const SERVICES_WITH_STATIC_PAGES: Record<string, string> = {
+  'Hair Colouring': '/services/hair-colouring',
+  Balayage: '/services/balayage',
+  'Hair Rebonding': '/services/hair-rebonding',
+  'Hair Treatment': '/services/hair-treatment',
+  'Hair Perm': '/services/hair-perm',
+};
+
+// Get service page URL - returns static page URL if available, otherwise null
+function getServicePageUrl(serviceName: string): string | null {
+  return SERVICES_WITH_STATIC_PAGES[serviceName] || null;
+}
 
 export default function ServicesPage() {
   const [categories, setCategories] = useState<ServiceCategory[]>([]);
@@ -205,12 +220,29 @@ export default function ServicesPage() {
                         )}
                       </div>
 
-                      <button
-                        onClick={() => (window.location.href = '/?book=true')}
-                        className="w-full py-3 bg-stone-900 text-white rounded-lg hover:bg-stone-800 transition-colors duration-200 font-medium"
-                      >
-                        Book Now
-                      </button>
+                      <div className="flex gap-3">
+                        {(() => {
+                          const serviceUrl = getServicePageUrl(service.name);
+                          return (
+                            <>
+                              {serviceUrl && (
+                                <Link
+                                  href={serviceUrl}
+                                  className="flex-1 py-3 bg-white text-stone-900 border-2 border-stone-900 rounded-lg hover:bg-stone-50 transition-colors duration-200 font-medium text-center"
+                                >
+                                  Learn More
+                                </Link>
+                              )}
+                              <button
+                                onClick={() => (window.location.href = '/?book=true')}
+                                className={`py-3 bg-stone-900 text-white rounded-lg hover:bg-stone-800 transition-colors duration-200 font-medium ${serviceUrl ? 'flex-1' : 'w-full'}`}
+                              >
+                                Book Now
+                              </button>
+                            </>
+                          );
+                        })()}
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -383,20 +415,12 @@ export default function ServicesPage() {
 // Helper function to provide default images for featured services
 function getServiceImage(serviceName: string): string {
   const imageMap: Record<string, string> = {
-    'Hair Colouring':
-      'https://images.unsplash.com/photo-1522337660859-02fbefca4702?q=80&w=1000&auto=format&fit=crop',
-    Balayage:
-      'https://images.unsplash.com/photo-1560869713-7d0a29430803?q=80&w=1000&auto=format&fit=crop',
-    'Hair Rebonding':
-      'https://images.unsplash.com/photo-1562322140-8baeececf3df?q=80&w=1000&auto=format&fit=crop',
-    'Scalp Treatment':
-      'https://images.unsplash.com/photo-1516975080664-ed2fc6a32937?q=80&w=1000&auto=format&fit=crop',
-    'Hair Perm':
-      'https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?q=80&w=1000&auto=format&fit=crop',
+    'Hair Colouring': '/background-images/hair-colouring.png',
+    Balayage: '/background-images/balayage.png',
+    'Hair Rebonding': '/background-images/hair-rebonding.png',
+    'Hair Treatment': '/background-images/hair-treatment.png',
+    'Hair Perm': '/background-images/hair-perm.png',
   };
 
-  return (
-    imageMap[serviceName] ||
-    'https://images.unsplash.com/photo-1560066984-138dadb4c035?q=80&w=1000&auto=format&fit=crop'
-  );
+  return imageMap[serviceName] || '/background-images/menu-service-bg.png';
 }
