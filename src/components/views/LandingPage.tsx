@@ -1,15 +1,16 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Button, Heading, Text, Grid, Container, Section, Badge } from '@radix-ui/themes';
+import { Heading, Text, Container, Section } from '@radix-ui/themes';
 import Image from 'next/image';
 import Link from 'next/link';
 import BookingForm from '../booking/BookingForm';
 import LocationCard from '../locations/LocationCard';
 import TeamCard from '../team/TeamCard';
 import { useBooking } from '@/context/BookingContext';
-import { CheckCircle, Calendar, Sparkles } from '@/lib/icons';
-import type { Service, ServiceCategory } from '@/types';
+import { Sparkles } from '@/lib/icons';
+import type { ServiceCategory } from '@/types';
+import { Instagram, Star } from 'lucide-react';
 
 // Featured service names
 const FEATURED_SERVICE_NAMES = [
@@ -78,28 +79,69 @@ export default function LandingPage() {
   return (
     <div className="bg-[#FDFCF8] min-h-screen text-stone-900 font-serif">
       {/* Hero Section */}
-      <section className="relative h-[65vh] min-h-[500px] flex items-center justify-center overflow-hidden rounded-xl">
-        <div className="absolute inset-0 z-0">
+      <section className="min-h-screen flex flex-col lg:flex-row pt-20 lg:pt-0 overflow-hidden relative">
+        <div className="w-full lg:w-1/2 flex items-center justify-center p-8 lg:p-24 relative z-10 bg-brand-light">
+          <div className="max-w-xl fade-in-up w-full">
+            <span className="text-brand-accent font-medium tracking-widest uppercase text-sm mb-4 block">
+              Est. 2024
+            </span>
+            <h1 className="font-serif text-5xl lg:text-7xl text-brand-dark leading-tight mb-6">
+              Where Style Meets <span className="italic text-brand-accent">Soul.</span>
+            </h1>
+            <p className="text-gray-500 text-lg mb-8 leading-relaxed max-w-md">
+              Experience hair artistry at Signature Trims, a neighbourhood hair salon where we bring
+              out the best in you.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 mb-12">
+              <button className="bg-gray-900 text-white px-8 py-4 rounded-full hover:bg-brand-accent transition-all duration-300 shadow-lg shadow-brand-dark/20 text-sm font-medium uppercase tracking-wide">
+                Book Your Visit
+              </button>
+              <a
+                href="#services"
+                className="px-8 py-4 rounded-full border border-brand-dark text-brand-dark hover:bg-brand-dark hover:text-white transition-all duration-300 text-sm font-medium uppercase tracking-wide flex items-center justify-center"
+              >
+                View Menu
+              </a>
+            </div>
+            <div className="flex items-center gap-8 text-gray-400">
+              <div className="flex items-center gap-2">
+                <i className="fa-brands fa-instagram text-xl"></i>
+                <a
+                  href="https://maps.app.goo.gl/umK5KbT3rN1HeEg5A"
+                  target="_blank"
+                  className="text-sm"
+                >
+                  <Instagram className="w-4 h-4 inline mr-2" />
+                  @signaturetrims
+                </a>
+              </div>
+              <div className="flex items-center gap-2">
+                <i className="fa-solid fa-star text-brand-accent text-xl"></i>
+                <a
+                  href="https://maps.app.goo.gl/umK5KbT3rN1HeEg5A"
+                  target="_blank"
+                  className="text-sm"
+                >
+                  <Star className="w-5 h-5 fill-[var(--accent-9)] text-transparent inline mr-2" />
+                  5.0 (100+ Reviews)
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Image */}
+        <div className="w-full lg:w-1/2 h-[50vh] lg:h-auto relative">
           <Image
-            src="/interior-illustration.png"
-            alt="Salon Interior"
+            src="/may-with-customer.jpg"
+            alt="May with her customer"
             fill
-            className="object-cover"
+            className="absolute inset-0 w-full h-full object-cover"
             priority
           />
+          {/* Location Card - Only show when settings are loaded */}
+          {!isLoadingSettings && <LocationCard address={adminSettings.businessAddress} />}
         </div>
-
-        <div className="relative z-10 text-center max-w-3xl px-6">
-          <Text size="2" className="uppercase tracking-[0.3em] mb-6 block text-stone-800 font-sans">
-            Est. 2024
-          </Text>
-          <p className="text-xl md:text-2xl italic font-light mb-10 text-stone-800 max-w-xl mx-auto leading-relaxed">
-            &quot;High-quality hair services at neighbourhood-friendly prices&quot;
-          </p>
-        </div>
-
-        {/* Location Card - Only show when settings are loaded */}
-        {!isLoadingSettings && <LocationCard address={adminSettings.businessAddress} />}
       </section>
 
       {/* Featured Services Showcase */}

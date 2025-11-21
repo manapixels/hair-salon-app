@@ -10,7 +10,7 @@ export default function LocationCard({ address }: LocationCardProps) {
   const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
 
   return (
-    <div className="absolute bottom-6 right-6 max-w-[320px] bg-white/80 backdrop-blur-sm border border-stone-200 rounded-xl shadow-lg p-5 z-20 hidden md:block">
+    <div className="absolute bottom-6 right-6 max-w-[320px] bg-white/80 backdrop-blur-md border border-stone-200 rounded-xl shadow-lg p-5 z-20 hidden md:block">
       <div className="flex items-start gap-3">
         <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gold-50 flex items-center justify-center">
           <MapPin className="w-5 h-5 text-[var(--accent-9)]" aria-hidden="true" />
