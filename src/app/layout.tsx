@@ -7,6 +7,7 @@ import { autoConfigureTelegramBotMenu } from '../lib/telegramBotSetup';
 import '../styles/globals.css';
 import '@radix-ui/themes/styles.css';
 import 'dotenv/config';
+import { AppFooter, AppHeader } from '@/components/layout';
 
 export const metadata: Metadata = {
   title: 'Signature Trims - Salon Booking',
@@ -31,7 +32,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <Theme accentColor="gold" grayColor="sand" radius="medium" appearance="light">
           <AuthProvider>
-            <BookingProvider>{children}</BookingProvider>
+            <BookingProvider>
+              <AppHeader />
+              {children}
+              <AppFooter />
+            </BookingProvider>
           </AuthProvider>
           <Toaster position="top-right" richColors closeButton />
         </Theme>

@@ -22,13 +22,13 @@ import {
 import Image from 'next/image';
 import Logo from './Logo';
 import { ServiceCategory } from '@/types';
+import OAuthLoginModal from '../auth/OAuthLoginModal';
 
 type View = 'booking' | 'admin' | 'dashboard' | 'services';
 
 interface AppHeaderProps {
   view?: View;
   onViewChange?: (view: View) => void;
-  onLoginClick?: () => void;
 }
 
 const NotificationBadge: React.FC<{ count: number }> = ({ count }) => {
@@ -46,12 +46,13 @@ const NotificationBadge: React.FC<{ count: number }> = ({ count }) => {
   );
 };
 
-export default function AppHeader({ view, onViewChange, onLoginClick }: AppHeaderProps) {
+export default function AppHeader({ view, onViewChange }: AppHeaderProps) {
   const { user, logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   const [appointmentCount, setAppointmentCount] = useState(0);
   const [categories, setCategories] = useState<ServiceCategory[]>([]);
+  const [isLoginOpen, setIsLoginOpen] = useState(false);
 
   const activeView: View = useMemo(() => {
     if (pathname?.startsWith('/admin')) return 'admin';
@@ -110,6 +111,45 @@ export default function AppHeader({ view, onViewChange, onLoginClick }: AppHeade
     }
   }, [user]);
 
+  // Handle OAuth redirect results
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const loginStatus = urlParams.get('login');
+    const error = urlParams.get('error');
+
+    if (loginStatus === 'success') {
+      // Clear URL parameters and trigger auth state refresh
+      window.history.replaceState({}, document.title, window.location.pathname);
+      // Force AuthContext to re-check session without full page reload
+      window.dispatchEvent(new Event('auth-refresh'));
+      // Show success toast
+      toast.success('Logged in successfully!');
+    } else if (error) {
+      // Handle OAuth errors
+      const errorMessages: { [key: string]: string } = {
+        whatsapp_oauth_denied: 'WhatsApp login was cancelled',
+        telegram_auth_failed: 'Telegram authentication failed',
+        invalid_telegram_data: 'Invalid Telegram data received',
+        telegram_data_expired: 'Telegram authentication data expired',
+        invalid_telegram_auth: 'Telegram authentication verification failed',
+        whatsapp_oauth_failed: 'WhatsApp authentication failed',
+        invalid_oauth_response: 'Invalid OAuth response',
+        invalid_state: 'Invalid OAuth state parameter',
+        missing_token: 'Login link is missing authentication token',
+        invalid_or_expired_token: 'Login link is invalid or has expired',
+        token_expired: 'Login link has expired. Please try logging in again',
+        user_not_found: 'User account not found. Please contact support',
+        login_failed: 'Login failed. Please try again or contact support',
+      };
+
+      const errorMessage = errorMessages[error] || 'Authentication failed';
+      toast.error(errorMessage);
+
+      // Clear URL parameters
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, []);
+
   const handleNavigation = (targetView: View, path: string) => {
     if (activeView !== targetView) {
       router.push(path);
@@ -120,7 +160,7 @@ export default function AppHeader({ view, onViewChange, onLoginClick }: AppHeade
   };
 
   return (
-    <header className="sticky top-0 z-50 border-b border-gray-100 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
+    <header className="sticky top-0 z-50 border-b border-base-primary/10 bg-stone-50 bg-opacity-50 backdrop-blur-md transition-all duration-300 dark:border-gray-800 dark:bg-gray-900">
       <nav className="w-full flex items-center justify-between px-6 py-3 lg:px-12">
         <div className="flex items-center gap-1.5">
           <div className="relative h-12 w-48 cursor-pointer" onClick={() => router.push('/')}>
@@ -366,16 +406,15 @@ export default function AppHeader({ view, onViewChange, onLoginClick }: AppHeade
                 </DropdownMenu.Portal>
               </DropdownMenu.Root>
             ) : (
-              onLoginClick && (
-                <Button variant="solid" size="md" onClick={onLoginClick}>
-                  <LogIn className="h-4 w-4" aria-hidden="true" />
-                  Sign In
-                </Button>
-              )
+              <Button variant="solid" size="md" onClick={() => setIsLoginOpen(true)}>
+                <LogIn className="h-4 w-4" aria-hidden="true" />
+                Sign In
+              </Button>
             )}
           </div>
         </div>
       </nav>
+      <OAuthLoginModal isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
     </header>
   );
 }
