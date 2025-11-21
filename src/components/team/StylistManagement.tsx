@@ -1,8 +1,9 @@
+'use client';
+
 import Image from 'next/image';
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import type { Stylist, Service } from '@/types';
-// Services are now fetched from API instead of hardcoded constants
 import * as Dialog from '@radix-ui/react-dialog';
 import * as Checkbox from '@radix-ui/react-checkbox';
 import * as AlertDialog from '@radix-ui/react-alert-dialog';

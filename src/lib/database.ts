@@ -2,6 +2,7 @@ import type {
   Appointment,
   AdminSettings,
   Service,
+  ServiceCategory,
   User,
   Stylist,
   CreateAppointmentInput,
@@ -234,6 +235,39 @@ export const getServices = async (): Promise<Service[]> => {
     description: s.description ?? undefined,
     maxPrice: s.maxPrice ?? undefined,
     imageUrl: s.imageUrl ?? undefined,
+  }));
+};
+
+export const getServiceCategories = async (): Promise<ServiceCategory[]> => {
+  const categories = await prisma.serviceCategory.findMany({
+    include: {
+      items: {
+        where: { isActive: true },
+        include: {
+          addons: true,
+        },
+      },
+    },
+  });
+
+  return categories.map(cat => ({
+    ...cat,
+    description: cat.description ?? undefined,
+    icon: cat.icon ?? undefined,
+    priceRangeMin: cat.priceRangeMin ?? undefined,
+    priceRangeMax: cat.priceRangeMax ?? undefined,
+    items: cat.items.map(s => ({
+      ...s,
+      subtitle: s.subtitle ?? undefined,
+      description: s.description ?? undefined,
+      maxPrice: s.maxPrice ?? undefined,
+      imageUrl: s.imageUrl ?? undefined,
+      addons: s.addons?.map(a => ({
+        ...a,
+        description: a.description ?? undefined,
+        benefits: (a.benefits as string[]) ?? undefined,
+      })),
+    })),
   }));
 };
 

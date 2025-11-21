@@ -21,17 +21,9 @@ const config: Config = {
     extend: {
       colors: {
         base: {
+          dark: '#6e5600',
           primary: '#7A6400',
-          '50': '#FFF2BB',
-          '100': '#FCDE5C',
-          '200': '#FAD84E',
-          '300': '#F8D240',
-          '400': '#F6CC32',
-          '500': '#F4C624',
-          '600': '#927800',
-          '700': '#7A6400',
-          '800': '#625000',
-          '900': '#6e5600',
+          light: '#FFF2BB',
         },
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',

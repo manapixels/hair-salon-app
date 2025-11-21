@@ -400,6 +400,494 @@ curl -X POST http://localhost:3000/api/reminders/test
 
 ---
 
+## ⚛️ 6. Next.js 14 Server vs Client Components - Best Practices
+
+### **Overview**
+
+Next.js 14 App Router uses **Server Components by default**, providing better performance, smaller JavaScript bundles, and improved SEO. Client Components should only be used when absolutely necessary for interactivity.
+
+### **Default Approach: Server Components First**
+
+**Rule of Thumb**: Every component is a Server Component unless it needs client-side features.
+
+#### **Server Component Benefits**
+
+- Zero JavaScript sent to browser for static content
+- Direct database access (no API routes needed)
+- Better SEO (fully rendered HTML)
+- Automatic code splitting
+- Access to backend resources (filesystem, databases)
+- `generateMetadata()` support
+
+#### **When Server Components Are Sufficient**
+
+Server components can handle:
+
+- Static content rendering
+- Data fetching from databases
+- Image optimization (`next/image`)
+- Server-side logic
+- Metadata generation
+- Layout components (when they don't need interactivity)
+
+---
+
+### **When Client Components Are Required**
+
+Use `'use client'` directive ONLY when you need:
+
+#### **1. React Hooks**
+
+- `useState`, `useEffect`, `useContext`
+- `useReducer`, `useCallback`, `useMemo`
+- Custom hooks that depend on above
+
+#### **2. Browser APIs**
+
+- `window`, `document`, `localStorage`
+- Event listeners
+- Geolocation, clipboard, etc.
+
+#### **3. Event Handlers**
+
+- `onClick`, `onChange`, `onSubmit`
+- Mouse, keyboard, touch events
+- Form interactions
+
+#### **4. React Context Providers/Consumers**
+
+- `useAuth()`, `useBooking()`, etc.
+- Any context that requires client-side state
+
+#### **5. Third-Party Libraries Requiring Browser**
+
+- Chart libraries
+- Animation libraries
+- Client-only UI components
+
+---
+
+### **Patterns from Signature Trims Codebase**
+
+#### **Pattern 1: Server Component Page with Client Children**
+
+**GOOD Example**: Server component page with embedded client components
+
+```tsx
+// app/page.tsx - NO 'use client' directive
+import { getAdminSettings } from '@/lib/database';
+import LandingPage from '@/components/views/LandingPage'; // Client component
+
+export default async function HomePage() {
+  // Direct database access in server component
+  const adminSettings = await getAdminSettings();
+
+  return (
+    <div>
+      {/* Static server-rendered content */}
+      <section>
+        <h1>Signature Trims</h1>
+        <p>Experience hair artistry...</p>
+      </section>
+      {/* Client component embedded in server component */}
+      <LandingPage /> {/* This has 'use client' */}
+    </div>
+  );
+}
+```
+
+**Why This Works**:
+
+- Server component fetches data (no API route needed)
+- Static HTML rendered on server
+- Only `LandingPage` and its children ship JavaScript
+- Best of both worlds: performance + interactivity where needed
+
+---
+
+#### **Pattern 2: Static Service Pages (Server Components)**
+
+**GOOD Example**: Service detail pages
+
+```tsx
+// app/services/hair-colouring/page.tsx - NO 'use client'
+import { prisma } from '@/lib/prisma';
+import ServiceBookingWrapper from '@/components/services/ServiceBookingWrapper';
+
+export default async function HairColouringPage() {
+  // Direct Prisma query - server-side only
+  const service = await prisma.service.findFirst({
+    where: { name: 'Hair Colouring' },
+    include: { addons: true, category: true },
+  });
+
+  if (!service) notFound();
+
+  return (
+    <div>
+      {/* Server-rendered content - no JS */}
+      <div className="hero">
+        <h1>{service.name}</h1>
+        <p>{service.description}</p>
+      </div>
+
+      {/* Client component for booking form */}
+      <ServiceBookingWrapper preSelectedServiceId={service.id} />
+    </div>
+  );
+}
+
+// Server-only metadata generation
+export async function generateMetadata() {
+  return {
+    title: 'Hair Colouring | Signature Trims',
+    description: '...',
+  };
+}
+```
+
+**Benefits**:
+
+- SEO-friendly (fully rendered)
+- No API route needed for service data
+- Only booking form is interactive (client component)
+- Faster page loads
+
+---
+
+#### **Pattern 3: Wrapper Components for Client Logic**
+
+**GOOD Example**: Small client wrapper for interactive features
+
+```tsx
+// ServiceBookingWrapper.tsx - Client component
+'use client';
+
+import BookingForm from '../booking/BookingForm';
+
+export default function ServiceBookingWrapper({
+  preSelectedServiceId,
+  serviceName,
+}: ServiceBookingWrapperProps) {
+  return (
+    <div className="bg-gradient-to-b from-stone-50 to-white">
+      <h2>Book Your {serviceName}</h2>
+      <BookingForm preSelectedServiceId={preSelectedServiceId} />
+    </div>
+  );
+}
+```
+
+**Usage in Server Component**:
+
+```tsx
+// Server component page
+export default async function ServicePage({ params }) {
+  const service = await prisma.service.findFirst(...);
+
+  return (
+    <div>
+      {/* Server-rendered static content */}
+      <h1>{service.name}</h1>
+      <p>{service.description}</p>
+
+      {/* Client component boundary */}
+      <ServiceBookingWrapper
+        preSelectedServiceId={service.id}
+        serviceName={service.name}
+      />
+    </div>
+  );
+}
+```
+
+---
+
+### **Anti-Patterns to Avoid**
+
+#### **❌ BAD: Entire Page as Client Component When Not Needed**
+
+```tsx
+// BAD - Unnecessary client component
+'use client';
+
+export default function AboutPage() {
+  return (
+    <div>
+      <h1>About Us</h1>
+      <p>Static content that doesn't need JavaScript...</p>
+    </div>
+  );
+}
+```
+
+**Fix**: Remove `'use client'` - this should be a Server Component.
+
+---
+
+#### **❌ BAD: Fetching Data in Client Component When Server Could Do It**
+
+```tsx
+// BAD - Client-side data fetching for static data
+'use client';
+
+export default function ProductPage({ params }) {
+  const [product, setProduct] = useState(null);
+
+  useEffect(() => {
+    fetch(`/api/products/${params.id}`)
+      .then(res => res.json())
+      .then(setProduct);
+  }, [params.id]);
+
+  return <div>{product?.name}</div>;
+}
+```
+
+**Fix**: Use Server Component with direct database access:
+
+```tsx
+// GOOD - Server component with direct DB access
+export default async function ProductPage({ params }) {
+  const product = await prisma.product.findUnique({
+    where: { id: params.id },
+  });
+
+  return <div>{product.name}</div>;
+}
+```
+
+---
+
+### **Minimizing Client Component Scope**
+
+#### **Strategy: Push Client Boundary Down**
+
+**BEFORE** (entire page is client):
+
+```tsx
+// page.tsx - ENTIRE page ships JavaScript
+'use client';
+
+export default function BlogPost({ params }) {
+  const [likes, setLikes] = useState(0);
+
+  return (
+    <article>
+      <h1>Blog Post Title</h1>
+      <p>Long static content...</p>
+      <button onClick={() => setLikes(likes + 1)}>Like ({likes})</button>
+    </article>
+  );
+}
+```
+
+**AFTER** (only interactive part is client):
+
+```tsx
+// page.tsx - Server component
+export default async function BlogPost({ params }) {
+  const post = await getPost(params.id);
+
+  return (
+    <article>
+      <h1>{post.title}</h1>
+      <p>{post.content}</p>
+      {/* Only this component ships JS */}
+      <LikeButton postId={post.id} />
+    </article>
+  );
+}
+
+// components/LikeButton.tsx - Small client component
+('use client');
+
+export function LikeButton({ postId }) {
+  const [likes, setLikes] = useState(0);
+
+  return <button onClick={() => setLikes(likes + 1)}>Like ({likes})</button>;
+}
+```
+
+**Benefits**:
+
+- 90% of page is static HTML (no JS)
+- Only `LikeButton` ships JavaScript
+- Better performance, SEO, and Time to Interactive
+
+---
+
+### **Layout Pattern: Server Layout + Client Providers**
+
+**GOOD Example**: Root layout structure
+
+```tsx
+// app/layout.tsx - Server component (NO 'use client')
+import { AuthProvider } from '@/context/AuthContext'; // Client component
+import { BookingProvider } from '@/context/BookingContext'; // Client component
+
+export default function RootLayout({ children }) {
+  return (
+    <html lang="en">
+      <body>
+        {/* Client providers wrap children */}
+        <AuthProvider>
+          <BookingProvider>
+            <AppHeader />
+            {children} {/* Server or client pages */}
+            <AppFooter />
+          </BookingProvider>
+        </AuthProvider>
+      </body>
+    </html>
+  );
+}
+```
+
+**Why This Works**:
+
+- Layout itself is server component
+- Providers are client components (they use context)
+- Child pages can be either server or client
+- Shared state available via context throughout app
+
+---
+
+### **Performance & SEO Implications**
+
+#### **Server Components**
+
+- ✅ Zero JavaScript for static content
+- ✅ Faster Time to Interactive (TTI)
+- ✅ Better SEO (fully rendered HTML)
+- ✅ Smaller bundle size
+- ✅ No hydration cost
+- ❌ No interactivity
+- ❌ Can't use browser APIs
+
+#### **Client Components**
+
+- ✅ Full interactivity
+- ✅ Browser API access
+- ✅ Real-time updates
+- ❌ JavaScript shipped to browser
+- ❌ Hydration overhead
+- ❌ Larger bundle size
+- ❌ Slower TTI for large components
+
+#### **Impact Example**
+
+**All Client Components**: 500KB JavaScript bundle
+
+```tsx
+'use client'; // Everything in page.tsx
+export default function Page() { ... }
+```
+
+**Optimized with Server Components**: 50KB JavaScript bundle
+
+```tsx
+// Server component (no 'use client')
+export default async function Page() {
+  // Only interactive parts are client components
+  return (
+    <>
+      {staticContent} <InteractiveButton />
+    </>
+  );
+}
+```
+
+**Result**: 90% reduction in JavaScript, faster page loads, better Core Web Vitals.
+
+---
+
+### **Developer Checklist**
+
+When creating a new page or component, ask:
+
+#### **✅ Can This Be a Server Component?**
+
+- [ ] Does it only render static content?
+- [ ] Does it fetch data on initial load only?
+- [ ] Does it NOT use React hooks?
+- [ ] Does it NOT need event handlers?
+- [ ] Does it NOT access browser APIs?
+
+**If YES to all** → Use Server Component (default, no directive)
+
+#### **✅ Must This Be a Client Component?**
+
+- [ ] Uses `useState`, `useEffect`, or other hooks?
+- [ ] Requires event handlers (`onClick`, `onChange`)?
+- [ ] Accesses browser APIs (`window`, `localStorage`)?
+- [ ] Uses React Context (`useAuth`, `useBooking`)?
+- [ ] Third-party library requires browser?
+
+**If YES to any** → Add `'use client'` directive
+
+#### **✅ Can I Split This Component?**
+
+- [ ] Is only part of the component interactive?
+- [ ] Can static content be separated?
+- [ ] Can I extract interactive parts to smaller client components?
+
+**If YES** → Refactor: Server component wrapper + small client children
+
+---
+
+### **Quick Reference Table**
+
+| Feature            | Server Component | Client Component             |
+| ------------------ | ---------------- | ---------------------------- |
+| Default behavior   | ✅ Yes           | ❌ No (needs `'use client'`) |
+| React hooks        | ❌ No            | ✅ Yes                       |
+| Event handlers     | ❌ No            | ✅ Yes                       |
+| Browser APIs       | ❌ No            | ✅ Yes                       |
+| Direct DB access   | ✅ Yes           | ❌ No                        |
+| `async` components | ✅ Yes           | ❌ No                        |
+| SEO-friendly       | ✅ Yes           | ⚠️ Depends                   |
+| JavaScript bundle  | ✅ 0KB           | ❌ Added to bundle           |
+| Context consumers  | ❌ No            | ✅ Yes                       |
+| `generateMetadata` | ✅ Yes           | ❌ No                        |
+
+---
+
+### **Common Mistakes & Solutions**
+
+#### **Mistake 1: Marking Everything as Client Component**
+
+- **Problem**: `'use client'` at the top of every file "just in case"
+- **Solution**: Start without directive, add only when needed
+
+#### **Mistake 2: Using API Routes When Direct DB Access Works**
+
+- **Problem**: Server component fetches from `/api/data` instead of database
+- **Solution**: Server components can query database directly
+
+#### **Mistake 3: Not Splitting Components**
+
+- **Problem**: Entire complex page marked as `'use client'`
+- **Solution**: Extract interactive parts to separate client components
+
+#### **Mistake 4: Hydration Mismatches**
+
+- **Problem**: Server-rendered content differs from client
+- **Solution**: Avoid `new Date()`, `Math.random()`, etc. in server components
+
+---
+
+### **Summary: The Golden Rules**
+
+1. **Server by Default**: No `'use client'` unless absolutely required
+2. **Client When Needed**: Add `'use client'` for hooks, events, browser APIs
+3. **Small Client Components**: Extract minimal interactive parts
+4. **Server for Data**: Use server components for database queries
+5. **Client for Interactivity**: Use client components for forms, search, real-time
+6. **Composition Wins**: Server wrapper + client children = optimal performance
+
+---
+
 ## 🔗 Related Files
 
 - **Implementation Plan**: `../implementation-plans/ai-agents-plan.md`
