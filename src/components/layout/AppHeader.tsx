@@ -20,6 +20,7 @@ import {
   ChevronDown,
 } from '@/lib/icons';
 import Image from 'next/image';
+import Link from 'next/link';
 import Logo from './Logo';
 import { ServiceCategory } from '@/types';
 import OAuthLoginModal from '../auth/OAuthLoginModal';
@@ -53,6 +54,7 @@ export default function AppHeader({ view, onViewChange }: AppHeaderProps) {
   const [appointmentCount, setAppointmentCount] = useState(0);
   const [categories, setCategories] = useState<ServiceCategory[]>([]);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
+  const [isMegaMenuOpen, setIsMegaMenuOpen] = useState(false);
 
   const activeView: View = useMemo(() => {
     if (pathname?.startsWith('/admin')) return 'admin';
@@ -170,7 +172,7 @@ export default function AppHeader({ view, onViewChange }: AppHeaderProps) {
         <div className="flex items-center gap-4">
           <div className="hidden items-center gap-6 sm:flex">
             {/* Mega Menu / Dropdown for Services */}
-            <div className="static group">
+            <div className="static group" onMouseEnter={() => setIsMegaMenuOpen(true)}>
               <button
                 className={`flex items-center gap-1 text-sm font-medium transition-colors h-full py-3 text-black font-semibold`}
                 onClick={() => handleNavigation('services', '/services')}
@@ -180,7 +182,10 @@ export default function AppHeader({ view, onViewChange }: AppHeaderProps) {
               </button>
 
               {/* Full Width Mega Menu Overlay */}
-              <div className="fixed left-0 top-[73px] w-screen bg-[var(--accent-9)] text-white opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 ease-in-out z-50 shadow-2xl border-t border-[var(--accent-8)]">
+              <div
+                className={`fixed left-0 top-[73px] w-screen bg-[var(--accent-9)] text-white transition-all duration-300 ease-in-out z-50 shadow-2xl border-t border-[var(--accent-8)] ${isMegaMenuOpen ? 'opacity-100 visible' : 'opacity-0 invisible'}`}
+                onMouseLeave={() => setIsMegaMenuOpen(false)}
+              >
                 <div className="mx-auto">
                   <div className="grid grid-cols-12">
                     {/* Left Column: Image */}
@@ -197,9 +202,10 @@ export default function AppHeader({ view, onViewChange }: AppHeaderProps) {
                     {/* Right Column: Featured Services List */}
                     <div className="col-span-5 space-y-2 px-6 lg:px-16 py-12">
                       {/* Featured Services - Direct links to service detail pages */}
-                      <div
-                        className="group/item flex items-center justify-between py-4 border-b border-[var(--accent-7)] cursor-pointer hover:border-white transition-colors"
-                        onClick={() => router.push('/services/hair-colouring')}
+                      <Link
+                        href="/services/hair-colouring"
+                        onClick={() => setIsMegaMenuOpen(false)}
+                        className="group/item flex items-center justify-between py-4 border-b border-[var(--accent-7)] hover:border-white transition-colors"
                       >
                         <span className="text-2xl font-light tracking-wide group-hover/item:text-white text-white/90 transition-colors">
                           Hair Colouring
@@ -207,11 +213,12 @@ export default function AppHeader({ view, onViewChange }: AppHeaderProps) {
                         <div className="w-10 h-10 rounded-full border border-[var(--accent-8)] flex items-center justify-center group-hover/item:border-white group-hover/item:bg-white group-hover/item:text-[var(--accent-11)] transition-all">
                           <ChevronDown className="w-5 h-5 -rotate-90" />
                         </div>
-                      </div>
+                      </Link>
 
-                      <div
-                        className="group/item flex items-center justify-between py-4 border-b border-[var(--accent-7)] cursor-pointer hover:border-white transition-colors"
-                        onClick={() => router.push('/services/balayage')}
+                      <Link
+                        href="/services/balayage"
+                        onClick={() => setIsMegaMenuOpen(false)}
+                        className="group/item flex items-center justify-between py-4 border-b border-[var(--accent-7)] hover:border-white transition-colors"
                       >
                         <span className="text-2xl font-light tracking-wide group-hover/item:text-white text-white/90 transition-colors">
                           Balayage
@@ -219,11 +226,12 @@ export default function AppHeader({ view, onViewChange }: AppHeaderProps) {
                         <div className="w-10 h-10 rounded-full border border-[var(--accent-8)] flex items-center justify-center group-hover/item:border-white group-hover/item:bg-white group-hover/item:text-[var(--accent-11)] transition-all">
                           <ChevronDown className="w-5 h-5 -rotate-90" />
                         </div>
-                      </div>
+                      </Link>
 
-                      <div
-                        className="group/item flex items-center justify-between py-4 border-b border-[var(--accent-7)] cursor-pointer hover:border-white transition-colors"
-                        onClick={() => router.push('/services/hair-rebonding')}
+                      <Link
+                        href="/services/hair-rebonding"
+                        onClick={() => setIsMegaMenuOpen(false)}
+                        className="group/item flex items-center justify-between py-4 border-b border-[var(--accent-7)] hover:border-white transition-colors"
                       >
                         <span className="text-2xl font-light tracking-wide group-hover/item:text-white text-white/90 transition-colors">
                           Hair Rebonding
@@ -231,11 +239,12 @@ export default function AppHeader({ view, onViewChange }: AppHeaderProps) {
                         <div className="w-10 h-10 rounded-full border border-[var(--accent-8)] flex items-center justify-center group-hover/item:border-white group-hover/item:bg-white group-hover/item:text-[var(--accent-11)] transition-all">
                           <ChevronDown className="w-5 h-5 -rotate-90" />
                         </div>
-                      </div>
+                      </Link>
 
-                      <div
-                        className="group/item flex items-center justify-between py-4 border-b border-[var(--accent-7)] cursor-pointer hover:border-white transition-colors"
-                        onClick={() => router.push('/services/scalp-treatment')}
+                      <Link
+                        href="/services/hair-treatment"
+                        onClick={() => setIsMegaMenuOpen(false)}
+                        className="group/item flex items-center justify-between py-4 border-b border-[var(--accent-7)] hover:border-white transition-colors"
                       >
                         <span className="text-2xl font-light tracking-wide group-hover/item:text-white text-white/90 transition-colors">
                           Hair Treatment
@@ -243,11 +252,12 @@ export default function AppHeader({ view, onViewChange }: AppHeaderProps) {
                         <div className="w-10 h-10 rounded-full border border-[var(--accent-8)] flex items-center justify-center group-hover/item:border-white group-hover/item:bg-white group-hover/item:text-[var(--accent-11)] transition-all">
                           <ChevronDown className="w-5 h-5 -rotate-90" />
                         </div>
-                      </div>
+                      </Link>
 
-                      <div
-                        className="group/item flex items-center justify-between py-4 border-b border-[var(--accent-7)] cursor-pointer hover:border-white transition-colors"
-                        onClick={() => router.push('/services/hair-perm')}
+                      <Link
+                        href="/services/hair-perm"
+                        onClick={() => setIsMegaMenuOpen(false)}
+                        className="group/item flex items-center justify-between py-4 border-b border-[var(--accent-7)] hover:border-white transition-colors"
                       >
                         <span className="text-2xl font-light tracking-wide group-hover/item:text-white text-white/90 transition-colors">
                           Hair Perm
@@ -255,15 +265,16 @@ export default function AppHeader({ view, onViewChange }: AppHeaderProps) {
                         <div className="w-10 h-10 rounded-full border border-[var(--accent-8)] flex items-center justify-center group-hover/item:border-white group-hover/item:bg-white group-hover/item:text-[var(--accent-11)] transition-all">
                           <ChevronDown className="w-5 h-5 -rotate-90" />
                         </div>
-                      </div>
+                      </Link>
 
                       <div className="pt-6">
-                        <button
-                          onClick={() => router.push('/services')}
+                        <Link
+                          href="/services"
+                          onClick={() => setIsMegaMenuOpen(false)}
                           className="text-gold-400 hover:text-gold-300 text-sm uppercase tracking-widest font-semibold"
                         >
                           View All Services &rarr;
-                        </button>
+                        </Link>
                       </div>
                     </div>
                   </div>
