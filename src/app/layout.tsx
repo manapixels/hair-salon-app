@@ -4,6 +4,7 @@ import { BookingProvider } from '../context/BookingContext';
 import { Toaster } from 'sonner';
 import { Theme } from '@radix-ui/themes';
 import { autoConfigureTelegramBotMenu } from '../lib/telegramBotSetup';
+import { getAdminSettings } from '@/lib/database';
 import '../styles/globals.css';
 import '@radix-ui/themes/styles.css';
 import 'dotenv/config';
@@ -23,7 +24,9 @@ if (typeof window === 'undefined') {
   });
 }
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const adminSettings = await getAdminSettings();
+
   return (
     <html lang="en">
       <head>
@@ -35,7 +38,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <BookingProvider>
               <AppHeader />
               {children}
-              <AppFooter />
+              <AppFooter adminSettings={adminSettings} />
             </BookingProvider>
           </AuthProvider>
           <Toaster position="top-right" richColors closeButton />

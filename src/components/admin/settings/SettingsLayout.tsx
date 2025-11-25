@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import SettingsSidebar, { type SettingsSection } from './SettingsSidebar';
 import BusinessSettings from './salon/BusinessSettings';
@@ -13,24 +14,40 @@ interface SettingsLayoutProps {
 }
 
 export default function SettingsLayout({ adminSettings, onSave }: SettingsLayoutProps) {
+  const router = useRouter();
   const [activeSection, setActiveSection] = useState<SettingsSection>('salon-business');
   const [isSaving, setIsSaving] = useState(false);
 
-  // Local state for settings
+  // Helper to ensure complete schedule with all days
+  const getCompleteSchedule = (schedule: any) => {
+    const DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+    const defaultDay = { isOpen: true, openingTime: '09:00', closingTime: '17:00' };
+    const complete: any = {};
+
+    DAYS.forEach(day => {
+      complete[day] = schedule?.[day] || defaultDay;
+    });
+
+    return complete;
+  };
+
+  // Local state for settings - ensure weeklySchedule is complete
   const [businessName, setBusinessName] = useState(adminSettings.businessName || '');
   const [businessAddress, setBusinessAddress] = useState(adminSettings.businessAddress || '');
   const [businessPhone, setBusinessPhone] = useState(adminSettings.businessPhone || '');
-  const [weeklySchedule, setWeeklySchedule] = useState(adminSettings.weeklySchedule || {});
+  const [weeklySchedule, setWeeklySchedule] = useState(
+    getCompleteSchedule(adminSettings.weeklySchedule),
+  );
   const [closedDates, setClosedDates] = useState<string[]>(adminSettings.closedDates || []);
 
   // Sync with prop changes
-  useState(() => {
+  useEffect(() => {
     setBusinessName(adminSettings.businessName || '');
     setBusinessAddress(adminSettings.businessAddress || '');
     setBusinessPhone(adminSettings.businessPhone || '');
-    setWeeklySchedule(adminSettings.weeklySchedule || {});
+    setWeeklySchedule(getCompleteSchedule(adminSettings.weeklySchedule));
     setClosedDates(adminSettings.closedDates || []);
-  });
+  }, [adminSettings]);
 
   const handleBusinessFieldChange = (
     field: 'businessName' | 'businessAddress' | 'businessPhone',
@@ -54,6 +71,8 @@ export default function SettingsLayout({ adminSettings, onSave }: SettingsLayout
         closedDates,
       });
       toast.success('Settings saved successfully!', { id: toastId });
+      // Refresh server components (including footer in layout)
+      router.refresh();
     } catch (error) {
       toast.error('Failed to save settings.', { id: toastId });
     } finally {

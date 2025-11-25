@@ -351,6 +351,30 @@ npm test -- geminiService.test.ts
 curl -X POST http://localhost:3000/api/reminders/test
 ```
 
+### **Build & Type Checking**
+
+⚠️ **Important**: Avoid using `npm run build` for quick type checks - it's slow and resource-intensive.
+
+```bash
+# ❌ DON'T: Slow full build (takes 30+ seconds)
+npm run build
+
+# ✅ DO: Fast TypeScript type checking only (takes 5-10 seconds)
+npx tsc --noEmit
+
+# ✅ DO: ESLint for linting
+npx eslint src/
+
+# ✅ DO: Type check specific file
+npx tsc --noEmit src/components/MyComponent.tsx
+```
+
+**When to use each**:
+
+- **`npx tsc --noEmit`**: Quick type checking during development
+- **`npm run build`**: Only before deployment or when you need production build
+- **`npm run dev`**: Local development server (auto-reloads on changes)
+
 ---
 
 ## 📊 Monitoring & Metrics (Planned)

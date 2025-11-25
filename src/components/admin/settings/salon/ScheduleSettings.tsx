@@ -17,10 +17,23 @@ const DAYS = [
 ] as const;
 
 export default function ScheduleSettings({ weeklySchedule, onChange }: ScheduleSettingsProps) {
+  // Helper to ensure all days exist in schedule
+  const getCompleteSchedule = (): AdminSettings['weeklySchedule'] => {
+    const defaultDay = { isOpen: true, openingTime: '09:00', closingTime: '17:00' };
+    const complete = {} as AdminSettings['weeklySchedule'];
+
+    DAYS.forEach(day => {
+      complete[day] = weeklySchedule?.[day] || defaultDay;
+    });
+
+    return complete;
+  };
+
   const handleDayToggle = (day: keyof AdminSettings['weeklySchedule'], isOpen: boolean) => {
+    const completeSchedule = getCompleteSchedule();
     onChange({
-      ...weeklySchedule,
-      [day]: { ...weeklySchedule[day], isOpen },
+      ...completeSchedule,
+      [day]: { ...completeSchedule[day], isOpen },
     });
   };
 
@@ -29,9 +42,10 @@ export default function ScheduleSettings({ weeklySchedule, onChange }: ScheduleS
     field: 'openingTime' | 'closingTime',
     value: string,
   ) => {
+    const completeSchedule = getCompleteSchedule();
     onChange({
-      ...weeklySchedule,
-      [day]: { ...weeklySchedule[day], [field]: value },
+      ...completeSchedule,
+      [day]: { ...completeSchedule[day], [field]: value },
     });
   };
 
@@ -91,14 +105,14 @@ export default function ScheduleSettings({ weeklySchedule, onChange }: ScheduleS
                   <div className="flex items-center space-x-[var(--space-2)] flex-1">
                     <input
                       type="time"
-                      value={schedule.openingTime}
+                      value={schedule.openingTime || '09:00'}
                       onChange={e => handleTimeChange(day, 'openingTime', e.target.value)}
                       className="px-[var(--space-3)] py-[var(--space-2)] border border-[var(--gray-7)] rounded-[var(--radius-2)] text-[length:var(--font-size-2)] bg-[var(--color-surface)] text-[var(--gray-12)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-8)] focus-visible:border-[var(--accent-8)] hover:border-[var(--gray-8)] transition-colors"
                     />
                     <span className="text-[var(--gray-11)]">to</span>
                     <input
                       type="time"
-                      value={schedule.closingTime}
+                      value={schedule.closingTime || '17:00'}
                       onChange={e => handleTimeChange(day, 'closingTime', e.target.value)}
                       className="px-[var(--space-3)] py-[var(--space-2)] border border-[var(--gray-7)] rounded-[var(--radius-2)] text-[length:var(--font-size-2)] bg-[var(--color-surface)] text-[var(--gray-12)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-8)] focus-visible:border-[var(--accent-8)] hover:border-[var(--gray-8)] transition-colors"
                     />

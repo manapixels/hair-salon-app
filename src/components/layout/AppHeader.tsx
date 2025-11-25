@@ -172,7 +172,7 @@ export default function AppHeader({ view, onViewChange }: AppHeaderProps) {
             {/* Mega Menu / Dropdown for Services */}
             <div className="static group">
               <button
-                className={`flex items-center gap-1 text-sm font-medium transition-colors h-full py-3 ${activeView === 'services' ? 'text-black font-semibold' : 'text-gray-600 hover:text-black dark:text-gray-300 dark:hover:text-white'}`}
+                className={`flex items-center gap-1 text-sm font-medium transition-colors h-full py-3 text-black font-semibold`}
                 onClick={() => handleNavigation('services', '/services')}
               >
                 Our Services

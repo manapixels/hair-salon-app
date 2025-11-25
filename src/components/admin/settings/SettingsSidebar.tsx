@@ -143,14 +143,6 @@ export default function SettingsSidebar({ activeSection, onSectionChange }: Sett
                 d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
               />
             </svg>
-            <div>
-              <p className="text-[length:var(--font-size-1)] text-[var(--gray-12)] font-medium mb-1">
-                Need Help?
-              </p>
-              <p className="text-[length:var(--font-size-1)] text-[var(--gray-11)]">
-                Changes are saved automatically when you click the save button.
-              </p>
-            </div>
           </div>
         </div>
       </div>
