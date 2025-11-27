@@ -193,7 +193,7 @@ export default function AppHeader({ view, onViewChange }: AppHeaderProps) {
                       <div className="relative w-full h-full transition-transform duration-500">
                         <Image
                           src="/background-images/menu-service-bg.png"
-                          alt="Balayage"
+                          alt="Hime Cut"
                           fill
                           className="object-cover opacity-80 group-hover/img:opacity-100 transition-opacity rounded-lg"
                         />
@@ -208,20 +208,7 @@ export default function AppHeader({ view, onViewChange }: AppHeaderProps) {
                         className="group/item flex items-center justify-between py-4 border-b border-[var(--accent-7)] hover:border-white transition-colors"
                       >
                         <span className="text-2xl font-light tracking-wide group-hover/item:text-white text-white/90 transition-colors">
-                          Hair Colouring
-                        </span>
-                        <div className="w-10 h-10 rounded-full border border-[var(--accent-8)] flex items-center justify-center group-hover/item:border-white group-hover/item:bg-white group-hover/item:text-[var(--accent-11)] transition-all">
-                          <ChevronDown className="w-5 h-5 -rotate-90" />
-                        </div>
-                      </Link>
-
-                      <Link
-                        href="/services/balayage"
-                        onClick={() => setIsMegaMenuOpen(false)}
-                        className="group/item flex items-center justify-between py-4 border-b border-[var(--accent-7)] hover:border-white transition-colors"
-                      >
-                        <span className="text-2xl font-light tracking-wide group-hover/item:text-white text-white/90 transition-colors">
-                          Balayage
+                          Colouring
                         </span>
                         <div className="w-10 h-10 rounded-full border border-[var(--accent-8)] flex items-center justify-center group-hover/item:border-white group-hover/item:bg-white group-hover/item:text-[var(--accent-11)] transition-all">
                           <ChevronDown className="w-5 h-5 -rotate-90" />
@@ -234,7 +221,7 @@ export default function AppHeader({ view, onViewChange }: AppHeaderProps) {
                         className="group/item flex items-center justify-between py-4 border-b border-[var(--accent-7)] hover:border-white transition-colors"
                       >
                         <span className="text-2xl font-light tracking-wide group-hover/item:text-white text-white/90 transition-colors">
-                          Hair Rebonding
+                          Rebonding
                         </span>
                         <div className="w-10 h-10 rounded-full border border-[var(--accent-8)] flex items-center justify-center group-hover/item:border-white group-hover/item:bg-white group-hover/item:text-[var(--accent-11)] transition-all">
                           <ChevronDown className="w-5 h-5 -rotate-90" />
@@ -247,7 +234,7 @@ export default function AppHeader({ view, onViewChange }: AppHeaderProps) {
                         className="group/item flex items-center justify-between py-4 border-b border-[var(--accent-7)] hover:border-white transition-colors"
                       >
                         <span className="text-2xl font-light tracking-wide group-hover/item:text-white text-white/90 transition-colors">
-                          Hair Treatment
+                          Treatment
                         </span>
                         <div className="w-10 h-10 rounded-full border border-[var(--accent-8)] flex items-center justify-center group-hover/item:border-white group-hover/item:bg-white group-hover/item:text-[var(--accent-11)] transition-all">
                           <ChevronDown className="w-5 h-5 -rotate-90" />
@@ -260,7 +247,7 @@ export default function AppHeader({ view, onViewChange }: AppHeaderProps) {
                         className="group/item flex items-center justify-between py-4 border-b border-[var(--accent-7)] hover:border-white transition-colors"
                       >
                         <span className="text-2xl font-light tracking-wide group-hover/item:text-white text-white/90 transition-colors">
-                          Hair Perm
+                          Perm
                         </span>
                         <div className="w-10 h-10 rounded-full border border-[var(--accent-8)] flex items-center justify-center group-hover/item:border-white group-hover/item:bg-white group-hover/item:text-[var(--accent-11)] transition-all">
                           <ChevronDown className="w-5 h-5 -rotate-90" />

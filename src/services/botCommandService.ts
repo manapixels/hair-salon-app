@@ -349,7 +349,6 @@ Which service would you like?
     if (nameLower.includes("women's") || nameLower.includes('womens')) return '✂️';
     if (nameLower.includes('color') && !nameLower.includes('highlight')) return '🎨';
     if (nameLower.includes('highlight')) return '✨';
-    if (nameLower.includes('balayage')) return '💫';
     if (nameLower.includes('keratin')) return '🌟';
     return '💆';
   };

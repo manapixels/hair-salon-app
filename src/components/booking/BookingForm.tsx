@@ -11,6 +11,7 @@ import type {
   Stylist,
   ServiceCategory,
   ServiceAddon,
+  ServiceTag,
 } from '@/types';
 import { useBooking } from '@/context/BookingContext';
 import { useAuth } from '@/context/AuthContext';
@@ -38,6 +39,7 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 import { Check, CheckCircle, User, WhatsAppIcon, Search } from '@/lib/icons';
+import { ConcernOutcomeFilter } from '../services/ConcernOutcomeFilter';
 
 // Get the salon's timezone from environment variable or default to Asia/Singapore
 const SALON_TIMEZONE = process.env.NEXT_PUBLIC_GOOGLE_CALENDAR_TIMEZONE || 'Asia/Singapore';
@@ -67,6 +69,19 @@ const ServiceSelector: React.FC<{
   const [activeCategory, setActiveCategory] = useState<string>('all');
   const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [availableTags, setAvailableTags] = useState<ServiceTag[]>([]);
+
+  // Fetch available tags
+  useEffect(() => {
+    fetch('/api/services/tags')
+      .then(res => res.json())
+      .then(data => {
+        const allTags = [...(data.concerns || []), ...(data.outcomes || [])];
+        setAvailableTags(allTags);
+      })
+      .catch(err => console.error('Failed to fetch tags:', err));
+  }, []);
 
   // Initialize expanded categories
   useEffect(() => {
@@ -85,10 +100,22 @@ const ServiceSelector: React.FC<{
   const filteredCategories = useMemo(() => {
     let result = categories;
 
+    // Apply tag filter first
+    if (selectedTags.length > 0) {
+      result = result
+        .map(category => ({
+          ...category,
+          items: category.items.filter(service =>
+            service.serviceTags?.some(st => selectedTags.includes(st.tag.slug)),
+          ),
+        }))
+        .filter(category => category.items.length > 0);
+    }
+
     // Apply search filter
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
-      result = categories
+      result = result
         .map(category => ({
           ...category,
           items: category.items.filter(
@@ -126,7 +153,7 @@ const ServiceSelector: React.FC<{
     }
 
     return result;
-  }, [categories, searchQuery, activeFilter]);
+  }, [categories, searchQuery, activeFilter, selectedTags]);
 
   // Auto-expand categories when searching
   useEffect(() => {
@@ -162,6 +189,18 @@ const ServiceSelector: React.FC<{
       <h2 className="text-2xl font-semibold mb-4 text-gray-800 dark:text-gray-200">
         1. Select Services
       </h2>
+
+      {/* Concern/Outcome Filter */}
+      {availableTags.length > 0 && (
+        <div className="mb-4">
+          <ConcernOutcomeFilter
+            tags={availableTags}
+            selectedTags={selectedTags}
+            onTagsChange={setSelectedTags}
+            onClear={() => setSelectedTags([])}
+          />
+        </div>
+      )}
 
       {/* Search Bar */}
       <div className="relative mb-4">

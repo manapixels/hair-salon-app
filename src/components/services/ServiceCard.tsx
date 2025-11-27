@@ -28,24 +28,39 @@ export default function ServiceCard({ service }: ServiceCardProps) {
             <p className="text-gray-600 mb-4 leading-relaxed">{service.description}</p>
           )}
 
-          <div className="flex flex-wrap gap-3 mb-4">
+          <div className="flex flex-wrap gap-2 mb-4">
             <div className="flex items-center text-sm text-gray-500">
               <Clock className="w-4 h-4 mr-1.5" />
               {service.duration} mins
             </div>
-            {service.tags && service.tags.length > 0 && (
-              <div className="flex items-center gap-2">
-                {service.tags.map(tag => (
-                  <span
-                    key={tag}
-                    className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800"
-                  >
-                    {tag}
-                  </span>
-                ))}
-              </div>
-            )}
           </div>
+
+          {/* Service Tags (Concerns & Outcomes) */}
+          {service.serviceTags && service.serviceTags.length > 0 && (
+            <div className="mb-4">
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                Perfect for:
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                {service.serviceTags
+                  .filter(st => st.tag.category === 'CONCERN' || st.tag.category === 'OUTCOME')
+                  .slice(0, 4)
+                  .map(st => (
+                    <span
+                      key={st.id}
+                      className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
+                        st.tag.category === 'CONCERN'
+                          ? 'bg-red-50 text-red-700 border border-red-200'
+                          : 'bg-green-50 text-green-700 border border-green-200'
+                      }`}
+                      title={st.tag.description || undefined}
+                    >
+                      {st.tag.label}
+                    </span>
+                  ))}
+              </div>
+            </div>
+          )}
 
           {service.addons && service.addons.length > 0 && (
             <div className="mb-4">

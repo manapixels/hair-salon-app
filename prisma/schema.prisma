@@ -28,6 +28,12 @@ enum RetentionMessageType {
   WIN_BACK
 }
 
+enum TagCategory {
+  CONCERN
+  OUTCOME
+  HAIR_TYPE
+}
+
 model User {
   id            String  @id @default(cuid())
   name          String
@@ -85,6 +91,7 @@ model Service {
   categoryId      String
   category        ServiceCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   addons          ServiceAddon[]
+  serviceTags     ServiceTagRelation[]
   isActive        Boolean         @default(true)
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
@@ -240,4 +247,33 @@ model FlaggedConversation {
   @@index([userId, isResolved])
   @@index([isResolved, flaggedAt])
   @@map("flagged_conversations")
+}
+
+model ServiceTag {
+  id          String               @id @default(cuid())
+  slug        String               @unique // "frizzy-hair", "add-volume", "fine-hair"
+  label       String               // "Frizzy Hair", "Add Volume", "Fine Hair"
+  category    TagCategory          // CONCERN, OUTCOME, HAIR_TYPE
+  description String?              // For tooltips/help text
+  iconName    String?              // Lucide icon name
+  sortOrder   Int                  @default(0)
+  services    ServiceTagRelation[]
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+
+  @@index([category])
+  @@map("service_tags")
+}
+
+model ServiceTagRelation {
+  id        String     @id @default(cuid())
+  serviceId String
+  tagId     String
+  service   Service    @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  tag       ServiceTag @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@unique([serviceId, tagId])
+  @@index([serviceId])
+  @@index([tagId])
+  @@map("service_tag_relations")
 }

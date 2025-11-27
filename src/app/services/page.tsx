@@ -11,18 +11,11 @@ import Image from 'next/image';
 import Link from 'next/link';
 
 // Featured service IDs (premium offerings)
-const FEATURED_SERVICE_NAMES = [
-  'Hair Colouring',
-  'Balayage',
-  'Hair Rebonding',
-  'Hair Treatment',
-  'Hair Perm',
-];
+const FEATURED_SERVICE_NAMES = ['Hair Colouring', 'Hair Rebonding', 'Hair Treatment', 'Hair Perm'];
 
 // Service names with static pages
 const SERVICES_WITH_STATIC_PAGES: Record<string, string> = {
   'Hair Colouring': '/services/hair-colouring',
-  Balayage: '/services/balayage',
   'Hair Rebonding': '/services/hair-rebonding',
   'Hair Treatment': '/services/hair-treatment',
   'Hair Perm': '/services/hair-perm',
@@ -400,7 +393,6 @@ export default function ServicesPage() {
 function getServiceImage(serviceName: string): string {
   const imageMap: Record<string, string> = {
     'Hair Colouring': '/background-images/hair-colouring.png',
-    Balayage: '/background-images/balayage.png',
     'Hair Rebonding': '/background-images/hair-rebonding.png',
     'Hair Treatment': '/background-images/hair-treatment.png',
     'Hair Perm': '/background-images/hair-perm.png',

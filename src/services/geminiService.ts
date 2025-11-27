@@ -233,7 +233,28 @@ export const handleWhatsAppMessage = async (
 
   const allServices = await getServices();
   const servicesListString = allServices
-    .map(s => `${s.name}: $${s.price} (${s.duration} mins)`)
+    .map(s => {
+      let serviceStr = `${s.name}: ${s.price} (${s.duration} mins)`;
+
+      // Add tag information for better context
+      if (s.serviceTags && s.serviceTags.length > 0) {
+        const concerns = s.serviceTags
+          .filter(st => st.tag.category === 'CONCERN')
+          .map(st => st.tag.label);
+        const outcomes = s.serviceTags
+          .filter(st => st.tag.category === 'OUTCOME')
+          .map(st => st.tag.label);
+
+        if (concerns.length > 0) {
+          serviceStr += ` | Addresses: ${concerns.join(', ')}`;
+        }
+        if (outcomes.length > 0) {
+          serviceStr += ` | Achieves: ${outcomes.join(', ')}`;
+        }
+      }
+
+      return serviceStr;
+    })
     .join('\n');
 
   // Build user context string
@@ -281,8 +302,18 @@ ALWAYS use this information when building bookings. NEVER ask the user for infor
 Service Matching: When users refer to services informally (e.g., "men's haircut", "haircut", "color"), match them to the exact service names in the Available Services list below. For example:
 - "men's haircut" or "mens haircut" → "Men's Haircut"
 - "women's haircut" or "womens haircut" → "Women's Haircut"
-- "color" → "Single Process Color"
-- "highlights" → "Partial Highlights" or "Full Highlights" (ask which)
+- "color" → Look at services with "Color" or "Colouring" in the name
+- "highlights" → "Highlight" or "Premium Highlighting"
+
+IMPORTANT - Concern-Based Recommendations:
+When users describe hair concerns or desired outcomes (e.g., "my hair is frizzy", "I want volume", "I want straight hair"), recommend services based on what they address/achieve:
+- Frizzy hair → Recommend "Hair Rebonding", "K-Gloss Keratin Treatment", or "Tiboli Keratin Treatment"
+- Flat/limp hair wanting volume → Recommend "Iron Root Perm", "Classic Perm", or "Digital Perm"
+- Damaged hair → Recommend "Mucota Treatment", "Shiseido Treatment", or "K-Gloss Keratin Treatment"
+- Wanting straight hair → Recommend "Hair Rebonding" or keratin treatments
+- Scalp issues (oily, dandruff, hair loss) → Recommend "Scalp Therapy" or "Scalp Treatment"
+
+Use the "Addresses" and "Achieves" information in the Available Services list to make intelligent recommendations.
 
 Booking: When a user provides a date/time for booking:
 1. If the user provides BOTH date AND time (e.g., "October 20th at 3pm"):

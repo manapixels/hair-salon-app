@@ -9,18 +9,11 @@ import { Sparkles } from '@/lib/icons';
 import { getAdminSettings, getServiceCategories } from '@/lib/database';
 
 // Featured service names
-const FEATURED_SERVICE_NAMES = [
-  'Hair Colouring',
-  'Balayage',
-  'Hair Rebonding',
-  'Hair Treatment',
-  'Hair Perm',
-];
+const FEATURED_SERVICE_NAMES = ['Hair Colouring', 'Hair Rebonding', 'Hair Treatment', 'Hair Perm'];
 
 // Service names with static pages
 const SERVICES_WITH_STATIC_PAGES: Record<string, string> = {
   'Hair Colouring': '/services/hair-colouring',
-  Balayage: '/services/balayage',
   'Hair Rebonding': '/services/hair-rebonding',
   'Hair Treatment': '/services/hair-treatment',
   'Hair Perm': '/services/hair-perm',
@@ -35,7 +28,6 @@ function getServicePageUrl(serviceName: string): string | null {
 function getServiceImage(serviceName: string): string {
   const imageMap: Record<string, string> = {
     'Hair Colouring': '/background-images/hair-colouring.png',
-    Balayage: '/background-images/balayage.png',
     'Hair Rebonding': '/background-images/hair-rebonding.png',
     'Hair Treatment': '/background-images/hair-treatment.png',
     'Hair Perm': '/background-images/hair-perm.png',

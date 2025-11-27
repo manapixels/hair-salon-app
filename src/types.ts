@@ -11,6 +11,25 @@ export interface ServiceAddon {
   serviceId: string;
 }
 
+export type TagCategory = 'CONCERN' | 'OUTCOME' | 'HAIR_TYPE';
+
+export interface ServiceTag {
+  id: string;
+  slug: string;
+  label: string;
+  category: TagCategory;
+  description?: string | null;
+  iconName?: string | null;
+  sortOrder: number;
+}
+
+export interface ServiceTagRelation {
+  id: string;
+  serviceId: string;
+  tagId: string;
+  tag: ServiceTag;
+}
+
 export interface Service {
   id: string;
   name: string;
@@ -25,6 +44,7 @@ export interface Service {
   tags: string[];
   categoryId: string;
   addons?: ServiceAddon[];
+  serviceTags?: ServiceTagRelation[];
   isActive: boolean;
 }
 
