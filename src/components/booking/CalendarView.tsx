@@ -112,7 +112,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
         <button
           onClick={onPreviousMonth}
           disabled={loading}
-          className="w-10 h-10 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-accent disabled:opacity-50 disabled:cursor-not-allowed"
+          className="min-w-touch min-h-touch w-12 h-12 md:w-10 md:h-10 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-accent disabled:opacity-50 disabled:cursor-not-allowed active-scale"
           aria-label="Previous month"
         >
           <svg
@@ -140,7 +140,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
         <button
           onClick={onNextMonth}
           disabled={loading}
-          className="w-10 h-10 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-accent disabled:opacity-50 disabled:cursor-not-allowed"
+          className="min-w-touch min-h-touch w-12 h-12 md:w-10 md:h-10 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-accent disabled:opacity-50 disabled:cursor-not-allowed active-scale"
           aria-label="Next month"
         >
           <svg
@@ -193,8 +193,8 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
               onKeyDown={e => handleKeyDown(e, date)}
               tabIndex={isSelected ? 0 : -1}
               className={`
-                h-10 w-full rounded-lg flex items-center justify-center text-sm font-medium relative transition-all
-                focus:outline-none focus:ring-2 focus:ring-accent
+                h-12 md:h-10 w-full rounded-lg flex items-center justify-center text-sm md:text-sm font-medium relative transition-all
+                focus:outline-none focus:ring-2 focus:ring-accent active-scale
                 ${isSelected ? 'bg-accent font-semibold' : ''}
                 ${!isSelected && isTodayDate ? 'ring-2 ring-accent ring-offset-2' : ''}
                 ${!isSelected && !isDisabled && isCurrentMonth ? 'hover:bg-accent-soft dark:hover:bg-accent-soft cursor-pointer' : ''}

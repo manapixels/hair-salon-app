@@ -59,6 +59,23 @@ const config: Config = {
           foreground: 'hsl(var(--card-foreground))',
         },
       },
+      spacing: {
+        'safe-top': 'env(safe-area-inset-top)',
+        'safe-bottom': 'env(safe-area-inset-bottom)',
+        'safe-left': 'env(safe-area-inset-left)',
+        'safe-right': 'env(safe-area-inset-right)',
+      },
+      minHeight: {
+        touch: '44px',
+        'touch-lg': '48px',
+      },
+      minWidth: {
+        touch: '44px',
+        'touch-lg': '48px',
+      },
+      height: {
+        'safe-bottom': 'env(safe-area-inset-bottom)',
+      },
       borderRadius: {
         lg: 'var(--radius-3)',
         md: 'var(--radius-2)',

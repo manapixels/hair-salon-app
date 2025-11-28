@@ -441,15 +441,13 @@ export default function KeratinTreatmentPage() {
       />
 
       {/* Stats */}
-      <Container size="3" className="px-6 md:px-12 -mt-20 relative z-10 mb-24">
-        <ServiceStats
-          stats={[
-            { label: content.stats.maintenance.label, value: content.stats.maintenance.value },
-            { label: content.stats.duration.label, value: content.stats.duration.value },
-            { label: 'Price', value: servicePrice },
-          ]}
-        />
-      </Container>
+      <ServiceStats
+        stats={[
+          { label: content.stats.maintenance.label, value: content.stats.maintenance.value },
+          { label: content.stats.duration.label, value: content.stats.duration.value },
+          { label: 'Price', value: servicePrice },
+        ]}
+      />
 
       {/* About Keratin Section */}
       <Container size="4" className="px-6 md:px-12 py-16 bg-stone-50">

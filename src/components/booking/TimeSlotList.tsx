@@ -74,15 +74,16 @@ const TimeSlotGroup: React.FC<TimeSlotGroupProps> = ({
               disabled={!available}
               onClick={() => available && onTimeSelect(time)}
               className={`
-                w-full text-left px-4 py-3.5 rounded-lg font-medium
+                w-full text-left px-5 py-4 md:px-4 md:py-3.5 rounded-lg font-medium
                 border-2 bg-white transition-all duration-200
-                focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2
+                min-h-touch-lg focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2
+                ${available ? 'active-scale' : ''}
                 ${
                   isSelected
-                    ? 'border-accent bg-accent'
-                    : 'border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 hover:border-accent hover:bg-accent-soft dark:hover:bg-accent-soft'
+                    ? 'border-accent bg-accent shadow-md'
+                    : 'border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 hover:border-accent hover:bg-accent-soft dark:hover:bg-accent-soft hover:shadow-sm'
                 }
-                ${!available ? 'opacity-50 cursor-not-allowed hover:border-gray-200 dark:hover:border-gray-700 hover:bg-transparent' : 'cursor-pointer'}
+                ${!available ? 'opacity-50 cursor-not-allowed hover:border-gray-200 dark:hover:border-gray-700 hover:bg-transparent hover:shadow-none' : 'cursor-pointer'}
               `}
             >
               <div className="flex items-center justify-between">

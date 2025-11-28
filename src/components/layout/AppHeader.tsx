@@ -18,12 +18,14 @@ import {
   LogOut,
   Sparkles,
   ChevronDown,
+  Menu,
 } from '@/lib/icons';
 import Image from 'next/image';
 import Link from 'next/link';
 import Logo from './Logo';
 import { ServiceCategory } from '@/types';
 import OAuthLoginModal from '../auth/OAuthLoginModal';
+import { MobileMenuDrawer } from './MobileMenuDrawer';
 
 type View = 'booking' | 'admin' | 'dashboard' | 'services';
 
@@ -55,6 +57,7 @@ export default function AppHeader({ view, onViewChange }: AppHeaderProps) {
   const [categories, setCategories] = useState<ServiceCategory[]>([]);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isMegaMenuOpen, setIsMegaMenuOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const activeView: View = useMemo(() => {
     if (pathname?.startsWith('/admin')) return 'admin';
@@ -162,181 +165,181 @@ export default function AppHeader({ view, onViewChange }: AppHeaderProps) {
   };
 
   return (
-    <header className="sticky top-0 z-50 border-b border-base-primary/10 bg-stone-50 bg-opacity-50 backdrop-blur-md transition-all duration-300 dark:border-gray-800 dark:bg-gray-900">
-      <nav className="w-full flex items-center justify-between px-6 py-3 lg:px-12">
-        <div className="flex items-center gap-1.5">
-          <div className="relative h-12 w-48 cursor-pointer" onClick={() => router.push('/')}>
-            <Logo className="h-full w-full text-black dark:text-white" />
+    <>
+      {/* Mobile Floating Hamburger Menu Button - Fixed Position */}
+      <button
+        onClick={() => setIsMobileMenuOpen(true)}
+        className="md:hidden fixed bottom-6 left-6 z-[60] flex items-center justify-center w-14 h-14 bg-accent text-white rounded-full shadow-2xl hover:shadow-xl active:scale-95 transition-all duration-200 touch-target"
+        aria-label="Open menu"
+      >
+        <Menu className="h-6 w-6" />
+      </button>
+
+      {/* Desktop Header - Hidden on Mobile */}
+      <header className="hidden md:block sticky top-0 z-50 border-b border-base-primary/10 bg-stone-50 bg-opacity-50 backdrop-blur-md transition-all duration-300 dark:border-gray-800 dark:bg-gray-900">
+        <nav className="w-full flex items-center justify-between px-6 py-3 lg:px-12">
+          <div className="flex items-center gap-3">
+            <div className="relative h-12 w-48 cursor-pointer" onClick={() => router.push('/')}>
+              <Logo className="h-full w-full text-black dark:text-white" />
+            </div>
           </div>
-        </div>
-        <div className="flex items-center gap-4">
-          <div className="hidden items-center gap-6 sm:flex">
-            {/* Mega Menu / Dropdown for Services */}
-            <div className="static group" onMouseEnter={() => setIsMegaMenuOpen(true)}>
-              <button
-                className={`flex items-center gap-1 text-sm font-medium transition-colors h-full py-3 text-black font-semibold`}
-                onClick={() => handleNavigation('services', '/services')}
-              >
-                Our Services
-                <ChevronDown className="w-3 h-3" />
-              </button>
+          <div className="flex items-center gap-4">
+            <div className="hidden items-center gap-6 sm:flex">
+              {/* Mega Menu / Dropdown for Services */}
+              <div className="static group" onMouseEnter={() => setIsMegaMenuOpen(true)}>
+                <button
+                  className={`flex items-center gap-1 text-sm font-medium transition-colors h-full py-3 text-black font-semibold`}
+                  onClick={() => handleNavigation('services', '/services')}
+                >
+                  Our Services
+                  <ChevronDown className="w-3 h-3" />
+                </button>
 
-              {/* Full Width Mega Menu Overlay */}
-              <div
-                className={`fixed left-0 top-[73px] w-screen bg-[var(--accent-9)] text-white transition-all duration-300 ease-in-out z-50 shadow-2xl border-t border-[var(--accent-8)] ${isMegaMenuOpen ? 'opacity-100 visible' : 'opacity-0 invisible'}`}
-                onMouseLeave={() => setIsMegaMenuOpen(false)}
-              >
-                <div className="mx-auto">
-                  <div className="grid grid-cols-12">
-                    {/* Left Column: Image */}
-                    <div className="col-span-7 flex items-center justify-center gap-8">
-                      <div className="relative w-full h-full transition-transform duration-500">
-                        <Image
-                          src="/background-images/menu-service-bg.png"
-                          alt="Hime Cut"
-                          fill
-                          className="object-cover opacity-80 group-hover/img:opacity-100 transition-opacity rounded-lg"
-                        />
+                {/* Full Width Mega Menu Overlay */}
+                <div
+                  className={`fixed left-0 top-[73px] w-screen bg-[var(--accent-9)] text-white transition-all duration-300 ease-in-out z-50 shadow-2xl border-t border-[var(--accent-8)] ${isMegaMenuOpen ? 'opacity-100 visible' : 'opacity-0 invisible'}`}
+                  onMouseLeave={() => setIsMegaMenuOpen(false)}
+                >
+                  <div className="mx-auto">
+                    <div className="grid grid-cols-12">
+                      {/* Left Column: Image */}
+                      <div className="col-span-7 flex items-center justify-center gap-8">
+                        <div className="relative w-full h-full transition-transform duration-500">
+                          <Image
+                            src="/background-images/menu-service-bg.png"
+                            alt="Hime Cut"
+                            fill
+                            className="object-cover opacity-80 group-hover/img:opacity-100 transition-opacity rounded-lg"
+                          />
+                        </div>
                       </div>
-                    </div>
-                    {/* Right Column: Featured Services List */}
-                    <div className="col-span-5 space-y-2 px-6 lg:px-16 py-12">
-                      {/* Featured Services - Direct links to service detail pages */}
-                      <Link
-                        href="/services/hair-colouring"
-                        onClick={() => setIsMegaMenuOpen(false)}
-                        className="group/item flex items-center justify-between py-4 border-b border-[var(--accent-7)] hover:border-white transition-colors"
-                      >
-                        <span className="text-2xl font-light tracking-wide group-hover/item:text-white text-white/90 transition-colors">
-                          Colouring
-                        </span>
-                        <div className="w-10 h-10 rounded-full border border-[var(--accent-8)] flex items-center justify-center group-hover/item:border-white group-hover/item:bg-white group-hover/item:text-[var(--accent-11)] transition-all">
-                          <ChevronDown className="w-5 h-5 -rotate-90" />
-                        </div>
-                      </Link>
-
-                      <Link
-                        href="/services/hair-rebonding"
-                        onClick={() => setIsMegaMenuOpen(false)}
-                        className="group/item flex items-center justify-between py-4 border-b border-[var(--accent-7)] hover:border-white transition-colors"
-                      >
-                        <span className="text-2xl font-light tracking-wide group-hover/item:text-white text-white/90 transition-colors">
-                          Rebonding
-                        </span>
-                        <div className="w-10 h-10 rounded-full border border-[var(--accent-8)] flex items-center justify-center group-hover/item:border-white group-hover/item:bg-white group-hover/item:text-[var(--accent-11)] transition-all">
-                          <ChevronDown className="w-5 h-5 -rotate-90" />
-                        </div>
-                      </Link>
-
-                      <Link
-                        href="/services/scalp-treatment"
-                        onClick={() => setIsMegaMenuOpen(false)}
-                        className="group/item flex items-center justify-between py-4 border-b border-[var(--accent-7)] hover:border-white transition-colors"
-                      >
-                        <span className="text-2xl font-light tracking-wide group-hover/item:text-white text-white/90 transition-colors">
-                          Scalp Treatment
-                        </span>
-                        <div className="w-10 h-10 rounded-full border border-[var(--accent-8)] flex items-center justify-center group-hover/item:border-white group-hover/item:bg-white group-hover/item:text-[var(--accent-11)] transition-all">
-                          <ChevronDown className="w-5 h-5 -rotate-90" />
-                        </div>
-                      </Link>
-
-                      <Link
-                        href="/services/keratin-treatment"
-                        onClick={() => setIsMegaMenuOpen(false)}
-                        className="group/item flex items-center justify-between py-4 border-b border-[var(--accent-7)] hover:border-white transition-colors"
-                      >
-                        <span className="text-2xl font-light tracking-wide group-hover/item:text-white text-white/90 transition-colors">
-                          Keratin Treatment
-                        </span>
-                        <div className="w-10 h-10 rounded-full border border-[var(--accent-8)] flex items-center justify-center group-hover/item:border-white group-hover/item:bg-white group-hover/item:text-[var(--accent-11)] transition-all">
-                          <ChevronDown className="w-5 h-5 -rotate-90" />
-                        </div>
-                      </Link>
-
-                      <Link
-                        href="/services/hair-perm"
-                        onClick={() => setIsMegaMenuOpen(false)}
-                        className="group/item flex items-center justify-between py-4 border-b border-[var(--accent-7)] hover:border-white transition-colors"
-                      >
-                        <span className="text-2xl font-light tracking-wide group-hover/item:text-white text-white/90 transition-colors">
-                          Perm
-                        </span>
-                        <div className="w-10 h-10 rounded-full border border-[var(--accent-8)] flex items-center justify-center group-hover/item:border-white group-hover/item:bg-white group-hover/item:text-[var(--accent-11)] transition-all">
-                          <ChevronDown className="w-5 h-5 -rotate-90" />
-                        </div>
-                      </Link>
-
-                      <div className="pt-6">
+                      {/* Right Column: Featured Services List */}
+                      <div className="col-span-5 space-y-2 px-6 lg:px-16 py-12">
+                        {/* Featured Services - Direct links to service detail pages */}
                         <Link
-                          href="/services"
+                          href="/services/hair-colouring"
                           onClick={() => setIsMegaMenuOpen(false)}
-                          className="text-gold-400 hover:text-gold-300 text-sm uppercase tracking-widest font-semibold"
+                          className="group/item flex items-center justify-between py-4 border-b border-[var(--accent-7)] hover:border-white transition-colors"
                         >
-                          View All Services &rarr;
+                          <span className="text-2xl font-light tracking-wide group-hover/item:text-white text-white/90 transition-colors">
+                            Colouring
+                          </span>
+                          <div className="w-10 h-10 rounded-full border border-[var(--accent-8)] flex items-center justify-center group-hover/item:border-white group-hover/item:bg-white group-hover/item:text-[var(--accent-11)] transition-all">
+                            <ChevronDown className="w-5 h-5 -rotate-90" />
+                          </div>
                         </Link>
+
+                        <Link
+                          href="/services/hair-rebonding"
+                          onClick={() => setIsMegaMenuOpen(false)}
+                          className="group/item flex items-center justify-between py-4 border-b border-[var(--accent-7)] hover:border-white transition-colors"
+                        >
+                          <span className="text-2xl font-light tracking-wide group-hover/item:text-white text-white/90 transition-colors">
+                            Rebonding
+                          </span>
+                          <div className="w-10 h-10 rounded-full border border-[var(--accent-8)] flex items-center justify-center group-hover/item:border-white group-hover/item:bg-white group-hover/item:text-[var(--accent-11)] transition-all">
+                            <ChevronDown className="w-5 h-5 -rotate-90" />
+                          </div>
+                        </Link>
+
+                        <Link
+                          href="/services/scalp-treatment"
+                          onClick={() => setIsMegaMenuOpen(false)}
+                          className="group/item flex items-center justify-between py-4 border-b border-[var(--accent-7)] hover:border-white transition-colors"
+                        >
+                          <span className="text-2xl font-light tracking-wide group-hover/item:text-white text-white/90 transition-colors">
+                            Scalp Treatment
+                          </span>
+                          <div className="w-10 h-10 rounded-full border border-[var(--accent-8)] flex items-center justify-center group-hover/item:border-white group-hover/item:bg-white group-hover/item:text-[var(--accent-11)] transition-all">
+                            <ChevronDown className="w-5 h-5 -rotate-90" />
+                          </div>
+                        </Link>
+
+                        <Link
+                          href="/services/keratin-treatment"
+                          onClick={() => setIsMegaMenuOpen(false)}
+                          className="group/item flex items-center justify-between py-4 border-b border-[var(--accent-7)] hover:border-white transition-colors"
+                        >
+                          <span className="text-2xl font-light tracking-wide group-hover/item:text-white text-white/90 transition-colors">
+                            Keratin Treatment
+                          </span>
+                          <div className="w-10 h-10 rounded-full border border-[var(--accent-8)] flex items-center justify-center group-hover/item:border-white group-hover/item:bg-white group-hover/item:text-[var(--accent-11)] transition-all">
+                            <ChevronDown className="w-5 h-5 -rotate-90" />
+                          </div>
+                        </Link>
+
+                        <Link
+                          href="/services/hair-perm"
+                          onClick={() => setIsMegaMenuOpen(false)}
+                          className="group/item flex items-center justify-between py-4 border-b border-[var(--accent-7)] hover:border-white transition-colors"
+                        >
+                          <span className="text-2xl font-light tracking-wide group-hover/item:text-white text-white/90 transition-colors">
+                            Perm
+                          </span>
+                          <div className="w-10 h-10 rounded-full border border-[var(--accent-8)] flex items-center justify-center group-hover/item:border-white group-hover/item:bg-white group-hover/item:text-[var(--accent-11)] transition-all">
+                            <ChevronDown className="w-5 h-5 -rotate-90" />
+                          </div>
+                        </Link>
+
+                        <div className="pt-6">
+                          <Link
+                            href="/services"
+                            onClick={() => setIsMegaMenuOpen(false)}
+                            className="text-gold-400 hover:text-gold-300 text-sm uppercase tracking-widest font-semibold"
+                          >
+                            View All Services &rarr;
+                          </Link>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
 
-            <button
-              className="text-sm font-medium text-gray-600 hover:text-black dark:text-gray-300 dark:hover:text-white transition-colors"
-              onClick={() => router.push('/#contact')}
-            >
-              Contact Us
-            </button>
-
-            <div className="h-6 w-px bg-gray-200 dark:bg-gray-700 mx-2"></div>
-
-            <Button
-              variant={activeView === 'booking' ? 'solid' : 'outline'}
-              size="md"
-              className="bg-stone-50 bg-opacity-40 backdrop-blur-xs"
-              onClick={() => handleNavigation('booking', '/')}
-            >
-              <Calendar className="h-4 w-4" aria-hidden="true" />
-              Book Now
-            </Button>
-
-            {user && user.role === 'CUSTOMER' && (
-              <div className="relative">
-                <Button
-                  variant={activeView === 'dashboard' ? 'solid' : 'ghost'}
-                  size="md"
-                  onClick={() => handleNavigation('dashboard', '/dashboard')}
-                >
-                  <User className="h-4 w-4" aria-hidden="true" />
-                  Dashboard
-                </Button>
-                <NotificationBadge count={appointmentCount} />
-              </div>
-            )}
-
-            {user?.role === 'ADMIN' && (
-              <Button
-                variant={activeView === 'admin' ? 'solid' : 'soft'}
-                size="md"
-                onClick={() => handleNavigation('admin', '/admin')}
-              >
-                <Shield className="h-4 w-4" aria-hidden="true" />
-                Admin
-              </Button>
-            )}
-          </div>
-          <div className="flex items-center gap-3">
-            {user && user.role === 'CUSTOMER' && (
               <button
-                className="relative flex h-11 w-11 items-center justify-center rounded-full border border-[var(--gray-6)] bg-[var(--color-panel)] text-[var(--gray-11)] transition-colors hover:bg-[var(--gray-3)] hover:text-[var(--accent-11)] sm:hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-8)]"
-                onClick={() => router.push('/dashboard')}
-                aria-label={`Dashboard, ${appointmentCount} upcoming appointment${appointmentCount !== 1 ? 's' : ''}`}
+                className="text-sm font-medium text-gray-600 hover:text-black dark:text-gray-300 dark:hover:text-white transition-colors"
+                onClick={() => router.push('/#contact')}
               >
-                <Bell className="h-5 w-5" aria-hidden="true" />
-                <NotificationBadge count={appointmentCount} />
+                Contact Us
               </button>
-            )}
+
+              <div className="h-6 w-px bg-gray-200 dark:bg-gray-700 mx-2"></div>
+
+              <Button
+                variant={activeView === 'booking' ? 'solid' : 'outline'}
+                size="md"
+                className="bg-stone-50 bg-opacity-40 backdrop-blur-xs"
+                onClick={() => handleNavigation('booking', '/')}
+              >
+                <Calendar className="h-4 w-4" aria-hidden="true" />
+                Book Now
+              </Button>
+
+              {user && user.role === 'CUSTOMER' && (
+                <div className="relative">
+                  <Button
+                    variant={activeView === 'dashboard' ? 'solid' : 'ghost'}
+                    size="md"
+                    onClick={() => handleNavigation('dashboard', '/dashboard')}
+                  >
+                    <User className="h-4 w-4" aria-hidden="true" />
+                    Dashboard
+                  </Button>
+                  <NotificationBadge count={appointmentCount} />
+                </div>
+              )}
+
+              {user?.role === 'ADMIN' && (
+                <Button
+                  variant={activeView === 'admin' ? 'solid' : 'soft'}
+                  size="md"
+                  onClick={() => handleNavigation('admin', '/admin')}
+                >
+                  <Shield className="h-4 w-4" aria-hidden="true" />
+                  Admin
+                </Button>
+              )}
+            </div>
             {user ? (
               <DropdownMenu.Root>
                 <DropdownMenu.Trigger asChild>
@@ -424,9 +427,19 @@ export default function AppHeader({ view, onViewChange }: AppHeaderProps) {
               </Button>
             )}
           </div>
-        </div>
-      </nav>
+        </nav>
+      </header>
+
+      {/* Modals - Available on all screen sizes */}
       <OAuthLoginModal isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
-    </header>
+      <MobileMenuDrawer
+        isOpen={isMobileMenuOpen}
+        onClose={() => setIsMobileMenuOpen(false)}
+        user={user}
+        activeView={activeView}
+        onLogout={logout}
+        onLoginClick={() => setIsLoginOpen(true)}
+      />
+    </>
   );
 }

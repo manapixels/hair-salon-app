@@ -1,6 +1,5 @@
 import React from 'react';
 import { Heading, Text, Container, Grid } from '@radix-ui/themes';
-import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import {
   ServiceHero,
@@ -376,16 +375,15 @@ export default function HairColouringPage() {
       />
 
       {/* Stats */}
-      <Container size="3" className="px-6 md:px-12 -mt-20 relative z-10 mb-24">
-        <ServiceStats
-          stats={[
-            { label: content.stats.maintenance.label, value: content.stats.maintenance.value },
-            { label: content.stats.duration.label, value: content.stats.duration.value },
-            { label: 'Price', value: servicePrice },
-          ]}
-        />
-      </Container>
+      <ServiceStats
+        stats={[
+          { label: content.stats.maintenance.label, value: content.stats.maintenance.value },
+          { label: content.stats.duration.label, value: content.stats.duration.value },
+          { label: 'Price', value: servicePrice },
+        ]}
+      />
 
+      {/* Services */}
       <Container size="4" className="px-6 md:px-12 py-16 bg-white">
         <div className="text-center mb-16">
           <Heading size="8" className="font-serif text-stone-900 mb-4">
@@ -395,7 +393,6 @@ export default function HairColouringPage() {
             {content.overview.subtitle}
           </Text>
         </div>
-
         <Grid columns={{ initial: '1', sm: '2', md: '4' }} gap="8">
           {content.types.map((type, index) => (
             <ServiceTypeCard

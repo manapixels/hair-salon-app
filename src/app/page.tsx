@@ -49,59 +49,53 @@ export default async function HomePage() {
   return (
     <div className="bg-[#FDFCF8] min-h-screen text-stone-900 font-serif">
       {/* Hero Section */}
-      <section className="min-h-screen flex flex-col lg:flex-row pt-20 lg:pt-0 overflow-hidden relative">
-        <div className="w-full lg:w-1/2 flex items-center justify-center p-8 lg:p-24 relative z-10 bg-base-primary/10">
+      <section className="flex flex-col lg:flex-row lg:min-h-screen pt-20 lg:pt-0 overflow-hidden relative">
+        <div className="w-full lg:w-1/2 flex items-center justify-center p-6 py-12 md:p-8 lg:p-24 relative z-10 bg-base-primary/10">
           <div className="max-w-xl fade-in-up w-full">
-            <span className="text-base-primary font-medium tracking-widest text-sm mb-4 block">
+            <span className="text-base-primary font-medium tracking-widest text-xs md:text-sm mb-3 md:mb-4 block">
               Est. 2024 • Yishun, Singapore
             </span>
-            <h1 className="font-serif text-5xl lg:text-7xl text-base-dark leading-tight mb-6">
+            <h1 className="font-serif text-4xl md:text-5xl lg:text-7xl text-base-dark leading-tight mb-4 md:mb-6">
               Craft your <span className="italic text-base-primary">Signature</span> look with us
             </h1>
-            <p className="text-gray-500 text-lg mb-8 leading-relaxed max-w-md">
+            <p className="text-gray-500 text-base md:text-lg mb-6 md:mb-8 leading-relaxed max-w-md">
               Experience hair artistry at Signature Trims, a neighbourhood hair salon where we bring
               out the best in you.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 mb-12">
-              <button className="bg-gray-900 text-white px-8 py-4 rounded-full hover:bg-base-primary transition-all duration-300 shadow-lg shadow-base-dark/20 text-sm font-medium uppercase tracking-wide">
+            <div className="flex flex-col sm:flex-row gap-3 md:gap-4 mb-8 md:mb-12">
+              <button className="min-h-touch-lg bg-gray-900 text-white px-8 py-4 rounded-full hover:bg-base-primary active-scale transition-all duration-300 shadow-lg shadow-base-dark/20 text-sm font-medium uppercase tracking-wide">
                 Book Your Visit
               </button>
               <a
                 href="#services"
-                className="px-8 py-4 rounded-full border border-base-dark text-base-dark hover:bg-base-dark hover:text-white transition-all duration-300 text-sm font-medium uppercase tracking-wide flex items-center justify-center"
+                className="min-h-touch-lg px-8 py-4 rounded-full border border-base-dark text-base-dark hover:bg-base-dark hover:text-white active-scale transition-all duration-300 text-sm font-medium uppercase tracking-wide flex items-center justify-center"
               >
                 View Menu
               </a>
             </div>
-            <div className="flex items-center gap-8 text-gray-400">
-              <div className="flex items-center gap-2">
-                <i className="fa-bases fa-instagram text-xl"></i>
-                <a
-                  href="https://maps.app.goo.gl/umK5KbT3rN1HeEg5A"
-                  target="_blank"
-                  className="text-sm"
-                >
-                  <Instagram className="w-4 h-4 inline mr-2" />
-                  @signaturetrims
-                </a>
-              </div>
-              <div className="flex items-center gap-2">
-                <i className="fa-solid fa-star text-base-primary text-xl"></i>
-                <a
-                  href="https://maps.app.goo.gl/umK5KbT3rN1HeEg5A"
-                  target="_blank"
-                  className="text-sm"
-                >
-                  <Star className="w-5 h-5 fill-[var(--accent-9)] text-transparent inline mr-2" />
-                  5.0 (100+ Reviews)
-                </a>
-              </div>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-8 text-gray-400 text-sm">
+              <a
+                href="https://maps.app.goo.gl/umK5KbT3rN1HeEg5A"
+                target="_blank"
+                className="flex items-center gap-2 min-h-touch active-scale"
+              >
+                <Instagram className="w-4 h-4 flex-shrink-0" />
+                <span>@signaturetrims</span>
+              </a>
+              <a
+                href="https://maps.app.goo.gl/umK5KbT3rN1HeEg5A"
+                target="_blank"
+                className="flex items-center gap-2 min-h-touch active-scale"
+              >
+                <Star className="w-5 h-5 fill-[var(--accent-9)] text-transparent flex-shrink-0" />
+                <span>5.0 (100+ Reviews)</span>
+              </a>
             </div>
           </div>
         </div>
 
         {/* Right Image */}
-        <div className="w-full lg:w-1/2 h-[50vh] lg:h-auto relative">
+        <div className="w-full lg:w-1/2 h-[40vh] md:h-[50vh] lg:h-auto relative">
           <Image
             src="/may-with-customer.jpg"
             alt="May with her customer"
@@ -130,67 +124,71 @@ export default async function HomePage() {
         </div>
 
         {/* Featured Services Grid - Large Cards with Images */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {featuredServices.slice(0, 6).map((service, index) => (
-            <div
-              key={service.id}
-              className="relative flex gap-3 snap-center bg-[#FDFCF8] px-8 py-6 border border-white/5 hover:border-gold-primary/50 transition-colors duration-500 group rounded-lg"
-            >
-              <div className="w-[70%]">
-                <div className="text-gold-primary text-4xl mb-6 group-hover:translate-x-2 transition-transform duration-300">
-                  0{index + 1}.
-                </div>
-                <h3 className="font-serif text-2xl text-base-primary mb-2">{service.name}</h3>
-                <div className="h-px w-full bg-base-primary/10 my-4"></div>
-                <div className="text-sm text-gray-400 uppercase tracking-wider mb-4">
-                  <span></span>
-                  <span className="text-gold-light">{service.price}</span>
-                </div>
-                {service.subtitle && (
-                  <p className="text-gray-500 text-sm mb-4">{service.subtitle}</p>
-                )}
-                {/* Service Details */}
-                <div className="flex flex-start gap-3">
-                  {(() => {
-                    const serviceUrl = getServicePageUrl(service.name);
-                    return (
-                      <>
-                        {serviceUrl && (
+        <div className="px-4 md:px-0">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+            {featuredServices.slice(0, 6).map((service, index) => (
+              <div
+                key={service.id}
+                className="relative flex flex-col sm:flex-row gap-3 sm:gap-4 snap-center bg-[#FDFCF8] px-6 py-5 md:px-8 md:py-6 border border-white/5 hover:border-gold-primary/50 transition-colors duration-500 group rounded-lg"
+              >
+                <div className="w-full sm:w-[70%]">
+                  <div className="text-gold-primary text-3xl md:text-4xl mb-4 md:mb-6 group-hover:translate-x-2 transition-transform duration-300">
+                    0{index + 1}.
+                  </div>
+                  <h3 className="font-serif text-xl md:text-2xl text-base-primary mb-2">
+                    {service.name}
+                  </h3>
+                  <div className="h-px w-full bg-base-primary/10 my-3 md:my-4"></div>
+                  <div className="text-sm text-gray-400 uppercase tracking-wider mb-3 md:mb-4">
+                    <span></span>
+                    <span className="text-gold-light">{service.price}</span>
+                  </div>
+                  {service.subtitle && (
+                    <p className="text-gray-500 text-sm mb-4">{service.subtitle}</p>
+                  )}
+                  {/* Service Details */}
+                  <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+                    {(() => {
+                      const serviceUrl = getServicePageUrl(service.name);
+                      return (
+                        <>
+                          {serviceUrl && (
+                            <Link
+                              href={serviceUrl}
+                              className="min-h-touch-lg flex-1 py-3 bg-white text-base-primary/60 border-2 border-base-primary/60 rounded-lg hover:bg-stone-50 active-scale transition-colors duration-200 font-medium text-center"
+                            >
+                              Learn More
+                            </Link>
+                          )}
                           <Link
-                            href={serviceUrl}
-                            className="flex-1 py-3 bg-white text-base-primary/60 border-2 border-base-primary/60 rounded-lg hover:bg-stone-50 transition-colors duration-200 font-medium text-center"
+                            href="/?book=true"
+                            className={`min-h-touch-lg py-3 bg-gray-800 text-white rounded-lg hover:bg-stone-800 active-scale transition-colors duration-200 font-medium text-center ${serviceUrl ? 'flex-1' : 'w-full'}`}
                           >
-                            Learn More
+                            Book Now
                           </Link>
-                        )}
-                        <Link
-                          href="/?book=true"
-                          className={`py-3 bg-gray-800 text-white rounded-lg hover:bg-stone-800 transition-colors duration-200 font-medium text-center ${serviceUrl ? 'flex-1' : 'w-full'}`}
-                        >
-                          Book Now
-                        </Link>
-                      </>
-                    );
-                  })()}
+                        </>
+                      );
+                    })()}
+                  </div>
+                </div>
+                <div className="relative w-full h-48 sm:w-[30%] sm:h-auto sm:min-h-[200px] rounded-lg overflow-hidden">
+                  <Image
+                    src={service.imageUrl || getServiceImage(service.name)}
+                    alt={service.name}
+                    fill
+                    className="object-cover transition-transform duration-700"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
                 </div>
               </div>
-              <div className="relative w-[30%] h-[70%] rounded-lg overflow-hidden">
-                <Image
-                  src={service.imageUrl || getServiceImage(service.name)}
-                  alt={service.name}
-                  fill
-                  className="object-cover transition-transform duration-700"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
-              </div>
+            ))}
+            <div className="group p-6 md:p-8 rounded-3xl bg-base-primary/30 text-black border border-transparent hover:scale-[1.02] active-scale transition-all duration-300 cursor-pointer flex flex-col justify-center items-center text-center min-h-touch-lg">
+              <h3 className="text-xl md:text-2xl font-serif mb-2">Need Advice?</h3>
+              <p className="text-sm mb-6">Book a free 15-min consultation with a master stylist.</p>
+              <button className="min-h-touch-lg bg-white text-base-primary px-6 py-3 rounded-lg text-sm font-medium hover:bg-base-primary hover:text-white active-scale transition-colors">
+                Book Consult
+              </button>
             </div>
-          ))}
-          <div className="group p-8 rounded-3xl bg-base-primary/30 text-black border border-transparent hover:scale-[1.02] transition-all duration-300 cursor-pointer flex flex-col justify-center items-center text-center">
-            <h3 className="text-2xl font-serif mb-2">Need Advice?</h3>
-            <p className=" text-sm mb-6">Book a free 15-min consultation with a master stylist.</p>
-            <button className="bg-white text-base-primary px-6 py-2 rounded-lg text-sm font-medium hover:bg-base-primary hover:text-white transition-colors">
-              Book Consult
-            </button>
           </div>
         </div>
       </section>
