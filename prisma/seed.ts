@@ -120,7 +120,7 @@ const CATEGORIES = [
         price: '$80',
         basePrice: 80,
         duration: 120,
-        imageUrl: '/background-images/hair-colouring.png',
+        imageUrl: '/background-images/hair-colouring.jpg',
         serviceTags: ['gray-hair', 'dull-hair', 'color-change'],
         addons: [
           {
@@ -140,7 +140,7 @@ const CATEGORIES = [
         basePrice: 95,
         maxPrice: 150,
         duration: 120,
-        imageUrl: '/background-images/hair-colouring.png',
+        imageUrl: '/background-images/hair-colouring.jpg',
         serviceTags: ['gray-hair', 'dull-hair', 'color-change'],
         addons: [
           {
@@ -274,7 +274,7 @@ const CATEGORIES = [
         basePrice: 200,
         maxPrice: 300,
         duration: 180,
-        imageUrl: '/background-images/hair-rebonding.png',
+        imageUrl: '/background-images/hair-rebonding.jpg',
         serviceTags: [
           'frizzy-hair',
           'naturally-curly',

@@ -1,178 +1,617 @@
 import React from 'react';
-import { prisma } from '@/lib/prisma';
-import { Heading, Text, Container } from '@radix-ui/themes';
+import { Heading, Text, Container, Grid, Card, Badge } from '@radix-ui/themes';
 import Image from 'next/image';
-import { Clock, Tag } from '@/lib/icons';
+import { Clock, Star, CheckCircle, Info } from '@/lib/icons';
 import { notFound } from 'next/navigation';
-import ServiceDetailSections from '@/components/services/ServiceDetailSections';
 import ServiceBookingWrapper from '@/components/services/ServiceBookingWrapper';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
 import { getServiceContent } from '@/data/serviceContent';
 
-// This is a static server component for Hair Colouring
-export default async function HairColouringPage() {
-  // Fetch the specific service from the database
-  const service = await prisma.service.findFirst({
-    where: {
-      name: 'Hair Colouring',
+// Bilingual Content - Inline
+const CONTENT = {
+  en: {
+    hero: {
+      badge: 'Colouring & Highlights',
+      headline: 'Colour Done Right',
+      subheading:
+        'Transform your look with rich, dimensional colour. From subtle enhancements to bold transformations—expertly crafted for you.',
     },
-    include: {
-      addons: true,
-      category: true,
+    stats: {
+      maintenance: { label: 'Maintenance', value: '4 to 8 Weeks (touch-up)' },
+      duration: { label: 'Duration', value: '2 to 3 Hours' },
+      products: { label: 'Products', value: "L'Oréal / INOA" },
     },
-  });
+    overview: {
+      title: 'Choose Your Colours',
+      subtitle:
+        'From subtle enhancements to bold transformations, we offer a complete range of colouring techniques.',
+      whatIsIt:
+        'Professional hair colouring service that transforms your look with vibrant, long-lasting results. Using premium low-ammonia formulas, we expertly apply colour to cover grays, enhance your natural shade, or create a bold new look. Each colouring session is customized to your hair type, desired outcome, and lifestyle needs.',
+      whoIsItFor:
+        "Perfect for anyone looking to refresh their current colour, cover gray hair, or make a dramatic change. Whether you're seeking subtle enhancement or a complete transformation, we work with you to achieve the perfect shade that complements your skin tone and personal style.",
+      whyChoose:
+        "Our gentle, low-ammonia Japanese formulas protect hair health while delivering rich, dimensional colour that lasts. With expert shade matching and professional application, you'll enjoy beautiful, even coverage and vibrant results every time.",
+    },
+    types: [
+      {
+        title: 'Full Head Colour',
+        description:
+          'Complete colour application from roots to ends. Perfect for dramatic changes or refreshing faded colour throughout.',
+        image: '/colour-types/full-head-colour.png',
+      },
 
-  if (!service) {
-    notFound();
-  }
+      {
+        title: 'Creative Colours',
+        description:
+          'Bold, creative colours including pastels, vivids, and unique shades. Express your personality with standout colour.',
+        image: '/colour-types/creative-colours.png',
+      },
+      {
+        title: 'Airtouch',
+        description: 'Seamless blending using air for the most natural-looking blonde.',
+        image: '/colour-types/airtouch.png',
+      },
+      {
+        title: 'Ombré Colour',
+        description:
+          'Gradual transition from darker roots to lighter ends. Creates a modern, dimensional look with built-in grow-out.',
+        image: '/colour-types/ombre.png',
+      },
+      {
+        title: 'Highlights',
+        description: 'Add dimension and brightness with strategically placed lighter strands.',
+        image: '/colour-types/highlights.png',
+      },
+      {
+        title: 'Blondes & Silvers',
+        description: 'Expert bleaching and toning for the perfect platinum or cool silver.',
+        image: '/colour-types/blondes-and-silvers.png',
+      },
+      {
+        title: 'Gray Blending',
+        description:
+          'Strategic colour placement that softens gray coverage for a natural, low-maintenance look with dimension.',
+        image: '/colour-types/gray-blending.png',
+      },
+      {
+        title: 'Root Touch-Up',
+        description:
+          'Colours only new growth (1-2 inches at roots). Ideal for maintaining your existing colour between full applications.',
+        image: '/colour-types/root-touch-up.png',
+      },
+    ],
+    benefits: [
+      {
+        title: 'Rich, Long-Lasting Colour',
+        description:
+          'Professional formulas ensure vibrant colour that resists fading and maintains brilliance for weeks.',
+        icon: 'star',
+      },
+      {
+        title: 'Customized Shade Matching',
+        description:
+          'We blend custom shades to perfectly match your desired look and skin undertones with expert precision.',
+        icon: 'check',
+      },
+      {
+        title: 'Gentle on Hair & Scalp',
+        description:
+          'Low-ammonia Japanese formulas minimize damage while delivering beautiful, even coverage.',
+        icon: 'info',
+      },
+      {
+        title: 'Complete Gray Coverage',
+        description:
+          'Flawless gray coverage with natural-looking results that blend seamlessly with your existing hair.',
+        icon: 'clock',
+      },
+    ],
+    process: {
+      title: 'The Colouring Journey',
+      subtitle: 'What to expect during your visit',
+      steps: [
+        {
+          number: '1',
+          title: 'Consultation',
+          description:
+            "We discuss your colour goals, assess your hair's current condition, and recommend the perfect shade. We'll show you swatches and discuss maintenance.",
+        },
+        {
+          number: '2',
+          title: 'Preparation',
+          description:
+            'For first-time clients or significant changes, we perform a strand test. Your hair is then prepared and protected for the colouring process.',
+        },
+        {
+          number: '3',
+          title: 'Application',
+          description:
+            'Your colorist applies the custom-mixed formula with precision, ensuring even coverage from roots to ends for optimal brilliance.',
+        },
+        {
+          number: '4',
+          title: 'Processing',
+          description:
+            'The colour develops for the optimal time based on your hair type and desired result. We monitor to ensure perfect colour development.',
+        },
+        {
+          number: '5',
+          title: 'Finish',
+          description:
+            'Your hair is gently rinsed, followed by a color-sealing treatment and optional toner. We finish with a professional blow-dry and style.',
+        },
+      ],
+    },
+    aftercare: {
+      title: 'Aftercare Tips',
+      tips: [
+        {
+          title: 'Wait Before Washing',
+          text: 'Avoid shampooing your hair for at least 48 hours after coloring. This allows the dye to fully set, locking in vibrancy and reducing early fading.',
+        },
+        {
+          title: 'Use Color-Safe Products',
+          text: 'Switch to sulfate-free, color-safe shampoo and conditioner. These gentle formulas help preserve your new color and maintain hair health.',
+        },
+        {
+          title: 'Limit Heat Styling',
+          text: 'Minimize use of hot tools like irons and blowdryers in the first week. When styling, always use a heat protectant spray.',
+        },
+        {
+          title: 'Deep Condition Weekly',
+          text: 'Apply a nourishing hair mask or deep conditioner once a week to replenish moisture and maintain shine after chemical processing.',
+        },
+        {
+          title: 'Protect From Sun & Chlorine',
+          text: 'Wear a hat outdoors to shield hair from UV rays, which can fade color. Rinse and protect hair before swimming in chlorinated pools.',
+        },
+        {
+          title: 'Refresh With Toner',
+          text: 'Consider a professional toner or gloss every 4–6 weeks to keep your color fresh and counteract brassiness or fading.',
+        },
+      ],
+    },
+    faq: {
+      title: 'Frequently Asked Questions',
+      description: 'Common questions about our hair colouring services.',
+      questions: [
+        {
+          question: 'How long does hair color last?',
+          answer:
+            'With proper care, professional hair color typically lasts 4-6 weeks before requiring a root touch-up. The vibrancy of the color gradually fades over 6-8 weeks. Using color-safe shampoo and conditioner can extend the life of your color significantly.',
+        },
+        {
+          question: 'Will colouring damage my hair?',
+          answer:
+            'Our gentle, low-ammonia Japanese formulas are designed to minimize damage while delivering beautiful results. We also include conditioning treatments to protect and nourish your hair during the colouring process. However, any chemical process does affect hair structure, which is why we recommend regular deep conditioning treatments.',
+        },
+        {
+          question: "Can I color my hair if it's already been treated?",
+          answer:
+            "Yes, but we need to assess your hair's condition first. If you've recently had other chemical treatments like perms or relaxers, we may recommend waiting or using alternative colouring methods. During your consultation, please inform us of any previous treatments.",
+        },
+        {
+          question: 'How do I choose the right color?',
+          answer:
+            "We'll help you select the perfect shade based on your skin tone, eye color, lifestyle, and maintenance preferences. We'll show you color swatches and can perform a strand test if you're unsure. We recommend bringing inspiration photos to your consultation.",
+        },
+        {
+          question: "What's the difference between root touch-up and full color?",
+          answer:
+            'A root touch-up colors only the new growth at your roots (typically 1-2 inches), perfect for maintaining your existing color. A full color service colors your entire head of hair, ideal for changing your color completely or refreshing faded color throughout.',
+        },
+      ],
+    },
+    cta: {
+      title: 'Discover Your Perfect Shade',
+      description:
+        "Schedule a colour consultation. We'll help you find the ideal colour for your unique style.",
+      button: 'Book Your Colour Appointment',
+    },
+  },
+  zh: {
+    hero: {
+      badge: '招牌服务',
+      headline: '鲜艳持久的色彩。\n无限可能。',
+      subheading: '用丰富立体的色彩改变您的形象。从微妙提升到大胆转变——为您专业打造。',
+    },
+    stats: {
+      technique: { label: '技术', value: '专业全头染色或发根补染' },
+      maintenance: { label: '维护周期', value: '发根4-6周补染' },
+      duration: { label: '时长', value: '1.5-2.5小时' },
+      products: { label: '产品', value: '欧莱雅 / INOA' },
+    },
+    overview: {
+      title: '我们的色彩光谱',
+      subtitle: '从微妙提升到大胆转变，我们提供全方位的染发技术。',
+      whatIsIt:
+        '专业染发服务，用鲜艳持久的效果改变您的形象。使用高级低氨配方，精准上色以遮盖白发、提升自然色调或打造大胆新造型。每次染发都根据您的发质、期望效果和生活方式需求量身定制。',
+      whoIsItFor:
+        '最适合想要刷新当前发色、遮盖白发或进行戏剧性改变的人群。无论您追求微妙提升还是彻底转变，我们都会与您合作，打造完美衬托您肤色和个人风格的色调。',
+      whyChoose:
+        '我们温和的低氨日本配方在呈现丰富立体持久色彩的同时，保护发质健康。凭借专业的色调匹配和专业的上色技术，您每次都能享受美丽均匀的覆盖效果和鲜艳的成果。',
+    },
+    colourTypes: [
+      {
+        title: '底色染发',
+        description: '全面覆盖，打造浓郁均匀的色调。最适合遮盖白发或加深发色。',
+      },
+      { title: '挑染', description: '通过策略性地放置浅色发束，增添层次感和亮度。' },
+      { title: '手绘挑染', description: '手绘挑染效果，打造自然的阳光渐变效果。' },
+      { title: '创意色彩', description: '用鲜艳的时尚色调、粉彩或独特色彩表达自我。' },
+      { title: 'Airtouch', description: '使用空气无缝融合，打造最自然的金发效果。' },
+      { title: '渐变染色', description: '从深色发根到浅色发尾的戏剧性过渡。' },
+      { title: '金发与银发', description: '专业漂色和调色，打造完美的铂金或冷银色。' },
+      { title: 'INOA 染发', description: '无氨永久染发，极致舒适头皮和发质。' },
+    ],
+    benefits: [
+      {
+        title: '丰富持久的色彩',
+        description: '专业配方确保鲜艳色彩抗褪色，数周保持光泽亮丽。',
+        icon: 'star',
+      },
+      {
+        title: '定制色调匹配',
+        description: '我们以专业精准度调配定制色调，完美匹配您期望的造型和肤色底色。',
+        icon: 'check',
+      },
+      {
+        title: '温和护发护头皮',
+        description: '低氨日本配方将损伤降到最低，同时呈现美丽均匀的覆盖效果。',
+        icon: 'info',
+      },
+      {
+        title: '完美遮盖白发',
+        description: '完美遮盖白发，效果自然，与现有头发无痕融合。',
+        icon: 'clock',
+      },
+    ],
+    process: {
+      title: '染发之旅',
+      subtitle: '您的服务体验',
+      steps: [
+        {
+          number: '1',
+          title: '咨询',
+          description:
+            '我们将与您讨论染发目标，评估您当前的发质状况，并推荐完美的色调。我们会向您展示色板并讨论后续保养。',
+        },
+        {
+          number: '2',
+          title: '准备',
+          description:
+            '对于初次客户或重大改变，我们会进行发束测试。然后为您的头发做好染色前的准备和保护。',
+        },
+        {
+          number: '3',
+          title: '上色',
+          description: '发型师精准涂抹定制调配的染料，确保从发根到发尾均匀覆盖，呈现最佳光泽度。',
+        },
+        {
+          number: '4',
+          title: '处理',
+          description:
+            '根据您的发质和期望效果，染料在最佳时间内显色。我们会监测以确保完美的显色效果。',
+        },
+        {
+          number: '5',
+          title: '完成',
+          description: '轻柔冲洗您的头发，然后进行锁色护理和可选的调色。最后进行专业吹风造型。',
+        },
+      ],
+    },
+    variations: [
+      {
+        title: '全头染色',
+        description: '从发根到发尾全面上色。最适合戏剧性改变或刷新全头褪色效果。',
+      },
+      {
+        title: '发根补染',
+        description: '仅为新长出的头发（发根1-2英寸）上色。最适合在全头染色之间保持现有发色。',
+      },
+      {
+        title: '光泽与调色',
+        description: '轻透色彩护理，增加光泽和微妙的色调调整。在主要染发服务之间提升鲜艳度。',
+      },
+      {
+        title: '时尚色彩',
+        description: '大胆创意色彩，包括粉彩、鲜艳色和独特色调。用出众的色彩表达您的个性。',
+      },
+      {
+        title: '白发融合',
+        description: '策略性的染色布局，柔化白发覆盖效果，打造自然低维护的立体造型。',
+      },
+      {
+        title: '渐变染色',
+        description: '从深色发根渐变至浅色发尾。打造现代立体造型，自带长发效果。',
+      },
+    ],
+    faq: {
+      title: '常见问题',
+      description: '关于我们染发服务的常见问题。',
+      questions: [
+        {
+          question: '染发能维持多久？',
+          answer:
+            '在正确护理下，专业染发通常可维持4-6周后才需要发根补染。色彩的鲜艳度会在6-8周内逐渐褪色。使用护色洗护产品可显著延长发色寿命。',
+        },
+        {
+          question: '染发会损伤头发吗？',
+          answer:
+            '我们温和的低氨日本配方旨在将损伤降到最低，同时呈现美丽效果。我们还包括护理程序，在染发过程中保护和滋养您的头发。但是，任何化学过程都会影响发质结构，因此我们建议定期进行深层护理。',
+        },
+        {
+          question: '如果头发已经做过处理，还能染发吗？',
+          answer:
+            '可以，但我们需要先评估您的发质状况。如果您最近做过烫发或拉直等其他化学处理，我们可能会建议等待或使用替代染发方法。在咨询时，请告知我们您之前的任何处理。',
+        },
+        {
+          question: '如何选择合适的发色？',
+          answer:
+            '我们会根据您的肤色、眼睛颜色、生活方式和保养偏好，帮助您选择完美的色调。我们会向您展示色板，如果您不确定，还可以进行发束测试。我们建议您在咨询时带上灵感照片。',
+        },
+        {
+          question: '发根补染和全头染色有何区别？',
+          answer:
+            '发根补染仅为发根的新长部分（通常1-2英寸）上色，最适合保持现有发色。全头染色服务为整个头发上色，最适合彻底改变发色或刷新全头褪色效果。',
+        },
+      ],
+    },
+    cta: {
+      title: '发现您的完美色调',
+      description: '预约染发咨询。我们将帮助您找到最适合您独特风格的色彩。',
+      button: '立即预约染发',
+    },
+  },
+};
 
-  // Get rich content for this service
+// TODO: Implement i18n context for language switching
+// For now, using English content
+const content = CONTENT.en;
+
+// --- Local Components for this page ---
+
+const ColouringTypeCard = ({
+  title,
+  description,
+  image,
+}: {
+  title: string;
+  description: string;
+  image: string;
+}) => (
+  <div className="group">
+    <div className="relative h-80 w-full overflow-hidden rounded-2xl mb-4">
+      <Image
+        src={image}
+        alt={title}
+        fill
+        className="object-cover transition-transform duration-700 group-hover:scale-110"
+      />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60 group-hover:opacity-80 transition-opacity" />
+      <div className="absolute bottom-4 left-4 text-white">
+        <Heading size="5" className="font-serif">
+          {title}
+        </Heading>
+      </div>
+    </div>
+    <Text className="text-stone-600 text-md leading-relaxed block px-1">{description}</Text>
+  </div>
+);
+
+const ProcessStep = ({
+  number,
+  title,
+  description,
+}: {
+  number: string;
+  title: string;
+  description: string;
+}) => (
+  <div className="flex gap-6 items-start">
+    <div className="w-10 h-10 rounded-full bg-base-primary/10 text-base-primary flex items-center justify-center font-serif font-bold shrink-0 border border-base-primary/50">
+      {number}
+    </div>
+    <div>
+      <Heading size="4" className="mb-2 text-stone-900">
+        {title}
+      </Heading>
+      <Text className="text-stone-600 text-md leading-relaxed">{description}</Text>
+    </div>
+  </div>
+);
+
+const MaintenanceTip = ({ title, text }: { title: string; text: string }) => (
+  <div className="bg-stone-100 p-6 rounded-xl">
+    <Heading size="4" className="mb-2 text-stone-900">
+      {title}
+    </Heading>
+    <Text className="text-stone-600 text-md">{text}</Text>
+  </div>
+);
+
+// --- Main Page ---
+
+export default function HairColouringPage() {
+  // Get static content for hair colouring service
   const serviceContent = getServiceContent('hair-colouring');
 
+  if (!serviceContent) notFound();
+  const servicePrice = 'From $70';
+
   return (
-    <div className="bg-[#FDFCF8] min-h-screen">
+    <div className="bg-white min-h-screen">
       {/* Hero Section */}
-      <div className="relative h-[60vh] min-h-[500px] w-full overflow-hidden">
+      <div className="relative h-[65vh] min-h-[550px] w-full overflow-hidden">
         <Image
-          src={service.imageUrl || '/background-images/hair-colouring.png'}
-          alt={service.name}
+          src="/background-images/hair-colouring.jpg"
+          alt="Professional Hair Colouring at Signature Trims"
           fill
           className="object-cover"
           priority
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/40 to-black/60 flex items-center justify-center">
-          <Container size="4" className="text-center text-white px-4">
-            <Text size="2" className="uppercase tracking-[0.2em] font-sans mb-4 block opacity-90">
-              {service.category.title}
-            </Text>
-            <Heading size="9" className="font-serif font-light mb-6">
-              {service.name}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/10 to-white/30 flex items-center justify-center">
+          <Container size="4" className="text-center text-white px-4 mt-20">
+            <Badge
+              size="3"
+              color="mint"
+              variant="solid"
+              className="mb-6 px-4 py-1 uppercase tracking-widest font-sans"
+            >
+              {content.hero.badge}
+            </Badge>
+            <Heading
+              size="9"
+              className="font-serif font-light mb-6 text-5xl md:text-7xl leading-tight whitespace-pre-line"
+            >
+              {content.hero.headline}
             </Heading>
-            {service.subtitle && (
-              <p className="text-xl font-light opacity-90 max-w-2xl mx-auto leading-relaxed">
-                {service.subtitle}
-              </p>
-            )}
+            <p className="text-xl md:text-2xl font-light opacity-90 max-w-2xl mx-auto leading-relaxed font-sans">
+              {content.hero.subheading}
+            </p>
           </Container>
         </div>
       </div>
 
-      {/* Quick Info Bar */}
-      <div className="bg-white border-y border-stone-200 py-8 mb-16">
-        <Container size="3" className="px-6 md:px-12">
-          <div className="flex flex-wrap justify-center gap-8 md:gap-16">
-            <div className="text-center">
-              <div className="flex items-center justify-center gap-2 text-stone-500 mb-2">
-                <Clock className="w-5 h-5" />
-                <Text className="text-sm uppercase tracking-wide">Duration</Text>
-              </div>
-              <Text className="text-2xl font-serif font-medium text-stone-900">
-                {service.duration} mins
+      {/* Stats */}
+      <Container size="3" className="px-6 md:px-12 -mt-20 relative z-10 mb-24">
+        <div className="bg-white rounded-3xl shadow-xl p-8 md:p-12 border border-stone-100">
+          <Grid
+            columns={{ initial: '1', md: '3' }}
+            gap="8"
+            className="text-center divide-y md:divide-y-0 md:divide-x divide-stone-100"
+          >
+            <div className="px-4 pt-8 md:pt-0">
+              <Text className="block text-stone-400 text-sm uppercase tracking-widest mb-2">
+                {content.stats.maintenance.label}
+              </Text>
+              <Text className="block text-lg font-serif text-stone-900">
+                {content.stats.maintenance.value}
               </Text>
             </div>
-            <div className="text-center">
-              <div className="flex items-center justify-center gap-2 text-stone-500 mb-2">
-                <Tag className="w-5 h-5" />
-                <Text className="text-sm uppercase tracking-wide">Price</Text>
-              </div>
-              <Text className="text-2xl font-serif font-medium text-stone-900">
-                {service.price}
+            <div className="px-4 pt-8 md:pt-0">
+              <Text className="block text-stone-400 text-sm uppercase tracking-widest mb-2">
+                {content.stats.duration.label}
+              </Text>
+              <Text className="block text-lg font-serif text-stone-900">
+                {content.stats.duration.value}
               </Text>
             </div>
-            {service.popularityScore >= 80 && (
-              <div className="text-center">
-                <div className="flex items-center justify-center gap-2 text-stone-500 mb-2">
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                  </svg>
-                  <Text className="text-sm uppercase tracking-wide">Status</Text>
-                </div>
-                <Text className="text-2xl font-serif font-medium text-gold-600">Popular</Text>
-              </div>
-            )}
-          </div>
-        </Container>
-      </div>
+            <div className="px-4 pt-8 md:pt-0">
+              <Text className="block text-stone-400 text-sm uppercase tracking-widest mb-2">
+                Price
+              </Text>
+              <Text className="block text-lg font-serif text-stone-900">{servicePrice}</Text>
+            </div>
+          </Grid>
+        </div>
+      </Container>
 
-      {/* Main Content */}
-      <Container size="3" className="px-6 md:px-12 mb-20">
-        {/* Service Description */}
-        <div className="mb-16">
-          <Heading size="6" className="font-serif mb-6 text-stone-900 text-center">
-            About This Service
+      <Container size="4" className="px-6 md:px-12 py-16 bg-white">
+        <div className="text-center mb-16">
+          <Heading size="8" className="font-serif text-stone-900 mb-4">
+            {content.overview.title}
           </Heading>
-          <p className="text-stone-600 leading-relaxed text-lg max-w-4xl mx-auto text-center">
-            {service.description ||
-              'Experience our signature service designed to enhance your natural beauty. Our expert stylists use premium products and techniques to ensure the best results for your hair type.'}
-          </p>
+          <Text className="text-stone-500 text-lg max-w-2xl mx-auto">
+            {content.overview.subtitle}
+          </Text>
         </div>
 
-        {/* Rich Content Sections (if available) */}
-        {serviceContent && <ServiceDetailSections content={serviceContent} />}
+        <Grid columns={{ initial: '1', sm: '2', md: '4' }} gap="8">
+          {content.types.map((type, index) => (
+            <ColouringTypeCard
+              key={index}
+              title={type.title}
+              description={type.description}
+              image={type.image}
+            />
+          ))}
+        </Grid>
+      </Container>
 
-        {/* Add-ons Section */}
-        {service.addons && service.addons.length > 0 && (
-          <div className="mt-20">
-            <div className="text-center mb-12">
-              <Text className="uppercase tracking-[0.2em] text-xs font-sans text-stone-500 mb-3 block">
-                Enhance Your Experience
-              </Text>
-              <Heading size="8" className="font-serif font-light text-stone-900">
-                Available Add-Ons
-              </Heading>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-              {service.addons.map(addon => (
-                <div
-                  key={addon.id}
-                  className="bg-white rounded-xl border border-stone-100 p-6 shadow-sm hover:shadow-md transition-shadow"
-                >
-                  <div className="flex justify-between items-start mb-3">
-                    <Heading size="4" className="font-serif text-stone-900 flex-1">
-                      {addon.name}
-                    </Heading>
-                    <Text className="font-bold text-stone-900 text-lg shrink-0 ml-4">
-                      {addon.price}
-                    </Text>
-                  </div>
-                  {addon.description && (
-                    <p className="text-sm text-stone-600 mb-3">{addon.description}</p>
-                  )}
-                  {addon.benefits && addon.benefits.length > 0 && (
-                    <ul className="space-y-1">
-                      {addon.benefits.map((benefit, i) => (
-                        <li key={i} className="text-xs text-stone-500 flex items-center gap-2">
-                          <svg
-                            className="w-3 h-3 text-gold-600 shrink-0"
-                            fill="currentColor"
-                            viewBox="0 0 20 20"
-                          >
-                            <path
-                              fillRule="evenodd"
-                              d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                              clipRule="evenodd"
-                            />
-                          </svg>
-                          {benefit}
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                  {addon.isRecommended && (
-                    <div className="mt-3 pt-3 border-t border-stone-100">
-                      <span className="text-xs font-medium text-gold-600 uppercase tracking-wide">
-                        ⭐ Recommended
-                      </span>
-                    </div>
-                  )}
-                </div>
+      {/* Process & Aftercare */}
+      <Container size="4" className="px-6 md:px-12 py-16 bg-white">
+        <Grid columns={{ initial: '1', md: '2' }} gap="16">
+          {/* Left: Process */}
+          <div className="p-8 md:p-12">
+            <Heading size="7" className="font-serif text-stone-900 mb-8">
+              {content.process.title}
+            </Heading>
+            <div className="space-y-8">
+              {content.process.steps.map((step, index) => (
+                <ProcessStep
+                  key={index}
+                  number={step.number}
+                  title={step.title}
+                  description={step.description}
+                />
               ))}
             </div>
           </div>
-        )}
+
+          {/* Right: Aftercare */}
+          <div className="bg-stone-50 rounded-3xl p-8 md:p-12">
+            <Heading size="7" className="font-serif text-stone-900 mb-8">
+              {content.aftercare.title}
+            </Heading>
+            <div className="space-y-4">
+              {content.aftercare.tips.map((tip, index) => (
+                <MaintenanceTip key={index} title={tip.title} text={tip.text} />
+              ))}
+            </div>
+          </div>
+        </Grid>
       </Container>
 
-      {/* Inline Booking Section */}
-      <ServiceBookingWrapper preSelectedServiceId={service.id} serviceName={service.name} />
+      {/* FAQ Section */}
+      <Container size="3" className="px-6 md:px-12 py-16 bg-stone-50">
+        <div className="max-w-3xl mx-auto">
+          <div className="text-center mb-12">
+            <Heading size="8" className="font-serif text-stone-900 mb-4">
+              {content.faq.title}
+            </Heading>
+            <Text className="text-stone-500">{content.faq.description}</Text>
+          </div>
+          <Accordion type="single" collapsible className="space-y-4">
+            {content.faq.questions.map((item, index) => (
+              <AccordionItem
+                key={index}
+                value={`item-${index}`}
+                className="border border-stone-200 rounded-2xl px-6 bg-white"
+              >
+                <AccordionTrigger className="text-left hover:no-underline py-6">
+                  <Heading size="5" className="font-serif text-stone-900">
+                    {item.question}
+                  </Heading>
+                </AccordionTrigger>
+                <AccordionContent className="pb-6">
+                  <Text className="text-stone-600 leading-relaxed">{item.answer}</Text>
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
+        </div>
+      </Container>
+
+      {/* CTA Section */}
+      <Container size="3" className="px-6 md:px-12 py-20 bg-stone-900 text-white">
+        <div className="text-center max-w-2xl mx-auto">
+          <Heading size="8" className="font-serif mb-6">
+            {content.cta.title}
+          </Heading>
+          <Text className="text-stone-300 text-lg mb-8 leading-relaxed">
+            {content.cta.description}
+          </Text>
+        </div>
+      </Container>
+
+      {/* Booking Section */}
+      <ServiceBookingWrapper serviceName="Hair Colouring" />
     </div>
   );
 }
@@ -181,6 +620,6 @@ export async function generateMetadata() {
   return {
     title: 'Hair Colouring | Signature Trims',
     description:
-      'Transform your look with our professional hair coloring service using premium low-ammonia formulas from Japan. Expert application ensures vibrant, long-lasting color customized to your hair type and desired outcome.',
+      'Transform your look with our professional hair coloring service using premium low-ammonia formulas. Expert application ensures vibrant, long-lasting color.',
   };
 }

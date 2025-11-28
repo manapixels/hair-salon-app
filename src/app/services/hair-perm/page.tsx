@@ -360,13 +360,13 @@ export default function HairPermPage() {
       {/* Hero Section */}
       <div className="relative h-[70vh] min-h-[600px] w-full overflow-hidden">
         <Image
-          src="/background-images/hair-perm.png"
+          src="/background-images/hair-perm.jpg"
           alt="Professional Hair Perm Services at Signature Trims"
           fill
           className="object-cover"
           priority
         />
-        <div className="absolute inset-0 flex items-center justify-center">
+        <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/10 to-white/30 flex items-center justify-center">
           <Container size="4" className="text-center text-white px-4 mt-32">
             <Badge
               size="3"
@@ -434,119 +434,103 @@ export default function HairPermPage() {
       </Container>
 
       {/* Perm Types */}
-      <div className="py-24 bg-white">
-        <Container size="4" className="px-6 md:px-12">
-          <div className="text-center mb-16">
-            <Heading size="8" className="font-serif text-stone-900 mb-4">
-              {content.overview.title}
-            </Heading>
-            <Text className="text-stone-500 text-lg max-w-2xl mx-auto">
-              {content.overview.subtitle}
-            </Text>
-          </div>
+      <Container size="4" className="px-6 md:px-12 py-16 bg-white">
+        <div className="text-center mb-16">
+          <Heading size="8" className="font-serif text-stone-900 mb-4">
+            {content.overview.title}
+          </Heading>
+          <Text className="text-stone-500 text-lg max-w-2xl mx-auto">
+            {content.overview.subtitle}
+          </Text>
+        </div>
 
-          <Grid columns={{ initial: '1', sm: '2', md: '3' }} gap="8">
-            {content.types.map((type, index) => (
-              <PermTypeCard
-                key={index}
-                title={type.title}
-                description={type.description}
-                image={type.image}
-              />
-            ))}
-          </Grid>
-        </Container>
-      </div>
+        <Grid columns={{ initial: '1', sm: '2', md: '3' }} gap="8">
+          {content.types.map((type, index) => (
+            <PermTypeCard
+              key={index}
+              title={type.title}
+              description={type.description}
+              image={type.image}
+            />
+          ))}
+        </Grid>
+      </Container>
 
       {/* Process & Aftercare */}
-      <div className="py-24 bg-white">
-        <Container size="4" className="px-6 md:px-12">
-          <Grid columns={{ initial: '1', md: '2' }} gap="16">
-            {/* Left: Process */}
-            <div className="p-8 md:p-12">
-              <Heading size="7" className="font-serif text-stone-900 mb-8">
-                {content.process.title}
-              </Heading>
-              <div className="space-y-8">
-                {content.process.steps.map((step, index) => (
-                  <ProcessStep
-                    key={index}
-                    number={step.number}
-                    title={step.title}
-                    description={step.description}
-                  />
-                ))}
-              </div>
+      <Container size="4" className="px-6 md:px-12 py-16 bg-white">
+        <Grid columns={{ initial: '1', md: '2' }} gap="16">
+          {/* Left: Process */}
+          <div className="p-8 md:p-12">
+            <Heading size="7" className="font-serif text-stone-900 mb-8">
+              {content.process.title}
+            </Heading>
+            <div className="space-y-8">
+              {content.process.steps.map((step, index) => (
+                <ProcessStep
+                  key={index}
+                  number={step.number}
+                  title={step.title}
+                  description={step.description}
+                />
+              ))}
             </div>
+          </div>
 
-            {/* Right: Aftercare */}
-            <div className="bg-stone-50 rounded-3xl p-8 md:p-12">
-              <Heading size="7" className="font-serif text-stone-900 mb-8">
-                {content.aftercare.title}
-              </Heading>
-              <div className="space-y-4">
-                {content.aftercare.tips.map((tip, index) => (
-                  <MaintenanceTip key={index} title={tip.title} text={tip.text} />
-                ))}
-              </div>
-
-              <div className="mt-8 p-4 bg-stone-200 rounded-xl flex gap-4 items-start">
-                <Info className="w-5 h-5 text-stone-600 shrink-0 mt-1" />
-                <Text className="text-sm text-stone-800">
-                  <strong>Note:</strong> Rebonding is permanent on the treated hair. You will only
-                  need to touch up the roots as they grow out.
-                </Text>
-              </div>
+          {/* Right: Aftercare */}
+          <div className="bg-stone-50 rounded-3xl p-8 md:p-12">
+            <Heading size="7" className="font-serif text-stone-900 mb-8">
+              {content.aftercare.title}
+            </Heading>
+            <div className="space-y-4">
+              {content.aftercare.tips.map((tip, index) => (
+                <MaintenanceTip key={index} title={tip.title} text={tip.text} />
+              ))}
             </div>
-          </Grid>
-        </Container>
-      </div>
+          </div>
+        </Grid>
+      </Container>
 
       {/* FAQ Section */}
-      <div className="py-24 bg-stone-50">
-        <Container size="3" className="px-6 md:px-12">
-          <div className="max-w-3xl mx-auto">
-            <div className="text-center mb-12">
-              <Heading size="8" className="font-serif text-stone-900 mb-4">
-                {content.faq.title}
-              </Heading>
-              <Text className="text-stone-500">{content.faq.description}</Text>
-            </div>
-            <Accordion type="single" collapsible className="space-y-4">
-              {content.faq.questions.map((item, index) => (
-                <AccordionItem
-                  key={index}
-                  value={`item-${index}`}
-                  className="border border-stone-200 rounded-2xl px-6 bg-white"
-                >
-                  <AccordionTrigger className="text-left hover:no-underline py-6">
-                    <Heading size="5" className="font-serif text-stone-900">
-                      {item.question}
-                    </Heading>
-                  </AccordionTrigger>
-                  <AccordionContent className="pb-6">
-                    <Text className="text-stone-600 leading-relaxed">{item.answer}</Text>
-                  </AccordionContent>
-                </AccordionItem>
-              ))}
-            </Accordion>
+      <Container size="3" className="px-6 md:px-12 py-16 bg-stone-50">
+        <div className="max-w-3xl mx-auto">
+          <div className="text-center mb-12">
+            <Heading size="8" className="font-serif text-stone-900 mb-4">
+              {content.faq.title}
+            </Heading>
+            <Text className="text-stone-500">{content.faq.description}</Text>
           </div>
-        </Container>
-      </div>
+          <Accordion type="single" collapsible className="space-y-4">
+            {content.faq.questions.map((item, index) => (
+              <AccordionItem
+                key={index}
+                value={`item-${index}`}
+                className="border border-stone-200 rounded-2xl px-6 bg-white"
+              >
+                <AccordionTrigger className="text-left hover:no-underline py-6">
+                  <Heading size="5" className="font-serif text-stone-900">
+                    {item.question}
+                  </Heading>
+                </AccordionTrigger>
+                <AccordionContent className="pb-6">
+                  <Text className="text-stone-600 leading-relaxed">{item.answer}</Text>
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
+        </div>
+      </Container>
 
       {/* CTA Section */}
-      <div className="py-20 bg-stone-900 text-white">
-        <Container size="3" className="px-6 md:px-12">
-          <div className="text-center max-w-2xl mx-auto">
-            <Heading size="8" className="font-serif mb-6">
-              {content.cta.title}
-            </Heading>
-            <Text className="text-stone-300 text-lg mb-8 leading-relaxed">
-              {content.cta.description}
-            </Text>
-          </div>
-        </Container>
-      </div>
+      <Container size="3" className="px-6 md:px-12 py-20 bg-stone-900 text-white">
+        <div className="text-center max-w-2xl mx-auto">
+          <Heading size="8" className="font-serif mb-6">
+            {content.cta.title}
+          </Heading>
+          <Text className="text-stone-300 text-lg mb-8 leading-relaxed">
+            {content.cta.description}
+          </Text>
+        </div>
+      </Container>
 
       {/* Booking Section */}
       <ServiceBookingWrapper serviceName="Hair Perm" />

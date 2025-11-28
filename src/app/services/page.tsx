@@ -392,10 +392,10 @@ export default function ServicesPage() {
 // Helper function to provide default images for featured services
 function getServiceImage(serviceName: string): string {
   const imageMap: Record<string, string> = {
-    'Hair Colouring': '/background-images/hair-colouring.png',
-    'Hair Rebonding': '/background-images/hair-rebonding.png',
+    'Hair Colouring': '/background-images/hair-colouring.jpg',
+    'Hair Rebonding': '/background-images/hair-rebonding.jpg',
     'Hair Treatment': '/background-images/hair-treatment.png',
-    'Hair Perm': '/background-images/hair-perm.png',
+    'Hair Perm': '/background-images/hair-perm.jpg',
   };
 
   return imageMap[serviceName] || '/background-images/menu-service-bg.png';

@@ -243,7 +243,7 @@ export const serviceContentMap: Record<string, ServiceContent> = {
     ],
   },
 
-  'hair-treatment': {
+  'scalp-treatment': {
     serviceName: 'Scalp Treatment',
     overview: {
       whatIsIt:
@@ -505,6 +505,123 @@ export const serviceContentMap: Record<string, ServiceContent> = {
       'Sleep on a silk or satin pillowcase to reduce frizz and maintain curl pattern',
       'Trim ends regularly every 6-8 weeks to prevent split ends and keep curls bouncy',
       'Avoid chlorinated pools or protect hair with a swim cap and rinse immediately after',
+    ],
+  },
+
+  'keratin-treatment': {
+    serviceName: 'Keratin Treatment',
+    overview: {
+      whatIsIt:
+        'Keratin treatment is a revolutionary smoothing service that transforms unmanageable, frizzy hair into silky, shiny perfection. By infusing keratin protein deep into the hair cuticle, it repairs damage, blocks humidity, and reduces frizz by up to 95%. Unlike permanent straightening, it gradually fades over time, leaving no harsh regrowth lines while keeping your natural volume and movement.',
+      whoIsItFor:
+        'Ideal for anyone with frizzy, wavy, or unruly hair who wants to cut styling time in half. Perfect if you struggle with humidity, want smoother hair without losing all your curl, or need to repair damaged, porous hair. Suitable for all hair types, including chemically treated or colored hair.',
+      keyFeature:
+        'Our premium keratin formula eliminates frizz and boosts shine for 3-5 months while improving overall hair health and manageability.',
+    },
+    benefits: [
+      {
+        title: 'Frizz Control',
+        description:
+          'Eliminates up to 95% of frizz and flyaways, keeping hair smooth even in humid weather.',
+      },
+      {
+        title: 'Cuts Styling Time',
+        description:
+          'Reduces blow-drying and styling time by up to 50%, making your morning routine effortless.',
+      },
+      {
+        title: 'Repairs Damage',
+        description:
+          'Fills in porous gaps in the hair cuticle with protein, strengthening and repairing damaged strands.',
+      },
+      {
+        title: 'Incredible Shine',
+        description:
+          'Smoothes the hair cuticle to reflect light, resulting in brilliant, healthy-looking shine.',
+      },
+      {
+        title: 'No Harsh Regrowth',
+        description:
+          'Gradually washes out over 3-5 months, so there is no clear line of demarcation as your hair grows.',
+      },
+      {
+        title: 'Versatile Results',
+        description:
+          'Can be customized to keep some natural wave or go smoother, depending on your preference.',
+      },
+    ],
+    processSteps: [
+      {
+        number: 1,
+        title: 'Consultation & Preparation',
+        description:
+          'We assess your hair texture and history. Hair is then washed with a clarifying shampoo to remove all residue and open the cuticle for optimal keratin absorption.',
+        duration: '15 min',
+      },
+      {
+        number: 2,
+        title: 'Keratin Application',
+        description:
+          'The keratin formula is applied section by section, ensuring every strand is evenly coated. We comb through to distribute the product thoroughly without over-saturating.',
+        duration: '30-45 min',
+      },
+      {
+        number: 3,
+        title: 'Processing & Blow-Dry',
+        description:
+          'The treatment is left to process on the hair. Then, we blow-dry the product into the hair, already starting the smoothing process.',
+        duration: '30-40 min',
+      },
+      {
+        number: 4,
+        title: 'Heat Sealing',
+        description:
+          'Using a professional flat iron at a precise temperature, we seal the keratin into the cuticle. This step locks in the smoothness and shine.',
+        duration: '45-60 min',
+      },
+      {
+        number: 5,
+        title: 'Final Rinse & Finish',
+        description:
+          'Depending on the specific formula used, we may rinse and apply a mask immediately, or advise you on when to wash. We finish with a final style to show off your silky results.',
+        duration: '15 min',
+      },
+    ],
+    faqs: [
+      {
+        question: 'How long does keratin treatment last?',
+        answer:
+          "Keratin treatments typically last 3-5 months, gradually fading over time as you wash your hair. Unlike rebonding, keratin doesn't create a harsh regrowth line—it simply reverts to your natural texture. Results last longer with sulfate-free products and less frequent washing.",
+      },
+      {
+        question: "What's the difference between keratin treatment and rebonding?",
+        answer:
+          'Keratin is a temporary smoothing treatment (3-5 months) that reduces frizz and adds shine while maintaining some natural movement. Rebonding is a permanent chemical straightening process that creates pin-straight hair lasting 6-8 months with only root regrowth. Keratin is gentler and more reversible, while rebonding is more dramatic and permanent.',
+      },
+      {
+        question: 'Can I get keratin treatment on colored or bleached hair?',
+        answer:
+          'Yes! Keratin treatment is actually beneficial for colored or bleached hair, as it helps seal the cuticle and restore smoothness. We recommend waiting 1-2 weeks after coloring for best results. The treatment can help extend color vibrancy by reducing porosity.',
+      },
+      {
+        question: 'Will keratin treatment make my hair completely straight?',
+        answer:
+          "No—keratin reduces frizz and smooths hair but doesn't eliminate curls or waves entirely. You'll retain natural movement and body, just in a more controlled, polished form. If you want completely straight hair, rebonding would be more appropriate.",
+      },
+      {
+        question: 'What should I avoid after keratin treatment?',
+        answer:
+          'For the first 3 days, avoid washing hair, tying it up, or using clips/headbands. After that, use sulfate-free shampoo and conditioner, minimize heat styling, and avoid chlorinated water. These precautions help extend the life of your treatment.',
+      },
+    ],
+    aftercare: [
+      'Do not wash, tie, or clip your hair for 72 hours (unless using a same-day wash formula)',
+      'Use only sulfate-free and sodium chloride-free shampoo and conditioner',
+      'Wash hair less frequently to prolong the treatment lifespan',
+      'Avoid saltwater and chlorine, which can strip the keratin from your hair',
+      'Use a silk pillowcase to reduce friction and maintain smoothness',
+      'Blow-dry hair after washing to activate the smoothing effect',
+      'Wait 2 weeks before coloring your hair to ensure the treatment has fully set',
     ],
   },
 };

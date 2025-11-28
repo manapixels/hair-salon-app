@@ -229,12 +229,25 @@ export default function AppHeader({ view, onViewChange }: AppHeaderProps) {
                       </Link>
 
                       <Link
-                        href="/services/hair-treatment"
+                        href="/services/scalp-treatment"
                         onClick={() => setIsMegaMenuOpen(false)}
                         className="group/item flex items-center justify-between py-4 border-b border-[var(--accent-7)] hover:border-white transition-colors"
                       >
                         <span className="text-2xl font-light tracking-wide group-hover/item:text-white text-white/90 transition-colors">
-                          Treatment
+                          Scalp Treatment
+                        </span>
+                        <div className="w-10 h-10 rounded-full border border-[var(--accent-8)] flex items-center justify-center group-hover/item:border-white group-hover/item:bg-white group-hover/item:text-[var(--accent-11)] transition-all">
+                          <ChevronDown className="w-5 h-5 -rotate-90" />
+                        </div>
+                      </Link>
+
+                      <Link
+                        href="/services/keratin-treatment"
+                        onClick={() => setIsMegaMenuOpen(false)}
+                        className="group/item flex items-center justify-between py-4 border-b border-[var(--accent-7)] hover:border-white transition-colors"
+                      >
+                        <span className="text-2xl font-light tracking-wide group-hover/item:text-white text-white/90 transition-colors">
+                          Keratin Treatment
                         </span>
                         <div className="w-10 h-10 rounded-full border border-[var(--accent-8)] flex items-center justify-center group-hover/item:border-white group-hover/item:bg-white group-hover/item:text-[var(--accent-11)] transition-all">
                           <ChevronDown className="w-5 h-5 -rotate-90" />
@@ -281,6 +294,7 @@ export default function AppHeader({ view, onViewChange }: AppHeaderProps) {
             <Button
               variant={activeView === 'booking' ? 'solid' : 'outline'}
               size="md"
+              className="bg-stone-50 bg-opacity-40 backdrop-blur-xs"
               onClick={() => handleNavigation('booking', '/')}
             >
               <Calendar className="h-4 w-4" aria-hidden="true" />
