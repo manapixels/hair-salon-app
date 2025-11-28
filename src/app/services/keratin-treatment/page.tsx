@@ -1,15 +1,15 @@
 import React from 'react';
-import { Heading, Text, Container, Grid, Badge } from '@radix-ui/themes';
-import Image from 'next/image';
+import { Heading, Text, Container, Grid } from '@radix-ui/themes';
 import { CheckCircle, Plus } from '@/lib/icons';
 import { notFound } from 'next/navigation';
-import ServiceBookingWrapper from '@/components/services/ServiceBookingWrapper';
 import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from '@/components/ui/accordion';
+  ServiceHero,
+  ServiceStats,
+  ProcessStep,
+  MaintenanceTip,
+  ServiceFAQ,
+  ServiceCTA,
+} from '@/components/services';
 import { BeforeAfterSlider } from '@/components/ui/BeforeAfterSlider';
 import { getServiceContent } from '@/data/serviceContent';
 
@@ -23,7 +23,6 @@ const CONTENT = {
         'Transform unmanageable hair into silky perfection. Our premium keratin treatments reduce styling time and boost shine.',
     },
     stats: {
-      type: { label: 'Treatment Type', value: 'Keratin Smoothing' },
       maintenance: { label: 'Lasts For', value: '3 - 5 Months' },
       duration: { label: 'Duration', value: '2 - 3 Hours' },
     },
@@ -54,14 +53,12 @@ const CONTENT = {
     treatments: [
       {
         title: 'Hair Treatment (Normal)',
-        price: '$35 - $55',
         description:
           'Professional surface conditioning treatment using cream-based conditioners. Provides immediate moisture boost through heat-activated penetration, ideal for weekly maintenance and quick hydration without long-term commitment.',
         benefits: ['Instant softness', 'Quick moisture boost', 'Lasts 3-7 days'],
       },
       {
         title: 'Shiseido Treatment (Japan)',
-        price: '$105 - $180+',
         description:
           "Premium Japanese reconstruction therapy using Shiseido's Double Repair System and Hair Reform Technology. Targets the inner hair cortex to restore the cross-sectional shape of damaged strands, mimicking the hair's natural moisture barrier.",
         benefits: [
@@ -72,21 +69,18 @@ const CONTENT = {
       },
       {
         title: 'Mucota Treatment (Japan)',
-        price: '$150 - $230+',
         description:
           'Advanced Japanese treatment designed specifically for Asian hair types, featuring rich Argan oil and Cell Membrane Complex (CMC). Uses molecular layering technique to penetrate different hair depths, creating a protective veil that locks moisture inside.',
         benefits: ['Multi-layer penetration', 'Extreme softness', 'Lasts 4-6 weeks'],
       },
       {
         title: 'K-Gloss Keratin (USA)',
-        price: '$220 - $300+',
         description:
           'Water-based hybrid formula combining keratin and collagen, that fills hair porosity to eliminate frizz while maintaining natural volume. Delivers instant gloss without forcing hair flat.',
         benefits: ['Frizz elimination', 'No harsh chemicals', 'Lasts 3-4 months'],
       },
       {
         title: 'Tiboli Keratin (USA)',
-        price: '$280 - $350+',
         description:
           'Elite smoothing system using patented Trioxxy® protein blend for intense straightening and frizz control. Forms a protective protein shield over each strand that physically holds hair in a smoother, straighter position.',
         benefits: ['Maximum smoothing power', 'Humidity protection', 'Lasts 3-5 months'],
@@ -104,12 +98,6 @@ const CONTENT = {
         'No harsh regrowth line',
         'Repairs damaged cuticles',
       ],
-      price: 'From $180',
-      idealFor: {
-        title: 'Is Keratin Right For You?',
-        description:
-          'Ideal for anyone with frizzy, wavy, or unmanageable hair who wants a smoother look without the permanence of rebonding. It fades naturally over time, leaving no harsh regrowth line.',
-      },
     },
     faq: {
       title: 'Keratin Treatment FAQs',
@@ -216,7 +204,6 @@ const CONTENT = {
       subheading: '将难以打理的头发转变为丝般完美。我们的高级角蛋白护理减少造型时间并提升光泽。',
     },
     stats: {
-      type: { label: '护理类型', value: '角蛋白顺滑' },
       maintenance: { label: '维持时间', value: '3 - 5 个月' },
       duration: { label: '时长', value: '2 - 3 小时' },
     },
@@ -246,34 +233,34 @@ const CONTENT = {
     treatmentsTitle: '我们的角蛋白护理',
     treatments: [
       {
-        title: '普通护发护理',
-        price: '$35 - $55',
-        description: '维持头发健康结构和光泽的基础滋养。',
-        benefits: ['焕发活力', '易于打理', '基础保湿'],
+        title: '头发护理（常规）',
+        description:
+          '使用乳霜基护发素的专业表面调理护理。通过热激活渗透提供即时水分补充，适合每周保养和快速补水，无需长期承诺。',
+        benefits: ['即时柔软', '快速补水', '维持3-7天'],
       },
       {
-        title: '资生堂护理 (日本)',
-        price: '$105 - $180+',
-        description: '深层调理并恢复头发健康的优质日本配方。',
-        benefits: ['深层调理', '恢复水分', '丝般顺滑'],
+        title: '资生堂护理（日本）',
+        description:
+          '高级日本重建疗法，使用资生堂双重修复系统和头发改造技术。针对内部发芯以恢复受损发丝的横截面形状，模仿头发的天然水分屏障。',
+        benefits: ['纠正发丝形状扭曲', '恢复内部强度', '维持3-4周'],
       },
       {
-        title: 'Mucota 护理 (日本)',
-        price: '$150 - $230+',
-        description: '先进的多步骤日本护理，提供强效修复和保湿。',
-        benefits: ['强效修复', '持久保湿', '柔软质感'],
+        title: '慕歌塔护理（日本）',
+        description:
+          '专为亚洲发质设计的先进日本护理，富含摩洛哥坚果油和细胞膜复合物(CMC)。使用分子分层技术渗透不同发质深度，形成锁住水分的保护层。',
+        benefits: ['多层渗透', '极致柔软', '维持4-6周'],
       },
       {
-        title: 'K-Gloss 角蛋白 (美国)',
-        price: '$220 - $300+',
-        description: '革命性的水基角蛋白护理，打造无毛躁、光泽秀发。',
-        benefits: ['消除毛躁', '高光泽度', '轻盈质感'],
+        title: 'K-Gloss角蛋白（美国）',
+        description:
+          '水基混合配方，结合角蛋白和胶原蛋白，填充发质孔隙以消除毛躁，同时保持自然蓬松度。提供即时光泽，不会使头发扁平。',
+        benefits: ['消除毛躁', '无刺激化学物质', '维持3-4个月'],
       },
       {
-        title: 'Tiboli 角蛋白 (美国)',
-        price: '$280 - $350+',
-        description: '顶级角蛋白顺滑系统，实现极致蜕变和易打理性。',
-        benefits: ['极致顺滑', '防潮保护', '效果最持久'],
+        title: 'Tiboli角蛋白（美国）',
+        description:
+          '精英顺滑系统，使用专利Trioxxy®蛋白混合物进行强效拉直和毛躁控制。在每根发丝上形成保护性蛋白层，物理性地保持头发更顺滑、更笔直的状态。',
+        benefits: ['最大顺滑力', '防潮保护', '维持3-5个月'],
       },
     ],
     keratin: {
@@ -288,12 +275,6 @@ const CONTENT = {
         '无明显长发线',
         '修复受损毛鳞片',
       ],
-      price: '从$180起',
-      idealFor: {
-        title: '角蛋白护理适合您吗？',
-        description:
-          '最适合拥有毛躁、波浪或难以打理头发，想要更顺滑造型而不需要拉直的永久性效果的人群。它会随时间自然褪色，不会留下明显的长发线。',
-      },
     },
     faq: {
       title: '角蛋白护理常见问题',
@@ -428,13 +409,6 @@ const TreatmentCard = ({
   </div>
 );
 
-const BenefitItem = ({ text }: { text: string }) => (
-  <div className="flex items-center gap-3">
-    <CheckCircle className="w-6 h-6 text-gold-500 shrink-0" />
-    <Text className="text-stone-700">{text}</Text>
-  </div>
-);
-
 const ProblemSolution = ({ problem, solution }: { problem: string; solution: string }) => (
   <div className="flex gap-4 items-start">
     <div className="w-8 h-8 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center shrink-0 mt-1">
@@ -444,39 +418,6 @@ const ProblemSolution = ({ problem, solution }: { problem: string; solution: str
       <Text className="block font-bold text-stone-900 mb-1">{problem}</Text>
       <Text className="text-stone-600 text-sm">{solution}</Text>
     </div>
-  </div>
-);
-
-// --- Local Components ---
-
-const ProcessStep = ({
-  number,
-  title,
-  description,
-}: {
-  number: string;
-  title: string;
-  description: string;
-}) => (
-  <div className="flex gap-6 items-start">
-    <div className="w-10 h-10 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center font-serif font-bold shrink-0 border border-amber-200">
-      {number}
-    </div>
-    <div>
-      <Heading size="4" className="mb-2 text-stone-900">
-        {title}
-      </Heading>
-      <Text className="text-stone-600 text-md leading-relaxed">{description}</Text>
-    </div>
-  </div>
-);
-
-const MaintenanceTip = ({ title, text }: { title: string; text: string }) => (
-  <div className="bg-stone-100 p-6 rounded-xl">
-    <Heading size="4" className="mb-2 text-stone-900">
-      {title}
-    </Heading>
-    <Text className="text-stone-600 text-md">{text}</Text>
   </div>
 );
 
@@ -492,70 +433,22 @@ export default function KeratinTreatmentPage() {
   return (
     <div className="bg-white min-h-screen">
       {/* Hero Section */}
-      <div className="relative h-[65vh] min-h-[550px] w-full overflow-hidden">
-        {/* Using the same background for now, or could use a different one if available */}
-        <Image
-          src="/background-images/keratin-treatment.png"
-          alt="Keratin Hair Treatment at Signature Trims"
-          fill
-          className="object-cover"
-          priority
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/10 to-white/30 flex items-center justify-center">
-          <Container size="4" className="text-center text-white px-4">
-            <Badge
-              size="3"
-              color="gold"
-              variant="solid"
-              className="mb-6 px-4 py-1 uppercase tracking-widest font-sans bg-amber-500/90 backdrop-blur-sm"
-            >
-              {content.hero.badge}
-            </Badge>
-            <Heading
-              size="9"
-              className="font-serif font-light mb-6 text-5xl md:text-7xl leading-tight whitespace-pre-line"
-            >
-              {content.hero.headline}
-            </Heading>
-            <p className="text-xl font-light opacity-95 max-w-2xl mx-auto leading-relaxed font-sans">
-              {content.hero.subheading}
-            </p>
-          </Container>
-        </div>
-      </div>
+      <ServiceHero
+        backgroundImage="/background-images/keratin-treatment.png"
+        badge={{ text: content.hero.badge, color: 'rose' }}
+        headline={content.hero.headline}
+        subheading={content.hero.subheading}
+      />
 
       {/* Stats */}
       <Container size="3" className="px-6 md:px-12 -mt-20 relative z-10 mb-24">
-        <div className="bg-white rounded-3xl shadow-xl p-8 md:p-12 border border-stone-100">
-          <Grid
-            columns={{ initial: '1', md: '3' }}
-            gap="8"
-            className="text-center divide-y md:divide-y-0 md:divide-x divide-stone-100"
-          >
-            <div className="px-4 pt-8 md:pt-0">
-              <Text className="block text-stone-400 text-sm uppercase tracking-widest mb-2">
-                {content.stats.maintenance.label}
-              </Text>
-              <Text className="block text-lg font-serif text-stone-900">
-                {content.stats.maintenance.value}
-              </Text>
-            </div>
-            <div className="px-4 pt-8 md:pt-0">
-              <Text className="block text-stone-400 text-sm uppercase tracking-widest mb-2">
-                {content.stats.duration.label}
-              </Text>
-              <Text className="block text-lg font-serif text-stone-900">
-                {content.stats.duration.value}
-              </Text>
-            </div>
-            <div className="px-4 pt-8 md:pt-0">
-              <Text className="block text-stone-400 text-sm uppercase tracking-widest mb-2">
-                Price
-              </Text>
-              <Text className="block text-lg font-serif text-stone-900">{servicePrice}</Text>
-            </div>
-          </Grid>
-        </div>
+        <ServiceStats
+          stats={[
+            { label: content.stats.maintenance.label, value: content.stats.maintenance.value },
+            { label: content.stats.duration.label, value: content.stats.duration.value },
+            { label: 'Price', value: servicePrice },
+          ]}
+        />
       </Container>
 
       {/* About Keratin Section */}
@@ -619,6 +512,7 @@ export default function KeratinTreatmentPage() {
                   number={step.number}
                   title={step.title}
                   description={step.description}
+                  colorScheme="rose"
                 />
               ))}
             </div>
@@ -639,53 +533,18 @@ export default function KeratinTreatmentPage() {
       </Container>
 
       {/* FAQ Section */}
-      <div className="py-16 bg-stone-50">
-        <Container size="3" className="px-6 md:px-12">
-          <div className="max-w-3xl mx-auto">
-            <div className="text-center mb-12">
-              <Heading size="8" className="font-serif text-stone-900 mb-4">
-                {content.faq.title}
-              </Heading>
-              <Text className="text-stone-500">{content.faq.description}</Text>
-            </div>
-            <Accordion type="single" collapsible className="space-y-4">
-              {content.faq.questions.map((item, index) => (
-                <AccordionItem
-                  key={index}
-                  value={`keratin-${index}`}
-                  className="border border-stone-200 rounded-2xl px-6 bg-white"
-                >
-                  <AccordionTrigger className="text-left hover:no-underline py-6">
-                    <Heading size="5" className="font-serif text-stone-900">
-                      {item.question}
-                    </Heading>
-                  </AccordionTrigger>
-                  <AccordionContent className="pb-6">
-                    <Text className="text-stone-600 leading-relaxed">{item.answer}</Text>
-                  </AccordionContent>
-                </AccordionItem>
-              ))}
-            </Accordion>
-          </div>
-        </Container>
-      </div>
+      <ServiceFAQ
+        title={content.faq.title}
+        description={content.faq.description}
+        questions={content.faq.questions}
+      />
 
       {/* CTA Section */}
-      <div className="py-20 bg-stone-900 text-white">
-        <Container size="3" className="px-6 md:px-12">
-          <div className="text-center max-w-2xl mx-auto">
-            <Heading size="8" className="font-serif mb-6">
-              {content.cta.title}
-            </Heading>
-            <Text className="text-stone-300 text-lg mb-8 leading-relaxed">
-              {content.cta.description}
-            </Text>
-          </div>
-        </Container>
-      </div>
-
-      {/* Booking Section */}
-      <ServiceBookingWrapper serviceName="Keratin Treatment" />
+      <ServiceCTA
+        title={content.cta.title}
+        description={content.cta.description}
+        serviceName="Keratin Treatment"
+      />
     </div>
   );
 }

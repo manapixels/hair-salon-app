@@ -1,3 +1,10 @@
 export { default as ServiceCard } from './ServiceCard';
 export { default as ServiceDetailSections } from './ServiceDetailSections';
 export { default as ServiceBookingWrapper } from './ServiceBookingWrapper';
+export { ServiceHero } from './ServiceHero';
+export { ServiceStats } from './ServiceStats';
+export { ProcessStep } from './ProcessStep';
+export { MaintenanceTip } from './MaintenanceTip';
+export { ServiceTypeCard } from './ServiceTypeCard';
+export { ServiceFAQ } from './ServiceFAQ';
+export { ServiceCTA } from './ServiceCTA';

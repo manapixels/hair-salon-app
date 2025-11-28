@@ -1,15 +1,16 @@
 import React from 'react';
-import { Heading, Text, Container, Grid, Card, Badge } from '@radix-ui/themes';
+import { Heading, Text, Container, Grid } from '@radix-ui/themes';
 import Image from 'next/image';
-import { Clock, Star, CheckCircle, Info } from '@/lib/icons';
 import { notFound } from 'next/navigation';
-import ServiceBookingWrapper from '@/components/services/ServiceBookingWrapper';
 import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from '@/components/ui/accordion';
+  ServiceHero,
+  ServiceStats,
+  ProcessStep,
+  MaintenanceTip,
+  ServiceTypeCard,
+  ServiceFAQ,
+  ServiceCTA,
+} from '@/components/services';
 import { getServiceContent } from '@/data/serviceContent';
 
 // Bilingual Content - Inline
@@ -24,7 +25,6 @@ const CONTENT = {
     stats: {
       maintenance: { label: 'Maintenance', value: '4 to 8 Weeks (touch-up)' },
       duration: { label: 'Duration', value: '2 to 3 Hours' },
-      products: { label: 'Products', value: "L'Oréal / INOA" },
     },
     overview: {
       title: 'Choose Your Colours',
@@ -83,32 +83,6 @@ const CONTENT = {
         description:
           'Colours only new growth (1-2 inches at roots). Ideal for maintaining your existing colour between full applications.',
         image: '/colour-types/root-touch-up.png',
-      },
-    ],
-    benefits: [
-      {
-        title: 'Rich, Long-Lasting Colour',
-        description:
-          'Professional formulas ensure vibrant colour that resists fading and maintains brilliance for weeks.',
-        icon: 'star',
-      },
-      {
-        title: 'Customized Shade Matching',
-        description:
-          'We blend custom shades to perfectly match your desired look and skin undertones with expert precision.',
-        icon: 'check',
-      },
-      {
-        title: 'Gentle on Hair & Scalp',
-        description:
-          'Low-ammonia Japanese formulas minimize damage while delivering beautiful, even coverage.',
-        icon: 'info',
-      },
-      {
-        title: 'Complete Gray Coverage',
-        description:
-          'Flawless gray coverage with natural-looking results that blend seamlessly with your existing hair.',
-        icon: 'clock',
       },
     ],
     process: {
@@ -216,18 +190,16 @@ const CONTENT = {
   },
   zh: {
     hero: {
-      badge: '招牌服务',
-      headline: '鲜艳持久的色彩。\n无限可能。',
+      badge: '染发与挑染',
+      headline: '完美染发',
       subheading: '用丰富立体的色彩改变您的形象。从微妙提升到大胆转变——为您专业打造。',
     },
     stats: {
-      technique: { label: '技术', value: '专业全头染色或发根补染' },
-      maintenance: { label: '维护周期', value: '发根4-6周补染' },
-      duration: { label: '时长', value: '1.5-2.5小时' },
-      products: { label: '产品', value: '欧莱雅 / INOA' },
+      maintenance: { label: '维护周期', value: '4至8周（补染）' },
+      duration: { label: '时长', value: '2至3小时' },
     },
     overview: {
-      title: '我们的色彩光谱',
+      title: '选择您的色彩',
       subtitle: '从微妙提升到大胆转变，我们提供全方位的染发技术。',
       whatIsIt:
         '专业染发服务，用鲜艳持久的效果改变您的形象。使用高级低氨配方，精准上色以遮盖白发、提升自然色调或打造大胆新造型。每次染发都根据您的发质、期望效果和生活方式需求量身定制。',
@@ -236,39 +208,46 @@ const CONTENT = {
       whyChoose:
         '我们温和的低氨日本配方在呈现丰富立体持久色彩的同时，保护发质健康。凭借专业的色调匹配和专业的上色技术，您每次都能享受美丽均匀的覆盖效果和鲜艳的成果。',
     },
-    colourTypes: [
+    types: [
       {
-        title: '底色染发',
-        description: '全面覆盖，打造浓郁均匀的色调。最适合遮盖白发或加深发色。',
-      },
-      { title: '挑染', description: '通过策略性地放置浅色发束，增添层次感和亮度。' },
-      { title: '手绘挑染', description: '手绘挑染效果，打造自然的阳光渐变效果。' },
-      { title: '创意色彩', description: '用鲜艳的时尚色调、粉彩或独特色彩表达自我。' },
-      { title: 'Airtouch', description: '使用空气无缝融合，打造最自然的金发效果。' },
-      { title: '渐变染色', description: '从深色发根到浅色发尾的戏剧性过渡。' },
-      { title: '金发与银发', description: '专业漂色和调色，打造完美的铂金或冷银色。' },
-      { title: 'INOA 染发', description: '无氨永久染发，极致舒适头皮和发质。' },
-    ],
-    benefits: [
-      {
-        title: '丰富持久的色彩',
-        description: '专业配方确保鲜艳色彩抗褪色，数周保持光泽亮丽。',
-        icon: 'star',
+        title: '全头染色',
+        description: '从发根到发尾全面上色。最适合戏剧性改变或刷新全头褪色效果。',
+        image: '/colour-types/full-head-colour.png',
       },
       {
-        title: '定制色调匹配',
-        description: '我们以专业精准度调配定制色调，完美匹配您期望的造型和肤色底色。',
-        icon: 'check',
+        title: '创意色彩',
+        description: '大胆创意色彩，包括粉彩、鲜艳色和独特色调。用出众的色彩表达您的个性。',
+        image: '/colour-types/creative-colours.png',
       },
       {
-        title: '温和护发护头皮',
-        description: '低氨日本配方将损伤降到最低，同时呈现美丽均匀的覆盖效果。',
-        icon: 'info',
+        title: 'Airtouch',
+        description: '使用空气无缝融合，打造最自然的金发效果。',
+        image: '/colour-types/airtouch.png',
       },
       {
-        title: '完美遮盖白发',
-        description: '完美遮盖白发，效果自然，与现有头发无痕融合。',
-        icon: 'clock',
+        title: '渐变染色',
+        description: '从深色发根渐变至浅色发尾。打造现代立体造型，自带长发效果。',
+        image: '/colour-types/ombre.png',
+      },
+      {
+        title: '挑染',
+        description: '通过策略性地放置浅色发束，增添层次感和亮度。',
+        image: '/colour-types/highlights.png',
+      },
+      {
+        title: '金发与银发',
+        description: '专业漂色和调色，打造完美的铂金或冷银色。',
+        image: '/colour-types/blondes-and-silvers.png',
+      },
+      {
+        title: '白发融合',
+        description: '策略性的染色布局，柔化白发覆盖效果，打造自然低维护的立体造型。',
+        image: '/colour-types/gray-blending.png',
+      },
+      {
+        title: '发根补染',
+        description: '仅为发根的新长部分（通常1-2英寸）上色。最适合在全头染色之间保持现有发色。',
+        image: '/colour-types/root-touch-up.png',
       },
     ],
     process: {
@@ -305,32 +284,35 @@ const CONTENT = {
         },
       ],
     },
-    variations: [
-      {
-        title: '全头染色',
-        description: '从发根到发尾全面上色。最适合戏剧性改变或刷新全头褪色效果。',
-      },
-      {
-        title: '发根补染',
-        description: '仅为新长出的头发（发根1-2英寸）上色。最适合在全头染色之间保持现有发色。',
-      },
-      {
-        title: '光泽与调色',
-        description: '轻透色彩护理，增加光泽和微妙的色调调整。在主要染发服务之间提升鲜艳度。',
-      },
-      {
-        title: '时尚色彩',
-        description: '大胆创意色彩，包括粉彩、鲜艳色和独特色调。用出众的色彩表达您的个性。',
-      },
-      {
-        title: '白发融合',
-        description: '策略性的染色布局，柔化白发覆盖效果，打造自然低维护的立体造型。',
-      },
-      {
-        title: '渐变染色',
-        description: '从深色发根渐变至浅色发尾。打造现代立体造型，自带长发效果。',
-      },
-    ],
+    aftercare: {
+      title: '护理建议',
+      tips: [
+        {
+          title: '等待后再洗发',
+          text: '染发后至少48小时内避免洗发。这让染料充分固定，锁住鲜艳度并减少早期褪色。',
+        },
+        {
+          title: '使用护色产品',
+          text: '改用无硫酸盐、护色洗发水和护发素。这些温和配方有助于保持您的新发色和头发健康。',
+        },
+        {
+          title: '减少热造型',
+          text: '第一周尽量减少使用熨发器和吹风机等热工具。造型时，务必使用防热保护喷雾。',
+        },
+        {
+          title: '每周深层护理',
+          text: '每周使用一次滋养发膜或深层护发素，补充水分并保持化学处理后的光泽。',
+        },
+        {
+          title: '防晒防氯',
+          text: '户外时戴帽子保护头发免受紫外线伤害，这会导致褪色。游泳前冲洗并保护头发免受氯水伤害。',
+        },
+        {
+          title: '定期调色',
+          text: '考虑每4-6周进行一次专业调色或光泽护理，保持发色新鲜并对抗铜色或褪色。',
+        },
+      ],
+    },
     faq: {
       title: '常见问题',
       description: '关于我们染发服务的常见问题。',
@@ -374,67 +356,6 @@ const CONTENT = {
 // For now, using English content
 const content = CONTENT.en;
 
-// --- Local Components for this page ---
-
-const ColouringTypeCard = ({
-  title,
-  description,
-  image,
-}: {
-  title: string;
-  description: string;
-  image: string;
-}) => (
-  <div className="group">
-    <div className="relative h-80 w-full overflow-hidden rounded-2xl mb-4">
-      <Image
-        src={image}
-        alt={title}
-        fill
-        className="object-cover transition-transform duration-700 group-hover:scale-110"
-      />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60 group-hover:opacity-80 transition-opacity" />
-      <div className="absolute bottom-4 left-4 text-white">
-        <Heading size="5" className="font-serif">
-          {title}
-        </Heading>
-      </div>
-    </div>
-    <Text className="text-stone-600 text-md leading-relaxed block px-1">{description}</Text>
-  </div>
-);
-
-const ProcessStep = ({
-  number,
-  title,
-  description,
-}: {
-  number: string;
-  title: string;
-  description: string;
-}) => (
-  <div className="flex gap-6 items-start">
-    <div className="w-10 h-10 rounded-full bg-base-primary/10 text-base-primary flex items-center justify-center font-serif font-bold shrink-0 border border-base-primary/50">
-      {number}
-    </div>
-    <div>
-      <Heading size="4" className="mb-2 text-stone-900">
-        {title}
-      </Heading>
-      <Text className="text-stone-600 text-md leading-relaxed">{description}</Text>
-    </div>
-  </div>
-);
-
-const MaintenanceTip = ({ title, text }: { title: string; text: string }) => (
-  <div className="bg-stone-100 p-6 rounded-xl">
-    <Heading size="4" className="mb-2 text-stone-900">
-      {title}
-    </Heading>
-    <Text className="text-stone-600 text-md">{text}</Text>
-  </div>
-);
-
 // --- Main Page ---
 
 export default function HairColouringPage() {
@@ -447,69 +368,22 @@ export default function HairColouringPage() {
   return (
     <div className="bg-white min-h-screen">
       {/* Hero Section */}
-      <div className="relative h-[65vh] min-h-[550px] w-full overflow-hidden">
-        <Image
-          src="/background-images/hair-colouring.jpg"
-          alt="Professional Hair Colouring at Signature Trims"
-          fill
-          className="object-cover"
-          priority
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/10 to-white/30 flex items-center justify-center">
-          <Container size="4" className="text-center text-white px-4 mt-20">
-            <Badge
-              size="3"
-              color="mint"
-              variant="solid"
-              className="mb-6 px-4 py-1 uppercase tracking-widest font-sans"
-            >
-              {content.hero.badge}
-            </Badge>
-            <Heading
-              size="9"
-              className="font-serif font-light mb-6 text-5xl md:text-7xl leading-tight whitespace-pre-line"
-            >
-              {content.hero.headline}
-            </Heading>
-            <p className="text-xl md:text-2xl font-light opacity-90 max-w-2xl mx-auto leading-relaxed font-sans">
-              {content.hero.subheading}
-            </p>
-          </Container>
-        </div>
-      </div>
+      <ServiceHero
+        backgroundImage="/background-images/hair-colouring.jpg"
+        badge={{ text: content.hero.badge, color: 'mint' }}
+        headline={content.hero.headline}
+        subheading={content.hero.subheading}
+      />
 
       {/* Stats */}
       <Container size="3" className="px-6 md:px-12 -mt-20 relative z-10 mb-24">
-        <div className="bg-white rounded-3xl shadow-xl p-8 md:p-12 border border-stone-100">
-          <Grid
-            columns={{ initial: '1', md: '3' }}
-            gap="8"
-            className="text-center divide-y md:divide-y-0 md:divide-x divide-stone-100"
-          >
-            <div className="px-4 pt-8 md:pt-0">
-              <Text className="block text-stone-400 text-sm uppercase tracking-widest mb-2">
-                {content.stats.maintenance.label}
-              </Text>
-              <Text className="block text-lg font-serif text-stone-900">
-                {content.stats.maintenance.value}
-              </Text>
-            </div>
-            <div className="px-4 pt-8 md:pt-0">
-              <Text className="block text-stone-400 text-sm uppercase tracking-widest mb-2">
-                {content.stats.duration.label}
-              </Text>
-              <Text className="block text-lg font-serif text-stone-900">
-                {content.stats.duration.value}
-              </Text>
-            </div>
-            <div className="px-4 pt-8 md:pt-0">
-              <Text className="block text-stone-400 text-sm uppercase tracking-widest mb-2">
-                Price
-              </Text>
-              <Text className="block text-lg font-serif text-stone-900">{servicePrice}</Text>
-            </div>
-          </Grid>
-        </div>
+        <ServiceStats
+          stats={[
+            { label: content.stats.maintenance.label, value: content.stats.maintenance.value },
+            { label: content.stats.duration.label, value: content.stats.duration.value },
+            { label: 'Price', value: servicePrice },
+          ]}
+        />
       </Container>
 
       <Container size="4" className="px-6 md:px-12 py-16 bg-white">
@@ -524,7 +398,7 @@ export default function HairColouringPage() {
 
         <Grid columns={{ initial: '1', sm: '2', md: '4' }} gap="8">
           {content.types.map((type, index) => (
-            <ColouringTypeCard
+            <ServiceTypeCard
               key={index}
               title={type.title}
               description={type.description}
@@ -569,49 +443,18 @@ export default function HairColouringPage() {
       </Container>
 
       {/* FAQ Section */}
-      <Container size="3" className="px-6 md:px-12 py-16 bg-stone-50">
-        <div className="max-w-3xl mx-auto">
-          <div className="text-center mb-12">
-            <Heading size="8" className="font-serif text-stone-900 mb-4">
-              {content.faq.title}
-            </Heading>
-            <Text className="text-stone-500">{content.faq.description}</Text>
-          </div>
-          <Accordion type="single" collapsible className="space-y-4">
-            {content.faq.questions.map((item, index) => (
-              <AccordionItem
-                key={index}
-                value={`item-${index}`}
-                className="border border-stone-200 rounded-2xl px-6 bg-white"
-              >
-                <AccordionTrigger className="text-left hover:no-underline py-6">
-                  <Heading size="5" className="font-serif text-stone-900">
-                    {item.question}
-                  </Heading>
-                </AccordionTrigger>
-                <AccordionContent className="pb-6">
-                  <Text className="text-stone-600 leading-relaxed">{item.answer}</Text>
-                </AccordionContent>
-              </AccordionItem>
-            ))}
-          </Accordion>
-        </div>
-      </Container>
+      <ServiceFAQ
+        title={content.faq.title}
+        description={content.faq.description}
+        questions={content.faq.questions}
+      />
 
       {/* CTA Section */}
-      <Container size="3" className="px-6 md:px-12 py-20 bg-stone-900 text-white">
-        <div className="text-center max-w-2xl mx-auto">
-          <Heading size="8" className="font-serif mb-6">
-            {content.cta.title}
-          </Heading>
-          <Text className="text-stone-300 text-lg mb-8 leading-relaxed">
-            {content.cta.description}
-          </Text>
-        </div>
-      </Container>
-
-      {/* Booking Section */}
-      <ServiceBookingWrapper serviceName="Hair Colouring" />
+      <ServiceCTA
+        title={content.cta.title}
+        description={content.cta.description}
+        serviceName="Hair Colouring"
+      />
     </div>
   );
 }

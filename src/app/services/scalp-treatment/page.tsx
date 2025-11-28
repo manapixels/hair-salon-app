@@ -1,15 +1,15 @@
 import React from 'react';
-import { Heading, Text, Container, Grid, Badge } from '@radix-ui/themes';
-import Image from 'next/image';
+import { Heading, Text, Container, Grid } from '@radix-ui/themes';
 import { CheckCircle, Plus } from '@/lib/icons';
 import { notFound } from 'next/navigation';
-import ServiceBookingWrapper from '@/components/services/ServiceBookingWrapper';
 import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from '@/components/ui/accordion';
+  ServiceHero,
+  ServiceStats,
+  ProcessStep,
+  MaintenanceTip,
+  ServiceFAQ,
+  ServiceCTA,
+} from '@/components/services';
 import { BeforeAfterSlider } from '@/components/ui/BeforeAfterSlider';
 import { getServiceContent } from '@/data/serviceContent';
 
@@ -23,7 +23,6 @@ const CONTENT = {
         'Healthy hair starts with a healthy scalp. Address concerns at the source with our advanced therapeutic treatments.',
     },
     stats: {
-      type: { label: 'Treatment Type', value: 'Scalp Therapy' },
       maintenance: { label: 'Maintenance', value: 'Monthly' },
       duration: { label: 'Duration', value: '60 - 90 mins' },
     },
@@ -166,77 +165,44 @@ const CONTENT = {
       subheading: '健康的头发始于健康的头皮。通过我们先进的治疗护理，从根源解决问题。',
     },
     stats: {
-      type: { label: '护理类型', value: '头皮护理' },
       maintenance: { label: '频率', value: '每月保养' },
       duration: { label: '时长', value: '60-90分钟' },
     },
-    overview: {
+    why: {
       title: '为何头皮护理重要',
       subtitle: '油性、头屑和脱发等问题往往源于堵塞或不平衡的头皮。我们的护理深层清洁并滋养毛囊。',
+      items: [
+        {
+          title: '油性头皮',
+          solution: '调节皮脂分泌以防止油腻和毛孔堵塞。',
+        },
+        {
+          title: '脱发',
+          solution: '刺激血液循环并强化发根以减少脱落。',
+        },
+        {
+          title: '敏感/发痒',
+          solution: '舒缓炎症并恢复头皮的天然保护屏障。',
+        },
+        {
+          title: '头屑与脱屑',
+          solution: '针对性配方从根源有效解决脱屑问题。',
+        },
+      ],
     },
-    problems: [
-      { title: '油性头皮', solution: '调节皮脂分泌以防止油腻和毛孔堵塞。' },
-      { title: '脱发', solution: '刺激血液循环并强化发根以减少脱落。' },
-      { title: '敏感/瘙痒', solution: '舒缓炎症并恢复头皮的天然保护屏障。' },
-      { title: '头屑和脱屑', solution: '针对性配方从根源有效解决脱屑问题。' },
-    ],
     treatmentsTitle: '我们的头皮护理',
     treatments: [
       {
         title: '常规头皮护理',
-        price: '$88',
         description: '深层清洁和一般头皮健康维护。最适合每月护理和预防。',
-        benefits: ['深层清洁', '油脂平衡', '温和去角质'],
+        benefits: ['一般头皮健康', '温和去角质', '去除过多油脂和堆积物'],
       },
       {
         title: '高级头皮疗程',
-        price: '$128',
         description: '高级配方针对脱发、严重头屑或极度油性等特定问题。',
-        benefits: ['高级成分', '护理安瓶增强', '针对性解决方案'],
-      },
-      {
-        title: '头皮+角蛋白组合',
-        price: '$248',
-        description: '完整发质健康套餐。头皮护理后进行角蛋白顺滑，提供全面护理。',
-        benefits: ['全面护理', '头皮+发质护理', '最大效果'],
+        benefits: ['针对脱发', '针对严重头屑', '针对极度油性'],
       },
     ],
-    faq: {
-      title: '头皮护理常见问题',
-      description: '关于我们头皮护理服务的常见问题。',
-      questions: [
-        {
-          question: '应该多久做一次头皮护理？',
-          answer:
-            '为了保养和一般头皮健康，我们建议每月护理一次。如果要解决严重头屑、过度油性或脱发等特定问题，您可能会在前4-6周从每两周护理一次中受益，然后过渡到每月保养。',
-        },
-        {
-          question: '头皮护理会帮助解决脱发吗？',
-          answer:
-            '虽然头皮护理无法逆转遗传性脱发，但它们通过改善血液循环、去除阻塞毛囊的堆积物以及向头皮输送营养，为头发生长创造最佳条件。许多客户通过定期护理注意到发质厚度改善和脱发减少。对于严重的脱发问题，我们建议咨询皮肤科医生。',
-        },
-        {
-          question: '头皮护理适合敏感头皮吗？',
-          answer:
-            '是的！我们可以使用温和、舒缓且不含刺激性成分的配方专门为敏感头皮定制护理。在咨询时告诉我们您的敏感情况，以便我们选择最合适的产品和技术。',
-        },
-        {
-          question: '染过发能做头皮护理吗？',
-          answer:
-            '完全可以。头皮护理专注于头皮和发根而非发长，我们使用护色产品。事实上，头皮护理可以通过为头发生长创造更健康的环境并减少使用刺激性清洁洗发水的需要，帮助保持发色鲜艳。',
-        },
-        {
-          question: '常规头皮护理和高级头皮疗程有何区别？',
-          answer:
-            '我们的常规头皮护理使用优质配方提供深层清洁和一般头皮健康维护。高级头皮疗程使用高级配方专门针对脱发、严重头屑或极度油性等问题，并包括可选的护理安瓶增强以获得加强效果。',
-        },
-      ],
-    },
-    cta: {
-      title: '准备好拥有更健康的头皮了吗？',
-      description: '立即预约头皮分析和护理。我们将诊断您的头皮状况并推荐完美的护理方案。',
-      button: '预约头皮护理',
-    },
     process: {
       title: '护理流程',
       steps: [
@@ -287,6 +253,42 @@ const CONTENT = {
           text: '去角质后您的头皮可能更敏感。如果在户外活动，请戴帽子或使用SPF护发产品。',
         },
       ],
+    },
+    faq: {
+      title: '头皮护理常见问题',
+      description: '关于我们头皮护理服务的常见问题。',
+      questions: [
+        {
+          question: '应该多久做一次头皮护理？',
+          answer:
+            '为了保养和一般头皮健康，我们建议每月护理一次。如果要解决严重头屑、过度油性或脱发等特定问题，您可能会在前4-6周从每两周护理一次中受益，然后过渡到每月保养。',
+        },
+        {
+          question: '头皮护理会帮助解决脱发吗？',
+          answer:
+            '虽然头皮护理无法逆转遗传性脱发，但它们通过改善血液循环、去除阻塞毛囊的堆积物以及向头皮输送营养，为头发生长创造最佳条件。许多客户通过定期护理注意到发质厚度改善和脱发减少。对于严重的脱发问题，我们建议咨询皮肤科医生。',
+        },
+        {
+          question: '头皮护理适合敏感头皮吗？',
+          answer:
+            '是的！我们可以使用温和、舒缓且不含刺激性成分的配方专门为敏感头皮定制护理。在咨询时告诉我们您的敏感情况，以便我们选择最合适的产品和技术。',
+        },
+        {
+          question: '染过发能做头皮护理吗？',
+          answer:
+            '完全可以。头皮护理专注于头皮和发根而非发长，我们使用护色产品。事实上，头皮护理可以通过为头发生长创造更健康的环境并减少使用刺激性清洁洗发水的需要，帮助保持发色鲜艳。',
+        },
+        {
+          question: '常规头皮护理和高级头皮疗程有何区别？',
+          answer:
+            '我们的常规头皮护理使用优质配方提供深层清洁和一般头皮健康维护。高级头皮疗程使用高级配方专门针对脱发、严重头屑或极度油性等问题，并包括可选的护理安瓶增强以获得加强效果。',
+        },
+      ],
+    },
+    cta: {
+      title: '准备好拥有更健康的头皮了吗？',
+      description: '立即预约头皮分析和护理。我们将诊断您的头皮状况并推荐完美的护理方案。',
+      button: '预约头皮护理',
     },
   },
 };
@@ -341,37 +343,6 @@ const ProblemSolution = ({ problem, solution }: { problem: string; solution: str
   </div>
 );
 
-const ProcessStep = ({
-  number,
-  title,
-  description,
-}: {
-  number: string;
-  title: string;
-  description: string;
-}) => (
-  <div className="flex gap-6 items-start">
-    <div className="w-10 h-10 rounded-full bg-teal-100 text-teal-600 flex items-center justify-center font-serif font-bold shrink-0 border border-teal-200">
-      {number}
-    </div>
-    <div>
-      <Heading size="4" className="mb-2 text-stone-900">
-        {title}
-      </Heading>
-      <Text className="text-stone-600 text-md leading-relaxed">{description}</Text>
-    </div>
-  </div>
-);
-
-const MaintenanceTip = ({ title, text }: { title: string; text: string }) => (
-  <div className="bg-stone-100 p-6 rounded-xl">
-    <Heading size="4" className="mb-2 text-stone-900">
-      {title}
-    </Heading>
-    <Text className="text-stone-600 text-md">{text}</Text>
-  </div>
-);
-
 // --- Main Page ---
 
 export default function ScalpTreatmentPage() {
@@ -387,69 +358,22 @@ export default function ScalpTreatmentPage() {
   return (
     <div className="bg-white min-h-screen">
       {/* Hero Section */}
-      <div className="relative h-[65vh] min-h-[550px] w-full overflow-hidden">
-        <Image
-          src="/background-images/scalp-treatment.png"
-          alt="Scalp Treatments at Signature Trims"
-          fill
-          className="object-cover"
-          priority
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/10 to-white/30 flex items-center justify-center">
-          <Container size="4" className="text-center text-white px-4">
-            <Badge
-              size="3"
-              color="cyan"
-              variant="solid"
-              className="mb-6 px-4 py-1 uppercase tracking-widest font-sans bg-cyan-600/90 backdrop-blur-sm"
-            >
-              {content.hero.badge}
-            </Badge>
-            <Heading
-              size="9"
-              className="font-serif font-light mb-6 text-5xl md:text-7xl leading-tight whitespace-pre-line"
-            >
-              {content.hero.headline}
-            </Heading>
-            <p className="text-xl font-light opacity-95 max-w-2xl mx-auto leading-relaxed font-sans">
-              {content.hero.subheading}
-            </p>
-          </Container>
-        </div>
-      </div>
+      <ServiceHero
+        backgroundImage="/background-images/scalp-treatment.png"
+        badge={{ text: content.hero.badge, color: 'blue' }}
+        headline={content.hero.headline}
+        subheading={content.hero.subheading}
+      />
 
       {/* Stats */}
       <Container size="3" className="px-6 md:px-12 -mt-20 relative z-10 mb-24">
-        <div className="bg-white rounded-3xl shadow-xl p-8 md:p-12 border border-stone-100">
-          <Grid
-            columns={{ initial: '1', md: '3' }}
-            gap="8"
-            className="text-center divide-y md:divide-y-0 md:divide-x divide-stone-100"
-          >
-            <div className="px-4 pt-8 md:pt-0">
-              <Text className="block text-stone-400 text-sm uppercase tracking-widest mb-2">
-                {content.stats.maintenance.label}
-              </Text>
-              <Text className="block text-lg font-serif text-stone-900">
-                {content.stats.maintenance.value}
-              </Text>
-            </div>
-            <div className="px-4 pt-8 md:pt-0">
-              <Text className="block text-stone-400 text-sm uppercase tracking-widest mb-2">
-                {content.stats.duration.label}
-              </Text>
-              <Text className="block text-lg font-serif text-stone-900">
-                {content.stats.duration.value}
-              </Text>
-            </div>
-            <div className="px-4 pt-8 md:pt-0">
-              <Text className="block text-stone-400 text-sm uppercase tracking-widest mb-2">
-                Price
-              </Text>
-              <Text className="block text-lg font-serif text-stone-900">{servicePrice}</Text>
-            </div>
-          </Grid>
-        </div>
+        <ServiceStats
+          stats={[
+            { label: content.stats.maintenance.label, value: content.stats.maintenance.value },
+            { label: content.stats.duration.label, value: content.stats.duration.value },
+            { label: 'Price', value: servicePrice },
+          ]}
+        />
       </Container>
 
       {/* About Scalp Care Section */}
@@ -513,6 +437,7 @@ export default function ScalpTreatmentPage() {
                   number={step.number}
                   title={step.title}
                   description={step.description}
+                  colorScheme="teal"
                 />
               ))}
             </div>
@@ -532,54 +457,19 @@ export default function ScalpTreatmentPage() {
         </Grid>
       </Container>
 
-      {/* FAQ Sections */}
-      <div className="py-16 bg-stone-50">
-        <Container size="3" className="px-6 md:px-12">
-          <div className="max-w-3xl mx-auto">
-            <div className="text-center mb-12">
-              <Heading size="8" className="font-serif text-stone-900 mb-4">
-                {content.faq.title}
-              </Heading>
-              <Text className="text-stone-500">{content.faq.description}</Text>
-            </div>
-            <Accordion type="single" collapsible className="space-y-4">
-              {content.faq.questions.map((item, index) => (
-                <AccordionItem
-                  key={index}
-                  value={`scalp-${index}`}
-                  className="border border-stone-200 rounded-2xl px-6 bg-white"
-                >
-                  <AccordionTrigger className="text-left hover:no-underline py-6">
-                    <Heading size="5" className="font-serif text-stone-900">
-                      {item.question}
-                    </Heading>
-                  </AccordionTrigger>
-                  <AccordionContent className="pb-6">
-                    <Text className="text-stone-600 leading-relaxed">{item.answer}</Text>
-                  </AccordionContent>
-                </AccordionItem>
-              ))}
-            </Accordion>
-          </div>
-        </Container>
-      </div>
+      {/* FAQ Section */}
+      <ServiceFAQ
+        title={content.faq.title}
+        description={content.faq.description}
+        questions={content.faq.questions}
+      />
 
       {/* CTA Section */}
-      <div className="py-20 bg-stone-900 text-white">
-        <Container size="3" className="px-6 md:px-12">
-          <div className="text-center max-w-2xl mx-auto">
-            <Heading size="8" className="font-serif mb-6">
-              {content.cta.title}
-            </Heading>
-            <Text className="text-stone-300 text-lg mb-8 leading-relaxed">
-              {content.cta.description}
-            </Text>
-          </div>
-        </Container>
-      </div>
-
-      {/* Booking Section */}
-      <ServiceBookingWrapper serviceName="Scalp Treatment" />
+      <ServiceCTA
+        title={content.cta.title}
+        description={content.cta.description}
+        serviceName="Scalp Treatment"
+      />
     </div>
   );
 }

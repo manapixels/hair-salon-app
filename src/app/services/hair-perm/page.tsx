@@ -1,15 +1,15 @@
 import React from 'react';
-import { Heading, Text, Container, Grid, Badge } from '@radix-ui/themes';
-import Image from 'next/image';
-import { Info } from '@/lib/icons';
+import { Heading, Text, Container, Grid } from '@radix-ui/themes';
 import { notFound } from 'next/navigation';
-import ServiceBookingWrapper from '@/components/services/ServiceBookingWrapper';
 import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from '@/components/ui/accordion';
+  ServiceHero,
+  ServiceStats,
+  ProcessStep,
+  MaintenanceTip,
+  ServiceTypeCard,
+  ServiceFAQ,
+  ServiceCTA,
+} from '@/components/services';
 import { getServiceContent } from '@/data/serviceContent';
 
 // Bilingual Content - Inline
@@ -187,60 +187,110 @@ const CONTENT = {
       duration: { label: '时长', value: '3-3.5小时' },
     },
     overview: {
-      title: '流行风格',
-      subtitle: '发现最适合您脸型和生活方式的完美卷发纹理。',
+      title: '可选烫发类型',
+      subtitle: '我们可以做多种烫发风格，帮助您找到最适合您脸型和生活方式的造型。',
     },
-    styles: [
+    types: [
       {
-        title: 'C型卷烫',
-        description: '发尾向内（或向外）卷曲，打造整洁、女性化的轮廓。低维护，最适合短发。',
-        image: '/background-images/c-curl.jpg',
+        title: '常规烫发',
+        description: '传统波浪技术，从发根到发尾打造明确定义的卷发，提供持久的质感和蓬松度。',
+        image: '/perm-types/regular-perm.png',
       },
       {
-        title: 'S型卷烫',
-        description: '打造全头蓬松流动的S型波浪，呈现浪漫饱满的造型。',
-        image: '/background-images/s-curl.jpg',
+        title: '数码烫',
+        description: '热激活造型方法，打造柔软自然的波浪，干发时更明显，模仿沙龙吹风效果。',
+        image: '/perm-types/digital-perm.png',
       },
       {
-        title: '韩式数码烫',
-        description: '使用加热打造明确、弹性的卷发，干发时效果最佳。模仿卷发棒造型效果。',
-        image: '/background-images/digital-perm.jpg',
+        title: '发根烫',
+        description: '专注于提升发根以增加高度和蓬松度，不卷发中段或发尾，适合扁塌头发。',
+        image: '/perm-types/iron-roots-perm.png',
       },
       {
-        title: '发根蓬松烫',
-        description: '专注于提升发根以增加高度和质感，不烫发长。',
-        image: '/background-images/root-perm.jpg',
+        title: '刘海烫',
+        description: '专门为刘海造型，打造柔和的弧度和蓬松感，改善脸部轮廓并简化日常造型。',
+        image: '/perm-types/fringe-perm.png',
       },
       {
-        title: '海滩波浪',
-        description: '凌乱、有质感的波浪，呈现轻松的"刚离开海滩"氛围。',
-        image: '/background-images/beach-wave.jpg',
+        title: '下压烫',
+        description: '顺滑护理，旨在放松和抚平两侧或后部顽固蓬松的头发，打造更纤瘦的轮廓。',
+        image: '/perm-types/down-perm.png',
       },
       {
         title: '男士烫发',
-        description: '为短发增添质感和蓬松感，使造型更轻松更有活力。',
-        image: '/background-images/mens-perm.jpg',
+        description: '为短发增添动感、蓬松度和质感，从微妙波浪到明确卷发，更易打理。',
+        image: '/perm-types/mens-perm.png',
       },
     ],
-    care: {
-      before: {
-        title: '预约前准备',
-        tips: [
-          '预约前避免漂发。漂过的头发通常太脆弱，不适合烫发。',
-          '带上您期望卷发紧度的参考照片。',
-          '预留3-4小时的时间，尤其是数码烫。',
-        ],
-      },
-      after: {
-        title: '护理建议',
-        tips: [
-          '等待48小时再洗头，让卷发定型。',
-          '使用宽齿梳或手指梳理，绝不要用细梳。',
-          '吹干时扭转头发（数码烫）以增强形状。',
-          '将卷发增强产品涂抹在湿发上，自然风干或扩散吹干。',
-          '使用真丝或缎面枕套睡觉，减少毛躁。',
-        ],
-      },
+    process: {
+      title: '服务流程',
+      steps: [
+        {
+          number: '1',
+          title: '咨询与发质分析',
+          description:
+            '我们评估您的头发历史、质地和当前状况。讨论期望的卷发大小、类型（波浪、螺旋、紧卷），并选择合适的卷棒大小和烫发液强度。',
+        },
+        {
+          number: '2',
+          title: '洗发与卷棒定位',
+          description:
+            '轻轻清洗头发，不使用护发素。将潮湿的头发分区，仔细精确地缠绕在烫发棒上，这决定了最终的卷发图案和大小。',
+        },
+        {
+          number: '3',
+          title: '烫发液涂抹（软化）',
+          description:
+            '涂抹烫发液（还原液）——含有硫基乙酸铵等成分。这种溶液打破头发内部的二硫键，使头发变得柔韧。',
+        },
+        {
+          number: '4',
+          title: '处理与测试卷',
+          description:
+            '头发放置指定时间进行处理。发型师通过偶尔解开测试卷来密切监测化学反应，确保形成新卷发而不会过度处理。',
+        },
+        {
+          number: '5',
+          title: '冲洗与中和剂涂抹（定型）',
+          description:
+            '彻底冲洗烫发液（通常在卷棒仍在时）。然后涂抹中和液（含过氧化氢或溴酸钠）以固定新形成的键，锁定卷发形状。',
+        },
+        {
+          number: '6',
+          title: '卷棒拆除与最后冲洗',
+          description:
+            '中和剂处理后，小心取下烫发棒。头发接受最后冲洗，涂抹深层护发素或保湿护理以恢复水分和pH平衡。',
+        },
+      ],
+    },
+    aftercare: {
+      title: '护理建议',
+      tips: [
+        {
+          title: '初始等待期',
+          text: '至少等待48-72小时再洗头或扎头发，让卷发中的化学键充分定型，防止卷度下垂。',
+        },
+        {
+          title: '温柔梳理',
+          text: '仅使用宽齿梳或手指轻柔梳理头发。避免使用细梳，会拉直卷发并造成不必要的毛躁。',
+        },
+        {
+          title: '卷发友好吹干（数码烫）',
+          text: '对于数码烫，吹干时轻轻扭转头发（最好使用扩散器附件）以增强和提升螺旋形新卷发。',
+        },
+        {
+          title: '造型与产品应用',
+          text: '将保湿和卷发增强产品（如慕斯、乳霜或啫喱）涂抹在湿发上。涂抹后避免梳理。自然风干或用低热扩散器吹干。',
+        },
+        {
+          title: '睡眠时减少毛躁',
+          text: '睡在真丝或缎面枕套上。这种材质摩擦较小，显著减少毛躁，有助于保持卷发定义过夜。',
+        },
+        {
+          title: '使用正确产品（无硫酸盐/无酒精）',
+          text: '承诺只使用无硫酸盐和无酒精的洗发水和护发素。硫酸盐会剥离头发的天然油脂，削弱烫发，导致卷发过早松弛。',
+        },
+      ],
     },
     faq: {
       title: '常见问题',
@@ -285,67 +335,6 @@ const CONTENT = {
 // For now, using English content
 const content = CONTENT.en;
 
-// --- Local Components ---
-
-const PermTypeCard = ({
-  title,
-  description,
-  image,
-}: {
-  title: string;
-  description: string;
-  image: string;
-}) => (
-  <div className="group">
-    <div className="relative h-80 w-full overflow-hidden rounded-2xl mb-4">
-      <Image
-        src={image}
-        alt={title}
-        fill
-        className="object-cover transition-transform duration-700 group-hover:scale-110"
-      />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60 group-hover:opacity-80 transition-opacity" />
-      <div className="absolute bottom-4 left-4 text-white">
-        <Heading size="5" className="font-serif">
-          {title}
-        </Heading>
-      </div>
-    </div>
-    <Text className="text-stone-600 text-md leading-relaxed block px-1">{description}</Text>
-  </div>
-);
-
-const ProcessStep = ({
-  number,
-  title,
-  description,
-}: {
-  number: string;
-  title: string;
-  description: string;
-}) => (
-  <div className="flex gap-6 items-start">
-    <div className="w-10 h-10 rounded-full bg-base-primary/10 text-base-primary flex items-center justify-center font-serif font-bold shrink-0 border border-base-primary/50">
-      {number}
-    </div>
-    <div>
-      <Heading size="4" className="mb-2 text-stone-900">
-        {title}
-      </Heading>
-      <Text className="text-stone-600 text-md leading-relaxed">{description}</Text>
-    </div>
-  </div>
-);
-
-const MaintenanceTip = ({ title, text }: { title: string; text: string }) => (
-  <div className="bg-stone-100 p-6 rounded-xl">
-    <Heading size="4" className="mb-2 text-stone-900">
-      {title}
-    </Heading>
-    <Text className="text-stone-600 text-md">{text}</Text>
-  </div>
-);
-
 // --- Main Page ---
 
 export default function HairPermPage() {
@@ -358,69 +347,22 @@ export default function HairPermPage() {
   return (
     <div className="bg-white min-h-screen">
       {/* Hero Section */}
-      <div className="relative h-[70vh] min-h-[600px] w-full overflow-hidden">
-        <Image
-          src="/background-images/hair-perm.jpg"
-          alt="Professional Hair Perm Services at Signature Trims"
-          fill
-          className="object-cover"
-          priority
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/10 to-white/30 flex items-center justify-center">
-          <Container size="4" className="text-center text-white px-4 mt-32">
-            <Badge
-              size="3"
-              color="violet"
-              variant="solid"
-              className="mb-6 px-4 py-1 uppercase tracking-widest font-sans"
-            >
-              {content.hero.badge}
-            </Badge>
-            <Heading
-              size="9"
-              className="font-serif font-light mb-6 text-5xl md:text-7xl leading-tight whitespace-pre-line"
-            >
-              {content.hero.headline}
-            </Heading>
-            <p className="text-xl md:text-2xl font-light opacity-90 max-w-2xl mx-auto leading-relaxed font-sans">
-              {content.hero.subheading}
-            </p>
-          </Container>
-        </div>
-      </div>
+      <ServiceHero
+        backgroundImage="/background-images/hair-perm.jpg"
+        badge={{ text: content.hero.badge, color: 'amber' }}
+        headline={content.hero.headline}
+        subheading={content.hero.subheading}
+      />
 
       {/* Stats */}
       <Container size="3" className="px-6 md:px-12 -mt-20 relative z-10 mb-24">
-        <div className="bg-white rounded-3xl shadow-xl p-8 md:p-12 border border-stone-100">
-          <Grid
-            columns={{ initial: '1', md: '3' }}
-            gap="8"
-            className="text-center divide-y md:divide-y-0 md:divide-x divide-stone-100"
-          >
-            <div className="px-4 pt-8 md:pt-0">
-              <Text className="block text-stone-400 text-sm uppercase tracking-widest mb-2">
-                {content.stats.maintenance.label}
-              </Text>
-              <Text className="block text-lg font-serif text-stone-900">
-                {content.stats.maintenance.value}
-              </Text>
-            </div>
-            <div className="px-4 pt-8 md:pt-0">
-              <Text className="block text-stone-400 text-sm uppercase tracking-widest mb-2">
-                {content.stats.duration.label}
-              </Text>
-              <Text className="block text-lg font-serif text-stone-900">
-                {content.stats.duration.value}
-              </Text>
-            </div>
-            <div className="px-4 pt-8 md:pt-0">
-              <Text className="block text-stone-400 text-sm uppercase tracking-widest mb-2">
-                Price
-              </Text>
-              <Text className="block text-lg font-serif text-stone-900">{servicePrice}</Text>
-            </div>
-          </Grid>
-        </div>
+        <ServiceStats
+          stats={[
+            { label: content.stats.maintenance.label, value: content.stats.maintenance.value },
+            { label: content.stats.duration.label, value: content.stats.duration.value },
+            { label: 'Price', value: servicePrice },
+          ]}
+        />
       </Container>
 
       {/* Introduction */}
@@ -446,7 +388,7 @@ export default function HairPermPage() {
 
         <Grid columns={{ initial: '1', sm: '2', md: '3' }} gap="8">
           {content.types.map((type, index) => (
-            <PermTypeCard
+            <ServiceTypeCard
               key={index}
               title={type.title}
               description={type.description}
@@ -471,6 +413,7 @@ export default function HairPermPage() {
                   number={step.number}
                   title={step.title}
                   description={step.description}
+                  colorScheme="amber"
                 />
               ))}
             </div>
@@ -491,49 +434,18 @@ export default function HairPermPage() {
       </Container>
 
       {/* FAQ Section */}
-      <Container size="3" className="px-6 md:px-12 py-16 bg-stone-50">
-        <div className="max-w-3xl mx-auto">
-          <div className="text-center mb-12">
-            <Heading size="8" className="font-serif text-stone-900 mb-4">
-              {content.faq.title}
-            </Heading>
-            <Text className="text-stone-500">{content.faq.description}</Text>
-          </div>
-          <Accordion type="single" collapsible className="space-y-4">
-            {content.faq.questions.map((item, index) => (
-              <AccordionItem
-                key={index}
-                value={`item-${index}`}
-                className="border border-stone-200 rounded-2xl px-6 bg-white"
-              >
-                <AccordionTrigger className="text-left hover:no-underline py-6">
-                  <Heading size="5" className="font-serif text-stone-900">
-                    {item.question}
-                  </Heading>
-                </AccordionTrigger>
-                <AccordionContent className="pb-6">
-                  <Text className="text-stone-600 leading-relaxed">{item.answer}</Text>
-                </AccordionContent>
-              </AccordionItem>
-            ))}
-          </Accordion>
-        </div>
-      </Container>
+      <ServiceFAQ
+        title={content.faq.title}
+        description={content.faq.description}
+        questions={content.faq.questions}
+      />
 
       {/* CTA Section */}
-      <Container size="3" className="px-6 md:px-12 py-20 bg-stone-900 text-white">
-        <div className="text-center max-w-2xl mx-auto">
-          <Heading size="8" className="font-serif mb-6">
-            {content.cta.title}
-          </Heading>
-          <Text className="text-stone-300 text-lg mb-8 leading-relaxed">
-            {content.cta.description}
-          </Text>
-        </div>
-      </Container>
-
-      {/* Booking Section */}
-      <ServiceBookingWrapper serviceName="Hair Perm" />
+      <ServiceCTA
+        title={content.cta.title}
+        description={content.cta.description}
+        serviceName="Hair Perm"
+      />
     </div>
   );
 }

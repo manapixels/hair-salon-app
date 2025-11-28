@@ -1,15 +1,16 @@
 import React from 'react';
-import { Heading, Text, Container, Grid, Badge } from '@radix-ui/themes';
-import Image from 'next/image';
+import { Heading, Text, Container, Grid } from '@radix-ui/themes';
 import { Info } from '@/lib/icons';
 import { notFound } from 'next/navigation';
-import ServiceBookingWrapper from '@/components/services/ServiceBookingWrapper';
 import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from '@/components/ui/accordion';
+  ServiceHero,
+  ServiceStats,
+  ProcessStep,
+  MaintenanceTip,
+  ServiceTypeCard,
+  ServiceFAQ,
+  ServiceCTA,
+} from '@/components/services';
 import { getServiceContent } from '@/data/serviceContent';
 
 // Bilingual Content - Inline
@@ -22,7 +23,6 @@ const CONTENT = {
         'Achieve permanently straight, glossy hair that lasts for months. Say goodbye to daily styling and hello to sleek perfection.',
     },
     stats: {
-      technique: { label: 'Technique', value: 'Hair Rebonding' },
       maintenance: { label: 'Maintenance', value: '6 to 12 Months' },
       duration: { label: 'Duration', value: '1 to 4 Hours' },
     },
@@ -165,7 +165,6 @@ const CONTENT = {
       subheading: '打造持续数月的永久直发和光泽发质。告别每日造型，拥抱顺滑完美。',
     },
     stats: {
-      technique: { label: '技术', value: '日本化学拉直' },
       maintenance: { label: '维护周期', value: '6-8个月补做发根' },
       duration: { label: '时长', value: '3.5-4.5小时' },
     },
@@ -175,16 +174,20 @@ const CONTENT = {
     },
     types: [
       {
-        title: '经典拉直',
+        title: '头发拉直',
         description: '超级笔直、针状笔直效果，带高光泽度。最大化顺滑，打造光滑精致造型。',
-        benefits: ['针状笔直完美', '高光泽度', '最大顺滑度', '最适合非常卷/毛躁的头发'],
-        image: '/background-images/soft-rebonding.jpg',
+        image: '/rebond-types/hair-rebonding.png',
       },
       {
-        title: '自然拉直',
-        description: '更柔和的拉直，保留微妙的动感。保持一些自然质感，呈现更随性的外观。',
-        benefits: ['自然的笔直效果', '保留一些蓬松感', '更柔和的长发线', '更灵活的造型'],
-        image: '/background-images/volume-rebonding.jpg',
+        title: '发根拉直',
+        description: '针对新长的波浪发根进行定向拉直，不会过度处理头发其余部分。',
+        image: '/rebond-types/roots-rebonding.png',
+      },
+      {
+        title: '刘海拉直',
+        description:
+          '专门为刘海拉直。打造衬托脸型的刘海，同时保持头发其余部分的自然质感，呈现时尚造型，承诺最小。',
+        image: '/rebond-types/fringe-rebonding.png',
       },
     ],
     process: {
@@ -296,67 +299,6 @@ const CONTENT = {
 // For now, using English content
 const content = CONTENT.en;
 
-// --- Local Components ---
-
-const RebondingTypeCard = ({
-  title,
-  description,
-  image,
-}: {
-  title: string;
-  description: string;
-  image: string;
-}) => (
-  <div className="group">
-    <div className="relative h-80 w-full overflow-hidden rounded-2xl mb-4">
-      <Image
-        src={image}
-        alt={title}
-        fill
-        className="object-cover transition-transform duration-700 group-hover:scale-110"
-      />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60 group-hover:opacity-80 transition-opacity" />
-      <div className="absolute bottom-4 left-4 text-white">
-        <Heading size="5" className="font-serif">
-          {title}
-        </Heading>
-      </div>
-    </div>
-    <Text className="text-stone-600 text-md leading-relaxed block px-1">{description}</Text>
-  </div>
-);
-
-const ProcessStep = ({
-  number,
-  title,
-  description,
-}: {
-  number: string;
-  title: string;
-  description: string;
-}) => (
-  <div className="flex gap-6 items-start">
-    <div className="w-10 h-10 rounded-full bg-base-primary/10 text-base-primary flex items-center justify-center font-serif font-bold shrink-0 border border-base-primary/50">
-      {number}
-    </div>
-    <div>
-      <Heading size="4" className="mb-2 text-stone-900">
-        {title}
-      </Heading>
-      <Text className="text-stone-600 text-md leading-relaxed">{description}</Text>
-    </div>
-  </div>
-);
-
-const MaintenanceTip = ({ title, text }: { title: string; text: string }) => (
-  <div className="bg-stone-100 p-6 rounded-xl">
-    <Heading size="4" className="mb-2 text-stone-900">
-      {title}
-    </Heading>
-    <Text className="text-stone-600 text-md">{text}</Text>
-  </div>
-);
-
 // --- Main Page ---
 
 export default function HairRebondingPage() {
@@ -369,69 +311,22 @@ export default function HairRebondingPage() {
   return (
     <div className="bg-white min-h-screen">
       {/* Hero Section */}
-      <div className="relative h-[65vh] min-h-[550px] w-full overflow-hidden">
-        <Image
-          src="/background-images/hair-rebonding.jpg"
-          alt="Professional Hair Rebonding at Signature Trims"
-          fill
-          className="object-cover"
-          priority
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/10 to-white/30 flex items-center justify-center">
-          <Container size="4" className="text-center text-white px-4 mt-32">
-            <Badge
-              size="3"
-              color="ruby"
-              variant="solid"
-              className="mb-6 px-4 py-1 uppercase tracking-widest font-sans"
-            >
-              {content.hero.badge}
-            </Badge>
-            <Heading
-              size="9"
-              className="font-serif font-light mb-6 text-5xl md:text-7xl leading-tight drop-shadow-sm whitespace-pre-line"
-            >
-              {content.hero.headline}
-            </Heading>
-            <p className="text-xl font-light opacity-95 max-w-2xl mx-auto leading-relaxed font-sans drop-shadow-sm">
-              {content.hero.subheading}
-            </p>
-          </Container>
-        </div>
-      </div>
+      <ServiceHero
+        backgroundImage="/background-images/hair-rebonding.jpg"
+        badge={{ text: content.hero.badge, color: 'teal' }}
+        headline={content.hero.headline}
+        subheading={content.hero.subheading}
+      />
 
       {/* Stats */}
       <Container size="3" className="px-6 md:px-12 -mt-20 relative z-10 mb-24">
-        <div className="bg-white rounded-3xl shadow-xl p-8 md:p-12 border border-stone-100">
-          <Grid
-            columns={{ initial: '1', md: '3' }}
-            gap="8"
-            className="text-center divide-y md:divide-y-0 md:divide-x divide-stone-100"
-          >
-            <div className="px-4 pt-8 md:pt-0">
-              <Text className="block text-stone-400 text-sm uppercase tracking-widest mb-2">
-                {content.stats.maintenance.label}
-              </Text>
-              <Text className="block text-lg font-serif text-stone-900">
-                {content.stats.maintenance.value}
-              </Text>
-            </div>
-            <div className="px-4 pt-8 md:pt-0">
-              <Text className="block text-stone-400 text-sm uppercase tracking-widest mb-2">
-                {content.stats.duration.label}
-              </Text>
-              <Text className="block text-lg font-serif text-stone-900">
-                {content.stats.duration.value}
-              </Text>
-            </div>
-            <div className="px-4 pt-8 md:pt-0">
-              <Text className="block text-stone-400 text-sm uppercase tracking-widest mb-2">
-                Price
-              </Text>
-              <Text className="block text-lg font-serif text-stone-900">{servicePrice}</Text>
-            </div>
-          </Grid>
-        </div>
+        <ServiceStats
+          stats={[
+            { label: content.stats.maintenance.label, value: content.stats.maintenance.value },
+            { label: content.stats.duration.label, value: content.stats.duration.value },
+            { label: 'Price', value: servicePrice },
+          ]}
+        />
       </Container>
 
       {/* Introduction */}
@@ -456,7 +351,7 @@ export default function HairRebondingPage() {
 
         <Grid columns={{ initial: '1', sm: '2', md: '3' }} gap="8">
           {content.types.map((type, index) => (
-            <RebondingTypeCard
+            <ServiceTypeCard
               key={index}
               title={type.title}
               description={type.description}
@@ -481,6 +376,7 @@ export default function HairRebondingPage() {
                   number={step.number}
                   title={step.title}
                   description={step.description}
+                  colorScheme="teal"
                 />
               ))}
             </div>
@@ -509,49 +405,18 @@ export default function HairRebondingPage() {
       </Container>
 
       {/* FAQ Section */}
-      <Container size="3" className="px-6 md:px-12 py-16 bg-stone-50">
-        <div className="max-w-3xl mx-auto">
-          <div className="text-center mb-12">
-            <Heading size="8" className="font-serif text-stone-900 mb-4">
-              {content.faq.title}
-            </Heading>
-            <Text className="text-stone-500">{content.faq.description}</Text>
-          </div>
-          <Accordion type="single" collapsible className="space-y-4">
-            {content.faq.questions.map((item, index) => (
-              <AccordionItem
-                key={index}
-                value={`item-${index}`}
-                className="border border-stone-200 rounded-2xl px-6 bg-white"
-              >
-                <AccordionTrigger className="text-left hover:no-underline py-6">
-                  <Heading size="5" className="font-serif text-stone-900">
-                    {item.question}
-                  </Heading>
-                </AccordionTrigger>
-                <AccordionContent className="pb-6">
-                  <Text className="text-stone-600 leading-relaxed">{item.answer}</Text>
-                </AccordionContent>
-              </AccordionItem>
-            ))}
-          </Accordion>
-        </div>
-      </Container>
+      <ServiceFAQ
+        title={content.faq.title}
+        description={content.faq.description}
+        questions={content.faq.questions}
+      />
 
       {/* CTA Section */}
-      <Container size="3" className="px-6 md:px-12 py-20 bg-stone-900 text-white">
-        <div className="text-center max-w-2xl mx-auto">
-          <Heading size="8" className="font-serif mb-6">
-            {content.cta.title}
-          </Heading>
-          <Text className="text-stone-300 text-lg mb-8 leading-relaxed">
-            {content.cta.description}
-          </Text>
-        </div>
-      </Container>
-
-      {/* Booking Section */}
-      <ServiceBookingWrapper serviceName="Hair Rebonding" />
+      <ServiceCTA
+        title={content.cta.title}
+        description={content.cta.description}
+        serviceName="Hair Rebonding"
+      />
     </div>
   );
 }
