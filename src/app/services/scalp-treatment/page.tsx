@@ -10,6 +10,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
+import { BeforeAfterSlider } from '@/components/ui/BeforeAfterSlider';
 import { getServiceContent } from '@/data/serviceContent';
 
 // Bilingual Content - Inline
@@ -388,7 +389,7 @@ export default function ScalpTreatmentPage() {
       {/* Hero Section */}
       <div className="relative h-[65vh] min-h-[550px] w-full overflow-hidden">
         <Image
-          src="/background-images/hair-treatment.png"
+          src="/background-images/scalp-treatment.png"
           alt="Scalp Treatments at Signature Trims"
           fill
           className="object-cover"
@@ -469,18 +470,12 @@ export default function ScalpTreatmentPage() {
             </div>
             {/* Right: Image  */}
             <div className="relative h-[400px] rounded-2xl overflow-hidden shadow-lg">
-              <Image
-                src="/background-images/scalp-analysis.jpg"
-                alt="Scalp Analysis"
-                fill
-                className="object-cover"
+              <BeforeAfterSlider
+                beforeImage="/images/before-after/scalp-before.png"
+                afterImage="/images/before-after/scalp-after.png"
+                beforeLabel="Before Treatment"
+                afterLabel="After Treatment"
               />
-              <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/80 to-transparent text-white">
-                <Text className="font-bold block">Personalized Analysis</Text>
-                <Text className="text-sm opacity-90">
-                  We use a microscopic scanner to diagnose your scalp condition.
-                </Text>
-              </div>
             </div>
           </div>
         </Container>

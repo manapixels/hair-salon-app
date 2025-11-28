@@ -10,6 +10,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
+import { BeforeAfterSlider } from '@/components/ui/BeforeAfterSlider';
 import { getServiceContent } from '@/data/serviceContent';
 
 // Bilingual Content - Inline
@@ -494,7 +495,7 @@ export default function KeratinTreatmentPage() {
       <div className="relative h-[65vh] min-h-[550px] w-full overflow-hidden">
         {/* Using the same background for now, or could use a different one if available */}
         <Image
-          src="/background-images/hair-treatment.png"
+          src="/background-images/keratin-treatment.png"
           alt="Keratin Hair Treatment at Signature Trims"
           fill
           className="object-cover"
@@ -575,18 +576,12 @@ export default function KeratinTreatmentPage() {
             </div>
             {/* Right: Image  */}
             <div className="relative h-[400px] rounded-2xl overflow-hidden shadow-lg">
-              <Image
-                src="/background-images/hair-treatment-2.png"
-                alt="Keratin Treatment Application"
-                fill
-                className="object-cover"
+              <BeforeAfterSlider
+                beforeImage="/images/before-after/keratin-before.png"
+                afterImage="/images/before-after/keratin-after.png"
+                beforeLabel="Frizzy & Damaged"
+                afterLabel="Smooth & Silky"
               />
-              <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/80 to-transparent text-white">
-                <Text className="font-bold block">Professional Application</Text>
-                <Text className="text-sm opacity-90">
-                  We use precision application techniques to ensure every strand is treated.
-                </Text>
-              </div>
             </div>
           </div>
         </Container>

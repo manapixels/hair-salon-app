@@ -15,7 +15,8 @@ const FEATURED_SERVICE_NAMES = ['Hair Colouring', 'Hair Rebonding', 'Hair Treatm
 const SERVICES_WITH_STATIC_PAGES: Record<string, string> = {
   'Hair Colouring': '/services/hair-colouring',
   'Hair Rebonding': '/services/hair-rebonding',
-  'Hair Treatment': '/services/hair-treatment',
+  'Scalp Treatment': '/services/scalp-treatment',
+  'Keratin Treatment': '/services/keratin-treatment',
   'Hair Perm': '/services/hair-perm',
 };
 
@@ -29,7 +30,8 @@ function getServiceImage(serviceName: string): string {
   const imageMap: Record<string, string> = {
     'Hair Colouring': '/background-images/hair-colouring.jpg',
     'Hair Rebonding': '/background-images/hair-rebonding.jpg',
-    'Hair Treatment': '/background-images/hair-treatment.png',
+    'Scalp Treatment': '/background-images/scalp-treatment.png',
+    'Keratin Treatment': '/background-images/keratin-treatment.png',
     'Hair Perm': '/background-images/hair-perm.jpg',
   };
   return imageMap[serviceName] || '/background-images/menu-service-bg.png';

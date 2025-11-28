@@ -333,7 +333,7 @@ const CATEGORIES = [
         price: '$55',
         basePrice: 55,
         duration: 60,
-        imageUrl: '/background-images/hair-treatment.png',
+        imageUrl: '/background-images/scalp-treatment.png',
         serviceTags: ['oily-scalp', 'dry-hair', 'clean-scalp', 'healthy-hair'],
       },
       {
