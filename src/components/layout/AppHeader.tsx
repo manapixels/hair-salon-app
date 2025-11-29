@@ -7,19 +7,7 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui';
 import * as Avatar from '@radix-ui/react-avatar';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
-import * as NavigationMenu from '@radix-ui/react-navigation-menu';
-import {
-  Scissors,
-  Calendar,
-  User,
-  Shield,
-  Bell,
-  LogIn,
-  LogOut,
-  Sparkles,
-  ChevronDown,
-  Menu,
-} from '@/lib/icons';
+import { Calendar, User, Shield, LogIn, LogOut, ChevronDown, Menu } from '@/lib/icons';
 import Image from 'next/image';
 import Link from 'next/link';
 import Logo from './Logo';
@@ -179,9 +167,9 @@ export default function AppHeader({ view, onViewChange }: AppHeaderProps) {
       <header className="hidden md:block sticky top-0 z-50 border-b border-base-primary/10 bg-stone-50 bg-opacity-50 backdrop-blur-md transition-all duration-300 dark:border-gray-800 dark:bg-gray-900">
         <nav className="w-full flex items-center justify-between px-6 py-3 lg:px-12">
           <div className="flex items-center gap-3">
-            <div className="relative h-12 w-48 cursor-pointer" onClick={() => router.push('/')}>
-              <Logo className="h-full w-full text-black dark:text-white" />
-            </div>
+            <Link href="/" className="cursor-pointer">
+              <Logo />
+            </Link>
           </div>
           <div className="flex items-center gap-4">
             <div className="hidden items-center gap-6 sm:flex">
