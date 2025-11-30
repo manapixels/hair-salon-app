@@ -5,19 +5,27 @@ import Link from 'next/link';
 import { Grid, ChevronUp, Palette, Wind, Sparkles, Droplets, Waves } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
+import { SERVICE_LINKS } from '@/config/navigation';
+
 interface ServicesDropupProps {
   isOpen: boolean;
   onToggle: () => void;
   active: boolean;
 }
 
-const serviceLinks = [
-  { href: '/services/hair-colouring', label: 'Colouring', icon: Palette },
-  { href: '/services/hair-rebonding', label: 'Rebonding', icon: Wind },
-  { href: '/services/scalp-treatment', label: 'Scalp Treatment', icon: Sparkles },
-  { href: '/services/keratin-treatment', label: 'Keratin Treatment', icon: Droplets },
-  { href: '/services/hair-perm', label: 'Perm', icon: Waves },
-];
+const iconMap: Record<string, any> = {
+  '/services/hair-colouring': Palette,
+  '/services/hair-rebonding': Wind,
+  '/services/scalp-treatment': Sparkles,
+  '/services/keratin-treatment': Droplets,
+  '/services/hair-perm': Waves,
+};
+
+const serviceLinks = SERVICE_LINKS.map(service => ({
+  ...service,
+  label: service.title,
+  icon: iconMap[service.href] || Sparkles,
+}));
 
 export default function ServicesDropup({ isOpen, onToggle, active }: ServicesDropupProps) {
   const dropupRef = useRef<HTMLDivElement>(null);

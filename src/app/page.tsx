@@ -7,44 +7,17 @@ import LocationCard from '../components/locations/LocationCard';
 import BookingForm from '../components/booking/BookingForm';
 import { Sparkles } from '@/lib/icons';
 import { getAdminSettings, getServiceCategories } from '@/lib/database';
-
-// Featured service names
-const FEATURED_SERVICE_NAMES = ['Hair Colouring', 'Hair Rebonding', 'Hair Treatment', 'Hair Perm'];
-
-// Service names with static pages
-const SERVICES_WITH_STATIC_PAGES: Record<string, string> = {
-  'Hair Colouring': '/services/hair-colouring',
-  'Hair Rebonding': '/services/hair-rebonding',
-  'Scalp Treatment': '/services/scalp-treatment',
-  'Keratin Treatment': '/services/keratin-treatment',
-  'Hair Perm': '/services/hair-perm',
-};
-
-// Get service page URL
-function getServicePageUrl(serviceName: string): string | null {
-  return SERVICES_WITH_STATIC_PAGES[serviceName] || null;
-}
-
-// Get service image
-function getServiceImage(serviceName: string): string {
-  const imageMap: Record<string, string> = {
-    'Hair Colouring': '/background-images/hair-colouring.jpg',
-    'Hair Rebonding': '/background-images/hair-rebonding.jpg',
-    'Scalp Treatment': '/background-images/scalp-treatment.png',
-    'Keratin Treatment': '/background-images/keratin-treatment.png',
-    'Hair Perm': '/background-images/hair-perm.jpg',
-  };
-  return imageMap[serviceName] || '/background-images/menu-service-bg.png';
-}
+import { SERVICE_LINKS } from '@/config/navigation';
 
 export default async function HomePage() {
   const adminSettings = await getAdminSettings();
   const categories = await getServiceCategories();
 
   // Extract featured services from categories
+  const featuredServiceNames = SERVICE_LINKS.map(s => s.title);
   const featuredServices = categories
     .flatMap(cat => cat.items)
-    .filter(service => FEATURED_SERVICE_NAMES.includes(service.name));
+    .filter(service => featuredServiceNames.includes(service.name));
 
   return (
     <div className="bg-[#FDFCF8] min-h-screen text-stone-900 font-serif">
@@ -134,62 +107,68 @@ export default async function HomePage() {
         {/* Featured Services Grid - Large Cards with Images */}
         <div className="px-4 md:px-0">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-            {featuredServices.slice(0, 6).map((service, index) => (
-              <div
-                key={service.id}
-                className="relative flex flex-col sm:flex-row gap-3 sm:gap-4 snap-center bg-[#FDFCF8] px-6 py-5 md:px-8 md:py-6 border border-white/5 hover:border-gold-primary/50 transition-colors duration-500 group rounded-lg"
-              >
-                <div className="w-full sm:w-[70%]">
-                  <div className="text-gold-primary text-3xl md:text-4xl mb-4 md:mb-6 group-hover:translate-x-2 transition-transform duration-300">
-                    0{index + 1}.
-                  </div>
-                  <h3 className="font-serif text-xl md:text-2xl text-base-primary mb-2">
-                    {service.name}
-                  </h3>
-                  <div className="h-px w-full bg-base-primary/10 my-3 md:my-4"></div>
-                  <div className="text-sm text-gray-400 uppercase tracking-wider mb-3 md:mb-4">
-                    <span></span>
-                    <span className="text-gold-light">{service.price}</span>
-                  </div>
-                  {service.subtitle && (
-                    <p className="text-gray-500 text-sm mb-4">{service.subtitle}</p>
-                  )}
-                  {/* Service Details */}
-                  <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-                    {(() => {
-                      const serviceUrl = getServicePageUrl(service.name);
-                      return (
-                        <>
-                          {serviceUrl && (
+            {featuredServices.slice(0, 6).map((service, index) => {
+              const serviceLink = SERVICE_LINKS.find(s => s.title === service.name);
+              const imageUrl =
+                service.imageUrl || serviceLink?.image || '/background-images/menu-service-bg.png';
+              const serviceUrl = serviceLink?.href;
+
+              return (
+                <div
+                  key={service.id}
+                  className="relative flex flex-col sm:flex-row gap-3 sm:gap-4 snap-center bg-[#FDFCF8] px-6 py-5 md:px-8 md:py-6 border border-white/5 hover:border-gold-primary/50 transition-colors duration-500 group rounded-lg"
+                >
+                  <div className="w-full sm:w-[70%]">
+                    <div className="text-gold-primary text-3xl md:text-4xl mb-4 md:mb-6 group-hover:translate-x-2 transition-transform duration-300">
+                      0{index + 1}.
+                    </div>
+                    <h3 className="font-serif text-xl md:text-2xl text-base-primary mb-2">
+                      {service.name}
+                    </h3>
+                    <div className="h-px w-full bg-base-primary/10 my-3 md:my-4"></div>
+                    <div className="text-sm text-gray-400 uppercase tracking-wider mb-3 md:mb-4">
+                      <span></span>
+                      <span className="text-gold-light">{service.price}</span>
+                    </div>
+                    {service.subtitle && (
+                      <p className="text-gray-500 text-sm mb-4">{service.subtitle}</p>
+                    )}
+                    {/* Service Details */}
+                    <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+                      {(() => {
+                        return (
+                          <>
+                            {serviceUrl && (
+                              <Link
+                                href={serviceUrl}
+                                className="min-h-touch-lg flex-1 py-3 bg-white text-base-primary/60 border-2 border-base-primary/60 rounded-lg hover:bg-stone-50 active-scale transition-colors duration-200 font-medium text-center"
+                              >
+                                Learn More
+                              </Link>
+                            )}
                             <Link
-                              href={serviceUrl}
-                              className="min-h-touch-lg flex-1 py-3 bg-white text-base-primary/60 border-2 border-base-primary/60 rounded-lg hover:bg-stone-50 active-scale transition-colors duration-200 font-medium text-center"
+                              href="/?book=true"
+                              className={`min-h-touch-lg py-3 bg-gray-800 text-white rounded-lg hover:bg-stone-800 active-scale transition-colors duration-200 font-medium text-center ${serviceUrl ? 'flex-1' : 'w-full'}`}
                             >
-                              Learn More
+                              Book Now
                             </Link>
-                          )}
-                          <Link
-                            href="/?book=true"
-                            className={`min-h-touch-lg py-3 bg-gray-800 text-white rounded-lg hover:bg-stone-800 active-scale transition-colors duration-200 font-medium text-center ${serviceUrl ? 'flex-1' : 'w-full'}`}
-                          >
-                            Book Now
-                          </Link>
-                        </>
-                      );
-                    })()}
+                          </>
+                        );
+                      })()}
+                    </div>
+                  </div>
+                  <div className="relative w-full h-48 sm:w-[30%] sm:h-auto sm:min-h-[200px] rounded-lg overflow-hidden">
+                    <Image
+                      src={imageUrl}
+                      alt={service.name}
+                      fill
+                      className="object-cover transition-transform duration-700"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
                   </div>
                 </div>
-                <div className="relative w-full h-48 sm:w-[30%] sm:h-auto sm:min-h-[200px] rounded-lg overflow-hidden">
-                  <Image
-                    src={service.imageUrl || getServiceImage(service.name)}
-                    alt={service.name}
-                    fill
-                    className="object-cover transition-transform duration-700"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
-                </div>
-              </div>
-            ))}
+              );
+            })}
             <div className="group p-6 md:p-8 rounded-3xl bg-base-primary/30 text-black border border-transparent hover:scale-[1.02] active-scale transition-all duration-300 cursor-pointer flex flex-col justify-center items-center text-center min-h-touch-lg">
               <h3 className="text-xl md:text-2xl font-serif mb-2">Need Advice?</h3>
               <p className="text-sm mb-6">Book a free 15-min consultation with a master stylist.</p>

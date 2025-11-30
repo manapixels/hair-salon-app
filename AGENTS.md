@@ -17,6 +17,25 @@ AI Layer:
 
 ---
 
+## 🧭 Navigation Configuration (`src/config/navigation.ts`)
+
+### **Purpose**
+
+Single source of truth for service navigation links, titles, and associated images across the application.
+
+### **Usage**
+
+```typescript
+import { SERVICE_LINKS } from '@/config/navigation';
+
+// Use in components
+{SERVICE_LINKS.map(service => (
+  <Link href={service.href}>{service.title}</Link>
+))}
+```
+
+---
+
 ## 🧠 1. Gemini AI Service (`src/services/geminiService.ts`)
 
 ### **Purpose**

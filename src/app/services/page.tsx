@@ -9,29 +9,7 @@ import { ErrorState } from '@/components/feedback/ErrorState';
 import { Search, Sparkles } from '@/lib/icons';
 import Image from 'next/image';
 import Link from 'next/link';
-
-// Featured service IDs (premium offerings)
-const FEATURED_SERVICE_NAMES = [
-  'Hair Colouring',
-  'Hair Rebonding',
-  'Scalp Treatment',
-  'Keratin Treatment',
-  'Hair Perm',
-];
-
-// Service names with static pages
-const SERVICES_WITH_STATIC_PAGES: Record<string, string> = {
-  'Hair Colouring': '/services/hair-colouring',
-  'Hair Rebonding': '/services/hair-rebonding',
-  'Scalp Treatment': '/services/scalp-treatment',
-  'Keratin Treatment': '/services/keratin-treatment',
-  'Hair Perm': '/services/hair-perm',
-};
-
-// Get service page URL - returns static page URL if available, otherwise null
-function getServicePageUrl(serviceName: string): string | null {
-  return SERVICES_WITH_STATIC_PAGES[serviceName] || null;
-}
+import { SERVICE_LINKS } from '@/config/navigation';
 
 export default function ServicesPage() {
   const [categories, setCategories] = useState<ServiceCategory[]>([]);
@@ -60,9 +38,10 @@ export default function ServicesPage() {
   }, []);
 
   // Extract featured services from categories
+  const featuredServiceNames = SERVICE_LINKS.map(s => s.title);
   const featuredServices = categories
     .flatMap(cat => cat.items)
-    .filter(service => FEATURED_SERVICE_NAMES.includes(service.name));
+    .filter(service => featuredServiceNames.includes(service.name));
 
   // Filter services based on search and category
   const filteredCategories = categories
@@ -159,80 +138,82 @@ export default function ServicesPage() {
 
             {/* Featured Services Grid - Large Cards with Images */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {featuredServices.slice(0, 6).map((service, index) => (
-                <div
-                  key={service.id}
-                  className="group relative overflow-hidden rounded-xl bg-stone-50 hover:shadow-2xl transition-all duration-500"
-                >
-                  {/* Service Image */}
-                  <div className="relative h-72 overflow-hidden">
-                    <Image
-                      src={service.imageUrl || getServiceImage(service.name)}
-                      alt={service.name}
-                      fill
-                      className="object-cover group-hover:scale-110 transition-transform duration-700"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
+              {featuredServices.slice(0, 6).map((service, index) => {
+                const serviceLink = SERVICE_LINKS.find(s => s.title === service.name);
+                const imageUrl =
+                  service.imageUrl ||
+                  serviceLink?.image ||
+                  '/background-images/menu-service-bg.png';
+                const serviceUrl = serviceLink?.href;
 
-                    {/* Price Badge */}
-                    <div className="absolute top-4 right-4 bg-white/95 backdrop-blur-sm px-4 py-2 rounded-full">
-                      <span className="text-stone-900 font-semibold">{service.price}</span>
+                return (
+                  <div
+                    key={service.id}
+                    className="group relative overflow-hidden rounded-xl bg-stone-50 hover:shadow-2xl transition-all duration-500"
+                  >
+                    {/* Service Image */}
+                    <div className="relative h-72 overflow-hidden">
+                      <Image
+                        src={imageUrl}
+                        alt={service.name}
+                        fill
+                        className="object-cover group-hover:scale-110 transition-transform duration-700"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
+
+                      {/* Price Badge */}
+                      <div className="absolute top-4 right-4 bg-white/95 backdrop-blur-sm px-4 py-2 rounded-full">
+                        <span className="text-stone-900 font-semibold">{service.price}</span>
+                      </div>
+
+                      {/* Service Name Overlay */}
+                      <div className="absolute bottom-0 left-0 right-0 p-6">
+                        <Heading size="6" className="font-serif text-white mb-1">
+                          {service.name}
+                        </Heading>
+                        {service.subtitle && (
+                          <Text size="2" className="text-white/80">
+                            {service.subtitle}
+                          </Text>
+                        )}
+                      </div>
                     </div>
 
-                    {/* Service Name Overlay */}
-                    <div className="absolute bottom-0 left-0 right-0 p-6">
-                      <Heading size="6" className="font-serif text-white mb-1">
-                        {service.name}
-                      </Heading>
-                      {service.subtitle && (
-                        <Text size="2" className="text-white/80">
-                          {service.subtitle}
-                        </Text>
-                      )}
+                    {/* Service Details */}
+                    <div className="p-6">
+                      <p className="text-stone-600 text-sm leading-relaxed mb-4 line-clamp-2">
+                        {service.description}
+                      </p>
+
+                      <div className="flex items-center justify-between text-sm text-stone-500 mb-4">
+                        <span>{service.duration} mins</span>
+                        {service.tags && service.tags.length > 0 && (
+                          <span className="px-3 py-1 bg-stone-100 rounded-full text-xs">
+                            {service.tags[0]}
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="flex gap-3">
+                        {serviceUrl && (
+                          <Link
+                            href={serviceUrl}
+                            className="flex-1 py-3 bg-white text-stone-900 border-2 border-stone-900 rounded-lg hover:bg-stone-50 transition-colors duration-200 font-medium text-center"
+                          >
+                            Learn More
+                          </Link>
+                        )}
+                        <button
+                          onClick={() => (window.location.href = '/?book=true')}
+                          className={`py-3 bg-stone-900 text-white rounded-lg hover:bg-stone-800 transition-colors duration-200 font-medium ${serviceUrl ? 'flex-1' : 'w-full'}`}
+                        >
+                          Book Now
+                        </button>
+                      </div>
                     </div>
                   </div>
-
-                  {/* Service Details */}
-                  <div className="p-6">
-                    <p className="text-stone-600 text-sm leading-relaxed mb-4 line-clamp-2">
-                      {service.description}
-                    </p>
-
-                    <div className="flex items-center justify-between text-sm text-stone-500 mb-4">
-                      <span>{service.duration} mins</span>
-                      {service.tags && service.tags.length > 0 && (
-                        <span className="px-3 py-1 bg-stone-100 rounded-full text-xs">
-                          {service.tags[0]}
-                        </span>
-                      )}
-                    </div>
-
-                    <div className="flex gap-3">
-                      {(() => {
-                        const serviceUrl = getServicePageUrl(service.name);
-                        return (
-                          <>
-                            {serviceUrl && (
-                              <Link
-                                href={serviceUrl}
-                                className="flex-1 py-3 bg-white text-stone-900 border-2 border-stone-900 rounded-lg hover:bg-stone-50 transition-colors duration-200 font-medium text-center"
-                              >
-                                Learn More
-                              </Link>
-                            )}
-                            <button
-                              onClick={() => (window.location.href = '/?book=true')}
-                              className={`py-3 bg-stone-900 text-white rounded-lg hover:bg-stone-800 transition-colors duration-200 font-medium ${serviceUrl ? 'flex-1' : 'w-full'}`}
-                            >
-                              Book Now
-                            </button>
-                          </>
-                        );
-                      })()}
-                    </div>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </Container>
         </section>
@@ -394,17 +375,4 @@ export default function ServicesPage() {
       )}
     </div>
   );
-}
-
-// Helper function to provide default images for featured services
-function getServiceImage(serviceName: string): string {
-  const imageMap: Record<string, string> = {
-    'Hair Colouring': '/background-images/hair-colouring.jpg',
-    'Hair Rebonding': '/background-images/hair-rebonding.jpg',
-    'Scalp Treatment': '/background-images/scalp-treatment.png',
-    'Keratin Treatment': '/background-images/keratin-treatment.png',
-    'Hair Perm': '/background-images/hair-perm.jpg',
-  };
-
-  return imageMap[serviceName] || '/background-images/menu-service-bg.png';
 }
