@@ -12,6 +12,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import Logo from './Logo';
 import { ServiceCategory } from '@/types';
+import { SERVICE_LINKS } from '@/config/navigation';
 import OAuthLoginModal from '../auth/OAuthLoginModal';
 // Removed MobileMenuDrawer - replaced by BottomNavigation
 
@@ -196,70 +197,21 @@ export default function AppHeader({ view, onViewChange }: AppHeaderProps) {
                       {/* Right Column: Featured Services List */}
                       <div className="col-span-5 space-y-2 px-6 lg:px-16 py-12">
                         {/* Featured Services - Direct links to service detail pages */}
-                        <Link
-                          href="/services/hair-colouring"
-                          onClick={() => setIsMegaMenuOpen(false)}
-                          className="group/item flex items-center justify-between py-4 border-b border-[var(--accent-7)] hover:border-white transition-colors"
-                        >
-                          <span className="text-2xl font-light tracking-wide group-hover/item:text-white text-white/90 transition-colors">
-                            Colouring
-                          </span>
-                          <div className="w-10 h-10 rounded-full border border-[var(--accent-8)] flex items-center justify-center group-hover/item:border-white group-hover/item:bg-white group-hover/item:text-[var(--accent-11)] transition-all">
-                            <ChevronDown className="w-5 h-5 -rotate-90" />
-                          </div>
-                        </Link>
-
-                        <Link
-                          href="/services/hair-rebonding"
-                          onClick={() => setIsMegaMenuOpen(false)}
-                          className="group/item flex items-center justify-between py-4 border-b border-[var(--accent-7)] hover:border-white transition-colors"
-                        >
-                          <span className="text-2xl font-light tracking-wide group-hover/item:text-white text-white/90 transition-colors">
-                            Rebonding
-                          </span>
-                          <div className="w-10 h-10 rounded-full border border-[var(--accent-8)] flex items-center justify-center group-hover/item:border-white group-hover/item:bg-white group-hover/item:text-[var(--accent-11)] transition-all">
-                            <ChevronDown className="w-5 h-5 -rotate-90" />
-                          </div>
-                        </Link>
-
-                        <Link
-                          href="/services/scalp-treatment"
-                          onClick={() => setIsMegaMenuOpen(false)}
-                          className="group/item flex items-center justify-between py-4 border-b border-[var(--accent-7)] hover:border-white transition-colors"
-                        >
-                          <span className="text-2xl font-light tracking-wide group-hover/item:text-white text-white/90 transition-colors">
-                            Scalp Treatment
-                          </span>
-                          <div className="w-10 h-10 rounded-full border border-[var(--accent-8)] flex items-center justify-center group-hover/item:border-white group-hover/item:bg-white group-hover/item:text-[var(--accent-11)] transition-all">
-                            <ChevronDown className="w-5 h-5 -rotate-90" />
-                          </div>
-                        </Link>
-
-                        <Link
-                          href="/services/keratin-treatment"
-                          onClick={() => setIsMegaMenuOpen(false)}
-                          className="group/item flex items-center justify-between py-4 border-b border-[var(--accent-7)] hover:border-white transition-colors"
-                        >
-                          <span className="text-2xl font-light tracking-wide group-hover/item:text-white text-white/90 transition-colors">
-                            Keratin Treatment
-                          </span>
-                          <div className="w-10 h-10 rounded-full border border-[var(--accent-8)] flex items-center justify-center group-hover/item:border-white group-hover/item:bg-white group-hover/item:text-[var(--accent-11)] transition-all">
-                            <ChevronDown className="w-5 h-5 -rotate-90" />
-                          </div>
-                        </Link>
-
-                        <Link
-                          href="/services/hair-perm"
-                          onClick={() => setIsMegaMenuOpen(false)}
-                          className="group/item flex items-center justify-between py-4 border-b border-[var(--accent-7)] hover:border-white transition-colors"
-                        >
-                          <span className="text-2xl font-light tracking-wide group-hover/item:text-white text-white/90 transition-colors">
-                            Perm
-                          </span>
-                          <div className="w-10 h-10 rounded-full border border-[var(--accent-8)] flex items-center justify-center group-hover/item:border-white group-hover/item:bg-white group-hover/item:text-[var(--accent-11)] transition-all">
-                            <ChevronDown className="w-5 h-5 -rotate-90" />
-                          </div>
-                        </Link>
+                        {SERVICE_LINKS.map(service => (
+                          <Link
+                            key={service.href}
+                            href={service.href}
+                            onClick={() => setIsMegaMenuOpen(false)}
+                            className="group/item flex items-center justify-between py-4 border-b border-[var(--accent-7)] hover:border-white transition-colors"
+                          >
+                            <span className="text-2xl font-light tracking-wide group-hover/item:text-white text-white/90 transition-colors">
+                              {service.title}
+                            </span>
+                            <div className="w-10 h-10 rounded-full border border-[var(--accent-8)] flex items-center justify-center group-hover/item:border-white group-hover/item:bg-white group-hover/item:text-[var(--accent-11)] transition-all">
+                              <ChevronDown className="w-5 h-5 -rotate-90" />
+                            </div>
+                          </Link>
+                        ))}
 
                         <div className="pt-6">
                           <Link

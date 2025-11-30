@@ -2,18 +2,20 @@
 
 import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
-import { Home, Sparkles, Calendar, Info, User, Scissors, MapPin, MapPinned } from 'lucide-react';
+import { Home, Calendar, User, Scissors, MapPinned } from 'lucide-react';
 import BottomNavItem from './BottomNavItem';
-import MenuDrawer from './MenuDrawer';
+import ServicesPopup from './ServicesPopup';
+import InfoPopup from './InfoPopup';
+import AccountPopup from './AccountPopup';
 import { useAuth } from '@/context/AuthContext';
 
 export default function BottomNavigation() {
   const pathname = usePathname();
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('home');
-  const [showMenuDrawer, setShowMenuDrawer] = useState(false);
   const [showServicesDropdown, setShowServicesDropdown] = useState(false);
   const [showAccountDropdown, setShowAccountDropdown] = useState(false);
+  const [showInfoDropdown, setShowInfoDropdown] = useState(false);
 
   // Detect active tab from pathname
   useEffect(() => {
@@ -28,14 +30,49 @@ export default function BottomNavigation() {
     }
   }, [pathname]);
 
-  // Close both dropdowns when route changes
+  // Close all dropdowns when route changes
   useEffect(() => {
     setShowServicesDropdown(false);
     setShowAccountDropdown(false);
+    setShowInfoDropdown(false);
   }, [pathname]);
+
+  const toggleServices = () => {
+    const newState = !showServicesDropdown;
+    setShowServicesDropdown(newState);
+    if (newState) {
+      setShowAccountDropdown(false);
+      setShowInfoDropdown(false);
+    }
+  };
+
+  const toggleAccount = () => {
+    const newState = !showAccountDropdown;
+    setShowAccountDropdown(newState);
+    if (newState) {
+      setShowServicesDropdown(false);
+      setShowInfoDropdown(false);
+    }
+  };
+
+  const toggleInfo = () => {
+    const newState = !showInfoDropdown;
+    setShowInfoDropdown(newState);
+    if (newState) {
+      setShowServicesDropdown(false);
+      setShowAccountDropdown(false);
+    }
+  };
 
   return (
     <>
+      {/* Popups */}
+      <ServicesPopup isOpen={showServicesDropdown} onClose={() => setShowServicesDropdown(false)} />
+
+      <InfoPopup isOpen={showInfoDropdown} onClose={() => setShowInfoDropdown(false)} />
+
+      <AccountPopup isOpen={showAccountDropdown} onClose={() => setShowAccountDropdown(false)} />
+
       {/* Bottom Navigation Bar */}
       <nav
         className="
@@ -57,10 +94,8 @@ export default function BottomNavigation() {
               icon={Scissors}
               label="Services"
               active={activeTab === 'services'}
-              onClick={() => {
-                setShowServicesDropdown(!showServicesDropdown);
-                if (!showServicesDropdown) setShowAccountDropdown(false);
-              }}
+              isOpen={showServicesDropdown}
+              onClick={toggleServices}
             />
           </div>
 
@@ -78,12 +113,13 @@ export default function BottomNavigation() {
             />
           </div>
 
-          {/* 4. Info (Menu Drawer) */}
+          {/* 4. Info */}
           <BottomNavItem
             icon={MapPinned}
             label="Info"
             active={false}
-            onClick={() => setShowMenuDrawer(true)}
+            isOpen={showInfoDropdown}
+            onClick={toggleInfo}
           />
 
           {/* 5. Account */}
@@ -92,17 +128,13 @@ export default function BottomNavigation() {
               icon={User}
               label="Account"
               active={activeTab === 'dashboard'}
-              onClick={() => {
-                setShowAccountDropdown(!showAccountDropdown);
-                if (!showAccountDropdown) setShowServicesDropdown(false);
-              }}
+              isOpen={showAccountDropdown}
+              isAdmin={user?.role === 'ADMIN'}
+              onClick={toggleAccount}
             />
           </div>
         </div>
       </nav>
-
-      {/* Menu Drawer */}
-      <MenuDrawer isOpen={showMenuDrawer} onClose={() => setShowMenuDrawer(false)} />
     </>
   );
 }

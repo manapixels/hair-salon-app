@@ -1,8 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { LucideIcon } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { LucideIcon, X } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface BottomNavItemProps {
   icon: LucideIcon;
@@ -13,6 +13,8 @@ interface BottomNavItemProps {
   badge?: number;
   variant?: 'default' | 'primary';
   className?: string;
+  isOpen?: boolean;
+  isAdmin?: boolean;
 }
 
 export default function BottomNavItem({
@@ -24,6 +26,8 @@ export default function BottomNavItem({
   badge,
   variant = 'default',
   className = '',
+  isOpen = false,
+  isAdmin = false,
 }: BottomNavItemProps) {
   const isPrimary = variant === 'primary';
 
@@ -35,28 +39,52 @@ export default function BottomNavItem({
         ${isPrimary ? 'w-14 h-14 rounded-full bg-[var(--accent-9)] text-white -mt-8 border-4 border-white dark:border-gray-900' : 'min-w-[56px] min-h-[56px] px-3 py-2 text-[var(--gray-10)] hover:text-[var(--gray-12)]'}
         relative
         transition-all duration-300 ease-out
-        ${!isPrimary && active ? 'text-base-primary' : ''}
+        ${!isPrimary && (active || isOpen) ? 'text-base-primary' : ''}
         ${className}
       `}
       onClick={onClick}
       aria-label={label}
       aria-current={active ? 'page' : undefined}
     >
+      {/* Admin Badge */}
+
       {/* Icon Container */}
       <div
         className={`
         relative flex items-center justify-center
         transition-all duration-300 ease-out
-        ${active && !isPrimary ? 'bg-base-primary/10 rounded-full px-5 py-1' : 'px-0 py-0'}
+        ${(active || isOpen) && !isPrimary ? 'bg-base-primary/10 rounded-full px-5 py-1' : 'px-0 py-0'}
       `}
       >
-        <Icon
-          className={`
-            transition-all duration-300
-            ${isPrimary ? 'w-6 h-6 stroke-2' : 'w-6 h-6'}
-            ${!isPrimary && active ? 'stroke-[2.5]' : 'stroke-2'}
-          `}
-        />
+        <AnimatePresence mode="wait">
+          {isOpen ? (
+            <motion.div
+              key="close-icon"
+              initial={{ rotate: -90, opacity: 0 }}
+              animate={{ rotate: 0, opacity: 1 }}
+              exit={{ rotate: 90, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+            >
+              <X className="w-6 h-6 stroke-2" />
+            </motion.div>
+          ) : (
+            <motion.div
+              key="main-icon"
+              initial={{ rotate: 90, opacity: 0 }}
+              animate={{ rotate: 0, opacity: 1 }}
+              exit={{ rotate: -90, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+            >
+              <Icon
+                className={`
+                  transition-all duration-300
+                  ${isPrimary ? 'w-6 h-6 stroke-2' : 'w-6 h-6'}
+                  ${!isPrimary && active ? 'stroke-[2.5]' : 'stroke-2'}
+                `}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Badge */}
         {badge && badge > 0 && (
@@ -70,10 +98,36 @@ export default function BottomNavItem({
       </div>
 
       {/* Label (Hide for primary if desired, or keep small) */}
+      {/* Label or Admin Badge */}
       {!isPrimary && (
+        <div className="mt-1 flex items-center justify-center h-[16px]">
+          {isAdmin ? (
+            <span className="bg-purple-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full shadow-sm">
+              Admin
+            </span>
+          ) : (
+            <span
+              className={`
+              text-xs
+              transition-all duration-300
+              ${active ? 'font-semibold' : 'font-medium'}
+            `}
+            >
+              {label}
+            </span>
+          )}
+        </div>
+      )}
+    </motion.button>
+  );
+
+  return href ? (
+    <Link href={href} className="no-tap-highlight flex flex-col justify-center items-center">
+      {content}
+      {isPrimary && (
         <span
           className={`
-          text-xs mt-1
+          text-xs
           transition-all duration-300
           ${active ? 'font-semibold' : 'font-medium'}
         `}
@@ -81,12 +135,6 @@ export default function BottomNavItem({
           {label}
         </span>
       )}
-    </motion.button>
-  );
-
-  return href ? (
-    <Link href={href} className="no-tap-highlight flex justify-center">
-      {content}
     </Link>
   ) : (
     content
