@@ -7,13 +7,13 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui';
 import * as Avatar from '@radix-ui/react-avatar';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
-import { Calendar, User, Shield, LogIn, LogOut, ChevronDown, Menu } from '@/lib/icons';
+import { Calendar, User, Shield, LogIn, LogOut, ChevronDown } from '@/lib/icons';
 import Image from 'next/image';
 import Link from 'next/link';
 import Logo from './Logo';
 import { ServiceCategory } from '@/types';
 import OAuthLoginModal from '../auth/OAuthLoginModal';
-import { MobileMenuDrawer } from './MobileMenuDrawer';
+// Removed MobileMenuDrawer - replaced by BottomNavigation
 
 type View = 'booking' | 'admin' | 'dashboard' | 'services';
 
@@ -45,7 +45,6 @@ export default function AppHeader({ view, onViewChange }: AppHeaderProps) {
   const [categories, setCategories] = useState<ServiceCategory[]>([]);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isMegaMenuOpen, setIsMegaMenuOpen] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const activeView: View = useMemo(() => {
     if (pathname?.startsWith('/admin')) return 'admin';
@@ -154,14 +153,7 @@ export default function AppHeader({ view, onViewChange }: AppHeaderProps) {
 
   return (
     <>
-      {/* Mobile Floating Hamburger Menu Button - Fixed Position */}
-      <button
-        onClick={() => setIsMobileMenuOpen(true)}
-        className="md:hidden fixed bottom-6 left-6 z-[60] flex items-center justify-center w-14 h-14 bg-accent text-white rounded-full shadow-2xl hover:shadow-xl active:scale-95 transition-all duration-200 touch-target"
-        aria-label="Open menu"
-      >
-        <Menu className="h-6 w-6" />
-      </button>
+      {/* Mobile FAB removed - replaced by BottomNavigation */}
 
       {/* Desktop Header - Hidden on Mobile */}
       <header className="hidden md:block sticky top-0 z-50 border-b border-base-primary/10 bg-stone-50 bg-opacity-50 backdrop-blur-md transition-all duration-300 dark:border-gray-800 dark:bg-gray-900">
@@ -420,14 +412,7 @@ export default function AppHeader({ view, onViewChange }: AppHeaderProps) {
 
       {/* Modals - Available on all screen sizes */}
       <OAuthLoginModal isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
-      <MobileMenuDrawer
-        isOpen={isMobileMenuOpen}
-        onClose={() => setIsMobileMenuOpen(false)}
-        user={user}
-        activeView={activeView}
-        onLogout={logout}
-        onLoginClick={() => setIsLoginOpen(true)}
-      />
+      {/* MobileMenuDrawer removed - replaced by BottomNavigation */}
     </>
   );
 }

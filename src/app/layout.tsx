@@ -9,6 +9,7 @@ import '../styles/globals.css';
 import '@radix-ui/themes/styles.css';
 import 'dotenv/config';
 import { AppFooter, AppHeader } from '@/components/layout';
+import { BottomNavigation } from '@/components/navigation';
 
 export const metadata: Metadata = {
   title: 'Signature Trims - Salon Booking',
@@ -37,7 +38,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <AuthProvider>
             <BookingProvider>
               <AppHeader />
-              {children}
+              <main className="min-h-screen pb-20 md:pb-0">{children}</main>
+              <BottomNavigation />
               <AppFooter adminSettings={adminSettings} />
             </BookingProvider>
           </AuthProvider>

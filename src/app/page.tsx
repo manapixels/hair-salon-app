@@ -49,9 +49,17 @@ export default async function HomePage() {
   return (
     <div className="bg-[#FDFCF8] min-h-screen text-stone-900 font-serif">
       {/* Hero Section */}
-      <section className="flex flex-col lg:flex-row lg:min-h-screen pt-20 lg:pt-0 overflow-hidden relative">
+      <section className="flex flex-col lg:flex-row lg:min-h-screen md:pt-20 overflow-hidden relative">
         <div className="w-full lg:w-1/2 flex items-center justify-center p-6 py-12 md:p-8 lg:p-24 relative z-10 bg-base-primary/10">
           <div className="max-w-xl fade-in-up w-full">
+            <div className="relative w-28 h-28 mb-6">
+              <Image
+                src="/images/logo.png"
+                className="object-cover"
+                fill
+                alt="Signature Trims - Logo"
+              />
+            </div>
             <span className="text-base-primary font-medium tracking-widest text-xs md:text-sm mb-3 md:mb-4 block">
               Est. 2024 • Yishun, Singapore
             </span>
