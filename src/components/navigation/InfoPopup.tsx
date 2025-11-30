@@ -3,6 +3,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, MapPin, Clock, Instagram, Facebook } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { SkeletonLoader } from '@/components/feedback/loaders/SkeletonLoader';
 
 interface InfoPopupProps {
   isOpen: boolean;
@@ -88,56 +89,82 @@ export default function InfoPopup({ isOpen, onClose }: InfoPopupProps) {
             {/* Content */}
             <div className="px-5 py-6 space-y-8">
               {/* Location */}
-              {settings?.businessAddress && (
+              {!settings ? (
                 <section>
                   <div className="flex items-start gap-3">
-                    <div className="p-2 bg-[var(--accent-2)] rounded-lg shrink-0">
-                      <MapPin className="w-5 h-5 text-[var(--accent-11)]" />
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-1">
-                        Location
-                      </h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-300">
-                        {settings.businessAddress}
-                      </p>
+                    <SkeletonLoader height="h-9" className="w-9" />
+                    <div className="flex-1 space-y-2">
+                      <SkeletonLoader height="h-4" className="w-24" />
+                      <SkeletonLoader height="h-4" className="w-full" />
                     </div>
                   </div>
                 </section>
+              ) : (
+                settings.businessAddress && (
+                  <section>
+                    <div className="flex items-start gap-3">
+                      <div className="p-2 bg-[var(--accent-2)] rounded-lg shrink-0">
+                        <MapPin className="w-5 h-5 text-[var(--accent-11)]" />
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-1">
+                          Location
+                        </h3>
+                        <p className="text-sm text-gray-600 dark:text-gray-300">
+                          {settings.businessAddress}
+                        </p>
+                      </div>
+                    </div>
+                  </section>
+                )
               )}
 
               {/* Operating Hours */}
-              {settings?.weeklySchedule && (
+              {!settings ? (
                 <section>
                   <div className="flex items-start gap-3">
-                    <div className="p-2 bg-[var(--accent-2)] rounded-lg shrink-0">
-                      <Clock className="w-5 h-5 text-[var(--accent-11)]" />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">
-                        Operating Hours
-                      </h3>
+                    <SkeletonLoader height="h-9" className="w-9" />
+                    <div className="flex-1 space-y-3">
+                      <SkeletonLoader height="h-4" className="w-32" />
                       <div className="space-y-2">
-                        {Object.entries(settings.weeklySchedule).map(([day, schedule]) => (
-                          <div key={day} className="flex justify-between text-sm">
-                            <span className="text-gray-600 dark:text-gray-400 capitalize">
-                              {day}
-                            </span>
-                            <span
-                              className={
-                                schedule.isOpen ? 'text-gray-900 dark:text-white' : 'text-red-500'
-                              }
-                            >
-                              {schedule.isOpen
-                                ? `${formatTime(schedule.openingTime)} - ${formatTime(schedule.closingTime)}`
-                                : 'Closed'}
-                            </span>
-                          </div>
-                        ))}
+                        <SkeletonLoader count={7} height="h-4" className="w-full" />
                       </div>
                     </div>
                   </div>
                 </section>
+              ) : (
+                settings.weeklySchedule && (
+                  <section>
+                    <div className="flex items-start gap-3">
+                      <div className="p-2 bg-[var(--accent-2)] rounded-lg shrink-0">
+                        <Clock className="w-5 h-5 text-[var(--accent-11)]" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">
+                          Operating Hours
+                        </h3>
+                        <div className="space-y-2">
+                          {Object.entries(settings.weeklySchedule).map(([day, schedule]) => (
+                            <div key={day} className="flex justify-between text-sm">
+                              <span className="text-gray-600 dark:text-gray-400 capitalize">
+                                {day}
+                              </span>
+                              <span
+                                className={
+                                  schedule.isOpen ? 'text-gray-900 dark:text-white' : 'text-red-500'
+                                }
+                              >
+                                {schedule.isOpen
+                                  ? `${formatTime(schedule.openingTime)} - ${formatTime(schedule.closingTime)}`
+                                  : 'Closed'}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </section>
+                )
               )}
 
               {/* Social Media */}
