@@ -7,8 +7,11 @@ export default function TeamCard() {
   return (
     <Section size="3" className="bg-stone-50">
       <Container size="3">
-        <div className="text-center mb-12">
-          <Text size="2" className="uppercase tracking-[0.2em] text-gold-600 font-sans mb-4 block">
+        <div className="text-center mb-6 sm:mb-12">
+          <Text
+            size="2"
+            className="uppercase tracking-[0.2em] text-gold-600 font-sans mb-2 sm:mb-4 block"
+          >
             Meet the Expert
           </Text>
           <Heading size="8" className="font-light text-stone-900">
@@ -16,14 +19,14 @@ export default function TeamCard() {
           </Heading>
         </div>
 
-        <div className="max-w-4xl mx-auto bg-white rounded-2xl overflow-hidden shadow-sm border border-stone-100 flex flex-col md:flex-row">
+        <div className="max-w-4xl mx-auto sm:bg-white rounded-2xl overflow-hidden sm:shadow-sm border border-stone-100 flex flex-col md:flex-row mx-auto">
           {/* Image Section */}
-          <div className="relative w-full md:w-2/5 min-h-[400px]">
+          <div className="relative w-4/5 md:w-2/5 min-h-[300px] sm:min-h-[400px] mx-auto">
             <Image
               src="/may.jpg"
               alt="May"
               fill
-              className="object-cover"
+              className="object-cover rounded-2xl sm:rounded-none"
               sizes="(max-width: 768px) 100vw, 40vw"
             />
           </div>

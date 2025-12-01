@@ -41,7 +41,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <BookingProvider>
               <BookingModalProvider>
                 <AppHeader />
-                <main className="min-h-screen pb-20 md:pb-0">{children}</main>
+                <main className="min-h-screen">{children}</main>
                 <BottomNavigation />
                 <AppFooter adminSettings={adminSettings} />
                 <BookingModal />

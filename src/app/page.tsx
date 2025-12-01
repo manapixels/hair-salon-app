@@ -43,10 +43,10 @@ export default function HomePage() {
   return (
     <div className="bg-[#FDFCF8] min-h-screen text-stone-900 font-serif">
       {/* Hero Section */}
-      <section className="flex flex-col lg:flex-row lg:min-h-screen md:pt-20 overflow-hidden relative">
-        <div className="w-full lg:w-1/2 flex items-center justify-center p-6 py-12 md:p-8 lg:p-24 relative z-10 bg-base-primary/10">
+      <section className="relative flex flex-col lg:flex-row lg:min-h-screen md:pt-20 overflow-hidden">
+        <div className="w-full lg:w-1/2 flex items-center justify-center p-6 py-8 sm:py-12 md:p-8 lg:p-24 relative z-10 bg-base-primary/10">
           <div className="max-w-xl fade-in-up w-full">
-            <div className="relative w-28 h-28 mb-6">
+            <div className="relative w-16 h-16 sm:w-28 sm:h-28 mb-6">
               <Image
                 src="/images/logo.png"
                 className="object-cover"
@@ -55,17 +55,17 @@ export default function HomePage() {
                 sizes="112px"
               />
             </div>
-            <span className="text-base-primary font-medium tracking-widest text-xs md:text-sm mb-3 md:mb-4 block">
+            <span className="text-base-primary/80 sm:text-base-primary font-medium tracking-widest text-xs md:text-sm mb-3 md:mb-4 block">
               Est. 2024 • Yishun, Singapore
             </span>
-            <h1 className="font-serif text-4xl md:text-5xl lg:text-7xl text-base-dark leading-tight mb-4 md:mb-6">
+            <h1 className="font-serif text-2xl font-semibold sm:font-normal sm:text-4xl md:text-5xl lg:text-7xl text-base-primary sm:text-base-dark leading-tight mb-0 sm:mb-6">
               Craft your <span className="italic text-base-primary">Signature</span> look with us
             </h1>
-            <p className="text-gray-500 text-base md:text-lg mb-6 md:mb-8 leading-relaxed max-w-md">
+            <p className="hidden sm:block text-gray-500 text-base md:text-lg mb-6 md:mb-8 leading-relaxed max-w-md">
               Experience hair artistry at Signature Trims, a neighbourhood hair salon where we bring
               out the best in you.
             </p>
-            <div className="flex flex-col sm:flex-row gap-3 md:gap-4 mb-8 md:mb-12">
+            <div className="hidden sm:flex flex-col sm:flex-row gap-3 md:gap-4 mb-8 md:mb-12">
               <button
                 onClick={() => openModal()}
                 className="min-h-touch-lg bg-gray-900 text-white px-8 py-4 rounded-full hover:bg-base-primary active-scale transition-all duration-300 shadow-lg shadow-base-dark/20 text-sm font-medium uppercase tracking-wide"
@@ -79,7 +79,7 @@ export default function HomePage() {
                 View Menu
               </a>
             </div>
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-8 text-gray-400 text-sm">
+            <div className="flex flex-row items-start sm:items-center gap-4 sm:gap-8 text-base-primary/80 sm:text-gray-400 text-sm">
               <a
                 href="https://maps.app.goo.gl/umK5KbT3rN1HeEg5A"
                 target="_blank"
@@ -101,21 +101,43 @@ export default function HomePage() {
         </div>
 
         {/* Right Image */}
-        <div className="w-full lg:w-1/2 h-[40vh] md:h-[50vh] lg:h-auto relative">
+        <div className="absolute top-0 left-0 sm:relative w-full lg:w-1/2 h-full sm:h-[40vh] md:h-[50vh] lg:h-auto">
           <Image
             src="/may-with-customer.jpg"
             alt="May with her customer"
             fill
-            className="absolute inset-0 w-full h-full object-cover"
+            className="opacity-70 sm:opacity-100 absolute inset-0 w-full h-full object-cover"
             priority
             sizes="(max-width: 1024px) 100vw, 50vw"
           />
           <LocationCard address={adminSettings.businessAddress} />
+          <div className="sm:hidden absolute inset-0 bg-gradient-to-b from-transparent to-[#F1EEE3]"></div>
         </div>
       </section>
 
       {/* Featured Services Showcase */}
-      <section className="py-16 md:py-24 lg:px-12 bg-white" id="services">
+      <div className="sm:hidden grid grid-cols-3 gap-4 md:gap-8 bg-white p-4">
+        {SERVICE_LINKS.map(service => (
+          <Link
+            key={service.href}
+            href={service.href}
+            className="group/item flex flex-col items-center justify-between gap-1 border border-base-primary/50 hover:border-base-primary transition-colors rounded-lg p-2"
+          >
+            <div className="relative w-16 h-16 rounded-lg">
+              <Image
+                src={service.illustration || ''}
+                alt={service.title}
+                fill
+                className="object-cover"
+              />
+            </div>
+            <span className="text-md text-center leading-none text-base-primary flex-1 flex items-center">
+              {service.short_title}
+            </span>
+          </Link>
+        ))}
+      </div>
+      <section className="hidden sm:block py-16 md:py-24 lg:px-12 bg-white" id="services">
         <div className="text-center mb-12">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gold-50 text-gold-700 text-sm font-medium mb-4">
             <Sparkles className="w-4 h-4" />
