@@ -1,23 +1,44 @@
+'use client';
+
 import Image from 'next/image';
 import Link from 'next/link';
 import { Instagram, Star } from 'lucide-react';
 import { Heading, Text, Container, Section } from '@radix-ui/themes';
 import { TeamCard } from '@/components/team';
 import LocationCard from '../components/locations/LocationCard';
-import BookingForm from '../components/booking/BookingForm';
 import { Sparkles } from '@/lib/icons';
-import { getAdminSettings, getServiceCategories } from '@/lib/database';
 import { SERVICE_LINKS } from '@/config/navigation';
+import { useBookingModal } from '@/context/BookingModalContext';
+import { useState, useEffect } from 'react';
+import type { ServiceCategory, AdminSettings } from '@/types';
 
-export default async function HomePage() {
-  const adminSettings = await getAdminSettings();
-  const categories = await getServiceCategories();
+export default function HomePage() {
+  const { openModal } = useBookingModal();
+  const [adminSettings, setAdminSettings] = useState<AdminSettings | null>(null);
+  const [categories, setCategories] = useState<ServiceCategory[]>([]);
+
+  // Fetch data on mount
+  useEffect(() => {
+    Promise.all([
+      fetch('/api/admin/settings').then(res => res.json()),
+      fetch('/api/services').then(res => res.json()),
+    ])
+      .then(([settings, servicesData]) => {
+        setAdminSettings(settings);
+        setCategories(servicesData);
+      })
+      .catch(err => console.error('Failed to fetch data:', err));
+  }, []);
 
   // Extract featured services from categories
   const featuredServiceNames = SERVICE_LINKS.map(s => s.title);
   const featuredServices = categories
     .flatMap(cat => cat.items)
     .filter(service => featuredServiceNames.includes(service.name));
+
+  if (!adminSettings) {
+    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+  }
 
   return (
     <div className="bg-[#FDFCF8] min-h-screen text-stone-900 font-serif">
@@ -44,7 +65,10 @@ export default async function HomePage() {
               out the best in you.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 md:gap-4 mb-8 md:mb-12">
-              <button className="min-h-touch-lg bg-gray-900 text-white px-8 py-4 rounded-full hover:bg-base-primary active-scale transition-all duration-300 shadow-lg shadow-base-dark/20 text-sm font-medium uppercase tracking-wide">
+              <button
+                onClick={() => openModal()}
+                className="min-h-touch-lg bg-gray-900 text-white px-8 py-4 rounded-full hover:bg-base-primary active-scale transition-all duration-300 shadow-lg shadow-base-dark/20 text-sm font-medium uppercase tracking-wide"
+              >
                 Book Your Visit
               </button>
               <a
@@ -146,12 +170,12 @@ export default async function HomePage() {
                                 Learn More
                               </Link>
                             )}
-                            <Link
-                              href="/?book=true"
+                            <button
+                              onClick={() => openModal({ preSelectedServiceId: service.id })}
                               className={`min-h-touch-lg py-3 bg-gray-800 text-white rounded-lg hover:bg-stone-800 active-scale transition-colors duration-200 font-medium text-center ${serviceUrl ? 'flex-1' : 'w-full'}`}
                             >
                               Book Now
-                            </Link>
+                            </button>
                           </>
                         );
                       })()}
@@ -169,40 +193,19 @@ export default async function HomePage() {
                 </div>
               );
             })}
-            <div className="group p-6 md:p-8 rounded-3xl bg-base-primary/30 text-black border border-transparent hover:scale-[1.02] active-scale transition-all duration-300 cursor-pointer flex flex-col justify-center items-center text-center min-h-touch-lg">
+            <div className="group p-6 md:p-8 rounded-3xl bg-base-primary/30 text-black border border-transparent hover:scale-[1.02] active-scale transition-all duration-300 flex flex-col justify-center items-center text-center min-h-touch-lg">
               <h3 className="text-xl md:text-2xl font-serif mb-2">Need Advice?</h3>
               <p className="text-sm mb-6">Book a free 15-min consultation with a master stylist.</p>
-              <button className="min-h-touch-lg bg-white text-base-primary px-6 py-3 rounded-lg text-sm font-medium hover:bg-base-primary hover:text-white active-scale transition-colors">
+              <button
+                onClick={() => openModal()}
+                className="min-h-touch-lg bg-white text-base-primary px-6 py-3 rounded-lg text-sm font-medium hover:bg-base-primary hover:text-white active-scale transition-colors"
+              >
                 Book Consult
               </button>
             </div>
           </div>
         </div>
       </section>
-
-      {/* Booking Section */}
-      <Section size="3" className="bg-[#FDFCF8]" id="booking-section">
-        <Container size="4">
-          <div className="text-center mb-12">
-            <Text
-              size="2"
-              className="uppercase tracking-[0.2em] text-gold-600 font-sans mb-4 block"
-            >
-              Reservations
-            </Text>
-            <Heading size="8" className="font-light mb-6">
-              Book Your Experience
-            </Heading>
-            <p className="text-stone-600 leading-relaxed font-sans max-w-2xl mx-auto">
-              Select your preferred services and stylist to begin your journey with us.
-            </p>
-          </div>
-
-          <div className="bg-white p-8 rounded-xl shadow-sm border border-stone-100">
-            <BookingForm />
-          </div>
-        </Container>
-      </Section>
 
       {/* The Team */}
       <TeamCard />

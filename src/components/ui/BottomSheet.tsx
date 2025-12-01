@@ -55,7 +55,7 @@ export function BottomSheet({
 
         {/* Header */}
         {(title || showCloseButton) && (
-          <div className="flex items-center justify-between px-6 py-4 border-b sticky top-8 md:top-0 bg-white z-10">
+          <div className="flex items-center justify-between px-6 py-4 border-b sticky top-0 bg-white z-20">
             <div>
               {title && <Dialog.Title className="text-lg font-semibold">{title}</Dialog.Title>}
               {description && (

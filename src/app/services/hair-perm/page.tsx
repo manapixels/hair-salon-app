@@ -11,6 +11,7 @@ import {
   ServiceCTA,
 } from '@/components/services';
 import { getServiceContent } from '@/data/serviceContent';
+import { getServiceCategories } from '@/lib/database';
 
 // Bilingual Content - Inline
 const CONTENT = {
@@ -337,12 +338,19 @@ const content = CONTENT.en;
 
 // --- Main Page ---
 
-export default function HairPermPage() {
+export default async function HairPermPage() {
   // Get static content for hair perm service
   const serviceContent = getServiceContent('hair-perm');
 
   if (!serviceContent) notFound();
   const servicePrice = 'From $70';
+
+  // Fetch service ID from database
+  const categories = await getServiceCategories();
+  const hairPermService = categories
+    .flatMap(cat => cat.items)
+    .find(service => service.name.toLowerCase().includes('perm'));
+  const serviceId = hairPermService?.id;
 
   return (
     <div className="bg-white min-h-screen">
@@ -443,6 +451,7 @@ export default function HairPermPage() {
         title={content.cta.title}
         description={content.cta.description}
         serviceName="Hair Perm"
+        serviceId={serviceId}
       />
     </div>
   );

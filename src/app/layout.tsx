@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { AuthProvider } from '../context/AuthContext';
 import { BookingProvider } from '../context/BookingContext';
+import { BookingModalProvider } from '../context/BookingModalContext';
 import { Toaster } from 'sonner';
 import { Theme } from '@radix-ui/themes';
 import { autoConfigureTelegramBotMenu } from '../lib/telegramBotSetup';
@@ -10,6 +11,7 @@ import '@radix-ui/themes/styles.css';
 import 'dotenv/config';
 import { AppFooter, AppHeader } from '@/components/layout';
 import { BottomNavigation } from '@/components/navigation';
+import { BookingModal } from '@/components/booking';
 
 export const metadata: Metadata = {
   title: 'Signature Trims - Salon Booking',
@@ -37,10 +39,13 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <Theme accentColor="gold" grayColor="sand" radius="medium" appearance="light">
           <AuthProvider>
             <BookingProvider>
-              <AppHeader />
-              <main className="min-h-screen pb-20 md:pb-0">{children}</main>
-              <BottomNavigation />
-              <AppFooter adminSettings={adminSettings} />
+              <BookingModalProvider>
+                <AppHeader />
+                <main className="min-h-screen pb-20 md:pb-0">{children}</main>
+                <BottomNavigation />
+                <AppFooter adminSettings={adminSettings} />
+                <BookingModal />
+              </BookingModalProvider>
             </BookingProvider>
           </AuthProvider>
           <Toaster position="top-right" richColors closeButton />

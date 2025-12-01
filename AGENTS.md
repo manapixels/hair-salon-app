@@ -372,7 +372,10 @@ curl -X POST http://localhost:3000/api/reminders/test
 
 ### **Build & Type Checking**
 
-⚠️ **Important**: Avoid using `npm run build` for quick type checks - it's slow and resource-intensive.
+⚠️ **Important**: Avoid using `npm run build` for quick type checks.
+
+- It is slow and resource-intensive.
+- **CRITICAL**: It deletes/modifies the `.next` folder, which **crashes any running `npm run dev` server**, forcing a restart.
 
 ```bash
 # ❌ DON'T: Slow full build (takes 30+ seconds)

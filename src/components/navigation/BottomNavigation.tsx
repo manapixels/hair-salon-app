@@ -8,10 +8,12 @@ import ServicesPopup from './ServicesPopup';
 import InfoPopup from './InfoPopup';
 import AccountPopup from './AccountPopup';
 import { useAuth } from '@/context/AuthContext';
+import { useBookingModal } from '@/context/BookingModalContext';
 
 export default function BottomNavigation() {
   const pathname = usePathname();
   const { user } = useAuth();
+  const { openModal } = useBookingModal();
   const [activeTab, setActiveTab] = useState('home');
   const [showServicesDropdown, setShowServicesDropdown] = useState(false);
   const [showAccountDropdown, setShowAccountDropdown] = useState(false);
@@ -105,11 +107,8 @@ export default function BottomNavigation() {
               icon={Calendar}
               label="Book"
               active={false}
-              href="/?view=booking"
               variant="primary"
-              onClick={() => {
-                // Optional: If you need to force a scroll or state update, handle it here.
-              }}
+              onClick={() => openModal()}
             />
           </div>
 

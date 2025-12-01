@@ -12,6 +12,7 @@ import {
 } from '@/components/services';
 import { BeforeAfterSlider } from '@/components/ui/BeforeAfterSlider';
 import { getServiceContent } from '@/data/serviceContent';
+import { getServiceCategories } from '@/lib/database';
 
 // Bilingual Content - Inline
 const CONTENT = {
@@ -345,12 +346,19 @@ const ProblemSolution = ({ problem, solution }: { problem: string; solution: str
 
 // --- Main Page ---
 
-export default function ScalpTreatmentPage() {
+export default async function ScalpTreatmentPage() {
   // Get static content for scalp treatment service
   const serviceContent = getServiceContent('scalp-treatment');
 
   // We don't error if serviceContent is missing for now as we have inline content,
   // but in a real app we might want to use it or fallback.
+
+  // Fetch service ID from database
+  const categories = await getServiceCategories();
+  const scalpTreatmentService = categories
+    .flatMap(cat => cat.items)
+    .find(service => service.name.toLowerCase().includes('scalp'));
+  const serviceId = scalpTreatmentService?.id;
   // if (!serviceContent) notFound();
 
   const servicePrice = 'From $88';
@@ -467,6 +475,7 @@ export default function ScalpTreatmentPage() {
         title={content.cta.title}
         description={content.cta.description}
         serviceName="Scalp Treatment"
+        serviceId={serviceId}
       />
     </div>
   );

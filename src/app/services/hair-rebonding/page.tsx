@@ -12,6 +12,7 @@ import {
   ServiceCTA,
 } from '@/components/services';
 import { getServiceContent } from '@/data/serviceContent';
+import { getServiceCategories } from '@/lib/database';
 
 // Bilingual Content - Inline
 const CONTENT = {
@@ -301,12 +302,19 @@ const content = CONTENT.en;
 
 // --- Main Page ---
 
-export default function HairRebondingPage() {
+export default async function HairRebondingPage() {
   // Get static content for hair rebonding service
   const serviceContent = getServiceContent('hair-rebonding');
 
   if (!serviceContent) notFound();
   const servicePrice = 'From $70';
+
+  // Fetch service ID from database
+  const categories = await getServiceCategories();
+  const hairRebondingService = categories
+    .flatMap(cat => cat.items)
+    .find(service => service.name.toLowerCase().includes('rebonding'));
+  const serviceId = hairRebondingService?.id;
 
   return (
     <div className="bg-white min-h-screen">
@@ -414,6 +422,7 @@ export default function HairRebondingPage() {
         title={content.cta.title}
         description={content.cta.description}
         serviceName="Hair Rebonding"
+        serviceId={serviceId}
       />
     </div>
   );

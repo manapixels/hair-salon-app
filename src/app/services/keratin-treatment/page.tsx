@@ -12,6 +12,7 @@ import {
 } from '@/components/services';
 import { BeforeAfterSlider } from '@/components/ui/BeforeAfterSlider';
 import { getServiceContent } from '@/data/serviceContent';
+import { getServiceCategories } from '@/lib/database';
 
 // Bilingual Content - Inline
 const CONTENT = {
@@ -423,12 +424,19 @@ const ProblemSolution = ({ problem, solution }: { problem: string; solution: str
 
 // --- Main Page ---
 
-export default function KeratinTreatmentPage() {
+export default async function KeratinTreatmentPage() {
   // Get static content for keratin treatment service
   const serviceContent = getServiceContent('keratin-treatment');
 
   // if (!serviceContent) notFound();
   const servicePrice = 'From $35';
+
+  // Fetch service ID from database
+  const categories = await getServiceCategories();
+  const keratinService = categories
+    .flatMap(cat => cat.items)
+    .find(service => service.name.toLowerCase().includes('keratin'));
+  const serviceId = keratinService?.id;
 
   return (
     <div className="bg-white min-h-screen">
@@ -542,6 +550,7 @@ export default function KeratinTreatmentPage() {
         title={content.cta.title}
         description={content.cta.description}
         serviceName="Keratin Treatment"
+        serviceId={serviceId}
       />
     </div>
   );

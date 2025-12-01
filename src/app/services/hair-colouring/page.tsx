@@ -11,6 +11,7 @@ import {
   ServiceCTA,
 } from '@/components/services';
 import { getServiceContent } from '@/data/serviceContent';
+import { getServiceCategories } from '@/lib/database';
 
 // Bilingual Content - Inline
 const CONTENT = {
@@ -357,12 +358,19 @@ const content = CONTENT.en;
 
 // --- Main Page ---
 
-export default function HairColouringPage() {
+export default async function HairColouringPage() {
   // Get static content for hair colouring service
   const serviceContent = getServiceContent('hair-colouring');
 
   if (!serviceContent) notFound();
   const servicePrice = 'From $70';
+
+  // Fetch service ID from database - find first service with "Colouring" in the name
+  const categories = await getServiceCategories();
+  const hairColouringService = categories
+    .flatMap(cat => cat.items)
+    .find(service => service.name.toLowerCase().includes('colouring'));
+  const serviceId = hairColouringService?.id;
 
   return (
     <div className="bg-white min-h-screen">
@@ -451,6 +459,7 @@ export default function HairColouringPage() {
         title={content.cta.title}
         description={content.cta.description}
         serviceName="Hair Colouring"
+        serviceId={serviceId}
       />
     </div>
   );
