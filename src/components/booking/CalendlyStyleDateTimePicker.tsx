@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import { CalendarView } from './CalendarView';
@@ -27,6 +27,7 @@ export default function CalendlyStyleDateTimePicker({
   selectedStylist,
 }: CalendlyStyleDateTimePickerProps) {
   const { currentMonth, daysInMonth, goToPreviousMonth, goToNextMonth } = useCalendar(selectedDate);
+  const timeSlotsRef = useRef<HTMLDivElement>(null);
 
   const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
   const [loading, setLoading] = useState(false);
@@ -71,6 +72,13 @@ export default function CalendlyStyleDateTimePicker({
   const handleDateChange = (date: Date) => {
     onDateChange(date);
     onTimeSelect(null); // Reset time selection when date changes
+
+    // Scroll to time slots on mobile
+    if (window.innerWidth < 1024) {
+      setTimeout(() => {
+        timeSlotsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
+    }
   };
 
   return (
@@ -110,7 +118,7 @@ export default function CalendlyStyleDateTimePicker({
         </div>
 
         {/* Right Column: Time Slots */}
-        <div className="flex flex-col">
+        <div className="flex flex-col" ref={timeSlotsRef}>
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">
               Available Times
