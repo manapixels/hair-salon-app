@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo, useEffect, useCallback } from 'react';
+import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import { toast } from 'sonner';
 
@@ -24,7 +25,6 @@ import {
   getDurationPercentage,
   formatDisplayDate,
 } from '@/lib/timeUtils';
-import CalendlyStyleDateTimePicker from './CalendlyStyleDateTimePicker';
 import { LoadingSpinner } from '../feedback/loaders/LoadingSpinner';
 import { StylistCardSkeleton } from '../feedback/loaders/StylistCardSkeleton';
 import { ErrorState } from '../feedback/ErrorState';
@@ -40,6 +40,49 @@ import {
 } from '@/components/ui/accordion';
 import { Check, CheckCircle, User, WhatsAppIcon, Search } from '@/lib/icons';
 import { ConcernOutcomeFilter } from '../services/ConcernOutcomeFilter';
+import { MobileBookingSummary } from './MobileBookingSummary';
+import { SimpleStepIndicator } from './StepIndicator';
+import { BookingConfirmationSummary } from './BookingConfirmationSummary';
+import { useRef } from 'react';
+import { Edit2, ChevronDown, ChevronUp } from 'lucide-react';
+
+// Code-split heavy components for better performance
+const StylistSelector = dynamic(
+  () => import('./StylistSelector').then(mod => ({ default: mod.StylistSelector })),
+  {
+    loading: () => (
+      <div className="mt-10 scroll-mt-24">
+        <h2 className="text-2xl font-semibold mb-4 text-gray-800 dark:text-gray-200">
+          2. Choose Your Stylist
+        </h2>
+        <div className="space-y-4">
+          <div className="flex items-center gap-2 mb-4">
+            <LoadingSpinner size="sm" />
+            <p className="text-sm text-gray-600 dark:text-gray-400">Loading stylists...</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <StylistCardSkeleton count={3} />
+          </div>
+        </div>
+      </div>
+    ),
+    ssr: false,
+  },
+);
+
+const CalendlyStyleDateTimePicker = dynamic(() => import('./CalendlyStyleDateTimePicker'), {
+  loading: () => (
+    <div className="mt-10">
+      <h2 className="text-2xl font-semibold mb-6 text-gray-800 dark:text-gray-200">
+        3. Select Date & Time
+      </h2>
+      <div className="flex items-center justify-center p-8">
+        <LoadingSpinner message="Loading calendar..." />
+      </div>
+    </div>
+  ),
+  ssr: false,
+});
 
 // Get the salon's timezone from environment variable or default to Asia/Singapore
 const SALON_TIMEZONE = process.env.NEXT_PUBLIC_GOOGLE_CALENDAR_TIMEZONE || 'Asia/Singapore';
@@ -48,6 +91,52 @@ const SALON_TIMEZONE = process.env.NEXT_PUBLIC_GOOGLE_CALENDAR_TIMEZONE || 'Asia
 const getTodayInSalonTimezone = (): Date => {
   const now = new Date();
   return toZonedTime(now, SALON_TIMEZONE);
+};
+
+// Collapsed Step Summary Component
+const CollapsedStepSummary: React.FC<{
+  stepNumber: number;
+  title: string;
+  summary: string;
+  onEdit: () => void;
+  onToggle: () => void;
+  isCollapsed: boolean;
+}> = ({ stepNumber, title, summary, onEdit, onToggle, isCollapsed }) => {
+  return (
+    <div className="border-2 border-green-500 bg-green-50 dark:bg-green-900/20 rounded-xl p-4 mb-4 transition-all duration-300 animate-fade-in">
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex items-start gap-3 flex-1">
+          <div className="flex items-center justify-center w-8 h-8 rounded-full bg-green-500 text-white font-semibold text-sm shrink-0">
+            <Check className="h-5 w-5" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <h3 className="font-semibold text-gray-900 dark:text-white mb-1">
+              {stepNumber}. {title}
+            </h3>
+            <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">{summary}</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          <button
+            onClick={onEdit}
+            className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-green-700 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300 hover:bg-green-100 dark:hover:bg-green-900/40 rounded-lg transition-colors"
+            aria-label={`Edit ${title}`}
+          >
+            <Edit2 className="h-4 w-4" />
+            <span className="hidden sm:inline">Edit</span>
+          </button>
+          <button
+            onClick={onToggle}
+            className="p-1.5 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+            aria-label={isCollapsed ? 'Expand section' : 'Collapse section'}
+            aria-expanded={!isCollapsed}
+          >
+            {isCollapsed ? <ChevronDown className="h-5 w-5" /> : <ChevronUp className="h-5 w-5" />}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 };
 
 const ServiceSelector: React.FC<{
@@ -518,204 +607,6 @@ const ServiceSelector: React.FC<{
   );
 };
 
-const StylistSelector: React.FC<{
-  selectedServices: Service[];
-  selectedStylist: Stylist | null;
-  onStylistSelect: (stylist: Stylist | null) => void;
-}> = ({ selectedServices, selectedStylist, onStylistSelect }) => {
-  const [stylists, setStylists] = useState<Stylist[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  // Delayed loading to prevent flash on fast connections
-  const showLoader = useDelayedLoading(loading, { delay: 150, minDuration: 300 });
-
-  // Extract fetch function so it can be reused for retry
-  const fetchStylists = useCallback(async () => {
-    if (selectedServices.length === 0) {
-      setStylists([]);
-      return;
-    }
-
-    setLoading(true);
-    setError(null);
-
-    try {
-      const serviceIds = selectedServices.map(s => s.id);
-      const response = await fetch(`/api/stylists?services=${serviceIds.join(',')}`);
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch stylists: ${response.status}`);
-      }
-
-      const availableStylists = await response.json();
-
-      // Validate response is an array
-      if (!Array.isArray(availableStylists)) {
-        console.error('Invalid response format:', availableStylists);
-        throw new Error('Invalid response format from server');
-      }
-
-      setStylists(availableStylists);
-    } catch (error) {
-      console.error('Failed to fetch stylists:', error);
-      const errorMsg = error instanceof Error ? error.message : 'Unable to load stylists';
-      setError(errorMsg);
-      toast.error(errorMsg);
-      setStylists([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [selectedServices]);
-
-  useEffect(() => {
-    fetchStylists();
-  }, [fetchStylists]);
-
-  if (selectedServices.length === 0) {
-    return null;
-  }
-
-  return (
-    <div className="mt-10">
-      <h2 className="text-2xl font-semibold mb-4 text-gray-800 dark:text-gray-200">
-        2. Choose Your Stylist
-      </h2>
-
-      {/* Screen reader announcement */}
-      <div className="sr-only" aria-live="polite" aria-atomic="true">
-        {loading && 'Loading stylists for your selected services'}
-        {!loading && stylists.length > 0 && `${stylists.length} stylists available`}
-        {!loading && stylists.length === 0 && 'No stylists available'}
-      </div>
-
-      {showLoader ? (
-        <div className="space-y-4">
-          <div className="flex items-center gap-2 mb-4">
-            <LoadingSpinner size="sm" />
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              Finding stylists who can perform {selectedServices.map(s => s.name).join(', ')}...
-            </p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <StylistCardSkeleton count={3} />
-          </div>
-        </div>
-      ) : error ? (
-        <ErrorState
-          title="Failed to Load Stylists"
-          message={error}
-          onRetry={fetchStylists}
-          retryText="Try Again"
-        />
-      ) : stylists.length === 0 ? (
-        <EmptyState
-          icon={
-            <svg
-              className="mx-auto h-12 w-12 text-gray-400"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-              />
-            </svg>
-          }
-          title="No Stylists Available"
-          description="No stylists can perform the selected services. Try selecting different services or contact us for assistance."
-        />
-      ) : (
-        <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
-            {stylists.map(stylist => {
-              const isSelected = selectedStylist?.id === stylist.id;
-              return (
-                <Card
-                  key={stylist.id}
-                  variant="interactive"
-                  selected={isSelected}
-                  showCheckmark
-                  onClick={() => onStylistSelect(stylist)}
-                  className="cursor-pointer"
-                >
-                  <CardContent>
-                    <div className="flex items-center mb-4">
-                      {stylist.avatar ? (
-                        <Image
-                          src={stylist.avatar}
-                          alt={stylist.name}
-                          width={52}
-                          height={52}
-                          className="w-13 h-13 rounded-full mr-4"
-                        />
-                      ) : (
-                        <div className="w-13 h-13 bg-[var(--gray-3)] rounded-full flex items-center justify-center mr-4">
-                          <User className="h-8 w-8 text-[var(--gray-9)]" aria-hidden="true" />
-                        </div>
-                      )}
-                      <div>
-                        <h3 className="text-[length:var(--font-size-4)] font-bold text-[var(--gray-12)]">
-                          {stylist.name}
-                        </h3>
-                        <p className="text-[length:var(--font-size-2)] text-[var(--gray-11)]">
-                          {stylist.email}
-                        </p>
-                      </div>
-                    </div>
-                    {stylist.bio && (
-                      <p className="text-[length:var(--font-size-2)] text-[var(--gray-11)] mb-3">
-                        {stylist.bio}
-                      </p>
-                    )}
-                    <div className="flex flex-wrap gap-2">
-                      {stylist.specialties.slice(0, 3).map(service => (
-                        <span
-                          key={service.id}
-                          className={`text-[length:var(--font-size-1)] px-2.5 py-1 rounded-full ${
-                            isSelected
-                              ? 'bg-[var(--accent-9)] text-white'
-                              : 'bg-[var(--gray-3)] text-[var(--gray-11)]'
-                          }`}
-                        >
-                          {service.name}
-                        </span>
-                      ))}
-                      {stylist.specialties.length > 3 && (
-                        <span
-                          className={`text-[length:var(--font-size-1)] px-2.5 py-1 rounded-full ${
-                            isSelected
-                              ? 'bg-[var(--accent-9)] text-white'
-                              : 'bg-[var(--gray-3)] text-[var(--gray-11)]'
-                          }`}
-                        >
-                          +{stylist.specialties.length - 3}
-                        </span>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-          <div className="flex justify-center mt-6">
-            <Button
-              variant={selectedStylist === null ? 'solid' : 'soft'}
-              size="md"
-              onClick={() => onStylistSelect(null)}
-            >
-              No Preference
-            </Button>
-          </div>
-        </>
-      )}
-    </div>
-  );
-};
-
 const TimeSlotCard: React.FC<{
   time: string;
   duration: number;
@@ -899,7 +790,22 @@ const ConfirmationForm: React.FC<{
   isSubmitting: boolean;
   whatsappUrl: string;
   showWhatsAppFallback?: boolean;
-}> = ({ onConfirm, isSubmitting, whatsappUrl, showWhatsAppFallback = false }) => {
+  selectedServices: Service[];
+  selectedStylist: Stylist | null;
+  selectedDate: Date;
+  selectedTime: string;
+  totalDuration: number;
+}> = ({
+  onConfirm,
+  isSubmitting,
+  whatsappUrl,
+  showWhatsAppFallback = false,
+  selectedServices,
+  selectedStylist,
+  selectedDate,
+  selectedTime,
+  totalDuration,
+}) => {
   const { user } = useAuth();
   const [name, setName] = useState(user?.name || '');
   const [email, setEmail] = useState(user?.email || '');
@@ -926,9 +832,18 @@ const ConfirmationForm: React.FC<{
       <h2 className="text-2xl font-semibold mb-4 text-gray-800 dark:text-gray-200">
         4. Confirm Your Booking
       </h2>
+
+      <BookingConfirmationSummary
+        selectedServices={selectedServices}
+        selectedStylist={selectedStylist}
+        selectedDate={selectedDate}
+        selectedTime={selectedTime}
+        totalDuration={totalDuration}
+      />
+
       <form
         onSubmit={handleSubmit}
-        className="space-y-4 max-w-lg bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg"
+        className="space-y-4 max-w-lg bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-200 dark:border-gray-700"
       >
         <TextField
           label="Full Name"
@@ -938,6 +853,7 @@ const ConfirmationForm: React.FC<{
           onChange={(e: React.ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
           disabled={!!user}
           required
+          className="text-base"
         />
         <TextField
           label="Email Address"
@@ -947,6 +863,7 @@ const ConfirmationForm: React.FC<{
           onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
           disabled={!!user}
           required
+          className="text-base"
         />
         {error && <p className="text-[length:var(--font-size-2)] text-[var(--red-11)]">{error}</p>}
         <Button
@@ -1088,6 +1005,21 @@ const BookingForm: React.FC<BookingFormProps> = ({ preSelectedServiceId, disable
   const [bookingConfirmed, setBookingConfirmed] = useState<Appointment | null>(null);
   const { createAppointment } = useBooking();
 
+  // Step tracking
+  const [currentStep, setCurrentStep] = useState(1);
+  const [stylistSelectionSkipped, setStylistSelectionSkipped] = useState(false);
+  const [collapsedSteps, setCollapsedSteps] = useState<number[]>([]);
+
+  // Refs for scrolling
+  const serviceSectionRef = useRef<HTMLDivElement>(null);
+  const stylistSectionRef = useRef<HTMLDivElement>(null);
+  const dateTimeSectionRef = useRef<HTMLDivElement>(null);
+  const confirmationSectionRef = useRef<HTMLDivElement>(null);
+
+  // Track user scrolling to prevent auto-scroll conflicts
+  const [userScrolling, setUserScrolling] = useState(false);
+  const scrollTimeoutRef = useRef<NodeJS.Timeout>();
+
   useEffect(() => {
     const fetchServices = async () => {
       try {
@@ -1104,6 +1036,38 @@ const BookingForm: React.FC<BookingFormProps> = ({ preSelectedServiceId, disable
     };
     fetchServices();
   }, []);
+
+  // User scroll detection
+  useEffect(() => {
+    const handleUserScroll = () => {
+      setUserScrolling(true);
+      if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
+      scrollTimeoutRef.current = setTimeout(() => setUserScrolling(false), 1000);
+    };
+
+    window.addEventListener('scroll', handleUserScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', handleUserScroll);
+      if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
+    };
+  }, []);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        // Clear selections based on current step
+        if (selectedTime) setSelectedTime(null);
+        else if (selectedStylist) {
+          setSelectedStylist(null);
+          setStylistSelectionSkipped(false);
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectedTime, selectedStylist]);
 
   // Auto-select service when pre-selected service ID is provided
   useEffect(() => {
@@ -1142,8 +1106,45 @@ const BookingForm: React.FC<BookingFormProps> = ({ preSelectedServiceId, disable
   useEffect(() => {
     if (selectedServices.length === 0) {
       setSelectedStylist(null);
+      setStylistSelectionSkipped(false);
     }
   }, [selectedServices]);
+
+  // Update current step based on selection state
+  useEffect(() => {
+    if (bookingConfirmed) {
+      setCurrentStep(4); // Completed
+    } else if (selectedTime) {
+      setCurrentStep(4); // Confirmation
+    } else if (selectedServices.length > 0 && (selectedStylist || stylistSelectionSkipped)) {
+      setCurrentStep(3); // Date & Time
+    } else if (selectedServices.length > 0) {
+      setCurrentStep(2); // Stylist
+    } else {
+      setCurrentStep(1); // Services
+    }
+  }, [selectedServices, selectedStylist, stylistSelectionSkipped, selectedTime, bookingConfirmed]);
+
+  // Scroll helper
+  const scrollToSection = (ref: React.RefObject<HTMLDivElement>) => {
+    // Don't auto-scroll if user is manually scrolling
+    if (userScrolling) return;
+
+    // Check for prefers-reduced-motion
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    // Small delay to allow UI to update
+    setTimeout(() => {
+      if (ref.current) {
+        ref.current.scrollIntoView({
+          behavior: prefersReducedMotion ? 'auto' : 'smooth',
+          block: 'start',
+        });
+        // Set focus for accessibility
+        ref.current.focus();
+      }
+    }, 300);
+  };
 
   const { totalPrice, totalDuration } = useMemo(() => {
     return selectedServices.reduce(
@@ -1209,6 +1210,33 @@ Please confirm availability. Thank you!`;
     });
   };
 
+  const handleStylistSelect = (stylist: Stylist | null) => {
+    setSelectedStylist(stylist);
+    setStylistSelectionSkipped(stylist === null);
+    // Auto-scroll to date time picker
+    scrollToSection(dateTimeSectionRef);
+  };
+
+  const handleTimeSelect = (time: string | null) => {
+    setSelectedTime(time);
+    if (time) {
+      // Auto-scroll to confirmation
+      scrollToSection(confirmationSectionRef);
+    }
+  };
+
+  const handleNextStep = () => {
+    if (currentStep === 1 && selectedServices.length > 0) {
+      scrollToSection(stylistSectionRef);
+    } else if (currentStep === 2) {
+      // If skipping stylist
+      if (!selectedStylist) setStylistSelectionSkipped(true);
+      scrollToSection(dateTimeSectionRef);
+    } else if (currentStep === 3 && selectedTime) {
+      scrollToSection(confirmationSectionRef);
+    }
+  };
+
   const handleConfirmBooking = async (name: string, email: string) => {
     if (!selectedTime || selectedServices.length === 0) {
       toast.error('Please select services, a date, and a time before booking.');
@@ -1247,14 +1275,58 @@ Please confirm availability. Thank you!`;
     setSelectedServices([]);
     setSelectedAddons([]);
     setSelectedStylist(null);
+    setStylistSelectionSkipped(false);
     setSelectedDate(getTodayInSalonTimezone());
     setSelectedTime(null);
     setBookingConfirmed(null);
+    setCurrentStep(1);
+    setCollapsedSteps([]);
+
+    // Scroll to top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const toggleStepCollapse = (step: number) => {
+    setCollapsedSteps(prev =>
+      prev.includes(step) ? prev.filter(s => s !== step) : [...prev, step],
+    );
+  };
+
+  const handleEditStep = (step: number) => {
+    // Expand the step if collapsed
+    setCollapsedSteps(prev => prev.filter(s => s !== step));
+
+    // Reset selections after this step
+    if (step === 1) {
+      // Editing services - clear everything after
+      setSelectedStylist(null);
+      setStylistSelectionSkipped(false);
+      setSelectedTime(null);
+    } else if (step === 2) {
+      // Editing stylist - clear time only
+      setSelectedTime(null);
+    } else if (step === 3) {
+      // Editing date/time - clear time
+      setSelectedTime(null);
+    }
+
+    // Scroll to the step being edited
+    const refs = [
+      null,
+      serviceSectionRef,
+      stylistSectionRef,
+      dateTimeSectionRef,
+      confirmationSectionRef,
+    ];
+    const ref = refs[step];
+    if (ref) {
+      scrollToSection(ref);
+    }
   };
 
   if (bookingConfirmed) {
     return (
-      <div className="text-center p-8 bg-white dark:bg-gray-800 rounded-lg shadow-lg max-w-lg mx-auto">
+      <div className="text-center p-8 bg-white dark:bg-gray-800 rounded-lg max-w-lg mx-auto">
         <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-green-100 dark:bg-green-800">
           <Check className="h-10 w-10 text-green-600 dark:text-green-300" aria-hidden="true" />
         </div>
@@ -1294,57 +1366,180 @@ Please confirm availability. Thank you!`;
   }
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-      <div className="lg:col-span-2 space-y-8">
-        <ServiceSelector
-          categories={categories}
-          selectedServices={selectedServices}
-          selectedAddons={selectedAddons}
-          onServiceToggle={handleServiceToggle}
-          onAddonToggle={handleAddonToggle}
-          loading={loadingServices}
+    <div className="relative pb-24 lg:pb-0">
+      {/* Step Indicator */}
+      <div className="mb-8">
+        <SimpleStepIndicator
+          currentStep={currentStep}
+          totalSteps={4}
+          stepLabels={['Services', 'Stylist', 'Date & Time', 'Confirm']}
         />
+      </div>
 
-        {selectedServices.length > 0 && (
-          <StylistSelector
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2 space-y-4">
+          {/* Step 1: Services */}
+          <div ref={serviceSectionRef} tabIndex={-1} className="outline-none">
+            {currentStep > 1 && selectedServices.length > 0 ? (
+              <>
+                <CollapsedStepSummary
+                  stepNumber={1}
+                  title="Services Selected"
+                  summary={`${selectedServices.length} service${selectedServices.length > 1 ? 's' : ''}: ${selectedServices.map(s => s.name).join(', ')}`}
+                  onEdit={() => handleEditStep(1)}
+                  onToggle={() => toggleStepCollapse(1)}
+                  isCollapsed={collapsedSteps.includes(1)}
+                />
+                {!collapsedSteps.includes(1) && (
+                  <div className="animate-slide-in-top">
+                    <ServiceSelector
+                      categories={categories}
+                      selectedServices={selectedServices}
+                      selectedAddons={selectedAddons}
+                      onServiceToggle={handleServiceToggle}
+                      onAddonToggle={handleAddonToggle}
+                      loading={loadingServices}
+                    />
+                  </div>
+                )}
+              </>
+            ) : (
+              <ServiceSelector
+                categories={categories}
+                selectedServices={selectedServices}
+                selectedAddons={selectedAddons}
+                onServiceToggle={handleServiceToggle}
+                onAddonToggle={handleAddonToggle}
+                loading={loadingServices}
+              />
+            )}
+          </div>
+
+          {/* Step 2: Stylist */}
+          {selectedServices.length > 0 && (
+            <div ref={stylistSectionRef} className="outline-none">
+              {currentStep > 2 && (selectedStylist || stylistSelectionSkipped) ? (
+                <>
+                  <CollapsedStepSummary
+                    stepNumber={2}
+                    title="Stylist Selected"
+                    summary={selectedStylist ? selectedStylist.name : 'No preference (Quick Book)'}
+                    onEdit={() => handleEditStep(2)}
+                    onToggle={() => toggleStepCollapse(2)}
+                    isCollapsed={collapsedSteps.includes(2)}
+                  />
+                  {!collapsedSteps.includes(2) && (
+                    <div className="animate-slide-in-top">
+                      <StylistSelector
+                        selectedServices={selectedServices}
+                        selectedStylist={selectedStylist}
+                        onStylistSelect={handleStylistSelect}
+                      />
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div className="animate-slide-in-bottom">
+                  <StylistSelector
+                    selectedServices={selectedServices}
+                    selectedStylist={selectedStylist}
+                    onStylistSelect={handleStylistSelect}
+                  />
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Step 3: Date & Time */}
+          {(selectedStylist || stylistSelectionSkipped) && selectedServices.length > 0 && (
+            <div ref={dateTimeSectionRef} className="outline-none">
+              {currentStep > 3 && selectedTime ? (
+                <>
+                  <CollapsedStepSummary
+                    stepNumber={3}
+                    title="Date & Time Selected"
+                    summary={`${formatDisplayDate(selectedDate)} at ${selectedTime}`}
+                    onEdit={() => handleEditStep(3)}
+                    onToggle={() => toggleStepCollapse(3)}
+                    isCollapsed={collapsedSteps.includes(3)}
+                  />
+                  {!collapsedSteps.includes(3) && (
+                    <div className="animate-slide-in-top">
+                      <CalendlyStyleDateTimePicker
+                        selectedDate={selectedDate}
+                        onDateChange={setSelectedDate}
+                        selectedTime={selectedTime}
+                        onTimeSelect={handleTimeSelect}
+                        totalDuration={totalDuration}
+                        selectedStylist={selectedStylist}
+                      />
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div className="animate-slide-in-bottom">
+                  <CalendlyStyleDateTimePicker
+                    selectedDate={selectedDate}
+                    onDateChange={setSelectedDate}
+                    selectedTime={selectedTime}
+                    onTimeSelect={handleTimeSelect}
+                    totalDuration={totalDuration}
+                    selectedStylist={selectedStylist}
+                  />
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Step 4: Confirmation */}
+          {selectedTime && (
+            <div ref={confirmationSectionRef} className="outline-none animate-scale-in">
+              <ConfirmationForm
+                onConfirm={handleConfirmBooking}
+                isSubmitting={isSubmitting}
+                whatsappUrl={whatsappUrl}
+                showWhatsAppFallback={!isSubmitting}
+                selectedServices={selectedServices}
+                selectedStylist={selectedStylist}
+                selectedDate={selectedDate}
+                selectedTime={selectedTime}
+                totalDuration={totalDuration}
+              />
+            </div>
+          )}
+        </div>
+        <div className="lg:col-span-1 hidden lg:block">
+          <BookingSummary
             selectedServices={selectedServices}
             selectedStylist={selectedStylist}
-            onStylistSelect={setSelectedStylist}
-          />
-        )}
-
-        {selectedServices.length > 0 && (
-          <CalendlyStyleDateTimePicker
             selectedDate={selectedDate}
-            onDateChange={setSelectedDate}
             selectedTime={selectedTime}
-            onTimeSelect={setSelectedTime}
+            totalPrice={totalPrice}
             totalDuration={totalDuration}
-            selectedStylist={selectedStylist}
+            selectedAddons={selectedAddons}
+            onClear={handleReset}
           />
-        )}
+        </div>
+      </div>
 
-        {selectedTime && (
-          <ConfirmationForm
-            onConfirm={handleConfirmBooking}
-            isSubmitting={isSubmitting}
-            whatsappUrl={whatsappUrl}
-            showWhatsAppFallback={!isSubmitting}
-          />
-        )}
-      </div>
-      <div className="lg:col-span-1">
-        <BookingSummary
-          selectedServices={selectedServices}
-          selectedStylist={selectedStylist}
-          selectedDate={selectedDate}
-          selectedTime={selectedTime}
-          totalPrice={totalPrice}
-          totalDuration={totalDuration}
-          selectedAddons={selectedAddons}
-          onClear={handleReset}
-        />
-      </div>
+      {/* Mobile Sticky Summary */}
+      <MobileBookingSummary
+        totalPrice={totalPrice}
+        totalDuration={totalDuration}
+        currentStep={currentStep}
+        totalSteps={4}
+        onNext={handleNextStep}
+        nextLabel={
+          currentStep === 1
+            ? 'Choose Stylist'
+            : currentStep === 2
+              ? 'Select Time'
+              : currentStep === 3
+                ? 'Confirm'
+                : 'Book Now'
+        }
+        isSubmitting={isSubmitting}
+      />
     </div>
   );
 };

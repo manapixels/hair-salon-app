@@ -1,5 +1,6 @@
 'use client';
 
+import { memo } from 'react';
 import { Check } from 'lucide-react';
 
 export interface Step {
@@ -18,7 +19,10 @@ interface StepIndicatorProps {
  * Visual progress indicator for multi-step forms
  * Optimized for mobile with large touch targets and clear visual feedback
  */
-export function StepIndicator({ steps, className = '' }: StepIndicatorProps) {
+export const StepIndicator = memo(function StepIndicator({
+  steps,
+  className = '',
+}: StepIndicatorProps) {
   return (
     <div className={`w-full ${className}`}>
       <div className="flex items-center justify-between">
@@ -89,12 +93,12 @@ export function StepIndicator({ steps, className = '' }: StepIndicatorProps) {
       </div>
     </div>
   );
-}
+});
 
 /**
  * Simplified step indicator that creates steps from current step number
  */
-export function SimpleStepIndicator({
+export const SimpleStepIndicator = memo(function SimpleStepIndicator({
   currentStep,
   totalSteps,
   stepLabels,
@@ -113,4 +117,4 @@ export function SimpleStepIndicator({
   }));
 
   return <StepIndicator steps={steps} className={className} />;
-}
+});
