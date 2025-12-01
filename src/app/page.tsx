@@ -52,6 +52,7 @@ export default function HomePage() {
                 className="object-cover"
                 fill
                 alt="Signature Trims - Logo"
+                sizes="112px"
               />
             </div>
             <span className="text-base-primary font-medium tracking-widest text-xs md:text-sm mb-3 md:mb-4 block">
@@ -107,6 +108,7 @@ export default function HomePage() {
             fill
             className="absolute inset-0 w-full h-full object-cover"
             priority
+            sizes="(max-width: 1024px) 100vw, 50vw"
           />
           <LocationCard address={adminSettings.businessAddress} />
         </div>
@@ -187,6 +189,7 @@ export default function HomePage() {
                       alt={service.name}
                       fill
                       className="object-cover transition-transform duration-700"
+                      sizes="(max-width: 640px) 100vw, 30vw"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
                   </div>

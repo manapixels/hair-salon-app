@@ -191,6 +191,7 @@ export default function AppHeader({ view, onViewChange }: AppHeaderProps) {
                             alt="Hime Cut"
                             fill
                             className="object-cover opacity-80 group-hover/img:opacity-100 transition-opacity rounded-lg"
+                            sizes="(max-width: 768px) 100vw, 60vw"
                           />
                         </div>
                       </div>

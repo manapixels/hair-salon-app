@@ -30,6 +30,7 @@ export function ServiceStats({ stats }: ServiceStatsProps) {
               alt="Peony Line Illustration"
               fill
               className="object-cover pointer-events-none"
+              sizes="(max-width: 768px) 170px, 100px"
             />
           </div>
         </div>

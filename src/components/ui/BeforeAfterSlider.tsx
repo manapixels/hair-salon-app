@@ -90,6 +90,7 @@ export const BeforeAfterSlider = ({
         fill
         className="object-cover absolute inset-0"
         draggable={false}
+        sizes="(max-width: 768px) 100vw, 50vw"
       />
 
       {/* Before Image (Foreground, Clipped) */}
@@ -99,7 +100,14 @@ export const BeforeAfterSlider = ({
           clipPath: `inset(0 ${100 - sliderPosition}% 0 0)`,
         }}
       >
-        <Image src={beforeImage} alt="Before" fill className="object-cover" draggable={false} />
+        <Image
+          src={beforeImage}
+          alt="Before"
+          fill
+          className="object-cover"
+          draggable={false}
+          sizes="(max-width: 768px) 100vw, 50vw"
+        />
       </div>
 
       {/* Slider Handle */}

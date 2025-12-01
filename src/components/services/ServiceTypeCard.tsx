@@ -10,7 +10,13 @@ export function ServiceTypeCard({ title, description, image }: ServiceTypeCardPr
   return (
     <div className="bg-white rounded-xl overflow-hidden border border-base-primary/40 active-scale transition-all duration-300 hover:-translate-y-1">
       <div className="relative h-48 md:h-64">
-        <Image src={image} alt={title} fill className="object-cover" />
+        <Image
+          src={image}
+          alt={title}
+          fill
+          className="object-cover"
+          sizes="(max-width: 768px) 100vw, 33vw"
+        />
       </div>
       <div className="p-5 md:p-6">
         <h3 className="text-lg md:text-xl font-bold mb-2 md:mb-3">{title}</h3>
