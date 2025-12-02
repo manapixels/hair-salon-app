@@ -122,25 +122,6 @@ export default function ServicesDropup({ isOpen, onToggle, active }: ServicesDro
                 );
               })}
             </div>
-
-            {/* View All Services */}
-            <div className="border-t border-gray-200/50">
-              <Link
-                href="/services"
-                onClick={onToggle}
-                className="
-                  flex items-center justify-center gap-2
-                  px-6 py-4
-                  text-sm font-semibold text-[var(--accent-11)]
-                  hover:bg-[var(--accent-2)]
-                  transition-colors duration-200
-                "
-                role="menuitem"
-              >
-                <span>View All Services</span>
-                <ChevronUp className="w-4 h-4 -rotate-90" />
-              </Link>
-            </div>
           </motion.div>
         )}
       </AnimatePresence>

@@ -43,7 +43,7 @@ export default function HomePage() {
   return (
     <div className="bg-[#FDFCF8] min-h-screen text-stone-900 font-serif">
       {/* Hero Section */}
-      <section className="relative flex flex-col lg:flex-row lg:min-h-screen md:pt-20 overflow-hidden">
+      <section className="relative flex flex-col lg:flex-row lg:min-h-screen overflow-hidden">
         <div className="w-full lg:w-1/2 flex items-center justify-center p-6 py-8 sm:py-12 md:p-8 lg:p-24 relative z-10 bg-base-primary/10">
           <div className="max-w-xl fade-in-up w-full">
             <div className="relative w-16 h-16 sm:w-28 sm:h-28 mb-6">

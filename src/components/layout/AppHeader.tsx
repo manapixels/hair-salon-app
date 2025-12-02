@@ -154,8 +154,6 @@ export default function AppHeader({ view, onViewChange }: AppHeaderProps) {
 
   return (
     <>
-      {/* Mobile FAB removed - replaced by BottomNavigation */}
-
       {/* Desktop Header - Hidden on Mobile */}
       <header className="hidden md:block sticky top-0 z-50 border-b border-base-primary/10 bg-stone-50 bg-opacity-50 backdrop-blur-md transition-all duration-300 dark:border-gray-800 dark:bg-gray-900">
         <nav className="w-full flex items-center justify-between px-6 py-3 lg:px-12">
@@ -169,7 +167,7 @@ export default function AppHeader({ view, onViewChange }: AppHeaderProps) {
               {/* Mega Menu / Dropdown for Services */}
               <div className="static group" onMouseEnter={() => setIsMegaMenuOpen(true)}>
                 <button
-                  className={`flex items-center gap-1 text-sm font-medium transition-colors h-full py-3 text-black font-semibold`}
+                  className={`flex items-center gap-1 text-sm font-medium text-gray-600 hover:text-black transition-colors h-full py-3 text-black`}
                   onClick={() => handleNavigation('services', '/services')}
                 >
                   Our Services
@@ -213,16 +211,6 @@ export default function AppHeader({ view, onViewChange }: AppHeaderProps) {
                             </div>
                           </Link>
                         ))}
-
-                        <div className="pt-6">
-                          <Link
-                            href="/services"
-                            onClick={() => setIsMegaMenuOpen(false)}
-                            className="text-gold-400 hover:text-gold-300 text-sm uppercase tracking-widest font-semibold"
-                          >
-                            View All Services &rarr;
-                          </Link>
-                        </div>
                       </div>
                     </div>
                   </div>
@@ -239,9 +227,9 @@ export default function AppHeader({ view, onViewChange }: AppHeaderProps) {
               <div className="h-6 w-px bg-gray-200 dark:bg-gray-700 mx-2"></div>
 
               <Button
-                variant={activeView === 'booking' ? 'solid' : 'outline'}
+                variant="outline"
                 size="md"
-                className="bg-stone-50 bg-opacity-40 backdrop-blur-xs"
+                className="border-base-primary/50 bg-white/80 backdrop-blur-xs text-base-primary"
                 onClick={() => handleNavigation('booking', '/')}
               >
                 <Calendar className="h-4 w-4" aria-hidden="true" />

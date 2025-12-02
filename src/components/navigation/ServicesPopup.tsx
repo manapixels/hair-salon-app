@@ -84,16 +84,6 @@ export default function ServicesPopup({ isOpen, onClose }: ServicesPopupProps) {
                   </Link>
                 );
               })}
-
-              <div className="px-5 py-3 border-t border-gray-100 dark:border-gray-800 mt-1">
-                <Link
-                  href="/services"
-                  onClick={onClose}
-                  className="block text-center w-full py-2.5 rounded-xl bg-primary/10 text-primary font-semibold text-sm hover:bg-primary/20 transition-colors"
-                >
-                  View All Services
-                </Link>
-              </div>
             </div>
           </motion.div>
         </>
