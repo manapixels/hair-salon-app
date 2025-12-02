@@ -41,7 +41,6 @@ import {
 import { Check, CheckCircle, User, WhatsAppIcon, Search } from '@/lib/icons';
 import { ConcernOutcomeFilter } from '../services/ConcernOutcomeFilter';
 import { MobileBookingSummary } from './MobileBookingSummary';
-import { SimpleStepIndicator } from './StepIndicator';
 import { BookingConfirmationSummary } from './BookingConfirmationSummary';
 import { useRef } from 'react';
 import { Edit2, ChevronDown, ChevronUp } from 'lucide-react';
@@ -991,9 +990,14 @@ const BookingSummary: React.FC<{
 interface BookingFormProps {
   preSelectedServiceId?: string;
   disableAutoScroll?: boolean;
+  onStepChange?: (step: number) => void;
 }
 
-const BookingForm: React.FC<BookingFormProps> = ({ preSelectedServiceId, disableAutoScroll }) => {
+const BookingForm: React.FC<BookingFormProps> = ({
+  preSelectedServiceId,
+  disableAutoScroll,
+  onStepChange,
+}) => {
   const [categories, setCategories] = useState<ServiceCategory[]>([]);
   const [loadingServices, setLoadingServices] = useState(true);
   const [selectedServices, setSelectedServices] = useState<Service[]>([]);
@@ -1112,18 +1116,29 @@ const BookingForm: React.FC<BookingFormProps> = ({ preSelectedServiceId, disable
 
   // Update current step based on selection state
   useEffect(() => {
+    let newStep = 1;
     if (bookingConfirmed) {
-      setCurrentStep(4); // Completed
+      newStep = 4; // Completed
     } else if (selectedTime) {
-      setCurrentStep(4); // Confirmation
+      newStep = 4; // Confirmation
     } else if (selectedServices.length > 0 && (selectedStylist || stylistSelectionSkipped)) {
-      setCurrentStep(3); // Date & Time
+      newStep = 3; // Date & Time
     } else if (selectedServices.length > 0) {
-      setCurrentStep(2); // Stylist
+      newStep = 2; // Stylist
     } else {
-      setCurrentStep(1); // Services
+      newStep = 1; // Services
     }
-  }, [selectedServices, selectedStylist, stylistSelectionSkipped, selectedTime, bookingConfirmed]);
+
+    setCurrentStep(newStep);
+    onStepChange?.(newStep);
+  }, [
+    selectedServices,
+    selectedStylist,
+    stylistSelectionSkipped,
+    selectedTime,
+    bookingConfirmed,
+    onStepChange,
+  ]);
 
   // Scroll helper
   const scrollToSection = (ref: React.RefObject<HTMLDivElement>) => {
@@ -1367,14 +1382,14 @@ Please confirm availability. Thank you!`;
 
   return (
     <div className="relative pb-24 lg:pb-0">
-      {/* Step Indicator */}
-      <div className="mb-8">
+      {/* Step Indicator - Moved to BookingModal header */}
+      {/* <div className="mb-8">
         <SimpleStepIndicator
           currentStep={currentStep}
           totalSteps={4}
           stepLabels={['Services', 'Stylist', 'Date & Time', 'Confirm']}
         />
-      </div>
+      </div> */}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-4">
