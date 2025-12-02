@@ -14,6 +14,11 @@ import type {
   ServiceAddon,
   ServiceTag,
 } from '@/types';
+import {
+  BOOKING_CATEGORIES,
+  type BookingCategory,
+  getCategoryBySlug,
+} from '@/data/bookingCategories';
 import { useBooking } from '@/context/BookingContext';
 import { useAuth } from '@/context/AuthContext';
 import { toZonedTime } from 'date-fns-tz';
@@ -41,6 +46,7 @@ import {
 import { Check, CheckCircle, User, WhatsAppIcon } from '@/lib/icons';
 import { MobileBookingSummary } from './MobileBookingSummary';
 import { BookingConfirmationSummary } from './BookingConfirmationSummary';
+import { SimpleCategorySelector } from './SimpleCategorySelector';
 import { useRef } from 'react';
 import { Edit2 } from 'lucide-react';
 
@@ -611,6 +617,7 @@ const ConfirmationForm: React.FC<{
   isSubmitting: boolean;
   whatsappUrl: string;
   showWhatsAppFallback?: boolean;
+  selectedCategory?: BookingCategory | null; // NEW: Category-based booking
   selectedServices: Service[];
   selectedStylist: Stylist | null;
   selectedDate: Date;
@@ -621,6 +628,7 @@ const ConfirmationForm: React.FC<{
   isSubmitting,
   whatsappUrl,
   showWhatsAppFallback = false,
+  selectedCategory,
   selectedServices,
   selectedStylist,
   selectedDate,
@@ -658,7 +666,8 @@ const ConfirmationForm: React.FC<{
       </h2>
 
       <BookingConfirmationSummary
-        selectedServices={selectedServices}
+        selectedCategory={selectedCategory}
+        selectedServices={[]} // Empty for category-based booking
         selectedStylist={selectedStylist}
         selectedDate={selectedDate}
         selectedTime={selectedTime}
@@ -823,10 +832,16 @@ const BookingForm: React.FC<BookingFormProps> = ({
   disableAutoScroll,
   onStepChange,
 }) => {
+  // Category-based booking state (NEW)
+  const [selectedCategory, setSelectedCategory] = useState<BookingCategory | null>(null);
+  const [loadingServices, setLoadingServices] = useState(false); // No longer fetching services
+
+  // Keep for backward compatibility (deprecated)
   const [categories, setCategories] = useState<ServiceCategory[]>([]);
-  const [loadingServices, setLoadingServices] = useState(true);
   const [selectedServices, setSelectedServices] = useState<Service[]>([]);
   const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
+
+  // Common state
   const [selectedStylist, setSelectedStylist] = useState<Stylist | null>(null);
   const [selectedDate, setSelectedDate] = useState(getTodayInSalonTimezone());
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
@@ -836,7 +851,6 @@ const BookingForm: React.FC<BookingFormProps> = ({
 
   // Step tracking
   const [currentStep, setCurrentStep] = useState(1);
-  const [stylistSelectionSkipped, setStylistSelectionSkipped] = useState(false);
 
   // Refs for scrolling
   const serviceSectionRef = useRef<HTMLDivElement>(null);
@@ -848,22 +862,24 @@ const BookingForm: React.FC<BookingFormProps> = ({
   const [userScrolling, setUserScrolling] = useState(false);
   const scrollTimeoutRef = useRef<NodeJS.Timeout>();
 
-  useEffect(() => {
-    const fetchServices = async () => {
-      try {
-        const response = await fetch('/api/services');
-        if (!response.ok) throw new Error('Failed to fetch services');
-        const data = await response.json();
-        setCategories(data);
-      } catch (error) {
-        console.error('Error loading services:', error);
-        toast.error('Failed to load services. Please try refreshing the page.');
-      } finally {
-        setLoadingServices(false);
-      }
-    };
-    fetchServices();
-  }, []);
+  // DEPRECATED: No longer fetching services from API in category-based booking
+  // Categories are now defined statically in bookingCategories.ts
+  // useEffect(() => {
+  //   const fetchServices = async () => {
+  //     try {
+  //       const response = await fetch('/api/services');
+  //       if (!response.ok) throw new Error('Failed to fetch services');
+  //       const data = await response.json();
+  //       setCategories(data);
+  //     } catch (error) {
+  //       console.error('Error loading services:', error);
+  //       toast.error('Failed to load services. Please try refreshing the page.');
+  //     } finally {
+  //       setLoadingServices(false);
+  //     }
+  //   };
+  //   fetchServices();
+  // }, []);
 
   // User scroll detection
   useEffect(() => {
@@ -888,7 +904,6 @@ const BookingForm: React.FC<BookingFormProps> = ({
         if (selectedTime) setSelectedTime(null);
         else if (selectedStylist) {
           setSelectedStylist(null);
-          setStylistSelectionSkipped(false);
         }
       }
     };
@@ -897,32 +912,29 @@ const BookingForm: React.FC<BookingFormProps> = ({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [selectedTime, selectedStylist]);
 
-  // Auto-select service when pre-selected service ID is provided
+  // Auto-select category when pre-selected service ID (actually slug) is provided
+  // Maps service detail page slugs to booking categories
   useEffect(() => {
-    if (preSelectedServiceId && categories.length > 0 && selectedServices.length === 0) {
-      // Find the service across all categories
-      for (const category of categories) {
-        const service = category.items.find(s => s.id === preSelectedServiceId);
-        if (service) {
-          setSelectedServices([service]);
+    if (preSelectedServiceId && !selectedCategory) {
+      // preSelectedServiceId is actually a slug like 'hair-colouring' from navigation.ts
+      const category = getCategoryBySlug(preSelectedServiceId);
+      if (category) {
+        setSelectedCategory(category);
 
-          // Only show toast and scroll if auto-scroll is enabled (i.e., not on service detail pages)
-          if (!disableAutoScroll) {
-            toast.success(`${service.name} has been pre-selected for you!`);
+        // Only show toast and scroll if auto-scroll is enabled (i.e., not on service detail pages)
+        if (!disableAutoScroll) {
+          toast.success(`${category.title} has been pre-selected for you!`);
 
-            setTimeout(() => {
-              const element = document.getElementById('service-selector');
-              if (element) {
-                element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-              }
-            }, 500);
-          }
-
-          break;
+          setTimeout(() => {
+            const element = document.getElementById('service-selector');
+            if (element) {
+              element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+          }, 500);
         }
       }
     }
-  }, [preSelectedServiceId, categories, selectedServices.length, disableAutoScroll]);
+  }, [preSelectedServiceId, selectedCategory, disableAutoScroll]);
 
   // Smart reset logic: only reset when necessary
   useEffect(() => {
@@ -930,13 +942,12 @@ const BookingForm: React.FC<BookingFormProps> = ({
     setSelectedTime(null);
   }, [selectedDate]);
 
-  // Reset stylist only when services change (but StylistSelector will handle this more intelligently)
+  // Reset stylist only when category is cleared
   useEffect(() => {
-    if (selectedServices.length === 0) {
+    if (!selectedCategory) {
       setSelectedStylist(null);
-      setStylistSelectionSkipped(false);
     }
-  }, [selectedServices]);
+  }, [selectedCategory]);
 
   // Update current step based on selection state
   useEffect(() => {
@@ -945,24 +956,17 @@ const BookingForm: React.FC<BookingFormProps> = ({
       newStep = 4; // Completed
     } else if (selectedTime) {
       newStep = 4; // Confirmation
-    } else if (selectedServices.length > 0 && (selectedStylist || stylistSelectionSkipped)) {
+    } else if (selectedCategory && selectedStylist) {
       newStep = 3; // Date & Time
-    } else if (selectedServices.length > 0) {
+    } else if (selectedCategory) {
       newStep = 2; // Stylist
     } else {
-      newStep = 1; // Services
+      newStep = 1; // Category Selection
     }
 
     setCurrentStep(newStep);
     onStepChange?.(newStep);
-  }, [
-    selectedServices,
-    selectedStylist,
-    stylistSelectionSkipped,
-    selectedTime,
-    bookingConfirmed,
-    onStepChange,
-  ]);
+  }, [selectedCategory, selectedStylist, selectedTime, bookingConfirmed, onStepChange]);
 
   // Scroll helper
   const scrollToSection = (ref: React.RefObject<HTMLDivElement>) => {
@@ -985,26 +989,16 @@ const BookingForm: React.FC<BookingFormProps> = ({
     }, 300);
   };
 
+  // Category-based duration (no price since it varies)
   const { totalPrice, totalDuration } = useMemo(() => {
-    return selectedServices.reduce(
-      (acc, service) => {
-        acc.totalPrice += service.basePrice;
-        acc.totalDuration += service.duration;
-
-        // Add add-ons cost
-        if (service.addons) {
-          service.addons.forEach(addon => {
-            if (selectedAddons.includes(addon.id)) {
-              acc.totalPrice += addon.basePrice;
-            }
-          });
-        }
-
-        return acc;
-      },
-      { totalPrice: 0, totalDuration: 0 },
-    );
-  }, [selectedServices, selectedAddons]);
+    if (selectedCategory) {
+      return {
+        totalPrice: 0, // Price not determined until appointment
+        totalDuration: selectedCategory.estimatedDuration,
+      };
+    }
+    return { totalPrice: 0, totalDuration: 0 };
+  }, [selectedCategory]);
 
   // Generate WhatsApp URL with booking details
   const whatsappUrl = useMemo(() => {
@@ -1012,7 +1006,7 @@ const BookingForm: React.FC<BookingFormProps> = ({
 
     const message = `Hi! I'd like to book an appointment:
 
-Services: ${selectedServices.map(s => s.name).join(', ')}${
+Service Category: ${selectedCategory?.title || 'Not selected'}${
       selectedStylist ? `\nStylist: ${selectedStylist.name}` : ''
     }
 Date: ${format(selectedDate, 'EEEE, MMMM d, yyyy')}${selectedTime ? `\nTime: ${selectedTime}` : ''}
@@ -1020,38 +1014,45 @@ Date: ${format(selectedDate, 'EEEE, MMMM d, yyyy')}${selectedTime ? `\nTime: ${s
 Please confirm availability. Thank you!`;
 
     return `https://wa.me/${whatsAppNumber}?text=${encodeURIComponent(message)}`;
-  }, [selectedServices, selectedStylist, selectedDate, selectedTime]);
+  }, [selectedCategory, selectedStylist, selectedDate, selectedTime]);
 
-  const handleServiceToggle = (service: Service) => {
-    setSelectedServices(prev => {
-      const isSelected = prev.some(s => s.id === service.id);
-      if (isSelected) {
-        // Remove service and its addons
-        const newServices = prev.filter(s => s.id !== service.id);
-        if (service.addons) {
-          const addonIds = service.addons.map(a => a.id);
-          setSelectedAddons(current => current.filter(id => !addonIds.includes(id)));
-        }
-        return newServices;
-      } else {
-        return [...prev, service];
-      }
-    });
-  };
+  // DEPRECATED: Old service/addon handlers (kept for reference)
+  // const handleServiceToggle = (service: Service) => {
+  //   setSelectedServices(prev => {
+  //     const isSelected = prev.some(s => s.id === service.id);
+  //     if (isSelected) {
+  //       // Remove service and its addons
+  //       const newServices = prev.filter(s => s.id !== service.id);
+  //       if (service.addons) {
+  //         const addonIds = service.addons.map(a => a.id);
+  //         setSelectedAddons(current => current.filter(id => !addonIds.includes(id)));
+  //       }
+  //       return newServices;
+  //     } else {
+  //       return [...prev, service];
+  //     }
+  //   });
+  // };
 
-  const handleAddonToggle = (addonId: string, serviceId: string) => {
-    setSelectedAddons(prev => {
-      if (prev.includes(addonId)) {
-        return prev.filter(id => id !== addonId);
-      } else {
-        return [...prev, addonId];
-      }
-    });
+  // const handleAddonToggle = (addonId: string, serviceId: string) => {
+  //   setSelectedAddons(prev => {
+  //     if (prev.includes(addonId)) {
+  //       return prev.filter(id => id !== addonId);
+  //     } else {
+  //       return [...prev, addonId];
+  //     }
+  //   });
+  // };
+
+  // NEW: Category selection handler
+  const handleCategorySelect = (category: BookingCategory) => {
+    setSelectedCategory(category);
+    // Auto-advance to Step 2 (Stylist) with a small delay
+    setTimeout(() => scrollToSection(stylistSectionRef), 300);
   };
 
   const handleStylistSelect = (stylist: Stylist | null) => {
     setSelectedStylist(stylist);
-    setStylistSelectionSkipped(stylist === null);
     // Auto-scroll to date time picker
     scrollToSection(dateTimeSectionRef);
   };
@@ -1065,11 +1066,9 @@ Please confirm availability. Thank you!`;
   };
 
   const handleNextStep = () => {
-    if (currentStep === 1 && selectedServices.length > 0) {
+    if (currentStep === 1 && selectedCategory) {
       scrollToSection(stylistSectionRef);
     } else if (currentStep === 2) {
-      // If skipping stylist
-      if (!selectedStylist) setStylistSelectionSkipped(true);
       scrollToSection(dateTimeSectionRef);
     } else if (currentStep === 3 && selectedTime) {
       scrollToSection(confirmationSectionRef);
@@ -1077,27 +1076,26 @@ Please confirm availability. Thank you!`;
   };
 
   const handleConfirmBooking = async (name: string, email: string) => {
-    if (!selectedTime || selectedServices.length === 0) {
-      toast.error('Please select services, a date, and a time before booking.');
+    if (!selectedTime || !selectedCategory) {
+      toast.error('Please select a service category, date, and time before booking.');
       return;
     }
     setIsSubmitting(true);
 
     const toastId = toast.loading('Booking your appointment...');
     try {
-      // Filter services to only include selected add-ons
-      const servicesWithSelectedAddons = selectedServices.map(service => ({
-        ...service,
-        addons: service.addons?.filter(addon => selectedAddons.includes(addon.id)) || [],
-      }));
-
       const confirmedAppt = await createAppointment({
         date: selectedDate,
         time: selectedTime,
-        services: servicesWithSelectedAddons,
+        services: [], // Empty for category-based booking
         stylistId: selectedStylist?.id,
         customerName: name,
         customerEmail: email,
+        // Category-based fields
+        serviceCategory: selectedCategory.slug,
+        categoryTitle: selectedCategory.title,
+        estimatedDuration: selectedCategory.estimatedDuration,
+        estimatedPriceRange: selectedCategory.priceNote,
       });
       setBookingConfirmed(confirmedAppt);
       toast.success('Appointment booked successfully! Confirmation sent to your email.', {
@@ -1111,10 +1109,8 @@ Please confirm availability. Thank you!`;
   };
 
   const handleReset = () => {
-    setSelectedServices([]);
-    setSelectedAddons([]);
+    setSelectedCategory(null);
     setSelectedStylist(null);
-    setStylistSelectionSkipped(false);
     setSelectedDate(getTodayInSalonTimezone());
     setSelectedTime(null);
     setBookingConfirmed(null);
@@ -1129,7 +1125,6 @@ Please confirm availability. Thank you!`;
     if (step === 1) {
       // Editing services - clear stylist and time
       setSelectedStylist(null);
-      setStylistSelectionSkipped(false);
       setSelectedTime(null);
     } else if (step === 2) {
       // Editing stylist - clear time only
@@ -1166,7 +1161,7 @@ Please confirm availability. Thank you!`;
         </p>
         <div className="mt-6 text-left bg-gray-50 dark:bg-gray-700 p-4 rounded-md space-y-2">
           <p>
-            <strong>Services:</strong> {bookingConfirmed.services.map(s => s.name).join(', ')}
+            <strong>Service Category:</strong> {bookingConfirmed.categoryTitle || 'N/A'}
           </p>
           {bookingConfirmed.stylist && (
             <p>
@@ -1179,11 +1174,16 @@ Please confirm availability. Thank you!`;
           <p>
             <strong>Time:</strong> {bookingConfirmed.time}
           </p>
-          <p>
-            <strong>Total:</strong> ${bookingConfirmed.totalPrice}
-          </p>
+          {bookingConfirmed.estimatedDuration && (
+            <p>
+              <strong>Estimated Duration:</strong> {bookingConfirmed.estimatedDuration} minutes
+            </p>
+          )}
         </div>
         <p className="mt-4 text-sm text-gray-500">
+          Specific service details and pricing will be confirmed during your appointment.
+        </p>
+        <p className="mt-2 text-sm text-gray-500">
           A confirmation has been sent to {bookingConfirmed.customerEmail}.
         </p>
         <Button variant="solid" size="md" onClick={handleReset} className="mt-6">
@@ -1223,30 +1223,26 @@ Please confirm availability. Thank you!`;
             aria-labelledby="step-1-heading"
             aria-current={currentStep === 1 ? 'step' : undefined}
           >
-            {currentStep > 1 && selectedServices.length > 0 ? (
+            {currentStep > 1 && selectedCategory ? (
               <CollapsedStepSummary
                 stepNumber={1}
-                title="Services Selected"
-                summary={`${selectedServices.length} service${selectedServices.length > 1 ? 's' : ''}: ${selectedServices.map(s => s.name).join(', ')}`}
-                price={`$${totalPrice}`}
-                duration={`${totalDuration} min`}
+                title="Service Category Selected"
+                summary={selectedCategory.title}
+                duration={`Est. ${totalDuration} min`}
                 onEdit={() => handleEditStep(1)}
                 id="step-1-heading"
               />
             ) : (
-              <ServiceSelector
-                categories={categories}
-                selectedServices={selectedServices}
-                selectedAddons={selectedAddons}
-                onServiceToggle={handleServiceToggle}
-                onAddonToggle={handleAddonToggle}
+              <SimpleCategorySelector
+                selectedCategory={selectedCategory}
+                onCategorySelect={handleCategorySelect}
                 loading={loadingServices}
               />
             )}
           </div>
 
           {/* Step 2: Stylist */}
-          {selectedServices.length > 0 && (
+          {selectedCategory && (
             <div
               ref={stylistSectionRef}
               className="outline-none"
@@ -1254,7 +1250,7 @@ Please confirm availability. Thank you!`;
               aria-labelledby="step-2-heading"
               aria-current={currentStep === 2 ? 'step' : undefined}
             >
-              {currentStep > 2 && (selectedStylist || stylistSelectionSkipped) ? (
+              {currentStep > 2 && selectedStylist ? (
                 <CollapsedStepSummary
                   stepNumber={2}
                   title="Stylist Selected"
@@ -1265,7 +1261,8 @@ Please confirm availability. Thank you!`;
               ) : (
                 <div className="animate-slide-in-bottom">
                   <StylistSelector
-                    selectedServices={selectedServices}
+                    selectedServices={[]} // Pass empty array for category-based booking
+                    selectedCategory={selectedCategory} // NEW: Pass category for category-based booking
                     selectedStylist={selectedStylist}
                     onStylistSelect={handleStylistSelect}
                   />
@@ -1275,7 +1272,7 @@ Please confirm availability. Thank you!`;
           )}
 
           {/* Step 3: Date & Time */}
-          {(selectedStylist || stylistSelectionSkipped) && selectedServices.length > 0 && (
+          {selectedStylist && selectedCategory && (
             <div
               ref={dateTimeSectionRef}
               className="outline-none"
@@ -1321,7 +1318,8 @@ Please confirm availability. Thank you!`;
                 isSubmitting={isSubmitting}
                 whatsappUrl={whatsappUrl}
                 showWhatsAppFallback={!isSubmitting}
-                selectedServices={selectedServices}
+                selectedCategory={selectedCategory}
+                selectedServices={[]} // Empty for category-based booking
                 selectedStylist={selectedStylist}
                 selectedDate={selectedDate}
                 selectedTime={selectedTime}
@@ -1332,13 +1330,13 @@ Please confirm availability. Thank you!`;
         </div>
         <div className="lg:col-span-1 hidden lg:block">
           <BookingSummary
-            selectedServices={selectedServices}
+            selectedServices={[]} // Empty for category-based booking
             selectedStylist={selectedStylist}
             selectedDate={selectedDate}
             selectedTime={selectedTime}
             totalPrice={totalPrice}
             totalDuration={totalDuration}
-            selectedAddons={selectedAddons}
+            selectedAddons={[]} // Empty for category-based booking
             onClear={handleReset}
           />
         </div>

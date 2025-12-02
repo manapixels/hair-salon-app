@@ -89,13 +89,23 @@ export interface Appointment {
   id: string;
   date: Date;
   time: string;
+
+  // Category-based booking (NEW)
+  serviceCategory?: string; // Category slug (e.g., 'haircut', 'hair-colouring')
+  categoryTitle?: string; // Display name (e.g., 'Haircut', 'Colouring')
+  estimatedDuration?: number; // Estimated duration in minutes from category
+  estimatedPriceRange?: string; // Display price (e.g., 'From $20')
+
+  // Legacy service-based booking (DEPRECATED - kept for backward compatibility)
   services: Service[];
+  totalPrice: number;
+  totalDuration: number;
+
+  // Common fields
   stylistId?: string | null; // The assigned stylist
   stylist?: StylistSummary; // Populated stylist data
   customerName: string;
   customerEmail: string;
-  totalPrice: number;
-  totalDuration: number;
   calendarEventId?: string | null; // Google Calendar event ID
   userId?: string | null; // User who booked the appointment
   user?: User; // Populated user data (for reminders)

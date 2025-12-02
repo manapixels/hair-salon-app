@@ -28,10 +28,33 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { date, time, services, stylistId, customerName, customerEmail } = body;
+    const {
+      date,
+      time,
+      services,
+      stylistId,
+      customerName,
+      customerEmail,
+      // NEW: Category-based booking fields
+      serviceCategory,
+      categoryTitle,
+      estimatedDuration,
+      estimatedPriceRange,
+    } = body;
 
-    if (!date || !time || !services || !customerName || !customerEmail) {
+    // Validate required fields (either category-based OR service-based)
+    const hasCategory = Boolean(serviceCategory);
+    const hasServices = Boolean(services && Array.isArray(services) && services.length > 0);
+
+    if (!date || !time || !customerName || !customerEmail) {
       return NextResponse.json({ message: 'Missing required appointment data.' }, { status: 400 });
+    }
+
+    if (!hasCategory && !hasServices) {
+      return NextResponse.json(
+        { message: 'Either serviceCategory or services must be provided.' },
+        { status: 400 },
+      );
     }
 
     // Look up user by email to link appointment to user account
@@ -40,11 +63,16 @@ export async function POST(request: NextRequest) {
     const appointmentData = {
       date: new Date(date),
       time,
-      services,
+      services: services || [], // Empty array for category-based booking
       stylistId,
       customerName,
       customerEmail,
       userId: existingUser?.id, // Link to user if they have an account
+      // Category-based fields (optional)
+      serviceCategory,
+      categoryTitle,
+      estimatedDuration,
+      estimatedPriceRange,
     };
 
     const newAppointment = await bookNewAppointment(appointmentData);

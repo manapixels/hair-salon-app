@@ -11,12 +11,14 @@ import { ErrorState } from '../feedback/ErrorState';
 import { EmptyState } from '../feedback/EmptyState';
 import { useDelayedLoading } from '@/hooks/useDelayedLoading';
 import type { Service, Stylist } from '@/types';
+import type { BookingCategory } from '@/data/bookingCategories';
 
 interface StylistSelectorProps {
   selectedServices: Service[];
   selectedStylist: Stylist | null;
   onStylistSelect: (stylist: Stylist | null) => void;
   onSkip?: () => void;
+  selectedCategory?: BookingCategory | null; // NEW: For category-based booking
 }
 
 export const StylistSelector: React.FC<StylistSelectorProps> = ({
@@ -24,6 +26,7 @@ export const StylistSelector: React.FC<StylistSelectorProps> = ({
   selectedStylist,
   onStylistSelect,
   onSkip,
+  selectedCategory,
 }) => {
   const [stylists, setStylists] = useState<Stylist[]>([]);
   const [loading, setLoading] = useState(false);
@@ -32,9 +35,15 @@ export const StylistSelector: React.FC<StylistSelectorProps> = ({
   // Delayed loading to prevent flash on fast connections
   const showLoader = useDelayedLoading(loading, { delay: 150, minDuration: 300 });
 
+  // Determine if we're in category-based or service-based mode
+  const isCategoryBased =
+    selectedServices.length === 0 && selectedCategory !== null && selectedCategory !== undefined;
+
   // Extract fetch function so it can be reused for retry
   const fetchStylists = useCallback(async () => {
-    if (selectedServices.length === 0) {
+    // For category-based booking, fetch all active stylists
+    // For service-based booking, fetch stylists who can perform the selected services
+    if (!isCategoryBased && selectedServices.length === 0) {
       setStylists([]);
       return;
     }
@@ -43,8 +52,15 @@ export const StylistSelector: React.FC<StylistSelectorProps> = ({
     setError(null);
 
     try {
-      const serviceIds = selectedServices.map(s => s.id);
-      const response = await fetch(`/api/stylists?services=${serviceIds.join(',')}`);
+      let response;
+      if (isCategoryBased) {
+        // Fetch all active stylists for category-based booking
+        response = await fetch('/api/stylists');
+      } else {
+        // Fetch stylists filtered by service IDs for service-based booking
+        const serviceIds = selectedServices.map(s => s.id);
+        response = await fetch(`/api/stylists?services=${serviceIds.join(',')}`);
+      }
 
       if (!response.ok) {
         throw new Error(`Failed to fetch stylists: ${response.status}`);
@@ -59,16 +75,6 @@ export const StylistSelector: React.FC<StylistSelectorProps> = ({
       }
 
       setStylists(availableStylists);
-
-      // Auto-select if only one stylist is available
-      if (availableStylists.length === 1) {
-        const singleStylist = availableStylists[0];
-        // Only auto-select if not already selected (to avoid loops or overwriting user choice if they navigated back)
-        if (selectedStylist?.id !== singleStylist.id) {
-          onStylistSelect(singleStylist);
-          toast.info(`Auto-selected ${singleStylist.name} as the only available stylist.`);
-        }
-      }
     } catch (error) {
       console.error('Failed to fetch stylists:', error);
       const errorMsg = error instanceof Error ? error.message : 'Unable to load stylists';
@@ -78,13 +84,14 @@ export const StylistSelector: React.FC<StylistSelectorProps> = ({
     } finally {
       setLoading(false);
     }
-  }, [selectedServices, selectedStylist, onStylistSelect]);
+  }, [selectedServices, isCategoryBased]);
 
   useEffect(() => {
     fetchStylists();
   }, [fetchStylists]);
 
-  if (selectedServices.length === 0) {
+  // Don't render if neither services nor category is selected
+  if (!isCategoryBased && selectedServices.length === 0) {
     return null;
   }
 
@@ -96,7 +103,10 @@ export const StylistSelector: React.FC<StylistSelectorProps> = ({
 
       {/* Screen reader announcement */}
       <div className="sr-only" aria-live="polite" aria-atomic="true">
-        {loading && 'Loading stylists for your selected services'}
+        {loading &&
+          (isCategoryBased
+            ? 'Loading available stylists'
+            : 'Loading stylists for your selected services')}
         {!loading && stylists.length > 0 && `${stylists.length} stylists available`}
         {!loading && stylists.length === 0 && 'No stylists available'}
       </div>
@@ -106,7 +116,9 @@ export const StylistSelector: React.FC<StylistSelectorProps> = ({
           <div className="flex items-center gap-2 mb-4">
             <LoadingSpinner size="sm" />
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              Finding stylists who can perform {selectedServices.map(s => s.name).join(', ')}...
+              {isCategoryBased
+                ? `Finding available stylists for ${selectedCategory?.title}...`
+                : `Finding stylists who can perform ${selectedServices.map(s => s.name).join(', ')}...`}
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

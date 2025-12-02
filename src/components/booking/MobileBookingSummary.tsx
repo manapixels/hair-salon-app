@@ -64,8 +64,9 @@ export const MobileBookingSummary = memo<MobileBookingSummaryProps>(
     // Don't render if keyboard is visible to avoid covering inputs
     if (isKeyboardVisible) return null;
 
-    // Don't render if no price (nothing selected yet)
-    if (totalPrice === 0) return null;
+    // Don't render if no duration (nothing selected yet)
+    // Changed from totalPrice check since category-based booking doesn't have upfront price
+    if (totalDuration === 0) return null;
 
     return (
       <div
@@ -79,10 +80,9 @@ export const MobileBookingSummary = memo<MobileBookingSummaryProps>(
         lg:hidden
       `}
       >
-        {/* Screen reader announcement for price updates */}
+        {/* Screen reader announcement for updates */}
         <div className="sr-only" aria-live="polite" role="status">
-          Step {currentStep} of {totalSteps}. Total: ${totalPrice} for{' '}
-          {formatDuration(totalDuration)}
+          Step {currentStep} of {totalSteps}. Estimated duration: {formatDuration(totalDuration)}
         </div>
 
         <div className="px-4 max-w-md mx-auto">
@@ -94,12 +94,12 @@ export const MobileBookingSummary = memo<MobileBookingSummaryProps>(
                 </p>
               )}
               <div className="flex items-baseline gap-2">
-                <span className="text-lg font-bold text-gray-900 dark:text-white">
-                  ${totalPrice}
+                <span className="text-base font-semibold text-gray-900 dark:text-white">
+                  Category selected
                 </span>
                 {!isCompact && (
                   <span className="text-sm text-gray-500 dark:text-gray-400">
-                    • {formatDuration(totalDuration)}
+                    • {formatDuration(totalDuration)} est.
                   </span>
                 )}
               </div>

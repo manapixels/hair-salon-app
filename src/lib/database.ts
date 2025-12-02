@@ -304,6 +304,11 @@ export const getAppointments = async (): Promise<Appointment[]> => {
         }
       : undefined,
     calendarEventId: apt.calendarEventId ?? undefined,
+    // Convert null to undefined for category fields
+    serviceCategory: apt.serviceCategory ?? undefined,
+    categoryTitle: apt.categoryTitle ?? undefined,
+    estimatedDuration: apt.estimatedDuration ?? undefined,
+    estimatedPriceRange: apt.estimatedPriceRange ?? undefined,
   }));
 };
 
@@ -494,26 +499,43 @@ export const bookNewAppointment = async (
   const availableSlots = appointmentData.stylistId
     ? await getStylistAvailability(appointmentData.date, appointmentData.stylistId)
     : await getAvailability(appointmentData.date);
-  const { totalPrice, totalDuration } = appointmentData.services.reduce(
-    (acc, service) => {
-      acc.totalPrice += service.basePrice;
-      acc.totalDuration += service.duration;
 
-      // Include selected add-ons in price and duration
-      if (service.addons && Array.isArray(service.addons)) {
-        service.addons.forEach(addon => {
-          acc.totalPrice += addon.basePrice;
-          // Add addon duration if it exists
-          if (addon.duration) {
-            acc.totalDuration += addon.duration;
-          }
-        });
-      }
+  // Determine if this is category-based or service-based booking
+  const isCategoryBased = Boolean(appointmentData.serviceCategory);
 
-      return acc;
-    },
-    { totalPrice: 0, totalDuration: 0 },
-  );
+  let totalPrice = 0;
+  let totalDuration = 0;
+
+  if (isCategoryBased && appointmentData.estimatedDuration) {
+    // Category-based booking: use estimated duration, no upfront price
+    totalDuration = appointmentData.estimatedDuration;
+    totalPrice = 0; // Price TBD during appointment
+  } else {
+    // Legacy service-based booking: calculate from services
+    const result = appointmentData.services.reduce(
+      (acc, service) => {
+        acc.totalPrice += service.basePrice;
+        acc.totalDuration += service.duration;
+
+        // Include selected add-ons in price and duration
+        if (service.addons && Array.isArray(service.addons)) {
+          service.addons.forEach(addon => {
+            acc.totalPrice += addon.basePrice;
+            // Add addon duration if it exists
+            if (addon.duration) {
+              acc.totalDuration += addon.duration;
+            }
+          });
+        }
+
+        return acc;
+      },
+      { totalPrice: 0, totalDuration: 0 },
+    );
+    totalPrice = result.totalPrice;
+    totalDuration = result.totalDuration;
+  }
+
   const numSlotsRequired = Math.ceil(totalDuration / 30);
 
   for (let i = 0; i < numSlotsRequired; i++) {
@@ -538,6 +560,11 @@ export const bookNewAppointment = async (
       userId: appointmentData.userId, // Link to user account if available
       totalPrice,
       totalDuration,
+      // Category-based fields (optional)
+      serviceCategory: appointmentData.serviceCategory,
+      categoryTitle: appointmentData.categoryTitle,
+      estimatedDuration: appointmentData.estimatedDuration,
+      estimatedPriceRange: appointmentData.estimatedPriceRange,
     },
     include: {
       stylist: true,
@@ -560,6 +587,11 @@ export const bookNewAppointment = async (
         }
       : undefined,
     calendarEventId: newAppointment.calendarEventId ?? undefined,
+    // Convert null to undefined for category fields
+    serviceCategory: newAppointment.serviceCategory ?? undefined,
+    categoryTitle: newAppointment.categoryTitle ?? undefined,
+    estimatedDuration: newAppointment.estimatedDuration ?? undefined,
+    estimatedPriceRange: newAppointment.estimatedPriceRange ?? undefined,
   };
 };
 
@@ -596,6 +628,11 @@ export const cancelAppointment = async (details: {
       : [],
     stylistId: appointment.stylistId ?? undefined,
     calendarEventId: appointment.calendarEventId ?? undefined,
+    // Convert null to undefined for category fields
+    serviceCategory: appointment.serviceCategory ?? undefined,
+    categoryTitle: appointment.categoryTitle ?? undefined,
+    estimatedDuration: appointment.estimatedDuration ?? undefined,
+    estimatedPriceRange: appointment.estimatedPriceRange ?? undefined,
   };
 };
 
@@ -658,6 +695,11 @@ export const findAppointmentById = async (id: string): Promise<Appointment | nul
       : [],
     stylistId: appointment.stylistId ?? undefined,
     calendarEventId: appointment.calendarEventId ?? undefined,
+    // Convert null to undefined for category fields
+    serviceCategory: appointment.serviceCategory ?? undefined,
+    categoryTitle: appointment.categoryTitle ?? undefined,
+    estimatedDuration: appointment.estimatedDuration ?? undefined,
+    estimatedPriceRange: appointment.estimatedPriceRange ?? undefined,
   };
 };
 
@@ -677,6 +719,11 @@ export const findAppointmentsByEmail = async (customerEmail: string): Promise<Ap
       : [],
     stylistId: appointment.stylistId ?? undefined,
     calendarEventId: appointment.calendarEventId ?? undefined,
+    // Convert null to undefined for category fields
+    serviceCategory: appointment.serviceCategory ?? undefined,
+    categoryTitle: appointment.categoryTitle ?? undefined,
+    estimatedDuration: appointment.estimatedDuration ?? undefined,
+    estimatedPriceRange: appointment.estimatedPriceRange ?? undefined,
   }));
 };
 
@@ -750,6 +797,11 @@ export const updateAppointment = async (
       : [],
     stylistId: updatedAppointment.stylistId ?? undefined,
     calendarEventId: updatedAppointment.calendarEventId ?? undefined,
+    // Convert null to undefined for category fields
+    serviceCategory: updatedAppointment.serviceCategory ?? undefined,
+    categoryTitle: updatedAppointment.categoryTitle ?? undefined,
+    estimatedDuration: updatedAppointment.estimatedDuration ?? undefined,
+    estimatedPriceRange: updatedAppointment.estimatedPriceRange ?? undefined,
   };
 };
 
@@ -1288,6 +1340,11 @@ export const getUnsyncedAppointments = async (): Promise<Appointment[]> => {
         }
       : undefined,
     calendarEventId: apt.calendarEventId ?? undefined,
+    // Convert null to undefined for category fields
+    serviceCategory: apt.serviceCategory ?? undefined,
+    categoryTitle: apt.categoryTitle ?? undefined,
+    estimatedDuration: apt.estimatedDuration ?? undefined,
+    estimatedPriceRange: apt.estimatedPriceRange ?? undefined,
   }));
 };
 
@@ -1351,5 +1408,10 @@ export const getLastAppointmentByUserId = async (userId: string): Promise<Appoin
       : [],
     stylistId: appointment.stylistId ?? undefined,
     calendarEventId: appointment.calendarEventId ?? undefined,
+    // Convert null to undefined for category fields
+    serviceCategory: appointment.serviceCategory ?? undefined,
+    categoryTitle: appointment.categoryTitle ?? undefined,
+    estimatedDuration: appointment.estimatedDuration ?? undefined,
+    estimatedPriceRange: appointment.estimatedPriceRange ?? undefined,
   };
 };

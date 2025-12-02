@@ -138,13 +138,23 @@ model Appointment {
   id              String   @id @default(cuid())
   date            DateTime
   time            String
+
+  // Category-based booking (NEW)
+  serviceCategory      String? // Category slug (e.g., 'haircut', 'hair-colouring')
+  categoryTitle        String? // Display name (e.g., 'Haircut', 'Colouring')
+  estimatedDuration    Int?    // Estimated duration in minutes from category
+  estimatedPriceRange  String? // Display price (e.g., 'From $20')
+
+  // Legacy service-based booking (DEPRECATED - kept for backward compatibility)
   services        Json     // Array of services
+  totalPrice      Int
+  totalDuration   Int
+
+  // Common fields
   stylistId       String?  // The assigned stylist
   stylist         Stylist? @relation(fields: [stylistId], references: [id], onDelete: SetNull)
   customerName    String
   customerEmail   String
-  totalPrice      Int
-  totalDuration   Int
   calendarEventId String?  // Google Calendar event ID
   userId          String?
   user            User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
