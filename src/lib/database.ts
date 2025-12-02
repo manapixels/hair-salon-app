@@ -450,12 +450,18 @@ export const getStylistAvailability = async (date: Date, stylistId: string): Pro
   }
 
   // Check if stylist has blocked this date (holidays/breaks)
-  if (stylist.blockedDates.includes(dateKey)) {
+  if (stylist.blockedDates && stylist.blockedDates.includes(dateKey)) {
     return []; // Stylist is not available on this date
   }
 
   // Check if stylist is working on this day
-  const workingHours = stylist.workingHours[dayOfWeek];
+  if (!stylist.workingHours || typeof stylist.workingHours !== 'object') {
+    console.warn(`Stylist ${stylistId} has invalid workingHours, falling back to salon hours`);
+    // Fall back to salon's general availability instead of returning empty
+    return await getAvailability(date);
+  }
+
+  const workingHours = stylist.workingHours[dayOfWeek as keyof typeof stylist.workingHours];
   if (!workingHours || !workingHours.isWorking) {
     return []; // Stylist doesn't work on this day
   }
@@ -814,21 +820,38 @@ export const getStylists = async (): Promise<Stylist[]> => {
 
   const allServices = await getServices();
 
-  return stylists.map(stylist => ({
-    ...stylist,
-    bio: stylist.bio ?? undefined,
-    avatar: stylist.avatar ?? undefined,
-    specialties: Array.isArray(stylist.specialties)
-      ? ((stylist.specialties as number[])
-          .map(id => allServices.find(s => s.id === normalizeServiceId(id)))
-          .filter(Boolean) as Service[])
-      : [],
-    workingHours: (stylist.workingHours as any) || getDefaultWorkingHours(),
-    blockedDates:
-      stylist.blockedDates && Array.isArray(stylist.blockedDates)
-        ? (stylist.blockedDates as string[])
+  return stylists.map(stylist => {
+    // Ensure workingHours is valid, otherwise use default
+    let workingHours = getDefaultWorkingHours();
+    if (
+      stylist.workingHours &&
+      typeof stylist.workingHours === 'object' &&
+      !Array.isArray(stylist.workingHours)
+    ) {
+      workingHours = stylist.workingHours as any;
+    } else if (stylist.workingHours) {
+      console.warn(
+        `Stylist ${stylist.id} has invalid workingHours structure, using defaults:`,
+        stylist.workingHours,
+      );
+    }
+
+    return {
+      ...stylist,
+      bio: stylist.bio ?? undefined,
+      avatar: stylist.avatar ?? undefined,
+      specialties: Array.isArray(stylist.specialties)
+        ? ((stylist.specialties as number[])
+            .map(id => allServices.find(s => s.id === normalizeServiceId(id)))
+            .filter(Boolean) as Service[])
         : [],
-  }));
+      workingHours,
+      blockedDates:
+        stylist.blockedDates && Array.isArray(stylist.blockedDates)
+          ? (stylist.blockedDates as string[])
+          : [],
+    };
+  });
 };
 
 export const getStylistById = async (id: string): Promise<Stylist | null> => {
@@ -840,6 +863,21 @@ export const getStylistById = async (id: string): Promise<Stylist | null> => {
 
   const allServices = await getServices();
 
+  // Ensure workingHours is valid, otherwise use default
+  let workingHours = getDefaultWorkingHours();
+  if (
+    stylist.workingHours &&
+    typeof stylist.workingHours === 'object' &&
+    !Array.isArray(stylist.workingHours)
+  ) {
+    workingHours = stylist.workingHours as any;
+  } else if (stylist.workingHours) {
+    console.warn(
+      `Stylist ${id} has invalid workingHours structure, using defaults:`,
+      stylist.workingHours,
+    );
+  }
+
   return {
     ...stylist,
     bio: stylist.bio ?? undefined,
@@ -849,7 +887,7 @@ export const getStylistById = async (id: string): Promise<Stylist | null> => {
           .map(id => allServices.find(s => s.id === normalizeServiceId(id)))
           .filter(Boolean) as Service[])
       : [],
-    workingHours: (stylist.workingHours as any) || getDefaultWorkingHours(),
+    workingHours,
     blockedDates:
       stylist.blockedDates && Array.isArray(stylist.blockedDates)
         ? (stylist.blockedDates as string[])

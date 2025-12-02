@@ -18,6 +18,11 @@ export async function GET(request: NextRequest) {
 
     const targetDate = new Date(date);
 
+    // Validate date
+    if (isNaN(targetDate.getTime())) {
+      return NextResponse.json({ message: 'Invalid date format.' }, { status: 400 });
+    }
+
     // Check if we need stylist-specific availability
     if (stylistId) {
       const slots = await getStylistAvailability(targetDate, stylistId);
@@ -29,8 +34,9 @@ export async function GET(request: NextRequest) {
     }
   } catch (error: any) {
     console.error('Error fetching availability:', error);
+    console.error('Stack trace:', error.stack);
     return NextResponse.json(
-      { message: 'Failed to get availability.', error: error.message },
+      { message: 'Failed to get availability.', error: error.message, stack: error.stack },
       { status: 500 },
     );
   }
