@@ -59,6 +59,16 @@ export const StylistSelector: React.FC<StylistSelectorProps> = ({
       }
 
       setStylists(availableStylists);
+
+      // Auto-select if only one stylist is available
+      if (availableStylists.length === 1) {
+        const singleStylist = availableStylists[0];
+        // Only auto-select if not already selected (to avoid loops or overwriting user choice if they navigated back)
+        if (selectedStylist?.id !== singleStylist.id) {
+          onStylistSelect(singleStylist);
+          toast.info(`Auto-selected ${singleStylist.name} as the only available stylist.`);
+        }
+      }
     } catch (error) {
       console.error('Failed to fetch stylists:', error);
       const errorMsg = error instanceof Error ? error.message : 'Unable to load stylists';
@@ -68,7 +78,7 @@ export const StylistSelector: React.FC<StylistSelectorProps> = ({
     } finally {
       setLoading(false);
     }
-  }, [selectedServices]);
+  }, [selectedServices, selectedStylist, onStylistSelect]);
 
   useEffect(() => {
     fetchStylists();

@@ -13,6 +13,7 @@ interface BottomSheetProps {
   description?: string;
   showCloseButton?: boolean;
   className?: string;
+  headerExtra?: ReactNode;
 }
 
 /**
@@ -26,6 +27,7 @@ export function BottomSheet({
   title,
   description,
   showCloseButton = true,
+  headerExtra,
   className = '',
 }: BottomSheetProps) {
   const isMobile = useIsMobile();
@@ -63,6 +65,7 @@ export function BottomSheet({
                   {description}
                 </Dialog.Description>
               )}
+              {headerExtra && <div className="mt-4">{headerExtra}</div>}
             </div>
             {showCloseButton && (
               <button
