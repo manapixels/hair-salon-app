@@ -5,6 +5,7 @@ import { format } from 'date-fns';
 import { toast } from 'sonner';
 import { CalendarView } from './CalendarView';
 import { TimeSlotList } from './TimeSlotList';
+import { MobileDateTimePicker } from './MobileDateTimePicker';
 import { useCalendar } from '@/hooks/useCalendar';
 import { useDelayedLoading } from '@/hooks/useDelayedLoading';
 import type { TimeSlot, Stylist } from '@/types';
@@ -99,7 +100,23 @@ export default function CalendlyStyleDateTimePicker({
         {selectedTime && `Time slot ${selectedTime} selected`}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
+      <div className="block lg:hidden">
+        <MobileDateTimePicker
+          selectedDate={selectedDate}
+          onDateChange={handleDateChange}
+          selectedTime={selectedTime}
+          onTimeSelect={onTimeSelect}
+          timeSlots={timeSlots}
+          loading={showLoader}
+          minDate={new Date()}
+          currentMonth={currentMonth}
+          daysInMonth={daysInMonth}
+          onPreviousMonth={goToPreviousMonth}
+          onNextMonth={goToNextMonth}
+        />
+      </div>
+
+      <div className="hidden lg:grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
         {/* Left Column: Calendar */}
         <div className="flex flex-col">
           <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">
