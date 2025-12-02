@@ -142,75 +142,6 @@ export const StylistSelector: React.FC<StylistSelectorProps> = ({
         />
       ) : (
         <>
-          {/* Quick Book Section */}
-          <div
-            className={`
-              mb-8 p-5 rounded-xl border-2 transition-all cursor-pointer group
-              ${
-                selectedStylist === null
-                  ? 'bg-purple-50 border-purple-200 dark:bg-purple-900/20 dark:border-purple-800 ring-2 ring-purple-500/20'
-                  : 'bg-white border-gray-100 hover:border-purple-200 dark:bg-gray-800 dark:border-gray-700 dark:hover:border-purple-800'
-              }
-            `}
-            onClick={() => onStylistSelect(null)}
-            role="button"
-            aria-pressed={selectedStylist === null}
-          >
-            <div className="flex items-start gap-4">
-              <div
-                className={`
-                p-3 rounded-full shrink-0 transition-colors
-                ${
-                  selectedStylist === null
-                    ? 'bg-purple-100 text-purple-600 dark:bg-purple-900/40 dark:text-purple-300'
-                    : 'bg-gray-100 text-gray-500 group-hover:bg-purple-50 group-hover:text-purple-500 dark:bg-gray-700 dark:text-gray-400'
-                }
-              `}
-              >
-                <Zap className="w-6 h-6" />
-              </div>
-              <div className="flex-1">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h3
-                      className={`font-bold text-lg mb-1 ${selectedStylist === null ? 'text-purple-900 dark:text-purple-100' : 'text-gray-900 dark:text-white'}`}
-                    >
-                      Quick Book (No Preference)
-                    </h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      Get the earliest available appointment with any of our talented stylists.
-                    </p>
-                  </div>
-                  <div
-                    className={`
-                    w-6 h-6 rounded-full border-2 flex items-center justify-center
-                    ${
-                      selectedStylist === null
-                        ? 'border-purple-600 bg-purple-600 text-white'
-                        : 'border-gray-300 dark:border-gray-600'
-                    }
-                  `}
-                  >
-                    {selectedStylist === null && (
-                      <div className="w-2.5 h-2.5 bg-white rounded-full" />
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="relative mb-8">
-            <div className="absolute inset-0 flex items-center" aria-hidden="true">
-              <div className="w-full border-t border-gray-200 dark:border-gray-700" />
-            </div>
-            <div className="relative flex justify-center">
-              <span className="bg-white dark:bg-gray-900 px-3 text-sm font-medium text-gray-500">
-                Or choose a specific stylist
-              </span>
-            </div>
-          </div>
-
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
             {stylists.map(stylist => {
               const isSelected = selectedStylist?.id === stylist.id;
@@ -238,11 +169,11 @@ export const StylistSelector: React.FC<StylistSelectorProps> = ({
                           <User className="h-6 w-6 text-[var(--gray-9)]" aria-hidden="true" />
                         </div>
                       )}
-                      <div>
+                      <div className="overflow-hidden">
                         <h3 className="text-[length:var(--font-size-4)] font-bold text-[var(--gray-12)]">
                           {stylist.name}
                         </h3>
-                        <p className="text-[length:var(--font-size-2)] text-[var(--gray-11)] line-clamp-1">
+                        <p className="text-[length:var(--font-size-2)] text-[var(--gray-11)] line-clamp-1 text-ellipsis">
                           {stylist.email}
                         </p>
                       </div>
@@ -252,7 +183,7 @@ export const StylistSelector: React.FC<StylistSelectorProps> = ({
                         {stylist.bio}
                       </p>
                     )}
-                    <div className="flex flex-wrap gap-2">
+                    {/* <div className="flex flex-wrap gap-2">
                       {stylist.specialties.slice(0, 3).map(service => (
                         <span
                           key={service.id}
@@ -276,7 +207,7 @@ export const StylistSelector: React.FC<StylistSelectorProps> = ({
                           +{stylist.specialties.length - 3}
                         </span>
                       )}
-                    </div>
+                    </div> */}
                   </CardContent>
                 </Card>
               );

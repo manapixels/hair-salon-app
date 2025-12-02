@@ -8,7 +8,16 @@ import type { Appointment, Service } from '@/types';
 import { Button, Checkbox, Select } from '@radix-ui/themes';
 import { formatTime12Hour } from '@/lib/timeUtils';
 import { TextField } from '@/components/ui/TextField';
-import { BottomSheet } from '@/components/ui/BottomSheet';
+import { useIsMobile } from '@/hooks/useMediaQuery';
+import * as Dialog from '@radix-ui/react-dialog';
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerDescription,
+} from '@/components/ui/drawer';
+import { X } from 'lucide-react';
 
 interface EditAppointmentModalProps {
   isOpen: boolean;
@@ -140,16 +149,12 @@ export default function EditAppointmentModal({
   };
 
   const { totalPrice, totalDuration } = calculateTotals();
+  const isMobile = useIsMobile();
 
-  return (
-    <BottomSheet
-      isOpen={isOpen}
-      onClose={onClose}
-      title="Edit Appointment"
-      description="Update customer details, services, and scheduled time for this appointment."
-    >
+  const content = (
+    <div className="p-6">
       {error && (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-700 dark:bg-red-900/20 dark:text-red-300">
+        <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-700 dark:bg-red-900/20 dark:text-red-300">
           {error}
         </div>
       )}
@@ -276,6 +281,45 @@ export default function EditAppointmentModal({
           </Button>
         </div>
       </form>
-    </BottomSheet>
+    </div>
+  );
+
+  if (isMobile) {
+    return (
+      <Drawer open={isOpen} onOpenChange={open => !open && onClose()}>
+        <DrawerContent>
+          <DrawerHeader>
+            <DrawerTitle>Edit Appointment</DrawerTitle>
+            <DrawerDescription>
+              Update customer details, services, and scheduled time for this appointment.
+            </DrawerDescription>
+          </DrawerHeader>
+          {content}
+        </DrawerContent>
+      </Drawer>
+    );
+  }
+
+  return (
+    <Dialog.Root open={isOpen} onOpenChange={open => !open && onClose()}>
+      <Dialog.Portal>
+        <Dialog.Overlay className="fixed inset-0 z-50 bg-black/80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
+        <Dialog.Content className="fixed left-1/2 top-1/2 z-50 max-h-[85vh] w-full max-w-lg -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-lg border bg-white shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%]">
+          <div className="flex items-center justify-between border-b p-6">
+            <div>
+              <Dialog.Title className="text-lg font-semibold">Edit Appointment</Dialog.Title>
+              <Dialog.Description className="mt-1 text-sm text-gray-600">
+                Update customer details, services, and scheduled time for this appointment.
+              </Dialog.Description>
+            </div>
+            <Dialog.Close className="rounded-sm opacity-70 ring-offset-white transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-gray-950 focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-gray-100 data-[state=open]:text-gray-500">
+              <X className="h-4 w-4" />
+              <span className="sr-only">Close</span>
+            </Dialog.Close>
+          </div>
+          {content}
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
   );
 }
