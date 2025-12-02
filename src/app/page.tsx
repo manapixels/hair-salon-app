@@ -129,6 +129,7 @@ export default function HomePage() {
                 alt={service.title}
                 fill
                 className="object-cover"
+                sizes="64px"
               />
             </div>
             <span className="text-md text-center leading-none text-base-primary flex-1 flex items-center">

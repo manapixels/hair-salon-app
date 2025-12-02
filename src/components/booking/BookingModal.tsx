@@ -66,7 +66,7 @@ export function BookingModal() {
 
   if (isMobile) {
     return (
-      <Drawer open={isOpen} onOpenChange={open => !open && closeModal()}>
+      <Drawer open={isOpen} onOpenChange={open => !open && closeModal()} modal={false}>
         <DrawerContent className="max-h-[95vh]">
           <DrawerHeader>
             <DrawerTitle>Book Your Appointment</DrawerTitle>

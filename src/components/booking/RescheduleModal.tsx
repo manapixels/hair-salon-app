@@ -257,7 +257,7 @@ export default function RescheduleModal({
 
   if (isMobile) {
     return (
-      <Drawer open={isOpen} onOpenChange={open => !open && onClose()}>
+      <Drawer open={isOpen} onOpenChange={open => !open && onClose()} modal={false}>
         <DrawerContent>
           <DrawerHeader>
             <DrawerTitle>Reschedule Appointment</DrawerTitle>

@@ -43,7 +43,7 @@ import { ConcernOutcomeFilter } from '../services/ConcernOutcomeFilter';
 import { MobileBookingSummary } from './MobileBookingSummary';
 import { BookingConfirmationSummary } from './BookingConfirmationSummary';
 import { useRef } from 'react';
-import { Edit2, ChevronDown, ChevronUp } from 'lucide-react';
+import { Edit2 } from 'lucide-react';
 
 // Code-split heavy components for better performance
 const StylistSelector = dynamic(
@@ -97,42 +97,60 @@ const CollapsedStepSummary: React.FC<{
   stepNumber: number;
   title: string;
   summary: string;
+  price?: string;
+  duration?: string;
   onEdit: () => void;
-  onToggle: () => void;
-  isCollapsed: boolean;
-}> = ({ stepNumber, title, summary, onEdit, onToggle, isCollapsed }) => {
+  id?: string;
+}> = ({ stepNumber, title, summary, price, duration, onEdit, id }) => {
   return (
-    <div className="border-2 border-green-500 bg-green-50 dark:bg-green-900/20 rounded-xl p-4 mb-4 transition-all duration-300 animate-fade-in">
+    <div
+      className="border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 rounded-lg p-3 mb-4 transition-all duration-200"
+      role="region"
+      aria-label={`Completed: ${title}`}
+    >
       <div className="flex items-start justify-between gap-4">
-        <div className="flex items-start gap-3 flex-1">
-          <div className="flex items-center justify-center w-8 h-8 rounded-full bg-green-500 text-white font-semibold text-sm shrink-0">
-            <Check className="h-5 w-5" />
+        <div className="flex items-start gap-3 flex-1 min-w-0">
+          {/* Checkmark - neutral gray */}
+          <div className="flex items-center justify-center w-6 h-6 rounded-full border-2 border-gray-400 dark:border-gray-600 shrink-0">
+            <Check className="h-3.5 w-3.5 text-gray-600 dark:text-gray-400" />
           </div>
+
           <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-gray-900 dark:text-white mb-1">
+            {/* Title */}
+            <h3 id={id} className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               {stepNumber}. {title}
             </h3>
-            <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">{summary}</p>
+
+            {/* Summary */}
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-1.5">{summary}</p>
+
+            {/* Optional badges */}
+            {(price || duration) && (
+              <div className="flex items-center gap-2 flex-wrap">
+                {price && (
+                  <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300">
+                    {price}
+                  </span>
+                )}
+                {duration && (
+                  <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300">
+                    {duration}
+                  </span>
+                )}
+              </div>
+            )}
           </div>
         </div>
-        <div className="flex items-center gap-2 shrink-0">
-          <button
-            onClick={onEdit}
-            className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-green-700 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300 hover:bg-green-100 dark:hover:bg-green-900/40 rounded-lg transition-colors"
-            aria-label={`Edit ${title}`}
-          >
-            <Edit2 className="h-4 w-4" />
-            <span className="hidden sm:inline">Edit</span>
-          </button>
-          <button
-            onClick={onToggle}
-            className="p-1.5 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
-            aria-label={isCollapsed ? 'Expand section' : 'Collapse section'}
-            aria-expanded={!isCollapsed}
-          >
-            {isCollapsed ? <ChevronDown className="h-5 w-5" /> : <ChevronUp className="h-5 w-5" />}
-          </button>
-        </div>
+
+        {/* Single Edit button */}
+        <button
+          onClick={onEdit}
+          className="flex items-center gap-1.5 px-2.5 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-gray-700 rounded-md transition-colors shrink-0"
+          aria-label={`Edit ${title}`}
+        >
+          <Edit2 className="h-3.5 w-3.5" />
+          <span className="hidden sm:inline">Edit</span>
+        </button>
       </div>
     </div>
   );
@@ -828,7 +846,10 @@ const ConfirmationForm: React.FC<{
   };
   return (
     <div className="mt-10">
-      <h2 className="text-2xl font-semibold mb-4 text-gray-800 dark:text-gray-200">
+      <h2
+        id="step-4-heading"
+        className="text-2xl font-semibold mb-4 text-gray-800 dark:text-gray-200"
+      >
         4. Confirm Your Booking
       </h2>
 
@@ -1012,7 +1033,6 @@ const BookingForm: React.FC<BookingFormProps> = ({
   // Step tracking
   const [currentStep, setCurrentStep] = useState(1);
   const [stylistSelectionSkipped, setStylistSelectionSkipped] = useState(false);
-  const [collapsedSteps, setCollapsedSteps] = useState<number[]>([]);
 
   // Refs for scrolling
   const serviceSectionRef = useRef<HTMLDivElement>(null);
@@ -1295,25 +1315,15 @@ Please confirm availability. Thank you!`;
     setSelectedTime(null);
     setBookingConfirmed(null);
     setCurrentStep(1);
-    setCollapsedSteps([]);
 
     // Scroll to top
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const toggleStepCollapse = (step: number) => {
-    setCollapsedSteps(prev =>
-      prev.includes(step) ? prev.filter(s => s !== step) : [...prev, step],
-    );
-  };
-
   const handleEditStep = (step: number) => {
-    // Expand the step if collapsed
-    setCollapsedSteps(prev => prev.filter(s => s !== step));
-
-    // Reset selections after this step
+    // Clear dependent selections
     if (step === 1) {
-      // Editing services - clear everything after
+      // Editing services - clear stylist and time
       setSelectedStylist(null);
       setStylistSelectionSkipped(false);
       setSelectedTime(null);
@@ -1325,7 +1335,7 @@ Please confirm availability. Thank you!`;
       setSelectedTime(null);
     }
 
-    // Scroll to the step being edited
+    // Scroll to step
     const refs = [
       null,
       serviceSectionRef,
@@ -1333,9 +1343,8 @@ Please confirm availability. Thank you!`;
       dateTimeSectionRef,
       confirmationSectionRef,
     ];
-    const ref = refs[step];
-    if (ref) {
-      scrollToSection(ref);
+    if (refs[step]) {
+      scrollToSection(refs[step]!);
     }
   };
 
@@ -1391,33 +1400,35 @@ Please confirm availability. Thank you!`;
         />
       </div> */}
 
+      {/* Screen reader announcements */}
+      <div role="status" aria-live="polite" aria-atomic="true" className="sr-only">
+        {currentStep === 1 && 'Step 1 of 4: Select Services'}
+        {currentStep === 2 && 'Step 2 of 4: Choose Your Stylist'}
+        {currentStep === 3 && 'Step 3 of 4: Select Date and Time'}
+        {currentStep === 4 && 'Step 4 of 4: Confirm Your Booking'}
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-4">
           {/* Step 1: Services */}
-          <div ref={serviceSectionRef} tabIndex={-1} className="outline-none">
+          <div
+            ref={serviceSectionRef}
+            tabIndex={-1}
+            className="outline-none"
+            role="group"
+            aria-labelledby="step-1-heading"
+            aria-current={currentStep === 1 ? 'step' : undefined}
+          >
             {currentStep > 1 && selectedServices.length > 0 ? (
-              <>
-                <CollapsedStepSummary
-                  stepNumber={1}
-                  title="Services Selected"
-                  summary={`${selectedServices.length} service${selectedServices.length > 1 ? 's' : ''}: ${selectedServices.map(s => s.name).join(', ')}`}
-                  onEdit={() => handleEditStep(1)}
-                  onToggle={() => toggleStepCollapse(1)}
-                  isCollapsed={collapsedSteps.includes(1)}
-                />
-                {!collapsedSteps.includes(1) && (
-                  <div className="animate-slide-in-top">
-                    <ServiceSelector
-                      categories={categories}
-                      selectedServices={selectedServices}
-                      selectedAddons={selectedAddons}
-                      onServiceToggle={handleServiceToggle}
-                      onAddonToggle={handleAddonToggle}
-                      loading={loadingServices}
-                    />
-                  </div>
-                )}
-              </>
+              <CollapsedStepSummary
+                stepNumber={1}
+                title="Services Selected"
+                summary={`${selectedServices.length} service${selectedServices.length > 1 ? 's' : ''}: ${selectedServices.map(s => s.name).join(', ')}`}
+                price={`$${totalPrice}`}
+                duration={`${totalDuration} min`}
+                onEdit={() => handleEditStep(1)}
+                id="step-1-heading"
+              />
             ) : (
               <ServiceSelector
                 categories={categories}
@@ -1432,27 +1443,21 @@ Please confirm availability. Thank you!`;
 
           {/* Step 2: Stylist */}
           {selectedServices.length > 0 && (
-            <div ref={stylistSectionRef} className="outline-none">
+            <div
+              ref={stylistSectionRef}
+              className="outline-none"
+              role="group"
+              aria-labelledby="step-2-heading"
+              aria-current={currentStep === 2 ? 'step' : undefined}
+            >
               {currentStep > 2 && (selectedStylist || stylistSelectionSkipped) ? (
-                <>
-                  <CollapsedStepSummary
-                    stepNumber={2}
-                    title="Stylist Selected"
-                    summary={selectedStylist ? selectedStylist.name : 'No preference (Quick Book)'}
-                    onEdit={() => handleEditStep(2)}
-                    onToggle={() => toggleStepCollapse(2)}
-                    isCollapsed={collapsedSteps.includes(2)}
-                  />
-                  {!collapsedSteps.includes(2) && (
-                    <div className="animate-slide-in-top">
-                      <StylistSelector
-                        selectedServices={selectedServices}
-                        selectedStylist={selectedStylist}
-                        onStylistSelect={handleStylistSelect}
-                      />
-                    </div>
-                  )}
-                </>
+                <CollapsedStepSummary
+                  stepNumber={2}
+                  title="Stylist Selected"
+                  summary={selectedStylist ? selectedStylist.name : 'No preference (Quick Book)'}
+                  onEdit={() => handleEditStep(2)}
+                  id="step-2-heading"
+                />
               ) : (
                 <div className="animate-slide-in-bottom">
                   <StylistSelector
@@ -1467,30 +1472,22 @@ Please confirm availability. Thank you!`;
 
           {/* Step 3: Date & Time */}
           {(selectedStylist || stylistSelectionSkipped) && selectedServices.length > 0 && (
-            <div ref={dateTimeSectionRef} className="outline-none">
+            <div
+              ref={dateTimeSectionRef}
+              className="outline-none"
+              role="group"
+              aria-labelledby="step-3-heading"
+              aria-current={currentStep === 3 ? 'step' : undefined}
+            >
               {currentStep > 3 && selectedTime ? (
-                <>
-                  <CollapsedStepSummary
-                    stepNumber={3}
-                    title="Date & Time Selected"
-                    summary={`${formatDisplayDate(selectedDate)} at ${selectedTime}`}
-                    onEdit={() => handleEditStep(3)}
-                    onToggle={() => toggleStepCollapse(3)}
-                    isCollapsed={collapsedSteps.includes(3)}
-                  />
-                  {!collapsedSteps.includes(3) && (
-                    <div className="animate-slide-in-top">
-                      <CalendlyStyleDateTimePicker
-                        selectedDate={selectedDate}
-                        onDateChange={setSelectedDate}
-                        selectedTime={selectedTime}
-                        onTimeSelect={handleTimeSelect}
-                        totalDuration={totalDuration}
-                        selectedStylist={selectedStylist}
-                      />
-                    </div>
-                  )}
-                </>
+                <CollapsedStepSummary
+                  stepNumber={3}
+                  title="Date & Time Selected"
+                  summary={`${formatDisplayDate(selectedDate)} at ${selectedTime}`}
+                  duration={`${totalDuration} min`}
+                  onEdit={() => handleEditStep(3)}
+                  id="step-3-heading"
+                />
               ) : (
                 <div className="animate-slide-in-bottom">
                   <CalendlyStyleDateTimePicker
@@ -1508,7 +1505,13 @@ Please confirm availability. Thank you!`;
 
           {/* Step 4: Confirmation */}
           {selectedTime && (
-            <div ref={confirmationSectionRef} className="outline-none animate-scale-in">
+            <div
+              ref={confirmationSectionRef}
+              className="outline-none animate-scale-in"
+              role="group"
+              aria-labelledby="step-4-heading"
+              aria-current={currentStep === 4 ? 'step' : undefined}
+            >
               <ConfirmationForm
                 onConfirm={handleConfirmBooking}
                 isSubmitting={isSubmitting}

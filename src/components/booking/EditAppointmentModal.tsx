@@ -286,7 +286,7 @@ export default function EditAppointmentModal({
 
   if (isMobile) {
     return (
-      <Drawer open={isOpen} onOpenChange={open => !open && onClose()}>
+      <Drawer open={isOpen} onOpenChange={open => !open && onClose()} modal={false}>
         <DrawerContent>
           <DrawerHeader>
             <DrawerTitle>Edit Appointment</DrawerTitle>
