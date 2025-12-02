@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { Instagram, Star } from 'lucide-react';
-import { Heading, Text, Container, Section } from '@radix-ui/themes';
+import { Heading, Text, DropdownMenu } from '@radix-ui/themes';
 import { TeamCard } from '@/components/team';
 import LocationCard from '../components/locations/LocationCard';
 import { Sparkles } from '@/lib/icons';
@@ -116,28 +116,46 @@ export default function HomePage() {
       </section>
 
       {/* Featured Services Showcase */}
-      <div className="sm:hidden grid grid-cols-3 gap-4 md:gap-8 bg-white p-4">
-        {SERVICE_LINKS.map(service => (
-          <Link
-            key={service.href}
-            href={service.href}
-            className="group/item flex flex-col items-center justify-between gap-1 border border-base-primary/50 hover:border-base-primary transition-colors rounded-lg p-2"
-          >
-            <div className="relative w-16 h-16 rounded-lg">
-              <Image
-                src={service.illustration || ''}
-                alt={service.title}
-                fill
-                className="object-cover"
-                sizes="64px"
-              />
-            </div>
-            <span className="text-md text-center leading-none text-base-primary flex-1 flex items-center">
-              {service.short_title}
-            </span>
-          </Link>
-        ))}
-      </div>
+      {/* Mobile Ver. */}
+      <section className="sm:hidden grid grid-cols-3 gap-4 md:gap-8 bg-white p-4">
+        {SERVICE_LINKS.map(service => {
+          const serviceData = featuredServices.find(s => s.name === service.title);
+          const serviceId = serviceData?.id;
+
+          return (
+            <DropdownMenu.Root key={service.href}>
+              <DropdownMenu.Trigger>
+                <button className="group/item flex flex-col items-center justify-between gap-1 border border-base-primary/50 hover:border-base-primary transition-colors rounded-lg p-2 w-full outline-none focus:ring-2 focus:ring-base-primary/20 bg-transparent cursor-pointer">
+                  <div className="relative w-16 h-16 rounded-lg">
+                    <Image
+                      src={service.illustration || ''}
+                      alt={service.title}
+                      fill
+                      className="object-cover"
+                      sizes="64px"
+                    />
+                  </div>
+                  <span className="text-md text-center leading-none text-base-primary flex-1 flex items-center justify-center w-full">
+                    {service.short_title}
+                  </span>
+                </button>
+              </DropdownMenu.Trigger>
+              <DropdownMenu.Content>
+                <DropdownMenu.Item asChild>
+                  <Link href={service.href}>Learn more</Link>
+                </DropdownMenu.Item>
+                <DropdownMenu.Item
+                  onSelect={() => openModal({ preSelectedServiceId: serviceId })}
+                  className="bg-gray-900 text-white hover:bg-base-primary hover:text-white mt-1 justify-center"
+                >
+                  Book now
+                </DropdownMenu.Item>
+              </DropdownMenu.Content>
+            </DropdownMenu.Root>
+          );
+        })}
+      </section>
+      {/* Desktop Ver. */}
       <section className="hidden sm:block py-16 md:py-24 lg:px-12 bg-white" id="services">
         <div className="text-center mb-12">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gold-50 text-gold-700 text-sm font-medium mb-4">
