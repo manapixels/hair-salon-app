@@ -1,7 +1,16 @@
 'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, User, Shield, LogOut, LayoutDashboard, ChevronRight, LogIn } from 'lucide-react';
+import {
+  X,
+  User,
+  Shield,
+  LogOut,
+  LayoutDashboard,
+  ChevronRight,
+  LogIn,
+  Loader2,
+} from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import * as Avatar from '@radix-ui/react-avatar';
@@ -17,10 +26,18 @@ interface AccountPopupProps {
 export default function AccountPopup({ isOpen, onClose }: AccountPopupProps) {
   const { user, logout } = useAuth();
   const [isLoginOpen, setIsLoginOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const handleLogout = async () => {
-    await logout();
-    onClose();
+    try {
+      setIsLoggingOut(true);
+      await logout();
+      onClose();
+    } catch (error) {
+      console.error('Logout failed:', error);
+    } finally {
+      setIsLoggingOut(false);
+    }
   };
 
   return (
@@ -131,10 +148,20 @@ export default function AccountPopup({ isOpen, onClose }: AccountPopupProps) {
                     {/* Logout */}
                     <button
                       onClick={handleLogout}
-                      className="w-full flex items-center justify-center gap-2 p-3 rounded-xl border border-red-100 dark:border-red-900/30 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors font-medium"
+                      disabled={isLoggingOut}
+                      className="w-full flex items-center justify-center gap-2 p-3 rounded-xl border border-red-100 dark:border-red-900/30 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors font-medium disabled:opacity-70 disabled:cursor-not-allowed"
                     >
-                      <LogOut className="w-4 h-4" />
-                      Sign Out
+                      {isLoggingOut ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          Signing Out...
+                        </>
+                      ) : (
+                        <>
+                          <LogOut className="w-4 h-4" />
+                          Sign Out
+                        </>
+                      )}
                     </button>
                   </div>
                 ) : (
