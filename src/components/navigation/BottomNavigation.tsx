@@ -125,7 +125,7 @@ export default function BottomNavigation() {
           <div className="relative flex justify-center">
             <BottomNavItem
               icon={User}
-              label="Account"
+              label={user ? 'Account' : 'Login'}
               active={activeTab === 'dashboard'}
               isOpen={showAccountDropdown}
               isAdmin={user?.role === 'ADMIN'}
