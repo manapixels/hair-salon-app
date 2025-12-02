@@ -2,13 +2,14 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { Instagram, Star } from 'lucide-react';
+import { Instagram, Star, Search } from 'lucide-react';
 import { Heading, Text, DropdownMenu } from '@radix-ui/themes';
 import { TeamCard } from '@/components/team';
 import LocationCard from '../components/locations/LocationCard';
 import { Sparkles } from '@/lib/icons';
 import { SERVICE_LINKS } from '@/config/navigation';
 import { useBookingModal } from '@/context/BookingModalContext';
+import { FindByConcernModal } from '@/components/services/FindByConcernModal';
 import { useState, useEffect } from 'react';
 import type { ServiceCategory, AdminSettings } from '@/types';
 
@@ -16,6 +17,7 @@ export default function HomePage() {
   const { openModal } = useBookingModal();
   const [adminSettings, setAdminSettings] = useState<AdminSettings | null>(null);
   const [categories, setCategories] = useState<ServiceCategory[]>([]);
+  const [isConcernModalOpen, setIsConcernModalOpen] = useState(false);
 
   // Fetch data on mount
   useEffect(() => {
@@ -118,6 +120,19 @@ export default function HomePage() {
       {/* Featured Services Showcase */}
       {/* Mobile Ver. */}
       <section className="sm:hidden grid grid-cols-3 gap-4 md:gap-8 bg-white p-4">
+        {/* Find by Concern Button */}
+        <button
+          onClick={() => setIsConcernModalOpen(true)}
+          className="group/item flex flex-col items-center justify-between gap-1 border-2 border-base-primary bg-base-primary/5 hover:bg-base-primary/10 transition-colors rounded-lg p-2"
+        >
+          <div className="flex items-center justify-center w-16 h-16 rounded-lg bg-base-primary/10">
+            <Search className="w-8 h-8 text-base-primary" />
+          </div>
+          <span className="text-md text-center leading-none text-base-primary font-semibold">
+            Find by Concern
+          </span>
+        </button>
+
         {SERVICE_LINKS.map(service => {
           const serviceData = featuredServices.find(s => s.name === service.title);
           const serviceId = serviceData?.id;
@@ -165,10 +180,19 @@ export default function HomePage() {
           <Heading size="8" className="font-serif font-light mb-4">
             Our Premium Services
           </Heading>
-          <Text size="3" className="text-stone-600 max-w-2xl mx-auto">
+          <Text size="3" className="text-stone-600 max-w-2xl mx-auto mb-6">
             Experience our most sought-after treatments, expertly crafted to deliver exceptional
             results and lasting beauty.
           </Text>
+
+          {/* Find by Concern Button */}
+          <button
+            onClick={() => setIsConcernModalOpen(true)}
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-base-primary text-white hover:bg-base-primary/90 transition-colors font-medium text-sm"
+          >
+            <Search className="w-4 h-4" />
+            Find by Hair Concern
+          </button>
         </div>
 
         {/* Featured Services Grid - Large Cards with Images */}
@@ -253,6 +277,12 @@ export default function HomePage() {
 
       {/* The Team */}
       <TeamCard />
+
+      {/* Find by Concern Modal */}
+      <FindByConcernModal
+        isOpen={isConcernModalOpen}
+        onClose={() => setIsConcernModalOpen(false)}
+      />
     </div>
   );
 }

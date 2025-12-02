@@ -38,8 +38,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
-import { Check, CheckCircle, User, WhatsAppIcon, Search } from '@/lib/icons';
-import { ConcernOutcomeFilter } from '../services/ConcernOutcomeFilter';
+import { Check, CheckCircle, User, WhatsAppIcon } from '@/lib/icons';
 import { MobileBookingSummary } from './MobileBookingSummary';
 import { BookingConfirmationSummary } from './BookingConfirmationSummary';
 import { useRef } from 'react';
@@ -51,7 +50,7 @@ const StylistSelector = dynamic(
   {
     loading: () => (
       <div className="mt-10 scroll-mt-24">
-        <h2 className="text-2xl font-semibold mb-4 text-gray-800 dark:text-gray-200">
+        <h2 className="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">
           2. Choose Your Stylist
         </h2>
         <div className="space-y-4">
@@ -72,7 +71,7 @@ const StylistSelector = dynamic(
 const CalendlyStyleDateTimePicker = dynamic(() => import('./CalendlyStyleDateTimePicker'), {
   loading: () => (
     <div className="mt-10">
-      <h2 className="text-2xl font-semibold mb-6 text-gray-800 dark:text-gray-200">
+      <h2 className="text-xl font-semibold mb-6 text-gray-800 dark:text-gray-200">
         3. Select Date & Time
       </h2>
       <div className="flex items-center justify-center p-8">
@@ -171,23 +170,8 @@ const ServiceSelector: React.FC<{
   onAddonToggle,
   loading,
 }) => {
-  const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState<string>('all');
   const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
-  const [activeFilter, setActiveFilter] = useState<string | null>(null);
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [availableTags, setAvailableTags] = useState<ServiceTag[]>([]);
-
-  // Fetch available tags
-  useEffect(() => {
-    fetch('/api/services/tags')
-      .then(res => res.json())
-      .then(data => {
-        const allTags = [...(data.concerns || []), ...(data.outcomes || [])];
-        setAvailableTags(allTags);
-      })
-      .catch(err => console.error('Failed to fetch tags:', err));
-  }, []);
 
   // Initialize expanded categories
   useEffect(() => {
@@ -203,84 +187,15 @@ const ServiceSelector: React.FC<{
     );
   };
 
-  const filteredCategories = useMemo(() => {
-    let result = categories;
-
-    // Apply tag filter first
-    if (selectedTags.length > 0) {
-      result = result
-        .map(category => ({
-          ...category,
-          items: category.items.filter(service =>
-            service.serviceTags?.some(st => selectedTags.includes(st.tag.slug)),
-          ),
-        }))
-        .filter(category => category.items.length > 0);
-    }
-
-    // Apply search filter
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
-      result = result
-        .map(category => ({
-          ...category,
-          items: category.items.filter(
-            service =>
-              service.name.toLowerCase().includes(query) ||
-              service.subtitle?.toLowerCase().includes(query) ||
-              service.description?.toLowerCase().includes(query) ||
-              service.tags.some(tag => tag.toLowerCase().includes(query)),
-          ),
-        }))
-        .filter(category => category.items.length > 0);
-    }
-
-    // Apply quick filters
-    if (activeFilter) {
-      result = result
-        .map(category => ({
-          ...category,
-          items: category.items.filter(service => {
-            switch (activeFilter) {
-              case 'quick':
-                return service.duration <= 45;
-              case 'budget':
-                return service.basePrice <= 50;
-              case 'premium':
-                return service.basePrice >= 150;
-              case 'popular':
-                return service.popularityScore >= 80;
-              default:
-                return true;
-            }
-          }),
-        }))
-        .filter(category => category.items.length > 0);
-    }
-
-    return result;
-  }, [categories, searchQuery, activeFilter, selectedTags]);
-
-  // Auto-expand categories when searching
-  useEffect(() => {
-    if (searchQuery.trim()) {
-      setExpandedCategories(filteredCategories.map(c => c.id));
-    }
-  }, [searchQuery, filteredCategories]);
-
-  // Helper to get filtered categories for the current view
-
-  // Helper to get filtered categories for the current view
   const displayCategories = useMemo(() => {
-    if (searchQuery.trim()) return filteredCategories;
     if (activeCategory === 'all') return categories;
     return categories.filter(c => c.id === activeCategory);
-  }, [filteredCategories, categories, activeCategory, searchQuery]);
+  }, [categories, activeCategory]);
 
   if (loading) {
     return (
       <div className="space-y-4">
-        <h2 className="text-2xl font-semibold mb-4 text-gray-800 dark:text-gray-200">
+        <h2 className="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">
           1. Select Services
         </h2>
         <div className="flex justify-center p-8">
@@ -292,149 +207,40 @@ const ServiceSelector: React.FC<{
 
   return (
     <div id="service-selector">
-      <h2 className="text-2xl font-semibold mb-4 text-gray-800 dark:text-gray-200">
+      <h2 className="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">
         1. Select Services
       </h2>
 
-      {/* Concern/Outcome Filter */}
-      {availableTags.length > 0 && (
-        <div className="mb-4">
-          <ConcernOutcomeFilter
-            tags={availableTags}
-            selectedTags={selectedTags}
-            onTagsChange={setSelectedTags}
-            onClear={() => setSelectedTags([])}
-          />
-        </div>
-      )}
-
-      {/* Search Bar */}
-      <div className="relative mb-4">
-        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-          <Search className="h-5 w-5 text-gray-400" />
-        </div>
-        <input
-          type="text"
-          placeholder="Search services (e.g., 'cut', 'color', 'treatment')..."
-          className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-stone-900 focus:border-stone-900 sm:text-sm transition duration-150 ease-in-out"
-          value={searchQuery}
-          onChange={e => {
-            setSearchQuery(e.target.value);
-            if (e.target.value.trim()) {
-              setActiveCategory('all');
-              setActiveFilter(null);
-            }
-          }}
-        />
-      </div>
-
-      {/* Quick Filters */}
-      {!searchQuery.trim() && (
-        <div className="flex flex-wrap gap-2 mb-6">
-          <button
-            onClick={() => setActiveFilter(activeFilter === 'quick' ? null : 'quick')}
-            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
-              activeFilter === 'quick'
-                ? 'bg-stone-900 text-white'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-            }`}
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
-            Quick (Under 45 min)
-          </button>
-          <button
-            onClick={() => setActiveFilter(activeFilter === 'budget' ? null : 'budget')}
-            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
-              activeFilter === 'budget'
-                ? 'bg-stone-900 text-white'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-            }`}
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
-            Budget (Under $50)
-          </button>
-          <button
-            onClick={() => setActiveFilter(activeFilter === 'premium' ? null : 'premium')}
-            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
-              activeFilter === 'premium'
-                ? 'bg-stone-900 text-white'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-            }`}
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"
-              />
-            </svg>
-            Premium
-          </button>
-          <button
-            onClick={() => setActiveFilter(activeFilter === 'popular' ? null : 'popular')}
-            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
-              activeFilter === 'popular'
-                ? 'bg-stone-900 text-white'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-            }`}
-          >
-            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-            </svg>
-            Popular
-          </button>
-        </div>
-      )}
-
       {/* Category Tabs (Desktop) */}
-      {!searchQuery.trim() && (
-        <div className="hidden md:flex space-x-2 mb-6 overflow-x-auto pb-2">
+      <div className="hidden md:flex space-x-2 mb-6 overflow-x-auto pb-2">
+        <button
+          onClick={() => setActiveCategory('all')}
+          className={`px-4 py-2 rounded-full text-sm font-medium transition-colors whitespace-nowrap ${
+            activeCategory === 'all'
+              ? 'bg-stone-900 text-white'
+              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+          }`}
+        >
+          All Services
+        </button>
+        {categories.map(category => (
           <button
-            onClick={() => setActiveCategory('all')}
+            key={category.id}
+            onClick={() => setActiveCategory(category.id)}
             className={`px-4 py-2 rounded-full text-sm font-medium transition-colors whitespace-nowrap ${
-              activeCategory === 'all'
+              activeCategory === category.id
                 ? 'bg-stone-900 text-white'
                 : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
             }`}
           >
-            All Services
+            {category.title}
           </button>
-          {categories.map(category => (
-            <button
-              key={category.id}
-              onClick={() => setActiveCategory(category.id)}
-              className={`px-4 py-2 rounded-full text-sm font-medium transition-colors whitespace-nowrap ${
-                activeCategory === category.id
-                  ? 'bg-stone-900 text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
-            >
-              {category.title}
-            </button>
-          ))}
-        </div>
-      )}
+        ))}
+      </div>
 
       <div className="space-y-8">
         {displayCategories.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">
-            No services found matching &ldquo;{searchQuery}&rdquo;
-          </div>
+          <div className="text-center py-8 text-gray-500">No services found.</div>
         ) : (
           <Accordion
             type="multiple"
@@ -446,9 +252,7 @@ const ServiceSelector: React.FC<{
               <div
                 key={category.id}
                 className={
-                  !searchQuery.trim() && activeCategory !== 'all' && activeCategory !== category.id
-                    ? 'hidden'
-                    : ''
+                  activeCategory !== 'all' && activeCategory !== category.id ? 'hidden' : ''
                 }
               >
                 <AccordionItem value={category.id} className="border-none">
@@ -737,7 +541,7 @@ const DateTimePicker: React.FC<{
 
   return (
     <div className="mt-10">
-      <h2 className="text-2xl font-semibold mb-6 text-gray-800 dark:text-gray-200">
+      <h2 className="text-xl font-semibold mb-6 text-gray-800 dark:text-gray-200">
         3. Select Date & Time
       </h2>
 
