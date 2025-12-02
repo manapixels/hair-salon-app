@@ -1,4 +1,34 @@
-import { ServiceContent } from '@/components/services/ServiceDetailSections';
+// Service-specific content interfaces
+interface ProcessStep {
+  number: number;
+  title: string;
+  description: string;
+  duration?: string;
+}
+
+interface Benefit {
+  title: string;
+  description: string;
+  icon?: string;
+}
+
+interface FAQ {
+  question: string;
+  answer: string;
+}
+
+interface ServiceContent {
+  serviceName: string;
+  overview: {
+    whatIsIt: string;
+    whoIsItFor: string;
+    keyFeature?: string;
+  };
+  benefits: Benefit[];
+  processSteps: ProcessStep[];
+  faqs: FAQ[];
+  aftercare: string[];
+}
 
 export const serviceContentMap: Record<string, ServiceContent> = {
   'hair-colouring': {
