@@ -3,11 +3,20 @@ import { ALL_SERVICE_TAGS } from '../src/data/serviceTaxonomy';
 
 const prisma = new PrismaClient();
 
+/**
+ * SINGLE SOURCE OF TRUTH FOR SERVICE CATEGORIES
+ *
+ * These categories are seeded into the database and should be the authoritative source.
+ * Other files should reference these slugs:
+ * - src/data/bookingCategories.ts: Should match these 6 categories
+ * - src/config/navigation.ts: Should use same slugs (excludes 'haircut', includes 5 featured services)
+ */
 const CATEGORIES = [
   {
-    id: 'cut',
-    title: 'Haircuts & Styling',
-    description: 'Professional cuts and styling for all hair types',
+    id: 'haircut',
+    slug: 'haircut',
+    title: 'Haircut',
+    description: 'Professional haircuts and styling',
     icon: 'scissors',
     priceRangeMin: 10,
     priceRangeMax: 50,
@@ -106,9 +115,10 @@ const CATEGORIES = [
     ],
   },
   {
-    id: 'color',
-    title: 'Hair Color',
-    description: 'Expert coloring with premium formulas',
+    id: 'colouring',
+    slug: 'hair-colouring',
+    title: 'Colouring',
+    description: 'Full color, highlights, root touch-ups',
     icon: 'palette',
     priceRangeMin: 70,
     priceRangeMax: 200,
@@ -206,66 +216,15 @@ const CATEGORIES = [
     ],
   },
   {
-    id: 'perm',
-    title: 'Perms & Texture',
-    description: 'Long-lasting curls, waves, and smoothing',
-    icon: 'waves',
+    id: 'rebonding',
+    slug: 'hair-rebonding',
+    title: 'Rebonding',
+    description: 'Hair straightening and rebonding treatments',
+    icon: 'move-horizontal',
     priceRangeMin: 70,
     priceRangeMax: 300,
     sortOrder: 3,
     items: [
-      {
-        name: 'Classic Perm',
-        subtitle: 'Traditional curls and waves',
-        description: 'Beautiful, bouncy curls using premium Korean formula for lasting results',
-        price: 'From $150',
-        basePrice: 150,
-        maxPrice: 180,
-        duration: 150,
-        serviceTags: ['flat-hair', 'curly-hair', 'add-volume', 'long-lasting'],
-      },
-      {
-        name: 'Digital Perm',
-        subtitle: 'Traditional curls and waves',
-        description: 'Beautiful, bouncy curls using premium Korean formula for lasting results',
-        price: 'From $200',
-        basePrice: 200,
-        maxPrice: 300,
-        duration: 150,
-        serviceTags: ['flat-hair', 'curly-hair', 'add-volume', 'long-lasting'],
-      },
-      {
-        name: 'Iron Root Perm',
-        subtitle: 'Lift and volume at roots for fuller-looking hair',
-        price: 'From $150',
-        basePrice: 150,
-        maxPrice: 180,
-        duration: 120,
-        serviceTags: [
-          'flat-hair',
-          'oily-scalp',
-          'add-volume',
-          'fine-hair',
-          'asian-hair',
-          'long-lasting',
-        ],
-      },
-      {
-        name: 'Fringe Perm',
-        subtitle: 'Soft curl and volume for fringe',
-        price: 'From $70',
-        basePrice: 70,
-        duration: 60,
-        serviceTags: ['flat-hair', 'add-volume', 'curly-hair'],
-      },
-      {
-        name: 'Down Perm',
-        subtitle: 'Smooths and tames unruly sides for a polished look',
-        price: 'From $70',
-        basePrice: 70,
-        duration: 60,
-        serviceTags: ['unruly-hair', 'smooth-hair', 'manageable-hair'],
-      },
       {
         name: 'Hair Rebonding',
         subtitle:
@@ -319,12 +278,13 @@ const CATEGORIES = [
     ],
   },
   {
-    id: 'treatment',
-    title: 'Hair Treatments',
-    description: 'Repair, nourish, and restore hair health',
-    icon: 'sparkles',
-    priceRangeMin: 35,
-    priceRangeMax: 350,
+    id: 'scalp-treatment',
+    slug: 'scalp-treatment',
+    title: 'Scalp Treatment',
+    description: 'Scalp care and treatment services',
+    icon: 'droplet',
+    priceRangeMin: 55,
+    priceRangeMax: 95,
     sortOrder: 4,
     items: [
       {
@@ -354,6 +314,18 @@ const CATEGORIES = [
           },
         ],
       },
+    ],
+  },
+  {
+    id: 'keratin-treatment',
+    slug: 'keratin-treatment',
+    title: 'Keratin Treatment',
+    description: 'Smoothing and nourishing keratin treatments',
+    icon: 'sparkles',
+    priceRangeMin: 35,
+    priceRangeMax: 350,
+    sortOrder: 5,
+    items: [
       {
         name: 'Essential Hair Treatment',
         subtitle: 'Nourishing hair care',
@@ -405,6 +377,7 @@ const CATEGORIES = [
         basePrice: 220,
         maxPrice: 300,
         duration: 120,
+        imageUrl: '/background-images/keratin-treatment.png',
         serviceTags: [
           'frizzy-hair',
           'unruly-hair',
@@ -431,6 +404,71 @@ const CATEGORIES = [
           'shiny-hair',
           'thick-hair',
         ],
+      },
+    ],
+  },
+  {
+    id: 'perm',
+    slug: 'hair-perm',
+    title: 'Perm',
+    description: 'Hair perming and wave treatments',
+    icon: 'waves',
+    priceRangeMin: 70,
+    priceRangeMax: 300,
+    sortOrder: 6,
+    items: [
+      {
+        name: 'Classic Perm',
+        subtitle: 'Traditional curls and waves',
+        description: 'Beautiful, bouncy curls using premium Korean formula for lasting results',
+        price: 'From $150',
+        basePrice: 150,
+        maxPrice: 180,
+        duration: 150,
+        imageUrl: '/background-images/hair-perm.jpg',
+        serviceTags: ['flat-hair', 'curly-hair', 'add-volume', 'long-lasting'],
+      },
+      {
+        name: 'Digital Perm',
+        subtitle: 'Traditional curls and waves',
+        description: 'Beautiful, bouncy curls using premium Korean formula for lasting results',
+        price: 'From $200',
+        basePrice: 200,
+        maxPrice: 300,
+        duration: 150,
+        serviceTags: ['flat-hair', 'curly-hair', 'add-volume', 'long-lasting'],
+      },
+      {
+        name: 'Iron Root Perm',
+        subtitle: 'Lift and volume at roots for fuller-looking hair',
+        price: 'From $150',
+        basePrice: 150,
+        maxPrice: 180,
+        duration: 120,
+        serviceTags: [
+          'flat-hair',
+          'oily-scalp',
+          'add-volume',
+          'fine-hair',
+          'asian-hair',
+          'long-lasting',
+        ],
+      },
+      {
+        name: 'Fringe Perm',
+        subtitle: 'Soft curl and volume for fringe',
+        price: 'From $70',
+        basePrice: 70,
+        duration: 60,
+        serviceTags: ['flat-hair', 'add-volume', 'curly-hair'],
+      },
+      {
+        name: 'Down Perm',
+        subtitle: 'Smooths and tames unruly sides for a polished look',
+        price: 'From $70',
+        basePrice: 70,
+        duration: 60,
+        serviceTags: ['unruly-hair', 'smooth-hair', 'manageable-hair'],
       },
     ],
   },
@@ -468,6 +506,7 @@ async function main() {
   for (const category of CATEGORIES) {
     const createdCategory = await prisma.serviceCategory.create({
       data: {
+        slug: category.slug,
         title: category.title,
         description: category.description,
         icon: category.icon,

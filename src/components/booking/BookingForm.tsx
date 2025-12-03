@@ -764,10 +764,8 @@ Please confirm availability. Thank you!`;
         customerName: name,
         customerEmail: email,
         // Category-based fields
-        serviceCategory: selectedCategory.slug,
-        categoryTitle: selectedCategory.title,
+        categoryId: selectedCategory.id,
         estimatedDuration: selectedCategory.estimatedDuration,
-        estimatedPriceRange: selectedCategory.priceNote,
       });
       setBookingConfirmed(confirmedAppt);
       toast.success('Appointment booked successfully! Confirmation sent to your email.', {
@@ -836,7 +834,7 @@ Please confirm availability. Thank you!`;
         </p>
         <div className="mt-6 text-left bg-gray-50 dark:bg-gray-700 p-4 rounded-md space-y-2">
           <p>
-            <strong>Service Category:</strong> {bookingConfirmed.categoryTitle || 'N/A'}
+            <strong>Service Category:</strong> {bookingConfirmed.category?.title || 'N/A'}
           </p>
           {bookingConfirmed.stylist && (
             <p>

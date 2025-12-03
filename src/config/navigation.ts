@@ -1,3 +1,10 @@
+/**
+ * Navigation configuration for featured services
+ *
+ * IMPORTANT: Slugs must match the database categories from prisma/seed.ts
+ * These are the 5 featured services (excludes 'haircut' which is not featured separately)
+ */
+
 export interface ServiceLink {
   slug: string;
   title: string;

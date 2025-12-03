@@ -63,6 +63,7 @@ model User {
 
 model ServiceCategory {
   id            String    @id @default(cuid())
+  slug          String    @unique // URL-friendly identifier (e.g., 'keratin-treatment')
   title         String
   description   String?   // e.g., "Professional cuts and styling"
   icon          String?   // Icon name reference
@@ -70,6 +71,7 @@ model ServiceCategory {
   priceRangeMax Int?      // Category price range maximum
   sortOrder     Int       @default(0) // Control category display order
   items         Service[]
+  appointments  Appointment[] // Category-based bookings
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
@@ -139,11 +141,11 @@ model Appointment {
   date            DateTime
   time            String
 
-  // Category-based booking (NEW)
-  serviceCategory      String? // Category slug (e.g., 'haircut', 'hair-colouring')
-  categoryTitle        String? // Display name (e.g., 'Haircut', 'Colouring')
-  estimatedDuration    Int?    // Estimated duration in minutes from category
-  estimatedPriceRange  String? // Display price (e.g., 'From $20')
+  // Category-based booking
+  categoryId           String?
+  category             ServiceCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  estimatedDuration    Int?
+
 
   // Legacy service-based booking (DEPRECATED - kept for backward compatibility)
   services        Json     // Array of services

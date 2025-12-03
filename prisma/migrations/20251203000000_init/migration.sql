@@ -239,3 +239,98 @@ ALTER TABLE "public"."feedback" ADD CONSTRAINT "feedback_userId_fkey" FOREIGN KE
 
 -- AddForeignKey
 ALTER TABLE "public"."retention_messages" ADD CONSTRAINT "retention_messages_userId_fkey" FOREIGN KEY ("userId") REFERENCES "public"."users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+-- AlterTable
+ALTER TABLE "public"."service_addons" ADD COLUMN     "benefits" TEXT[] DEFAULT ARRAY[]::TEXT[],
+ADD COLUMN     "description" TEXT,
+ADD COLUMN     "duration" INTEGER NOT NULL DEFAULT 0,
+ADD COLUMN     "isPopular" BOOLEAN NOT NULL DEFAULT false,
+ADD COLUMN     "isRecommended" BOOLEAN NOT NULL DEFAULT false;
+
+-- AlterTable
+ALTER TABLE "public"."service_categories" ADD COLUMN     "description" TEXT,
+ADD COLUMN     "icon" TEXT,
+ADD COLUMN     "priceRangeMax" INTEGER,
+ADD COLUMN     "priceRangeMin" INTEGER,
+ADD COLUMN     "sortOrder" INTEGER NOT NULL DEFAULT 0;
+
+-- AlterTable
+ALTER TABLE "public"."services" ADD COLUMN     "imageUrl" TEXT,
+ADD COLUMN     "maxPrice" INTEGER,
+ADD COLUMN     "popularityScore" INTEGER NOT NULL DEFAULT 0,
+ADD COLUMN     "subtitle" TEXT,
+ADD COLUMN     "tags" TEXT[] DEFAULT ARRAY[]::TEXT[];
+/*
+  Warnings:
+
+  - A unique constraint covering the columns `[slug]` on the table `service_categories` will be added. If there are existing duplicate values, this will fail.
+  - Added the required column `slug` to the `service_categories` table without a default value. This is not possible if the table is not empty.
+
+*/
+-- CreateEnum
+CREATE TYPE "public"."TagCategory" AS ENUM ('CONCERN', 'OUTCOME', 'HAIR_TYPE');
+
+-- AlterTable
+ALTER TABLE "public"."admin_settings" ALTER COLUMN "businessName" SET DEFAULT 'Signature Trims Hair Salon',
+ALTER COLUMN "businessAddress" SET DEFAULT '930 Yishun Avenue 1 #01-127, Singapore 760930',
+ALTER COLUMN "businessPhone" SET DEFAULT '(555) 123-4567';
+
+-- AlterTable
+ALTER TABLE "public"."appointments" ADD COLUMN     "categoryId" TEXT,
+ADD COLUMN     "categoryTitle" TEXT,
+ADD COLUMN     "estimatedDuration" INTEGER,
+ADD COLUMN     "estimatedPriceRange" TEXT,
+ADD COLUMN     "serviceCategory" TEXT;
+
+-- AlterTable
+ALTER TABLE "public"."service_categories" ADD COLUMN     "slug" TEXT NOT NULL;
+
+-- CreateTable
+CREATE TABLE "public"."service_tags" (
+    "id" TEXT NOT NULL,
+    "slug" TEXT NOT NULL,
+    "label" TEXT NOT NULL,
+    "category" "public"."TagCategory" NOT NULL,
+    "description" TEXT,
+    "iconName" TEXT,
+    "sortOrder" INTEGER NOT NULL DEFAULT 0,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "service_tags_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "public"."service_tag_relations" (
+    "id" TEXT NOT NULL,
+    "serviceId" TEXT NOT NULL,
+    "tagId" TEXT NOT NULL,
+
+    CONSTRAINT "service_tag_relations_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateIndex
+CREATE UNIQUE INDEX "service_tags_slug_key" ON "public"."service_tags"("slug");
+
+-- CreateIndex
+CREATE INDEX "service_tags_category_idx" ON "public"."service_tags"("category");
+
+-- CreateIndex
+CREATE INDEX "service_tag_relations_serviceId_idx" ON "public"."service_tag_relations"("serviceId");
+
+-- CreateIndex
+CREATE INDEX "service_tag_relations_tagId_idx" ON "public"."service_tag_relations"("tagId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "service_tag_relations_serviceId_tagId_key" ON "public"."service_tag_relations"("serviceId", "tagId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "service_categories_slug_key" ON "public"."service_categories"("slug");
+
+-- AddForeignKey
+ALTER TABLE "public"."appointments" ADD CONSTRAINT "appointments_categoryId_fkey" FOREIGN KEY ("categoryId") REFERENCES "public"."service_categories"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "public"."service_tag_relations" ADD CONSTRAINT "service_tag_relations_serviceId_fkey" FOREIGN KEY ("serviceId") REFERENCES "public"."services"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "public"."service_tag_relations" ADD CONSTRAINT "service_tag_relations_tagId_fkey" FOREIGN KEY ("tagId") REFERENCES "public"."service_tags"("id") ON DELETE CASCADE ON UPDATE CASCADE;

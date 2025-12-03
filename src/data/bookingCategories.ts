@@ -4,6 +4,9 @@
  * Simplified category-based service selection for booking flow.
  * Each category represents a high-level service type that customers select
  * before choosing specific service details with their stylist.
+ *
+ * IMPORTANT: These categories should match the database categories from prisma/seed.ts
+ * Database is the single source of truth. Keep slugs, titles, and descriptions in sync.
  */
 
 export interface BookingCategory {

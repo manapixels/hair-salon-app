@@ -276,6 +276,7 @@ export const getAppointments = async (): Promise<Appointment[]> => {
   const appointments = await prisma.appointment.findMany({
     include: {
       stylist: true,
+      category: true, // Include category relation
     },
     orderBy: { date: 'asc' },
   });
@@ -304,11 +305,19 @@ export const getAppointments = async (): Promise<Appointment[]> => {
         }
       : undefined,
     calendarEventId: apt.calendarEventId ?? undefined,
-    // Convert null to undefined for category fields
-    serviceCategory: apt.serviceCategory ?? undefined,
-    categoryTitle: apt.categoryTitle ?? undefined,
+    // Category-based booking fields
+    categoryId: apt.categoryId ?? undefined,
+    category: apt.category
+      ? {
+          ...apt.category,
+          description: apt.category.description ?? undefined,
+          icon: apt.category.icon ?? undefined,
+          priceRangeMin: apt.category.priceRangeMin ?? undefined,
+          priceRangeMax: apt.category.priceRangeMax ?? undefined,
+          items: [], // Don't load all services for appointments
+        }
+      : undefined,
     estimatedDuration: apt.estimatedDuration ?? undefined,
-    estimatedPriceRange: apt.estimatedPriceRange ?? undefined,
   }));
 };
 
@@ -507,7 +516,7 @@ export const bookNewAppointment = async (
     : await getAvailability(appointmentData.date);
 
   // Determine if this is category-based or service-based booking
-  const isCategoryBased = Boolean(appointmentData.serviceCategory);
+  const isCategoryBased = Boolean(appointmentData.categoryId);
 
   let totalPrice = 0;
   let totalDuration = 0;
@@ -567,13 +576,12 @@ export const bookNewAppointment = async (
       totalPrice,
       totalDuration,
       // Category-based fields (optional)
-      serviceCategory: appointmentData.serviceCategory,
-      categoryTitle: appointmentData.categoryTitle,
+      categoryId: appointmentData.categoryId,
       estimatedDuration: appointmentData.estimatedDuration,
-      estimatedPriceRange: appointmentData.estimatedPriceRange,
     },
     include: {
       stylist: true,
+      category: true,
     },
   });
 
@@ -593,11 +601,19 @@ export const bookNewAppointment = async (
         }
       : undefined,
     calendarEventId: newAppointment.calendarEventId ?? undefined,
-    // Convert null to undefined for category fields
-    serviceCategory: newAppointment.serviceCategory ?? undefined,
-    categoryTitle: newAppointment.categoryTitle ?? undefined,
+    // Category-based booking fields
+    categoryId: newAppointment.categoryId ?? undefined,
+    category: newAppointment.category
+      ? {
+          ...newAppointment.category,
+          description: newAppointment.category.description ?? undefined,
+          icon: newAppointment.category.icon ?? undefined,
+          priceRangeMin: newAppointment.category.priceRangeMin ?? undefined,
+          priceRangeMax: newAppointment.category.priceRangeMax ?? undefined,
+          items: [], // Don't load all services for appointments
+        }
+      : undefined,
     estimatedDuration: newAppointment.estimatedDuration ?? undefined,
-    estimatedPriceRange: newAppointment.estimatedPriceRange ?? undefined,
   };
 };
 
@@ -634,11 +650,9 @@ export const cancelAppointment = async (details: {
       : [],
     stylistId: appointment.stylistId ?? undefined,
     calendarEventId: appointment.calendarEventId ?? undefined,
-    // Convert null to undefined for category fields
-    serviceCategory: appointment.serviceCategory ?? undefined,
-    categoryTitle: appointment.categoryTitle ?? undefined,
+    // Category-based booking fields
+    categoryId: appointment.categoryId ?? undefined,
     estimatedDuration: appointment.estimatedDuration ?? undefined,
-    estimatedPriceRange: appointment.estimatedPriceRange ?? undefined,
   };
 };
 
@@ -701,11 +715,9 @@ export const findAppointmentById = async (id: string): Promise<Appointment | nul
       : [],
     stylistId: appointment.stylistId ?? undefined,
     calendarEventId: appointment.calendarEventId ?? undefined,
-    // Convert null to undefined for category fields
-    serviceCategory: appointment.serviceCategory ?? undefined,
-    categoryTitle: appointment.categoryTitle ?? undefined,
+    // Category-based booking fields
+    categoryId: appointment.categoryId ?? undefined,
     estimatedDuration: appointment.estimatedDuration ?? undefined,
-    estimatedPriceRange: appointment.estimatedPriceRange ?? undefined,
   };
 };
 
@@ -725,11 +737,9 @@ export const findAppointmentsByEmail = async (customerEmail: string): Promise<Ap
       : [],
     stylistId: appointment.stylistId ?? undefined,
     calendarEventId: appointment.calendarEventId ?? undefined,
-    // Convert null to undefined for category fields
-    serviceCategory: appointment.serviceCategory ?? undefined,
-    categoryTitle: appointment.categoryTitle ?? undefined,
+    // Category-based booking fields
+    categoryId: appointment.categoryId ?? undefined,
     estimatedDuration: appointment.estimatedDuration ?? undefined,
-    estimatedPriceRange: appointment.estimatedPriceRange ?? undefined,
   }));
 };
 
@@ -803,11 +813,9 @@ export const updateAppointment = async (
       : [],
     stylistId: updatedAppointment.stylistId ?? undefined,
     calendarEventId: updatedAppointment.calendarEventId ?? undefined,
-    // Convert null to undefined for category fields
-    serviceCategory: updatedAppointment.serviceCategory ?? undefined,
-    categoryTitle: updatedAppointment.categoryTitle ?? undefined,
+    // Category-based booking fields
+    categoryId: updatedAppointment.categoryId ?? undefined,
     estimatedDuration: updatedAppointment.estimatedDuration ?? undefined,
-    estimatedPriceRange: updatedAppointment.estimatedPriceRange ?? undefined,
   };
 };
 
@@ -1426,11 +1434,9 @@ export const getUnsyncedAppointments = async (): Promise<Appointment[]> => {
         }
       : undefined,
     calendarEventId: apt.calendarEventId ?? undefined,
-    // Convert null to undefined for category fields
-    serviceCategory: apt.serviceCategory ?? undefined,
-    categoryTitle: apt.categoryTitle ?? undefined,
+    // Category-based booking fields
+    categoryId: apt.categoryId ?? undefined,
     estimatedDuration: apt.estimatedDuration ?? undefined,
-    estimatedPriceRange: apt.estimatedPriceRange ?? undefined,
   }));
 };
 
@@ -1494,10 +1500,8 @@ export const getLastAppointmentByUserId = async (userId: string): Promise<Appoin
       : [],
     stylistId: appointment.stylistId ?? undefined,
     calendarEventId: appointment.calendarEventId ?? undefined,
-    // Convert null to undefined for category fields
-    serviceCategory: appointment.serviceCategory ?? undefined,
-    categoryTitle: appointment.categoryTitle ?? undefined,
+    // Category-based booking fields
+    categoryId: appointment.categoryId ?? undefined,
     estimatedDuration: appointment.estimatedDuration ?? undefined,
-    estimatedPriceRange: appointment.estimatedPriceRange ?? undefined,
   };
 };

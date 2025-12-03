@@ -50,6 +50,7 @@ export interface Service {
 
 export interface ServiceCategory {
   id: string;
+  slug: string;
   title: string;
   description?: string;
   icon?: string;
@@ -90,11 +91,10 @@ export interface Appointment {
   date: Date;
   time: string;
 
-  // Category-based booking (NEW)
-  serviceCategory?: string; // Category slug (e.g., 'haircut', 'hair-colouring')
-  categoryTitle?: string; // Display name (e.g., 'Haircut', 'Colouring')
-  estimatedDuration?: number; // Estimated duration in minutes from category
-  estimatedPriceRange?: string; // Display price (e.g., 'From $20')
+  // Category-based booking
+  categoryId?: string;
+  category?: ServiceCategory;
+  estimatedDuration?: number;
 
   // Legacy service-based booking (DEPRECATED - kept for backward compatibility)
   services: Service[];

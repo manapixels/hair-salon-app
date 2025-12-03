@@ -35,15 +35,13 @@ export async function POST(request: NextRequest) {
       stylistId,
       customerName,
       customerEmail,
-      // NEW: Category-based booking fields
-      serviceCategory,
-      categoryTitle,
+      // Category-based booking fields
+      categoryId,
       estimatedDuration,
-      estimatedPriceRange,
     } = body;
 
     // Validate required fields (either category-based OR service-based)
-    const hasCategory = Boolean(serviceCategory);
+    const hasCategory = Boolean(categoryId);
     const hasServices = Boolean(services && Array.isArray(services) && services.length > 0);
 
     if (!date || !time || !customerName || !customerEmail) {
@@ -52,7 +50,7 @@ export async function POST(request: NextRequest) {
 
     if (!hasCategory && !hasServices) {
       return NextResponse.json(
-        { message: 'Either serviceCategory or services must be provided.' },
+        { message: 'Either categoryId or services must be provided.' },
         { status: 400 },
       );
     }
@@ -69,10 +67,8 @@ export async function POST(request: NextRequest) {
       customerEmail,
       userId: existingUser?.id, // Link to user if they have an account
       // Category-based fields (optional)
-      serviceCategory,
-      categoryTitle,
+      categoryId,
       estimatedDuration,
-      estimatedPriceRange,
     };
 
     const newAppointment = await bookNewAppointment(appointmentData);
