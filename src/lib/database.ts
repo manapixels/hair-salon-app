@@ -1149,44 +1149,92 @@ export const updateUserProfile = async (
 };
 
 export const getUserAppointments = async (userId: string): Promise<Appointment[]> => {
-  const appointments = await prisma.appointment.findMany({
-    where: { userId },
-    include: {
-      stylist: {
-        select: {
-          id: true,
-          name: true,
-          email: true,
+  try {
+    console.log('[getUserAppointments] Querying appointments for userId:', userId);
+
+    const appointments = await prisma.appointment.findMany({
+      where: { userId },
+      include: {
+        stylist: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
         },
       },
-    },
-    orderBy: [{ date: 'desc' }, { time: 'desc' }],
-  });
+      orderBy: [{ date: 'desc' }, { time: 'desc' }],
+    });
 
-  return appointments.map(appointment => ({
-    id: appointment.id,
-    date: appointment.date,
-    time: appointment.time,
-    services: Array.isArray(appointment.services)
-      ? (appointment.services as unknown as Service[])
-      : [],
-    stylistId: appointment.stylistId,
-    stylist: appointment.stylist
-      ? {
-          id: appointment.stylist.id,
-          name: appointment.stylist.name,
-          email: appointment.stylist.email,
-        }
-      : undefined,
-    customerName: appointment.customerName,
-    customerEmail: appointment.customerEmail,
-    totalPrice: appointment.totalPrice,
-    totalDuration: appointment.totalDuration,
-    calendarEventId: appointment.calendarEventId,
-    userId: appointment.userId,
-    createdAt: appointment.createdAt,
-    updatedAt: appointment.updatedAt,
-  }));
+    console.log(`[getUserAppointments] Found ${appointments.length} raw appointments`);
+
+    // Map appointments with error handling for each record
+    return appointments.map((appointment, index) => {
+      try {
+        return {
+          id: appointment.id,
+          date: appointment.date,
+          time: appointment.time,
+          services: Array.isArray(appointment.services)
+            ? (appointment.services as unknown as Service[])
+            : [],
+          stylistId: appointment.stylistId,
+          stylist: appointment.stylist
+            ? {
+                id: appointment.stylist.id,
+                name: appointment.stylist.name,
+                email: appointment.stylist.email,
+              }
+            : undefined,
+          customerName: appointment.customerName,
+          customerEmail: appointment.customerEmail,
+          totalPrice: appointment.totalPrice,
+          totalDuration: appointment.totalDuration,
+          calendarEventId: appointment.calendarEventId,
+          userId: appointment.userId,
+          createdAt: appointment.createdAt,
+          updatedAt: appointment.updatedAt,
+        };
+      } catch (mapError) {
+        console.error(`[getUserAppointments] Error mapping appointment ${index}:`, {
+          appointmentId: appointment.id,
+          error: mapError,
+          services: appointment.services,
+        });
+        // Return a safe version of the appointment
+        return {
+          id: appointment.id,
+          date: appointment.date,
+          time: appointment.time,
+          services: [], // Default to empty array if services are malformed
+          stylistId: appointment.stylistId,
+          stylist: appointment.stylist
+            ? {
+                id: appointment.stylist.id,
+                name: appointment.stylist.name,
+                email: appointment.stylist.email,
+              }
+            : undefined,
+          customerName: appointment.customerName,
+          customerEmail: appointment.customerEmail,
+          totalPrice: appointment.totalPrice,
+          totalDuration: appointment.totalDuration,
+          calendarEventId: appointment.calendarEventId,
+          userId: appointment.userId,
+          createdAt: appointment.createdAt,
+          updatedAt: appointment.updatedAt,
+        };
+      }
+    });
+  } catch (error) {
+    console.error('[getUserAppointments] Database query failed:', {
+      error,
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      userId,
+    });
+    throw error; // Re-throw to be handled by API route
+  }
 };
 
 export const getUserAppointmentById = async (

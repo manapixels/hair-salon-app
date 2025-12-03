@@ -4,7 +4,7 @@ import { useState, useMemo, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import { toast } from 'sonner';
 
-import type { Service, TimeSlot, Appointment, Stylist, ServiceCategory } from '@/types';
+import type { Service, TimeSlot, Appointment, Stylist } from '@/types';
 import { type BookingCategory, getCategoryBySlug } from '@/data/bookingCategories';
 import { useBooking } from '@/context/BookingContext';
 import { useAuth } from '@/context/AuthContext';
@@ -16,28 +16,21 @@ import {
   getDurationColor,
   getDurationPercentage,
   formatDisplayDate,
+  formatTimeDisplay,
 } from '@/lib/timeUtils';
 import { LoadingSpinner } from '../feedback/loaders/LoadingSpinner';
 import { StylistCardSkeleton } from '../feedback/loaders/StylistCardSkeleton';
 import { useDelayedLoading } from '@/hooks/useDelayedLoading';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from '@/components/ui/accordion';
-import { Check, CheckCircle, User, WhatsAppIcon } from '@/lib/icons';
+import { Check } from '@/lib/icons';
 import { MobileBookingSummary } from './MobileBookingSummary';
 import { BookingConfirmationSummary } from './BookingConfirmationSummary';
 import { SimpleCategorySelector } from './SimpleCategorySelector';
 import { useRef } from 'react';
-import { Edit2 } from 'lucide-react';
+import { Pencil } from 'lucide-react';
 
 // Code-split heavy components for better performance
 const StylistSelector = dynamic(
@@ -88,35 +81,32 @@ const getTodayInSalonTimezone = (): Date => {
 
 // Collapsed Step Summary Component
 const CollapsedStepSummary: React.FC<{
-  stepNumber: number;
-  title: string;
-  summary: string;
+  selectionType: string;
+  selection: string;
   price?: string;
   duration?: string;
   onEdit: () => void;
   id?: string;
-}> = ({ stepNumber, title, summary, price, duration, onEdit, id }) => {
+}> = ({ selectionType, selection, price, duration, onEdit, id }) => {
   return (
     <div
-      className="border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 rounded-lg p-3 mb-4 transition-all duration-200"
+      className="border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 rounded-lg mb-4 transition-all duration-200"
       role="region"
-      aria-label={`Completed: ${title}`}
+      aria-label={`Completed: ${selection}`}
     >
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex items-start gap-3 flex-1 min-w-0">
-          {/* Checkmark - neutral gray */}
-          <div className="flex items-center justify-center w-6 h-6 rounded-full border-2 border-gray-400 dark:border-gray-600 shrink-0">
-            <Check className="h-3.5 w-3.5 text-gray-600 dark:text-gray-400" />
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex items-start gap-2 flex-1 min-w-0 p-3">
+          {/* Checkmark */}
+          <div className="flex items-center justify-center w-6 h-6 shrink-0">
+            <Check strokeWidth={4} className="h-3.5 w-3.5 text-gray-600 dark:text-gray-400" />
           </div>
 
           <div className="flex-1 min-w-0">
             {/* Title */}
-            <h3 id={id} className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              {stepNumber}. {title}
+            <h3 id={id} className="text-sm mb-1">
+              <span className="text-gray-600">{selectionType}</span>:{' '}
+              <b className="text-primary dark:text-gray-300 font-medium">{selection}</b>
             </h3>
-
-            {/* Summary */}
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-1.5">{summary}</p>
 
             {/* Optional badges */}
             {(price || duration) && (
@@ -137,294 +127,19 @@ const CollapsedStepSummary: React.FC<{
         </div>
 
         {/* Single Edit button */}
-        <button
-          onClick={onEdit}
-          className="flex items-center gap-1.5 px-2.5 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-gray-700 rounded-md transition-colors shrink-0"
-          aria-label={`Edit ${title}`}
+        <Button
+          variant="secondary"
+          className="bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 h-auto self-stretch"
+          onClick={e => {
+            e.stopPropagation();
+            e.preventDefault();
+            onEdit();
+          }}
+          aria-label={`Edit ${selection}`}
         >
-          <Edit2 className="h-3.5 w-3.5" />
+          <Pencil className="h-3.5 w-3.5" />
           <span className="hidden sm:inline">Edit</span>
-        </button>
-      </div>
-    </div>
-  );
-};
-
-const ServiceSelector: React.FC<{
-  categories: ServiceCategory[];
-  selectedServices: Service[];
-  selectedAddons: string[];
-  onServiceToggle: (service: Service) => void;
-  onAddonToggle: (addonId: string, serviceId: string) => void;
-  loading: boolean;
-}> = ({
-  categories,
-  selectedServices,
-  selectedAddons,
-  onServiceToggle,
-  onAddonToggle,
-  loading,
-}) => {
-  const [activeCategory, setActiveCategory] = useState<string>('all');
-  const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
-
-  // Initialize expanded categories
-  useEffect(() => {
-    if (categories.length > 0 && expandedCategories.length === 0) {
-      // Default to first category expanded
-      setExpandedCategories([categories[0].id]);
-    }
-  }, [categories, expandedCategories]);
-
-  const toggleCategory = (categoryId: string) => {
-    setExpandedCategories(prev =>
-      prev.includes(categoryId) ? prev.filter(id => id !== categoryId) : [...prev, categoryId],
-    );
-  };
-
-  const displayCategories = useMemo(() => {
-    if (activeCategory === 'all') return categories;
-    return categories.filter(c => c.id === activeCategory);
-  }, [categories, activeCategory]);
-
-  if (loading) {
-    return (
-      <div className="space-y-4">
-        <h2 className="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">
-          1. Select Services
-        </h2>
-        <div className="flex justify-center p-8">
-          <LoadingSpinner message="Loading services..." />
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div id="service-selector">
-      <h2 className="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">
-        1. Select Services
-      </h2>
-
-      {/* Category Tabs (Desktop) */}
-      <div className="hidden md:flex space-x-2 mb-6 overflow-x-auto pb-2">
-        <button
-          onClick={() => setActiveCategory('all')}
-          className={`px-4 py-2 rounded-full text-sm font-medium transition-colors whitespace-nowrap ${
-            activeCategory === 'all'
-              ? 'bg-stone-900 text-white'
-              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-          }`}
-        >
-          All Services
-        </button>
-        {categories.map(category => (
-          <button
-            key={category.id}
-            onClick={() => setActiveCategory(category.id)}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors whitespace-nowrap ${
-              activeCategory === category.id
-                ? 'bg-stone-900 text-white'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-            }`}
-          >
-            {category.title}
-          </button>
-        ))}
-      </div>
-
-      <div className="space-y-8">
-        {displayCategories.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">No services found.</div>
-        ) : (
-          <Accordion
-            type="multiple"
-            value={expandedCategories}
-            onValueChange={setExpandedCategories}
-            className="w-full space-y-4"
-          >
-            {displayCategories.map(category => (
-              <div
-                key={category.id}
-                className={
-                  activeCategory !== 'all' && activeCategory !== category.id ? 'hidden' : ''
-                }
-              >
-                <AccordionItem value={category.id} className="border-none">
-                  <AccordionTrigger className="w-full flex items-center justify-between text-lg font-medium text-gray-700 dark:text-gray-300 mb-3 uppercase tracking-wide sticky top-0 bg-[#FDFCF8] px-4 py-3 z-10 hover:text-stone-900 transition-colors rounded-md hover:no-underline group">
-                    <div className="flex flex-col items-start text-left">
-                      <span>{category.title}</span>
-                      {category.description && (
-                        <span className="text-xs font-normal normal-case text-gray-500 tracking-normal mt-0.5">
-                          {category.description}
-                          {category.priceRangeMin && category.priceRangeMax && (
-                            <>
-                              {' '}
-                              • ${category.priceRangeMin}-${category.priceRangeMax}
-                            </>
-                          )}
-                        </span>
-                      )}
-                    </div>
-                  </AccordionTrigger>
-
-                  <AccordionContent>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2 duration-200 pt-2">
-                      {category.items.map(service => {
-                        const isSelected = selectedServices.some(s => s.id === service.id);
-                        return (
-                          <Card
-                            key={service.id}
-                            onClick={() => onServiceToggle(service)}
-                            className={`cursor-pointer h-full transition-all hover:border-accent ${
-                              isSelected ? 'border-accent bg-accent/10' : 'hover:shadow-md'
-                            }`}
-                          >
-                            <CardHeader className="pb-2">
-                              <div className="flex justify-between items-start gap-2">
-                                <div className="flex-1">
-                                  <div className="flex items-center gap-2">
-                                    <CardTitle className="text-base">{service.name}</CardTitle>
-                                    {isSelected && (
-                                      <div className="flex items-center justify-center w-5 h-5 rounded-full bg-accent text-white shrink-0">
-                                        <Check className="w-3 h-3" />
-                                      </div>
-                                    )}
-                                  </div>
-                                  {service.subtitle && (
-                                    <p className="text-xs text-gray-500 mt-0.5">
-                                      {service.subtitle}
-                                    </p>
-                                  )}
-                                </div>
-                                <span className="text-sm font-semibold text-foreground shrink-0">
-                                  {service.price}
-                                </span>
-                              </div>
-                            </CardHeader>
-                            <CardContent>
-                              {service.description && (
-                                <p className="text-sm text-muted-foreground mb-2">
-                                  {service.description}
-                                </p>
-                              )}
-                              <div className="flex items-center gap-3 text-xs text-gray-500 mb-3">
-                                <span>{service.duration} mins</span>
-                                {service.popularityScore >= 80 && (
-                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-accent/10 text-accent-foreground font-medium">
-                                    <svg
-                                      className="w-3 h-3"
-                                      fill="currentColor"
-                                      viewBox="0 0 20 20"
-                                    >
-                                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                                    </svg>
-                                    Popular
-                                  </span>
-                                )}
-                              </div>
-
-                              {/* Add-ons Section */}
-                              {isSelected && service.addons && service.addons.length > 0 && (
-                                <div
-                                  className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700"
-                                  onClick={e => e.stopPropagation()}
-                                >
-                                  <div className="flex items-center justify-between mb-3">
-                                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                                      Enhance Your Service
-                                    </p>
-                                    {service.addons.some(a => a.isRecommended) && (
-                                      <span className="text-xs px-2 py-0.5 rounded-full bg-accent/10 text-accent-foreground font-medium">
-                                        Recommended
-                                      </span>
-                                    )}
-                                  </div>
-                                  <div className="space-y-2">
-                                    {service.addons.map(addon => {
-                                      const isAddonSelected = selectedAddons.includes(addon.id);
-                                      return (
-                                        <label
-                                          key={addon.id}
-                                          htmlFor={addon.id}
-                                          className={`
-                                            flex items-start gap-2 p-2 rounded-lg border cursor-pointer
-                                            transition-all
-                                            ${
-                                              isAddonSelected
-                                                ? 'border-accent bg-accent/10'
-                                                : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
-                                            }
-                                          `}
-                                        >
-                                          <Checkbox
-                                            id={addon.id}
-                                            checked={isAddonSelected}
-                                            onCheckedChange={() =>
-                                              onAddonToggle(addon.id, service.id)
-                                            }
-                                            className="mt-0.5 shrink-0 border-gray-300 data-[state=checked]:bg-accent data-[state=checked]:border-accent"
-                                          />
-                                          <div className="flex-1 min-w-0">
-                                            <div className="flex items-start justify-between gap-2">
-                                              <span className="text-sm font-medium text-foreground">
-                                                {addon.name}
-                                              </span>
-                                              <span className="text-sm font-semibold text-foreground shrink-0">
-                                                {addon.price}
-                                              </span>
-                                            </div>
-                                            {addon.description && (
-                                              <p className="text-xs text-muted-foreground mt-1">
-                                                {addon.description}
-                                              </p>
-                                            )}
-                                            {addon.benefits && addon.benefits.length > 0 && (
-                                              <ul className="mt-1.5 space-y-0.5">
-                                                {addon.benefits.map((benefit, i) => (
-                                                  <li
-                                                    key={i}
-                                                    className="text-xs text-gray-500 flex items-center gap-1"
-                                                  >
-                                                    <svg
-                                                      className="w-3 h-3 text-green-600 shrink-0"
-                                                      fill="currentColor"
-                                                      viewBox="0 0 20 20"
-                                                    >
-                                                      <path
-                                                        fillRule="evenodd"
-                                                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                                                        clipRule="evenodd"
-                                                      />
-                                                    </svg>
-                                                    {benefit}
-                                                  </li>
-                                                ))}
-                                              </ul>
-                                            )}
-                                            {addon.isPopular && (
-                                              <p className="text-xs text-accent-foreground mt-1.5 font-medium">
-                                                ⭐ Popular choice
-                                              </p>
-                                            )}
-                                          </div>
-                                        </label>
-                                      );
-                                    })}
-                                  </div>
-                                </div>
-                              )}
-                            </CardContent>
-                          </Card>
-                        );
-                      })}
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
-              </div>
-            ))}
-          </Accordion>
-        )}
+        </Button>
       </div>
     </div>
   );
@@ -710,30 +425,11 @@ const ConfirmationForm: React.FC<{
             </>
           ) : (
             <>
-              <CheckCircle className="h-6 w-6 mr-2" aria-hidden="true" />
+              <Check className="h-6 w-6 mr-2" aria-hidden="true" />
               Confirm Appointment
             </>
           )}
         </Button>
-
-        {/* WhatsApp Fallback */}
-        {showWhatsAppFallback && (
-          <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
-            <p className="text-sm text-gray-600 dark:text-gray-400 text-center mb-3">
-              Prefer personal assistance?
-            </p>
-            <a
-              href={whatsappUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-full flex items-center justify-center gap-2 py-2 px-4 text-sm font-medium text-green-700 dark:text-green-400 hover:text-green-800 dark:hover:text-green-300 transition-colors"
-              aria-label="Contact us on WhatsApp for booking assistance"
-            >
-              <WhatsAppIcon className="h-5 w-5" />
-              Chat with us on WhatsApp
-            </a>
-          </div>
-        )}
       </form>
     </div>
   );
@@ -836,12 +532,6 @@ const BookingForm: React.FC<BookingFormProps> = ({
 }) => {
   // Category-based booking state (NEW)
   const [selectedCategory, setSelectedCategory] = useState<BookingCategory | null>(null);
-  const [loadingServices, setLoadingServices] = useState(false); // No longer fetching services
-
-  // Keep for backward compatibility (deprecated)
-  const [categories, setCategories] = useState<ServiceCategory[]>([]);
-  const [selectedServices, setSelectedServices] = useState<Service[]>([]);
-  const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
 
   // Common state
   const [selectedStylist, setSelectedStylist] = useState<Stylist | null>(null);
@@ -853,6 +543,7 @@ const BookingForm: React.FC<BookingFormProps> = ({
 
   // Step tracking
   const [currentStep, setCurrentStep] = useState(1);
+  const [editingStep, setEditingStep] = useState<number | null>(null);
 
   // Refs for scrolling
   const serviceSectionRef = useRef<HTMLDivElement>(null);
@@ -863,25 +554,6 @@ const BookingForm: React.FC<BookingFormProps> = ({
   // Track user scrolling to prevent auto-scroll conflicts
   const [userScrolling, setUserScrolling] = useState(false);
   const scrollTimeoutRef = useRef<NodeJS.Timeout>();
-
-  // DEPRECATED: No longer fetching services from API in category-based booking
-  // Categories are now defined statically in bookingCategories.ts
-  // useEffect(() => {
-  //   const fetchServices = async () => {
-  //     try {
-  //       const response = await fetch('/api/services');
-  //       if (!response.ok) throw new Error('Failed to fetch services');
-  //       const data = await response.json();
-  //       setCategories(data);
-  //     } catch (error) {
-  //       console.error('Error loading services:', error);
-  //       toast.error('Failed to load services. Please try refreshing the page.');
-  //     } finally {
-  //       setLoadingServices(false);
-  //     }
-  //   };
-  //   fetchServices();
-  // }, []);
 
   // User scroll detection
   useEffect(() => {
@@ -1018,49 +690,27 @@ Please confirm availability. Thank you!`;
     return `https://wa.me/${whatsAppNumber}?text=${encodeURIComponent(message)}`;
   }, [selectedCategory, selectedStylist, selectedDate, selectedTime]);
 
-  // DEPRECATED: Old service/addon handlers (kept for reference)
-  // const handleServiceToggle = (service: Service) => {
-  //   setSelectedServices(prev => {
-  //     const isSelected = prev.some(s => s.id === service.id);
-  //     if (isSelected) {
-  //       // Remove service and its addons
-  //       const newServices = prev.filter(s => s.id !== service.id);
-  //       if (service.addons) {
-  //         const addonIds = service.addons.map(a => a.id);
-  //         setSelectedAddons(current => current.filter(id => !addonIds.includes(id)));
-  //       }
-  //       return newServices;
-  //     } else {
-  //       return [...prev, service];
-  //     }
-  //   });
-  // };
-
-  // const handleAddonToggle = (addonId: string, serviceId: string) => {
-  //   setSelectedAddons(prev => {
-  //     if (prev.includes(addonId)) {
-  //       return prev.filter(id => id !== addonId);
-  //     } else {
-  //       return [...prev, addonId];
-  //     }
-  //   });
-  // };
-
-  // NEW: Category selection handler
+  // Category selection handler
   const handleCategorySelect = (category: BookingCategory) => {
     setSelectedCategory(category);
+    // Clear editing state when user makes a selection
+    setEditingStep(null);
     // Auto-advance to Step 2 (Stylist) with a small delay
     setTimeout(() => scrollToSection(stylistSectionRef), 300);
   };
 
   const handleStylistSelect = (stylist: Stylist | null) => {
     setSelectedStylist(stylist);
+    // Clear editing state when user makes a selection
+    setEditingStep(null);
     // Auto-scroll to date time picker
     scrollToSection(dateTimeSectionRef);
   };
 
   const handleTimeSelect = (time: string | null) => {
     setSelectedTime(time);
+    // Clear editing state when user makes a selection
+    setEditingStep(null);
     if (time) {
       // Auto-scroll to confirmation
       scrollToSection(confirmationSectionRef);
@@ -1123,6 +773,9 @@ Please confirm availability. Thank you!`;
   };
 
   const handleEditStep = (step: number) => {
+    // Set editing state to override normal step calculation
+    setEditingStep(step);
+
     // Clear dependent selections
     if (step === 1) {
       // Editing services - clear stylist and time
@@ -1182,9 +835,6 @@ Please confirm availability. Thank you!`;
             </p>
           )}
         </div>
-        <p className="mt-4 text-sm text-gray-500">
-          Specific service details and pricing will be confirmed during your appointment.
-        </p>
         <p className="mt-2 text-sm text-gray-500">
           A confirmation has been sent to {bookingConfirmed.customerEmail}.
         </p>
@@ -1225,12 +875,10 @@ Please confirm availability. Thank you!`;
             aria-labelledby="step-1-heading"
             aria-current={currentStep === 1 ? 'step' : undefined}
           >
-            {currentStep > 1 && selectedCategory ? (
+            {currentStep > 1 && selectedCategory && editingStep !== 1 ? (
               <CollapsedStepSummary
-                stepNumber={1}
-                title="Service Category Selected"
-                summary={selectedCategory.title}
-                duration={`Est. ${totalDuration} min`}
+                selectionType="Service"
+                selection={`${selectedCategory.title}`}
                 onEdit={() => handleEditStep(1)}
                 id="step-1-heading"
               />
@@ -1238,13 +886,12 @@ Please confirm availability. Thank you!`;
               <SimpleCategorySelector
                 selectedCategory={selectedCategory}
                 onCategorySelect={handleCategorySelect}
-                loading={loadingServices}
               />
             )}
           </div>
 
           {/* Step 2: Stylist */}
-          {selectedCategory && (
+          {selectedCategory && editingStep !== 1 && (
             <div
               ref={stylistSectionRef}
               className="outline-none"
@@ -1252,11 +899,10 @@ Please confirm availability. Thank you!`;
               aria-labelledby="step-2-heading"
               aria-current={currentStep === 2 ? 'step' : undefined}
             >
-              {currentStep > 2 && selectedStylist ? (
+              {currentStep > 2 && selectedStylist && editingStep !== 2 ? (
                 <CollapsedStepSummary
-                  stepNumber={2}
-                  title="Stylist Selected"
-                  summary={selectedStylist ? selectedStylist.name : 'No preference (Quick Book)'}
+                  selectionType="Stylist"
+                  selection={selectedStylist ? selectedStylist.name : 'No preference (Quick Book)'}
                   onEdit={() => handleEditStep(2)}
                   id="step-2-heading"
                 />
@@ -1274,7 +920,7 @@ Please confirm availability. Thank you!`;
           )}
 
           {/* Step 3: Date & Time */}
-          {selectedStylist && selectedCategory && (
+          {selectedStylist && selectedCategory && editingStep !== 1 && editingStep !== 2 && (
             <div
               ref={dateTimeSectionRef}
               className="outline-none"
@@ -1282,11 +928,10 @@ Please confirm availability. Thank you!`;
               aria-labelledby="step-3-heading"
               aria-current={currentStep === 3 ? 'step' : undefined}
             >
-              {currentStep > 3 && selectedTime ? (
+              {currentStep > 3 && selectedTime && editingStep !== 3 ? (
                 <CollapsedStepSummary
-                  stepNumber={3}
-                  title="Date & Time Selected"
-                  summary={`${formatDisplayDate(selectedDate)} at ${selectedTime}`}
+                  selectionType="Date & Time"
+                  selection={`${formatDisplayDate(selectedDate)}, ${formatTimeDisplay(selectedTime)}`}
                   duration={`${totalDuration} min`}
                   onEdit={() => handleEditStep(3)}
                   id="step-3-heading"
@@ -1307,7 +952,7 @@ Please confirm availability. Thank you!`;
           )}
 
           {/* Step 4: Confirmation */}
-          {selectedTime && (
+          {selectedTime && editingStep !== 1 && editingStep !== 2 && editingStep !== 3 && (
             <div
               ref={confirmationSectionRef}
               className="outline-none animate-scale-in"
@@ -1342,6 +987,8 @@ Please confirm availability. Thank you!`;
             onClear={handleReset}
           />
         </div>
+        {/* To buffer sticky summary on mobile */}
+        <div className="pb-16"></div>
       </div>
 
       {/* Mobile Sticky Summary */}

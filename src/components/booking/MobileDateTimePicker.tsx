@@ -121,18 +121,18 @@ export function MobileDateTimePicker({
                     flex flex-col items-center justify-center min-w-[4.5rem] h-20 rounded-2xl border transition-all snap-center
                     ${
                       isSelected
-                        ? 'bg-[#D4F954] border-[#D4F954] text-black shadow-md scale-105'
+                        ? 'bg-primary border-primary text-white shadow-md scale-105'
                         : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600'
                     }
                   `}
                 >
                   <span
-                    className={`text-xs font-medium mb-1 ${isSelected ? 'text-black/70' : 'text-gray-500 dark:text-gray-400'}`}
+                    className={`text-xs font-medium mb-1 ${isSelected ? 'text-white/70' : 'text-gray-500 dark:text-gray-400'}`}
                   >
                     {format(date, 'EEE')}
                   </span>
                   <span
-                    className={`text-xl font-bold ${isSelected ? 'text-black' : 'text-gray-900 dark:text-white'}`}
+                    className={`text-xl font-bold ${isSelected ? 'text-white' : 'text-gray-900 dark:text-white'}`}
                   >
                     {format(date, 'dd')}
                   </span>
@@ -247,7 +247,7 @@ function TimeChip({
         flex-shrink-0 px-5 py-2.5 rounded-full text-sm font-medium transition-all
         ${
           isSelected
-            ? 'bg-[#D4F954] text-black shadow-md scale-105 ring-2 ring-[#D4F954] ring-offset-2 dark:ring-offset-gray-900'
+            ? 'bg-primary text-black shadow-md scale-105 ring-2 ring-primary ring-offset-2 dark:ring-offset-gray-900'
             : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
         }
         ${!slot.available && 'opacity-50 cursor-not-allowed bg-gray-50 dark:bg-gray-900 text-gray-400'}

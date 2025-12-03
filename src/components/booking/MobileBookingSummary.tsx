@@ -109,9 +109,9 @@ export const MobileBookingSummary = memo<MobileBookingSummaryProps>(
             <Button
               onClick={onNext}
               variant="default"
-              size={isCompact ? 'sm' : 'default'}
+              size="lg"
               disabled={isSubmitting}
-              className="min-w-[120px] min-h-[44px] shadow-md"
+              className="shadow-md"
             >
               {isSubmitting && <Spinner className="mr-2" />}
               {nextLabel}

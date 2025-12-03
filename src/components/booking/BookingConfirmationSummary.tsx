@@ -1,8 +1,8 @@
 import React from 'react';
-import { format } from 'date-fns';
-import { User, Calendar, Clock, X } from 'lucide-react';
+import { User, Calendar, Clock, X, Scissors } from 'lucide-react';
 import { Service, Stylist } from '@/types';
 import { BookingCategory } from '@/data/bookingCategories';
+import { formatShortDate, formatTimeDisplay } from '@/lib/timeUtils';
 
 interface BookingConfirmationSummaryProps {
   selectedServices?: Service[]; // Optional for backward compatibility
@@ -39,7 +39,7 @@ export const BookingConfirmationSummary: React.FC<BookingConfirmationSummaryProp
       <div className="divide-y divide-gray-50 dark:divide-gray-700/50">
         {/* Service/Category */}
         <div className="flex items-center gap-3 p-4 bg-gray-50/50 dark:bg-gray-800/50">
-          <User className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+          <Scissors className="w-5 h-5 text-gray-500 dark:text-gray-400" />
           <div className="text-sm">
             <span className="text-gray-500 dark:text-gray-400 mr-2">
               {isCategoryBased ? 'Service Category:' : 'Services:'}
@@ -47,15 +47,6 @@ export const BookingConfirmationSummary: React.FC<BookingConfirmationSummaryProp
             <span className="font-medium text-gray-900 dark:text-white">{displayText}</span>
           </div>
         </div>
-
-        {/* Disclaimer for category-based booking */}
-        {isCategoryBased && (
-          <div className="px-4 py-3 bg-blue-50/50 dark:bg-blue-900/20">
-            <p className="text-xs text-blue-700 dark:text-blue-300">
-              Specific service details and pricing will be confirmed during your appointment.
-            </p>
-          </div>
-        )}
 
         {/* Stylist */}
         <div className="flex items-center gap-3 p-4 bg-gray-50/50 dark:bg-gray-800/50">
@@ -74,7 +65,7 @@ export const BookingConfirmationSummary: React.FC<BookingConfirmationSummaryProp
           <div className="text-sm">
             <span className="text-gray-500 dark:text-gray-400 mr-2">When:</span>
             <span className="font-medium text-gray-900 dark:text-white">
-              {format(selectedDate, 'EEEE, MMMM d, yyyy')} at {selectedTime}
+              {formatShortDate(selectedDate)}, {formatTimeDisplay(selectedTime)}
             </span>
           </div>
         </div>

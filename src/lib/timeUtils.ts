@@ -2,6 +2,8 @@
  * Time utility functions for appointment booking
  */
 
+import { format } from 'date-fns';
+
 /**
  * Calculate the end time given a start time and duration
  * @param startTime - Time string in format "9:00 AM" or "2:30 PM"
@@ -180,6 +182,36 @@ export function formatLongDate(date: Date | string): string {
 
   return `${dayOfWeek}, ${day} ${month} ${year}`;
 }
+
+/**
+ * Format a date in short format with day of week
+ * For messages and confirmations: "Mon, 18 Oct 2025"
+ * @param date - Date object or string to format
+ * @returns Formatted date string like "Mon, 18 Oct 2025"
+ */
+export function formatShortDate(date: Date | string): string {
+  const dateObj = typeof date === 'string' ? new Date(date) : date;
+
+  // Validate date
+  if (isNaN(dateObj.getTime())) {
+    console.error('Invalid date provided to formatShortDate:', date);
+    return 'Invalid Date';
+  }
+
+  const dayOfWeek = dateObj.toLocaleDateString('en-US', { weekday: 'short' });
+  const day = dateObj.getDate();
+  const month = dateObj.toLocaleDateString('en-US', { month: 'short' });
+  const year = dateObj.getFullYear();
+
+  return `${dayOfWeek}, ${day} ${month} ${year}`;
+}
+
+export const formatTimeDisplay = (time: string) => {
+  const [hours, minutes] = time.split(':');
+  const date = new Date();
+  date.setHours(parseInt(hours), parseInt(minutes));
+  return format(date, 'h:mm a').toLowerCase();
+};
 
 // =============================================================================
 // TIMEZONE UTILITIES FOR UTC/LOCAL CONVERSION
