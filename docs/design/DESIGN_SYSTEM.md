@@ -49,29 +49,6 @@ import { Button } from '@/components/ui/button';
 </Button>
 ```
 
-### IconButton
-
-Icon-only button with variants and loading states (custom component).
-
-```tsx
-import { IconButton } from '@/components/ui';
-import { Settings, Trash2 } from 'lucide-react';
-
-<IconButton
-  variant="ghost"
-  size="md"
-  icon={<Settings />}
-  aria-label="Open settings"
-/>
-
-<IconButton
-  variant="danger"
-  icon={<Trash2 />}
-  aria-label="Delete item"
-  onClick={handleDelete}
-/>
-```
-
 ---
 
 ### Card
