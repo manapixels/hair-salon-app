@@ -16,11 +16,15 @@ const CATEGORIES = [
     id: 'haircut',
     slug: 'haircut',
     title: 'Haircut',
+    shortTitle: 'Haircut',
     description: 'Professional haircuts and styling',
+    priceNote: 'From $20 (price varies by gender/age)',
+    estimatedDuration: 30,
     icon: 'scissors',
     priceRangeMin: 10,
     priceRangeMax: 50,
     sortOrder: 1,
+    isFeatured: false, // Not featured in main navigation
     items: [
       {
         name: "Women's Haircut",
@@ -117,12 +121,17 @@ const CATEGORIES = [
   {
     id: 'colouring',
     slug: 'hair-colouring',
-    title: 'Colouring',
+    title: 'Hair Colouring',
+    shortTitle: 'Colouring',
     description: 'Full color, highlights, root touch-ups',
+    estimatedDuration: 120,
     icon: 'palette',
     priceRangeMin: 70,
     priceRangeMax: 200,
     sortOrder: 2,
+    isFeatured: true,
+    imageUrl: '/background-images/hair-colouring.jpg',
+    illustrationUrl: '/images/illustrations/hair-colouring.png',
     items: [
       {
         name: "Men's Full Head Colouring",
@@ -218,12 +227,17 @@ const CATEGORIES = [
   {
     id: 'rebonding',
     slug: 'hair-rebonding',
-    title: 'Rebonding',
+    title: 'Hair Rebonding',
+    shortTitle: 'Rebonding',
     description: 'Hair straightening and rebonding treatments',
+    estimatedDuration: 180,
     icon: 'move-horizontal',
     priceRangeMin: 70,
     priceRangeMax: 300,
     sortOrder: 3,
+    isFeatured: true,
+    imageUrl: '/background-images/hair-rebonding.jpg',
+    illustrationUrl: '/images/illustrations/hair-rebonding.png',
     items: [
       {
         name: 'Hair Rebonding',
@@ -281,11 +295,16 @@ const CATEGORIES = [
     id: 'scalp-treatment',
     slug: 'scalp-treatment',
     title: 'Scalp Treatment',
+    shortTitle: 'Scalp Treatment',
     description: 'Scalp care and treatment services',
+    estimatedDuration: 60,
     icon: 'droplet',
     priceRangeMin: 55,
     priceRangeMax: 95,
     sortOrder: 4,
+    isFeatured: true,
+    imageUrl: '/background-images/scalp-treatment.png',
+    illustrationUrl: '/images/illustrations/scalp-treatment.png',
     items: [
       {
         name: 'Scalp Treatment',
@@ -320,11 +339,16 @@ const CATEGORIES = [
     id: 'keratin-treatment',
     slug: 'keratin-treatment',
     title: 'Keratin Treatment',
+    shortTitle: 'Keratin Treatment',
     description: 'Smoothing and nourishing keratin treatments',
+    estimatedDuration: 120,
     icon: 'sparkles',
     priceRangeMin: 35,
     priceRangeMax: 350,
     sortOrder: 5,
+    isFeatured: true,
+    imageUrl: '/background-images/keratin-treatment.png',
+    illustrationUrl: '/images/illustrations/keratin-treatment.png',
     items: [
       {
         name: 'Essential Hair Treatment',
@@ -410,12 +434,17 @@ const CATEGORIES = [
   {
     id: 'perm',
     slug: 'hair-perm',
-    title: 'Perm',
+    title: 'Hair Perm',
+    shortTitle: 'Perm',
     description: 'Hair perming and wave treatments',
+    estimatedDuration: 150,
     icon: 'waves',
     priceRangeMin: 70,
     priceRangeMax: 300,
     sortOrder: 6,
+    isFeatured: true,
+    imageUrl: '/background-images/hair-perm.jpg',
+    illustrationUrl: '/images/illustrations/hair-perm.png',
     items: [
       {
         name: 'Classic Perm',
@@ -508,11 +537,17 @@ async function main() {
       data: {
         slug: category.slug,
         title: category.title,
+        shortTitle: (category as any).shortTitle,
         description: category.description,
+        priceNote: (category as any).priceNote,
+        estimatedDuration: (category as any).estimatedDuration,
         icon: category.icon,
         priceRangeMin: category.priceRangeMin,
         priceRangeMax: category.priceRangeMax,
         sortOrder: category.sortOrder,
+        isFeatured: (category as any).isFeatured ?? false,
+        imageUrl: (category as any).imageUrl,
+        illustrationUrl: (category as any).illustrationUrl,
       },
     });
 

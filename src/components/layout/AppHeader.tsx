@@ -18,15 +18,15 @@ import Image from 'next/image';
 import Link from 'next/link';
 import Logo from './Logo';
 import { ServiceCategory } from '@/types';
-import { SERVICE_LINKS } from '@/config/navigation';
+import type { ServiceLink } from '@/lib/categories';
 import OAuthLoginModal from '../auth/OAuthLoginModal';
-// Removed MobileMenuDrawer - replaced by BottomNavigation
 
 type View = 'booking' | 'admin' | 'dashboard' | 'services';
 
 interface AppHeaderProps {
   view?: View;
   onViewChange?: (view: View) => void;
+  serviceLinks: ServiceLink[];
 }
 
 const NotificationBadge: React.FC<{ count: number }> = ({ count }) => {
@@ -44,7 +44,7 @@ const NotificationBadge: React.FC<{ count: number }> = ({ count }) => {
   );
 };
 
-export default function AppHeader({ view, onViewChange }: AppHeaderProps) {
+export default function AppHeader({ view, onViewChange, serviceLinks }: AppHeaderProps) {
   const { user, logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
@@ -202,7 +202,7 @@ export default function AppHeader({ view, onViewChange }: AppHeaderProps) {
                       {/* Right Column: Featured Services List */}
                       <div className="col-span-5 space-y-2 px-6 lg:px-16 py-12">
                         {/* Featured Services - Direct links to service detail pages */}
-                        {SERVICE_LINKS.map(service => (
+                        {serviceLinks.map(service => (
                           <Link
                             key={service.href}
                             href={service.href}

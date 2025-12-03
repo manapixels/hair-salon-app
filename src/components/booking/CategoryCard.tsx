@@ -1,12 +1,12 @@
 'use client';
 
 import { Check } from '@/lib/icons';
-import type { BookingCategory } from '@/data/bookingCategories';
+import type { ServiceCategory } from '@/lib/categories';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
 
 interface CategoryCardProps {
-  category: BookingCategory;
+  category: ServiceCategory;
   isSelected: boolean;
   onClick: () => void;
 }

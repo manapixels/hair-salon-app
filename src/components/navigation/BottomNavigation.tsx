@@ -9,8 +9,13 @@ import InfoPopup from './InfoPopup';
 import AccountPopup from './AccountPopup';
 import { useAuth } from '@/context/AuthContext';
 import { useBookingModal } from '@/context/BookingModalContext';
+import type { ServiceLink } from '@/lib/categories';
 
-export default function BottomNavigation() {
+interface BottomNavigationProps {
+  serviceLinks: ServiceLink[];
+}
+
+export default function BottomNavigation({ serviceLinks }: BottomNavigationProps) {
   const pathname = usePathname();
   const { user } = useAuth();
   const { openModal } = useBookingModal();
@@ -69,7 +74,11 @@ export default function BottomNavigation() {
   return (
     <>
       {/* Popups */}
-      <ServicesPopup isOpen={showServicesDropdown} onClose={() => setShowServicesDropdown(false)} />
+      <ServicesPopup
+        isOpen={showServicesDropdown}
+        onClose={() => setShowServicesDropdown(false)}
+        serviceLinks={serviceLinks}
+      />
 
       <InfoPopup isOpen={showInfoDropdown} onClose={() => setShowInfoDropdown(false)} />
 

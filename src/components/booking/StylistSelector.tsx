@@ -12,14 +12,14 @@ import { ErrorState } from '../feedback/ErrorState';
 import { EmptyState } from '../feedback/EmptyState';
 import { useDelayedLoading } from '@/hooks/useDelayedLoading';
 import type { Service, Stylist } from '@/types';
-import type { BookingCategory } from '@/data/bookingCategories';
+import type { ServiceCategory } from '@/lib/categories';
 
 interface StylistSelectorProps {
   selectedServices: Service[];
   selectedStylist: Stylist | null;
   onStylistSelect: (stylist: Stylist | null) => void;
   onSkip?: () => void;
-  selectedCategory?: BookingCategory | null; // NEW: For category-based booking
+  selectedCategory?: ServiceCategory | null; // NEW: For category-based booking
 }
 
 export const StylistSelector: React.FC<StylistSelectorProps> = ({

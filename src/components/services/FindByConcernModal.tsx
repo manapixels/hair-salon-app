@@ -16,17 +16,18 @@ import { useBookingModal } from '@/context/BookingModalContext';
 import { useIsMobile } from '@/hooks/useMediaQuery';
 import { FilterPill } from './FilterPill';
 import { Button } from '@/components/ui/button';
-import { SERVICE_LINKS } from '@/config/navigation';
 import { LoadingSpinner } from '../feedback/loaders/LoadingSpinner';
 import type { Service, ServiceTag } from '@/types';
+import type { ServiceLink } from '@/lib/categories';
 import { cn } from '@/lib/utils';
 
 interface FindByConcernModalProps {
   isOpen: boolean;
   onClose: () => void;
+  serviceLinks: ServiceLink[];
 }
 
-export function FindByConcernModal({ isOpen, onClose }: FindByConcernModalProps) {
+export function FindByConcernModal({ isOpen, onClose, serviceLinks }: FindByConcernModalProps) {
   const [view, setView] = useState<'concerns' | 'results'>('concerns');
   const [selectedConcern, setSelectedConcern] = useState<ServiceTag | null>(null);
   const [availableTags, setAvailableTags] = useState<ServiceTag[]>([]);
@@ -108,7 +109,7 @@ export function FindByConcernModal({ isOpen, onClose }: FindByConcernModalProps)
   };
 
   const handleLearnMore = (service: Service) => {
-    const serviceLink = SERVICE_LINKS.find(link => link.title === service.name);
+    const serviceLink = serviceLinks.find((link: ServiceLink) => link.title === service.name);
     if (serviceLink) {
       router.push(serviceLink.href);
       onClose();
@@ -218,7 +219,9 @@ export function FindByConcernModal({ isOpen, onClose }: FindByConcernModalProps)
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-[60vh] overflow-y-auto pr-2">
               {matchingServices.map(service => {
-                const serviceLink = SERVICE_LINKS.find(link => link.title === service.name);
+                const serviceLink = serviceLinks.find(
+                  (link: ServiceLink) => link.title === service.name,
+                );
                 const imageUrl =
                   serviceLink?.image || service.imageUrl || '/images/default-service.jpg';
 

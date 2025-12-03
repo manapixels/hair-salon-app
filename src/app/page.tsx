@@ -12,36 +12,47 @@ import {
 import { TeamCard } from '@/components/team';
 import LocationCard from '../components/locations/LocationCard';
 import { Sparkles } from '@/lib/icons';
-import { SERVICE_LINKS } from '@/config/navigation';
+import type { ServiceLink } from '@/lib/categories';
 import { useBookingModal } from '@/context/BookingModalContext';
 import { FindByConcernModal } from '@/components/services/FindByConcernModal';
 import { useState, useEffect } from 'react';
 import type { ServiceCategory, AdminSettings } from '@/types';
 
 export default function HomePage() {
-  const { openModal } = useBookingModal();
+  const { openModal, bookingCategories } = useBookingModal();
   const [adminSettings, setAdminSettings] = useState<AdminSettings | null>(null);
-  const [categories, setCategories] = useState<ServiceCategory[]>([]);
+  const [serviceLinks, setServiceLinks] = useState<ServiceLink[]>([]);
   const [isConcernModalOpen, setIsConcernModalOpen] = useState(false);
 
   // Fetch data on mount
   useEffect(() => {
-    Promise.all([
-      fetch('/api/admin/settings').then(res => res.json()),
-      fetch('/api/services').then(res => res.json()),
-    ])
-      .then(([settings, servicesData]) => {
+    fetch('/api/admin/settings')
+      .then(res => res.json())
+      .then(settings => {
         setAdminSettings(settings);
-        setCategories(servicesData);
       })
       .catch(err => console.error('Failed to fetch data:', err));
-  }, []);
 
-  // Extract featured services from categories
-  const featuredServiceNames = SERVICE_LINKS.map(s => s.title);
-  const featuredServices = categories
-    .flatMap(cat => cat.items)
-    .filter(service => featuredServiceNames.includes(service.name));
+    // Convert bookingCategories to serviceLinks format
+    const links = bookingCategories
+      .filter(c => c.isFeatured)
+      .map(c => ({
+        slug: c.slug,
+        title: c.title,
+        short_title: c.shortTitle || c.title,
+        href: `/services/${c.slug}`,
+        description: c.description || undefined,
+        image: c.imageUrl || undefined,
+        illustration: c.illustrationUrl || undefined,
+      }));
+    setServiceLinks(links);
+  }, [bookingCategories]);
+
+  // Extract featured services from booking categories
+  const featuredServiceNames = serviceLinks.map((s: ServiceLink) => s.title);
+  const featuredServices = bookingCategories
+    .flatMap((cat: any) => cat.items || [])
+    .filter((service: any) => featuredServiceNames.includes(service.name));
 
   if (!adminSettings) {
     return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
@@ -138,7 +149,7 @@ export default function HomePage() {
           </span>
         </button>
 
-        {SERVICE_LINKS.map(service => {
+        {serviceLinks.map(service => {
           const serviceData = featuredServices.find(s => s.name === service.title);
           const serviceId = serviceData?.id;
 
@@ -202,7 +213,7 @@ export default function HomePage() {
         <div className="px-4 md:px-0">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
             {featuredServices.slice(0, 6).map((service, index) => {
-              const serviceLink = SERVICE_LINKS.find(s => s.title === service.name);
+              const serviceLink = serviceLinks.find(s => s.title === service.name);
               const imageUrl =
                 service.imageUrl || serviceLink?.image || '/background-images/menu-service-bg.png';
               const serviceUrl = serviceLink?.href;
@@ -285,6 +296,7 @@ export default function HomePage() {
       <FindByConcernModal
         isOpen={isConcernModalOpen}
         onClose={() => setIsConcernModalOpen(false)}
+        serviceLinks={serviceLinks}
       />
     </div>
   );

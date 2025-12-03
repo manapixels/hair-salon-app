@@ -65,11 +65,17 @@ model ServiceCategory {
   id            String    @id @default(cuid())
   slug          String    @unique // URL-friendly identifier (e.g., 'keratin-treatment')
   title         String
+  shortTitle    String?   // Short title for navigation (e.g., 'Colouring')
   description   String?   // e.g., "Professional cuts and styling"
   icon          String?   // Icon name reference
   priceRangeMin Int?      // Category price range minimum
   priceRangeMax Int?      // Category price range maximum
+  priceNote     String?   // Optional price note for booking (e.g., "From $20 (price varies by gender/age)")
+  estimatedDuration Int?  // Estimated duration in minutes for booking time slots
   sortOrder     Int       @default(0) // Control category display order
+  isFeatured    Boolean   @default(false) // Whether to show in main navigation
+  imageUrl      String?   // Hero/background image URL
+  illustrationUrl String? // Illustration image URL for navigation
   items         Service[]
   appointments  Appointment[] // Category-based bookings
   createdAt     DateTime  @default(now())

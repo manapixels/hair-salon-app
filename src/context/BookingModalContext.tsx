@@ -2,6 +2,7 @@
 
 import { createContext, useState, useContext, ReactNode, useCallback, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
+import type { ServiceCategory } from '@/lib/categories';
 
 interface BookingModalOptions {
   preSelectedServiceId?: string;
@@ -10,13 +11,22 @@ interface BookingModalOptions {
 interface BookingModalContextType {
   isOpen: boolean;
   preSelectedServiceId?: string;
+  bookingCategories: ServiceCategory[];
   openModal: (options?: BookingModalOptions) => void;
   closeModal: () => void;
 }
 
 const BookingModalContext = createContext<BookingModalContextType | undefined>(undefined);
 
-export const BookingModalProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+interface BookingModalProviderProps {
+  children: ReactNode;
+  bookingCategories: ServiceCategory[];
+}
+
+export const BookingModalProvider: React.FC<BookingModalProviderProps> = ({
+  children,
+  bookingCategories,
+}) => {
   const [isOpen, setIsOpen] = useState(false);
   const [preSelectedServiceId, setPreSelectedServiceId] = useState<string | undefined>(undefined);
   const pathname = usePathname();
@@ -45,6 +55,7 @@ export const BookingModalProvider: React.FC<{ children: ReactNode }> = ({ childr
   const value = {
     isOpen,
     preSelectedServiceId,
+    bookingCategories,
     openModal,
     closeModal,
   };

@@ -1,12 +1,12 @@
 import React from 'react';
 import { User, Calendar, Clock, X, Scissors } from 'lucide-react';
 import { Service, Stylist } from '@/types';
-import { BookingCategory } from '@/data/bookingCategories';
+import type { ServiceCategory } from '@/lib/categories';
 import { formatShortDate, formatTimeDisplay } from '@/lib/timeUtils';
 
 interface BookingConfirmationSummaryProps {
   selectedServices?: Service[]; // Optional for backward compatibility
-  selectedCategory?: BookingCategory | null; // NEW: Category-based booking
+  selectedCategory?: ServiceCategory | null; // NEW: Category-based booking
   selectedStylist: Stylist | null;
   selectedDate: Date;
   selectedTime: string;

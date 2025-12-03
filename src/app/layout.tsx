@@ -6,6 +6,7 @@ import { Toaster } from 'sonner';
 import { ThemeProvider } from '@/components/providers/ThemeProvider';
 import { autoConfigureTelegramBotMenu } from '../lib/telegramBotSetup';
 import { getAdminSettings } from '@/lib/database';
+import { getNavigationLinks, getAllCategories } from '@/lib/categories';
 import '../styles/globals.css';
 import 'dotenv/config';
 import { AppFooter, AppHeader } from '@/components/layout';
@@ -27,7 +28,11 @@ if (typeof window === 'undefined') {
 }
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const adminSettings = await getAdminSettings();
+  const [adminSettings, navigationLinks, bookingCategories] = await Promise.all([
+    getAdminSettings(),
+    getNavigationLinks(),
+    getAllCategories(),
+  ]);
 
   return (
     <html lang="en" suppressHydrationWarning>
@@ -43,10 +48,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         >
           <AuthProvider>
             <BookingProvider>
-              <BookingModalProvider>
-                <AppHeader />
+              <BookingModalProvider bookingCategories={bookingCategories}>
+                <AppHeader serviceLinks={navigationLinks} />
                 <main className="min-h-screen">{children}</main>
-                <BottomNavigation />
+                <BottomNavigation serviceLinks={navigationLinks} />
                 <AppFooter adminSettings={adminSettings} />
                 <BookingModal />
               </BookingModalProvider>

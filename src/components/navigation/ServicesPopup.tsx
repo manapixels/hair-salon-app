@@ -4,14 +4,15 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { X, ChevronRight } from 'lucide-react';
-import { SERVICE_LINKS } from '@/config/navigation';
+import type { ServiceLink } from '@/lib/categories';
 
 interface ServicesPopupProps {
   isOpen: boolean;
   onClose: () => void;
+  serviceLinks: ServiceLink[];
 }
 
-export default function ServicesPopup({ isOpen, onClose }: ServicesPopupProps) {
+export default function ServicesPopup({ isOpen, onClose, serviceLinks }: ServicesPopupProps) {
   const pathname = usePathname();
 
   return (
@@ -49,7 +50,7 @@ export default function ServicesPopup({ isOpen, onClose }: ServicesPopupProps) {
 
             {/* Links */}
             <div className="py-2 space-y-1">
-              {SERVICE_LINKS.map(service => {
+              {serviceLinks.map(service => {
                 const isActive = pathname === service.href;
                 return (
                   <Link

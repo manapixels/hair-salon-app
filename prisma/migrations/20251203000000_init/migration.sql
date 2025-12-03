@@ -30,7 +30,19 @@ CREATE TABLE "public"."users" (
 -- CreateTable
 CREATE TABLE "public"."service_categories" (
     "id" TEXT NOT NULL,
+    "slug" TEXT NOT NULL,
     "title" TEXT NOT NULL,
+    "shortTitle" TEXT,
+    "description" TEXT,
+    "icon" TEXT,
+    "priceRangeMin" INTEGER,
+    "priceRangeMax" INTEGER,
+    "priceNote" TEXT,
+    "estimatedDuration" INTEGER,
+    "sortOrder" INTEGER NOT NULL DEFAULT 0,
+    "isFeatured" BOOLEAN NOT NULL DEFAULT false,
+    "imageUrl" TEXT,
+    "illustrationUrl" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -246,12 +258,6 @@ ADD COLUMN     "duration" INTEGER NOT NULL DEFAULT 0,
 ADD COLUMN     "isPopular" BOOLEAN NOT NULL DEFAULT false,
 ADD COLUMN     "isRecommended" BOOLEAN NOT NULL DEFAULT false;
 
--- AlterTable
-ALTER TABLE "public"."service_categories" ADD COLUMN     "description" TEXT,
-ADD COLUMN     "icon" TEXT,
-ADD COLUMN     "priceRangeMax" INTEGER,
-ADD COLUMN     "priceRangeMin" INTEGER,
-ADD COLUMN     "sortOrder" INTEGER NOT NULL DEFAULT 0;
 
 -- AlterTable
 ALTER TABLE "public"."services" ADD COLUMN     "imageUrl" TEXT,
@@ -281,8 +287,6 @@ ADD COLUMN     "estimatedDuration" INTEGER,
 ADD COLUMN     "estimatedPriceRange" TEXT,
 ADD COLUMN     "serviceCategory" TEXT;
 
--- AlterTable
-ALTER TABLE "public"."service_categories" ADD COLUMN     "slug" TEXT NOT NULL;
 
 -- CreateTable
 CREATE TABLE "public"."service_tags" (

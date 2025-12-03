@@ -1,13 +1,14 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { BOOKING_CATEGORIES, type BookingCategory } from '@/data/bookingCategories';
+import type { ServiceCategory } from '@/lib/categories';
 import { CategoryCard } from './CategoryCard';
 import { LoadingSpinner } from '../feedback/loaders/LoadingSpinner';
+import { useBookingModal } from '@/context/BookingModalContext';
 
 interface SimpleCategorySelectorProps {
-  selectedCategory: BookingCategory | null;
-  onCategorySelect: (category: BookingCategory) => void;
+  selectedCategory: ServiceCategory | null;
+  onCategorySelect: (category: ServiceCategory) => void;
 }
 
 export const SimpleCategorySelector: React.FC<SimpleCategorySelectorProps> = ({
@@ -15,6 +16,7 @@ export const SimpleCategorySelector: React.FC<SimpleCategorySelectorProps> = ({
   onCategorySelect,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
+  const { bookingCategories } = useBookingModal();
 
   // Auto-focus first category on mount for keyboard navigation
   useEffect(() => {
@@ -41,7 +43,7 @@ export const SimpleCategorySelector: React.FC<SimpleCategorySelectorProps> = ({
         aria-label="Service categories"
         className="max-w-2xl grid grid-cols-3 gap-4 md:gap-8 bg-white p-4"
       >
-        {BOOKING_CATEGORIES.map((category, index) => (
+        {bookingCategories.map((category, index) => (
           <CategoryCard
             category={category}
             isSelected={selectedCategory?.id === category.id}

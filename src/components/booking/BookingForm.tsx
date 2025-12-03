@@ -5,9 +5,10 @@ import dynamic from 'next/dynamic';
 import { toast } from 'sonner';
 
 import type { Service, TimeSlot, Appointment, Stylist } from '@/types';
-import { type BookingCategory, getCategoryBySlug } from '@/data/bookingCategories';
+import type { ServiceCategory } from '@/lib/categories';
 import { useBooking } from '@/context/BookingContext';
 import { useAuth } from '@/context/AuthContext';
+import { useBookingModal } from '@/context/BookingModalContext';
 import { toZonedTime } from 'date-fns-tz';
 import { format } from 'date-fns';
 import {
@@ -328,7 +329,7 @@ const ConfirmationForm: React.FC<{
   isSubmitting: boolean;
   whatsappUrl: string;
   showWhatsAppFallback?: boolean;
-  selectedCategory?: BookingCategory | null; // NEW: Category-based booking
+  selectedCategory?: ServiceCategory | null; // NEW: Category-based booking
   selectedServices: Service[];
   selectedStylist: Stylist | null;
   selectedDate: Date;
@@ -550,8 +551,11 @@ const BookingForm: React.FC<BookingFormProps> = ({
   disableAutoScroll,
   onStepChange,
 }) => {
+  // Get booking categories from context
+  const { bookingCategories } = useBookingModal();
+
   // Category-based booking state (NEW)
-  const [selectedCategory, setSelectedCategory] = useState<BookingCategory | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<ServiceCategory | null>(null);
 
   // Common state
   const [selectedStylist, setSelectedStylist] = useState<Stylist | null>(null);
@@ -611,7 +615,7 @@ const BookingForm: React.FC<BookingFormProps> = ({
   useEffect(() => {
     if (preSelectedServiceId && !selectedCategory) {
       // preSelectedServiceId is actually a slug like 'hair-colouring' from navigation.ts
-      const category = getCategoryBySlug(preSelectedServiceId);
+      const category = bookingCategories.find(c => c.slug === preSelectedServiceId);
       if (category) {
         setSelectedCategory(category);
 
@@ -628,7 +632,7 @@ const BookingForm: React.FC<BookingFormProps> = ({
         }
       }
     }
-  }, [preSelectedServiceId, selectedCategory, disableAutoScroll]);
+  }, [preSelectedServiceId, selectedCategory, disableAutoScroll, bookingCategories]);
 
   // Smart reset logic: only reset when necessary
   useEffect(() => {
@@ -684,11 +688,14 @@ const BookingForm: React.FC<BookingFormProps> = ({
   };
 
   // Category-based duration (no price since it varies)
-  const { totalPrice, totalDuration } = useMemo(() => {
+  const { totalPrice, totalDuration } = useMemo((): {
+    totalPrice: number;
+    totalDuration: number;
+  } => {
     if (selectedCategory) {
       return {
         totalPrice: 0, // Price not determined until appointment
-        totalDuration: selectedCategory.estimatedDuration,
+        totalDuration: selectedCategory.estimatedDuration ?? 0,
       };
     }
     return { totalPrice: 0, totalDuration: 0 };
@@ -711,7 +718,7 @@ Please confirm availability. Thank you!`;
   }, [selectedCategory, selectedStylist, selectedDate, selectedTime]);
 
   // Category selection handler
-  const handleCategorySelect = (category: BookingCategory) => {
+  const handleCategorySelect = (category: ServiceCategory) => {
     setSelectedCategory(category);
     // Clear editing state when user makes a selection
     setEditingStep(null);
@@ -765,7 +772,7 @@ Please confirm availability. Thank you!`;
         customerEmail: email,
         // Category-based fields
         categoryId: selectedCategory.id,
-        estimatedDuration: selectedCategory.estimatedDuration,
+        estimatedDuration: selectedCategory.estimatedDuration ?? 0,
       });
       setBookingConfirmed(confirmedAppt);
       toast.success('Appointment booked successfully! Confirmation sent to your email.', {
