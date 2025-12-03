@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { toast } from 'sonner';
 import { User, Check } from 'lucide-react';
 
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { LoadingSpinner } from '../feedback/loaders/LoadingSpinner';
 import { StylistCardSkeleton } from '../feedback/loaders/StylistCardSkeleton';
 import { ErrorState } from '../feedback/ErrorState';
@@ -97,8 +97,8 @@ export const StylistSelector: React.FC<StylistSelectorProps> = ({
   }
 
   return (
-    <div className="mt-10 scroll-mt-24" id="stylist-selector" tabIndex={-1}>
-      <h2 className="text-2xl font-semibold mb-4 text-gray-800 dark:text-gray-200">
+    <div className="scroll-mt-24" id="stylist-selector" tabIndex={-1}>
+      <h2 className="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-200">
         2. Choose Your Stylist
       </h2>
 
@@ -166,8 +166,8 @@ export const StylistSelector: React.FC<StylistSelectorProps> = ({
                     isSelected ? 'border-accent bg-accent/10' : 'hover:shadow-md'
                   }`}
                 >
-                  <CardContent>
-                    <div className="flex items-center mb-4">
+                  <CardContent className="p-4">
+                    <div className="flex items-center">
                       {stylist.avatar ? (
                         <Image
                           src={stylist.avatar}
@@ -177,22 +177,19 @@ export const StylistSelector: React.FC<StylistSelectorProps> = ({
                           className="w-13 h-13 rounded-full mr-4 object-cover"
                         />
                       ) : (
-                        <div className="w-13 h-13 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mr-4 shrink-0">
-                          <User className="h-6 w-6 text-gray-400" aria-hidden="true" />
-                        </div>
+                        <div className="w-12 h-12 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mr-4 shrink-0"></div>
                       )}
                       <div className="overflow-hidden flex-1">
                         <div className="flex items-center justify-between">
-                          <h3 className="text-base font-bold text-foreground">{stylist.name}</h3>
+                          <h3 className="text-base font-semibold text-foreground">
+                            {stylist.name}
+                          </h3>
                           {isSelected && (
                             <div className="flex items-center justify-center w-5 h-5 rounded-full bg-accent text-white shrink-0 ml-2">
                               <Check className="w-3 h-3" />
                             </div>
                           )}
                         </div>
-                        <p className="text-sm text-muted-foreground line-clamp-1 text-ellipsis">
-                          {stylist.email}
-                        </p>
                       </div>
                     </div>
                     {stylist.bio && (
@@ -200,31 +197,6 @@ export const StylistSelector: React.FC<StylistSelectorProps> = ({
                         {stylist.bio}
                       </p>
                     )}
-                    {/* <div className="flex flex-wrap gap-2">
-                      {stylist.specialties.slice(0, 3).map(service => (
-                        <span
-                          key={service.id}
-                          className={`text-xs px-2.5 py-1 rounded-full ${
-                            isSelected
-                              ? 'bg-accent text-white'
-                              : 'bg-gray-100 dark:bg-gray-800 text-muted-foreground'
-                          }`}
-                        >
-                          {service.name}
-                        </span>
-                      ))}
-                      {stylist.specialties.length > 3 && (
-                        <span
-                          className={`text-xs px-2.5 py-1 rounded-full ${
-                            isSelected
-                              ? 'bg-accent text-white'
-                              : 'bg-gray-100 dark:bg-gray-800 text-muted-foreground'
-                          }`}
-                        >
-                          +{stylist.specialties.length - 3}
-                        </span>
-                      )}
-                    </div> */}
                   </CardContent>
                 </Card>
               );

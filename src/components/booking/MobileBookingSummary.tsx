@@ -69,6 +69,9 @@ export const MobileBookingSummary = memo<MobileBookingSummaryProps>(
     // Changed from totalPrice check since category-based booking doesn't have upfront price
     if (totalDuration === 0) return null;
 
+    // Hide at step 4 (confirmation) - form has its own submit button
+    if (currentStep === 4) return null;
+
     return (
       <div
         className={`

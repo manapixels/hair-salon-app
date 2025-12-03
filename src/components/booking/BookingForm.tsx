@@ -21,7 +21,7 @@ import {
 import { LoadingSpinner } from '../feedback/loaders/LoadingSpinner';
 import { StylistCardSkeleton } from '../feedback/loaders/StylistCardSkeleton';
 import { useDelayedLoading } from '@/hooks/useDelayedLoading';
-import { Input } from '@/components/ui/input';
+import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 
@@ -37,8 +37,8 @@ const StylistSelector = dynamic(
   () => import('./StylistSelector').then(mod => ({ default: mod.StylistSelector })),
   {
     loading: () => (
-      <div className="mt-10 scroll-mt-24">
-        <h2 className="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">
+      <div className="scroll-mt-24">
+        <h2 className="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-200">
           2. Choose Your Stylist
         </h2>
         <div className="space-y-4">
@@ -58,8 +58,8 @@ const StylistSelector = dynamic(
 
 const CalendlyStyleDateTimePicker = dynamic(() => import('./CalendlyStyleDateTimePicker'), {
   loading: () => (
-    <div className="mt-10">
-      <h2 className="text-xl font-semibold mb-6 text-gray-800 dark:text-gray-200">
+    <div>
+      <h2 className="text-lg font-semibold mb-6 text-gray-800 dark:text-gray-200">
         3. Select Date & Time
       </h2>
       <div className="flex items-center justify-center p-8">
@@ -257,8 +257,8 @@ const DateTimePicker: React.FC<{
   }, [selectedDate, selectedStylist, getAvailableSlots]);
 
   return (
-    <div className="mt-10">
-      <h2 className="text-xl font-semibold mb-6 text-gray-800 dark:text-gray-200">
+    <div>
+      <h2 className="text-lg font-semibold mb-6 text-gray-800 dark:text-gray-200">
         3. Select Date & Time
       </h2>
 
@@ -368,10 +368,10 @@ const ConfirmationForm: React.FC<{
     onConfirm(name, email);
   };
   return (
-    <div className="mt-10">
+    <div>
       <h2
         id="step-4-heading"
-        className="text-2xl font-semibold mb-4 text-gray-800 dark:text-gray-200"
+        className="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-200"
       >
         4. Confirm Your Booking
       </h2>
@@ -385,37 +385,57 @@ const ConfirmationForm: React.FC<{
         totalDuration={totalDuration}
       />
 
-      <form
-        onSubmit={handleSubmit}
-        className="space-y-4 max-w-lg bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-200 dark:border-gray-700"
-      >
-        <Label>Full Name</Label>
-        <Input
-          id="name"
-          type="text"
-          value={name}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
-          disabled={!!user}
-          required
-          className="text-base"
-        />
-        <Label>Email Address</Label>
-        <Input
-          id="email"
-          type="email"
-          value={email}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
-          disabled={!!user}
-          required
-          className="text-base"
-        />
+      <form onSubmit={handleSubmit} className="max-w-lg bg-gray-50/50 dark:bg-gray-800 rounded-xl">
+        <div className="px-6 py-4 space-y-2 mb-2">
+          <div className="flex items-center justify-between">
+            <div className="text-md font-semibold text-gray-800 dark:text-gray-200">
+              Booking using
+            </div>
+            <div className="text-sm text-gray-500 dark:text-gray-400">
+              {user ? 'Logged in' : 'Not logged in'}
+            </div>
+          </div>
+          <InputGroup className="bg-white dark:bg-gray-800">
+            <InputGroupInput
+              id="name"
+              type="text"
+              value={name}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
+              disabled={!!user}
+              required
+              className="text-base"
+            />
+            <InputGroupAddon align="block-start">
+              <Label htmlFor="name" className="text-foreground">
+                Name
+              </Label>
+            </InputGroupAddon>
+          </InputGroup>
+
+          <InputGroup className="bg-white dark:bg-gray-800">
+            <InputGroupInput
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
+              disabled={!!user}
+              required
+              className="text-base"
+            />
+            <InputGroupAddon align="block-start">
+              <Label htmlFor="email" className="text-foreground">
+                Email
+              </Label>
+            </InputGroupAddon>
+          </InputGroup>
+        </div>
         {error && <p className="text-sm text-destructive">{error}</p>}
         <Button
           type="submit"
           variant="default"
           size="lg"
           disabled={isSubmitting}
-          className="w-full py-4 text-base"
+          className="w-full py-6 text-base"
           aria-label={isSubmitting ? 'Booking in progress' : 'Confirm your appointment'}
         >
           {isSubmitting ? (
@@ -865,7 +885,7 @@ Please confirm availability. Thank you!`;
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 space-y-4">
+        <div className="lg:col-span-2">
           {/* Step 1: Services */}
           <div
             ref={serviceSectionRef}
@@ -988,7 +1008,7 @@ Please confirm availability. Thank you!`;
           />
         </div>
         {/* To buffer sticky summary on mobile */}
-        <div className="pb-16"></div>
+        <div className={`${currentStep === 4 ? 'pb-4' : 'pb-16'}`}></div>
       </div>
 
       {/* Mobile Sticky Summary */}
