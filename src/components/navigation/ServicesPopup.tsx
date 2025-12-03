@@ -81,6 +81,19 @@ export default function ServicesPopup({ isOpen, onClose, serviceLinks }: Service
                   </Link>
                 );
               })}
+
+              {/* Divider */}
+              <div className="border-t border-gray-200 dark:border-gray-700 mx-3 my-2" />
+
+              {/* Pricing Link */}
+              <Link
+                href="/prices"
+                onClick={onClose}
+                className="flex items-center justify-between px-5 py-3 mx-3 rounded-full transition-all duration-200"
+              >
+                <span className="text-sm font-semibold text-primary">View Full Price List</span>
+                <ChevronRight className="w-4 h-4 text-accent-foreground" />
+              </Link>
             </div>
           </motion.div>
         </>

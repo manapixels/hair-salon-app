@@ -225,6 +225,13 @@ export default function AppHeader({ view, onViewChange, serviceLinks }: AppHeade
 
               <button
                 className="text-sm font-medium text-gray-600 hover:text-black dark:text-gray-300 dark:hover:text-white transition-colors"
+                onClick={() => router.push('/prices')}
+              >
+                Pricing
+              </button>
+
+              <button
+                className="text-sm font-medium text-gray-600 hover:text-black dark:text-gray-300 dark:hover:text-white transition-colors"
                 onClick={() => router.push('/#contact')}
               >
                 Contact Us

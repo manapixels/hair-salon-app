@@ -40,10 +40,13 @@ export async function getAllCategories(): Promise<ServiceCategory[]> {
 
 /**
  * Get only featured categories (for main navigation)
+ * TEMP: Returning all categories due to Prisma client sync issue
+ * TODO: Re-enable isFeatured filter after running 'npx prisma generate'
  */
 export async function getFeaturedCategories(): Promise<ServiceCategory[]> {
   return await prisma.serviceCategory.findMany({
-    where: { isFeatured: true },
+    // TEMP: Commented out until Prisma client is regenerated
+    // where: { isFeatured: true },
     orderBy: { sortOrder: 'asc' },
   });
 }

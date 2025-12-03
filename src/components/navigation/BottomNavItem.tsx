@@ -102,7 +102,7 @@ export default function BottomNavItem({
       {!isPrimary && (
         <div className="mt-1 flex items-center justify-center h-[16px]">
           {isAdmin ? (
-            <span className="bg-purple-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full shadow-sm">
+            <span className="bg-gray-800 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full shadow-sm">
               Admin
             </span>
           ) : (
