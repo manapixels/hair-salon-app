@@ -1,4 +1,4 @@
-export type SettingsSection = 'salon-business' | 'salon-schedule' | 'salon-closures';
+﻿export type SettingsSection = 'salon-business' | 'salon-schedule' | 'salon-closures';
 
 interface SettingsSidebarProps {
   activeSection: SettingsSection;
@@ -63,31 +63,31 @@ export default function SettingsSidebar({ activeSection, onSectionChange }: Sett
   const personalSections = sectionConfig.filter(s => s.group === 'personal');
 
   return (
-    <div className="w-64 bg-[var(--gray-2)] border-r border-[var(--gray-6)] p-[var(--space-4)] space-y-[var(--space-6)] sticky top-0 h-[calc(100vh-200px)] overflow-y-auto">
+    <div className="w-64 bg-muted border-r border-border p-4 space-y-6 sticky top-0 h-[calc(100vh-200px)] overflow-y-auto">
       {/* Salon Settings Group */}
       <div>
-        <h3 className="text-[length:var(--font-size-2)] font-bold text-[var(--gray-11)] uppercase tracking-wider mb-[var(--space-3)] px-[var(--space-2)]">
+        <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-[3] px-[2]">
           Salon
         </h3>
-        <nav className="space-y-[var(--space-1)]">
+        <nav className="space-y-[0.5]">
           {salonSections.map(section => (
             <button
               key={section.id}
               onClick={() => onSectionChange(section.id)}
-              className={`w-full flex items-center space-x-[var(--space-3)] px-[var(--space-3)] py-[var(--space-2)] rounded-[var(--radius-2)] text-left transition-all ${
+              className={`w-full flex items-center space-x-[3] px-3 py-2 rounded-md text-left transition-all ${
                 activeSection === section.id
-                  ? 'bg-[var(--accent-3)] text-[var(--accent-11)] font-medium border-l-4 border-[var(--accent-9)]'
-                  : 'text-[var(--gray-11)] hover:bg-[var(--gray-3)] hover:text-[var(--gray-12)]'
+                  ? 'bg-accent/10 text-accent-foreground font-medium border-l-4 border-[hsl(var(--accent))]'
+                  : 'text-muted-foreground hover:bg-gray-100 dark:bg-gray-800 hover:text-foreground'
               }`}
             >
               <span
                 className={
-                  activeSection === section.id ? 'text-[var(--accent-11)]' : 'text-[var(--gray-10)]'
+                  activeSection === section.id ? 'text-accent-foreground' : 'text-gray-500'
                 }
               >
                 {section.icon}
               </span>
-              <span className="text-[length:var(--font-size-2)]">{section.label}</span>
+              <span className="text-sm">{section.label}</span>
             </button>
           ))}
         </nav>
@@ -96,30 +96,28 @@ export default function SettingsSidebar({ activeSection, onSectionChange }: Sett
       {/* Personal Settings Group (Future) */}
       {personalSections.length > 0 && (
         <div>
-          <h3 className="text-[length:var(--font-size-2)] font-bold text-[var(--gray-11)] uppercase tracking-wider mb-[var(--space-3)] px-[var(--space-2)]">
+          <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-[3] px-[2]">
             Personal
           </h3>
-          <nav className="space-y-[var(--space-1)]">
+          <nav className="space-y-[0.5]">
             {personalSections.map(section => (
               <button
                 key={section.id}
                 onClick={() => onSectionChange(section.id)}
-                className={`w-full flex items-center space-x-[var(--space-3)] px-[var(--space-3)] py-[var(--space-2)] rounded-[var(--radius-2)] text-left transition-all ${
+                className={`w-full flex items-center space-x-[3] px-3 py-2 rounded-md text-left transition-all ${
                   activeSection === section.id
-                    ? 'bg-[var(--accent-3)] text-[var(--accent-11)] font-medium border-l-4 border-[var(--accent-9)]'
-                    : 'text-[var(--gray-11)] hover:bg-[var(--gray-3)] hover:text-[var(--gray-12)]'
+                    ? 'bg-accent/10 text-accent-foreground font-medium border-l-4 border-[hsl(var(--accent))]'
+                    : 'text-muted-foreground hover:bg-gray-100 dark:bg-gray-800 hover:text-foreground'
                 }`}
               >
                 <span
                   className={
-                    activeSection === section.id
-                      ? 'text-[var(--accent-11)]'
-                      : 'text-[var(--gray-10)]'
+                    activeSection === section.id ? 'text-accent-foreground' : 'text-gray-500'
                   }
                 >
                   {section.icon}
                 </span>
-                <span className="text-[length:var(--font-size-2)]">{section.label}</span>
+                <span className="text-sm">{section.label}</span>
               </button>
             ))}
           </nav>
@@ -127,11 +125,11 @@ export default function SettingsSidebar({ activeSection, onSectionChange }: Sett
       )}
 
       {/* Help Section */}
-      <div className="pt-[var(--space-4)] border-t border-[var(--gray-6)]">
-        <div className="p-[var(--space-3)] bg-[var(--blue-3)] border border-[var(--blue-6)] rounded-[var(--radius-2)]">
-          <div className="flex items-start space-x-[var(--space-2)]">
+      <div className="pt-[4] border-t border-border">
+        <div className="p-3 bg-blue-50 dark:bg-blue-950 border border-blue-500 rounded-md">
+          <div className="flex items-start space-x-[2]">
             <svg
-              className="w-4 h-4 text-[var(--blue-11)] flex-shrink-0 mt-0.5"
+              className="w-4 h-4 text-blue-700 dark:text-blue-400 flex-shrink-0 mt-0.5"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"

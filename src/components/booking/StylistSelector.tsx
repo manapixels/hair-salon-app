@@ -1,10 +1,11 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import { toast } from 'sonner';
-import { User, Zap } from 'lucide-react';
-import { Card, CardContent, Button } from '@/components/ui';
+import { User, Check } from 'lucide-react';
+
+import { Card, CardContent } from '@/components/ui/card';
 import { LoadingSpinner } from '../feedback/loaders/LoadingSpinner';
 import { StylistCardSkeleton } from '../feedback/loaders/StylistCardSkeleton';
 import { ErrorState } from '../feedback/ErrorState';
@@ -160,11 +161,10 @@ export const StylistSelector: React.FC<StylistSelectorProps> = ({
               return (
                 <Card
                   key={stylist.id}
-                  variant="interactive"
-                  selected={isSelected}
-                  showCheckmark
                   onClick={() => onStylistSelect(stylist)}
-                  className="cursor-pointer min-h-[44px]"
+                  className={`cursor-pointer min-h-[44px] transition-all hover:border-accent ${
+                    isSelected ? 'border-accent bg-accent/10' : 'hover:shadow-md'
+                  }`}
                 >
                   <CardContent>
                     <div className="flex items-center mb-4">
@@ -177,21 +177,26 @@ export const StylistSelector: React.FC<StylistSelectorProps> = ({
                           className="w-13 h-13 rounded-full mr-4 object-cover"
                         />
                       ) : (
-                        <div className="w-13 h-13 bg-[var(--gray-3)] rounded-full flex items-center justify-center mr-4 shrink-0">
-                          <User className="h-6 w-6 text-[var(--gray-9)]" aria-hidden="true" />
+                        <div className="w-13 h-13 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mr-4 shrink-0">
+                          <User className="h-6 w-6 text-gray-400" aria-hidden="true" />
                         </div>
                       )}
-                      <div className="overflow-hidden">
-                        <h3 className="text-[length:var(--font-size-4)] font-bold text-[var(--gray-12)]">
-                          {stylist.name}
-                        </h3>
-                        <p className="text-[length:var(--font-size-2)] text-[var(--gray-11)] line-clamp-1 text-ellipsis">
+                      <div className="overflow-hidden flex-1">
+                        <div className="flex items-center justify-between">
+                          <h3 className="text-base font-bold text-foreground">{stylist.name}</h3>
+                          {isSelected && (
+                            <div className="flex items-center justify-center w-5 h-5 rounded-full bg-accent text-white shrink-0 ml-2">
+                              <Check className="w-3 h-3" />
+                            </div>
+                          )}
+                        </div>
+                        <p className="text-sm text-muted-foreground line-clamp-1 text-ellipsis">
                           {stylist.email}
                         </p>
                       </div>
                     </div>
                     {stylist.bio && (
-                      <p className="text-[length:var(--font-size-2)] text-[var(--gray-11)] mb-3 line-clamp-2">
+                      <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
                         {stylist.bio}
                       </p>
                     )}
@@ -199,10 +204,10 @@ export const StylistSelector: React.FC<StylistSelectorProps> = ({
                       {stylist.specialties.slice(0, 3).map(service => (
                         <span
                           key={service.id}
-                          className={`text-[length:var(--font-size-1)] px-2.5 py-1 rounded-full ${
+                          className={`text-xs px-2.5 py-1 rounded-full ${
                             isSelected
-                              ? 'bg-[var(--accent-9)] text-white'
-                              : 'bg-[var(--gray-3)] text-[var(--gray-11)]'
+                              ? 'bg-accent text-white'
+                              : 'bg-gray-100 dark:bg-gray-800 text-muted-foreground'
                           }`}
                         >
                           {service.name}
@@ -210,10 +215,10 @@ export const StylistSelector: React.FC<StylistSelectorProps> = ({
                       ))}
                       {stylist.specialties.length > 3 && (
                         <span
-                          className={`text-[length:var(--font-size-1)] px-2.5 py-1 rounded-full ${
+                          className={`text-xs px-2.5 py-1 rounded-full ${
                             isSelected
-                              ? 'bg-[var(--accent-9)] text-white'
-                              : 'bg-[var(--gray-3)] text-[var(--gray-11)]'
+                              ? 'bg-accent text-white'
+                              : 'bg-gray-100 dark:bg-gray-800 text-muted-foreground'
                           }`}
                         >
                           +{stylist.specialties.length - 3}

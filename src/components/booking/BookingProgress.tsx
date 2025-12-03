@@ -1,6 +1,4 @@
-'use client';
-
-import * as Progress from '@radix-ui/react-progress';
+import { Progress } from '@/components/ui/progress';
 import { Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -17,15 +15,7 @@ export function BookingProgress({ currentStep, totalSteps = 4, className }: Book
     <div className={cn('w-full flex flex-col items-center', className)}>
       <div className="relative w-full max-w-md">
         {/* Progress Bar */}
-        <Progress.Root
-          className="relative h-1 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700"
-          value={progress}
-        >
-          <Progress.Indicator
-            className="h-full w-full flex-1 bg-stone-900 transition-all duration-500 ease-in-out dark:bg-white"
-            style={{ transform: `translateX(-${100 - progress}%)` }}
-          />
-        </Progress.Root>
+        <Progress value={progress} className="h-1 bg-gray-200 dark:bg-gray-700" />
 
         {/* Step Circles */}
         <div className="absolute top-1/2 left-0 w-full -translate-y-1/2 flex justify-between px-0.5">

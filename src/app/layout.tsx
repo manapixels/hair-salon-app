@@ -3,11 +3,10 @@ import { AuthProvider } from '../context/AuthContext';
 import { BookingProvider } from '../context/BookingContext';
 import { BookingModalProvider } from '../context/BookingModalContext';
 import { Toaster } from 'sonner';
-import { Theme } from '@radix-ui/themes';
+import { ThemeProvider } from '@/components/providers/ThemeProvider';
 import { autoConfigureTelegramBotMenu } from '../lib/telegramBotSetup';
 import { getAdminSettings } from '@/lib/database';
 import '../styles/globals.css';
-import '@radix-ui/themes/styles.css';
 import 'dotenv/config';
 import { AppFooter, AppHeader } from '@/components/layout';
 import { BottomNavigation } from '@/components/navigation';
@@ -31,12 +30,17 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const adminSettings = await getAdminSettings();
 
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <link rel="icon" type="image/svg+xml" href="/logo.svg" />
       </head>
       <body>
-        <Theme accentColor="gold" grayColor="sand" radius="medium" appearance="light">
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="light"
+          enableSystem
+          disableTransitionOnChange
+        >
           <AuthProvider>
             <BookingProvider>
               <BookingModalProvider>
@@ -49,7 +53,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             </BookingProvider>
           </AuthProvider>
           <Toaster position="top-right" richColors closeButton />
-        </Theme>
+        </ThemeProvider>
       </body>
     </html>
   );

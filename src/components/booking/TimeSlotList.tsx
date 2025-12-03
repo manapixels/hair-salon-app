@@ -81,7 +81,7 @@ const TimeSlotGroup: React.FC<TimeSlotGroupProps> = ({
                 ${
                   isSelected
                     ? 'border-accent bg-accent shadow-md'
-                    : 'border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 hover:border-accent hover:bg-accent-soft dark:hover:bg-accent-soft hover:shadow-sm'
+                    : 'border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 hover:border-accent hover:bg-accent/10 dark:hover:bg-accent/10 hover:shadow-sm'
                 }
                 ${!available ? 'opacity-50 cursor-not-allowed hover:border-gray-200 dark:hover:border-gray-700 hover:bg-transparent hover:shadow-none' : 'cursor-pointer'}
               `}

@@ -1,4 +1,4 @@
-import * as Checkbox from '@radix-ui/react-checkbox';
+﻿import * as Checkbox from '@radix-ui/react-checkbox';
 import type { AdminSettings } from '@/types';
 
 interface ScheduleSettingsProps {
@@ -50,18 +50,16 @@ export default function ScheduleSettings({ weeklySchedule, onChange }: ScheduleS
   };
 
   return (
-    <div className="space-y-[var(--space-6)]">
+    <div className="space-y-6">
       <div>
-        <h3 className="text-[length:var(--font-size-5)] font-bold text-[var(--gray-12)] mb-[var(--space-2)]">
-          Default Business Hours
-        </h3>
-        <p className="text-[length:var(--font-size-2)] text-[var(--gray-11)]">
+        <h3 className="text-lg font-bold text-foreground mb-[2]">Default Business Hours</h3>
+        <p className="text-sm text-muted-foreground">
           Set your salon&apos;s standard operating hours. These apply salon-wide unless overridden
           by stylist-specific schedules.
         </p>
       </div>
 
-      <div className="space-y-[var(--space-3)]">
+      <div className="space-y-[3]">
         {DAYS.map(day => {
           const schedule = weeklySchedule?.[day] || {
             isOpen: true,
@@ -71,14 +69,14 @@ export default function ScheduleSettings({ weeklySchedule, onChange }: ScheduleS
           return (
             <div
               key={day}
-              className="flex items-center justify-between p-[var(--space-4)] bg-[var(--gray-2)] border border-[var(--gray-6)] rounded-[var(--radius-3)] hover:border-[var(--gray-7)] transition-colors"
+              className="flex items-center justify-between p-4 bg-muted border border-border rounded-lg hover:border-gray-300 dark:border-gray-600 transition-colors"
             >
-              <div className="flex items-center space-x-[var(--space-3)] flex-1">
-                <label className="flex items-center space-x-[var(--space-3)] cursor-pointer min-w-[140px]">
+              <div className="flex items-center space-x-[3] flex-1">
+                <label className="flex items-center space-x-[3] cursor-pointer min-w-[140px]">
                   <Checkbox.Root
                     checked={schedule.isOpen}
                     onCheckedChange={checked => handleDayToggle(day, checked === true)}
-                    className="flex items-center justify-center w-5 h-5 rounded-[var(--radius-1)] border border-[var(--gray-7)] bg-[var(--color-surface)] hover:border-[var(--gray-8)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-8)] data-[state=checked]:bg-accent data-[state=checked]:border-[var(--accent-9)]"
+                    className="flex items-center justify-center w-5 h-5 rounded-sm border border-gray-300 dark:border-gray-600 bg-background hover:border-gray-400 dark:hover:border-gray-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent data-[state=checked]:bg-accent data-[state=checked]:border-[hsl(var(--accent))]"
                   >
                     <Checkbox.Indicator>
                       <svg
@@ -96,31 +94,29 @@ export default function ScheduleSettings({ weeklySchedule, onChange }: ScheduleS
                       </svg>
                     </Checkbox.Indicator>
                   </Checkbox.Root>
-                  <span className="text-[length:var(--font-size-3)] font-medium text-[var(--gray-12)] capitalize">
+                  <span className="text-[length:var(--font-size-3)] font-medium text-foreground capitalize">
                     {day}
                   </span>
                 </label>
 
                 {schedule.isOpen ? (
-                  <div className="flex items-center space-x-[var(--space-2)] flex-1">
+                  <div className="flex items-center space-x-[2] flex-1">
                     <input
                       type="time"
                       value={schedule.openingTime || '09:00'}
                       onChange={e => handleTimeChange(day, 'openingTime', e.target.value)}
-                      className="px-[var(--space-3)] py-[var(--space-2)] border border-[var(--gray-7)] rounded-[var(--radius-2)] text-[length:var(--font-size-2)] bg-[var(--color-surface)] text-[var(--gray-12)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-8)] focus-visible:border-[var(--accent-8)] hover:border-[var(--gray-8)] transition-colors"
+                      className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-background text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:border-accent hover:border-gray-400 dark:hover:border-gray-500 transition-colors"
                     />
-                    <span className="text-[var(--gray-11)]">to</span>
+                    <span className="text-muted-foreground">to</span>
                     <input
                       type="time"
                       value={schedule.closingTime || '17:00'}
                       onChange={e => handleTimeChange(day, 'closingTime', e.target.value)}
-                      className="px-[var(--space-3)] py-[var(--space-2)] border border-[var(--gray-7)] rounded-[var(--radius-2)] text-[length:var(--font-size-2)] bg-[var(--color-surface)] text-[var(--gray-12)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-8)] focus-visible:border-[var(--accent-8)] hover:border-[var(--gray-8)] transition-colors"
+                      className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-background text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:border-accent hover:border-gray-400 dark:hover:border-gray-500 transition-colors"
                     />
                   </div>
                 ) : (
-                  <span className="text-[length:var(--font-size-2)] text-[var(--gray-11)] italic">
-                    Closed
-                  </span>
+                  <span className="text-sm text-muted-foreground italic">Closed</span>
                 )}
               </div>
             </div>
@@ -128,10 +124,10 @@ export default function ScheduleSettings({ weeklySchedule, onChange }: ScheduleS
         })}
       </div>
 
-      <div className="p-[var(--space-4)] bg-[var(--blue-3)] border border-[var(--blue-6)] rounded-[var(--radius-3)]">
-        <div className="flex items-start space-x-[var(--space-3)]">
+      <div className="p-4 bg-blue-50 dark:bg-blue-950 border border-blue-500 rounded-lg">
+        <div className="flex items-start space-x-[3]">
           <svg
-            className="w-5 h-5 text-[var(--blue-11)] flex-shrink-0 mt-0.5"
+            className="w-5 h-5 text-blue-700 dark:text-blue-400 flex-shrink-0 mt-0.5"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -143,9 +139,9 @@ export default function ScheduleSettings({ weeklySchedule, onChange }: ScheduleS
               d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
             />
           </svg>
-          <div className="text-[length:var(--font-size-2)] text-[var(--gray-12)]">
+          <div className="text-sm text-foreground">
             <p className="font-medium mb-1">About Default Hours</p>
-            <p className="text-[var(--gray-11)]">
+            <p className="text-muted-foreground">
               These hours serve as the baseline for appointment booking. Individual stylists can
               have their own schedules that override these defaults. Manage stylist-specific hours
               in the <strong>Stylists</strong> tab.

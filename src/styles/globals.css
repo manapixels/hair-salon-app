@@ -4,236 +4,107 @@
 
 @layer base {
   :root {
-    /* Radix Themes provides CSS variables automatically, but we can add aliases for easier migration */
-    /* These allow us to use familiar Tailwind names while using Radix under the hood */
+    /* shadcn/ui CSS variables - Customized for Signature Trims gold brand */
+    --background: 0 0% 100%;
+    --foreground: 0 0% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 3.9%;
+
+    /* Primary brand color - Gold (#7A6400) */
+    --primary: 48 100% 24%;
+    --primary-foreground: 0 0% 98%;
+
+    /* Secondary - Light gold tint */
+    --secondary: 48 100% 96%;
+    --secondary-foreground: 48 100% 24%;
+
+    /* Muted - Subtle gold tint */
+    --muted: 48 20% 96%;
+    --muted-foreground: 0 0% 45.1%;
+
+    /* Accent - Gold (#7A6400) */
+    --accent: 48 100% 24%;
+    --accent-foreground: 48 100% 98%;
+
+    /* Destructive - Keep red */
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+
+    /* Borders and inputs */
+    --border: 0 0% 89.8%;
+    --input: 0 0% 89.8%;
+    --ring: 48 100% 24%;
+
+    /* Chart colors */
+    --chart-1: 48 100% 24%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
+    --radius: 0.5rem;
   }
 
   body {
-    background-color: var(--color-background);
-    color: var(--gray-12);
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+  }
+
+  .dark {
+    /* Dark mode - Darker gold tones */
+    --background: 0 0% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 0 0% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 3.9%;
+    --popover-foreground: 0 0% 98%;
+
+    /* Primary - Lighter gold for dark mode */
+    --primary: 48 100% 86%;
+    --primary-foreground: 48 100% 22%;
+
+    /* Secondary - Dark gold */
+    --secondary: 48 100% 15%;
+    --secondary-foreground: 48 100% 86%;
+
+    /* Muted - Dark with gold tint */
+    --muted: 48 20% 15%;
+    --muted-foreground: 0 0% 63.9%;
+
+    /* Accent - Lighter gold for dark mode */
+    --accent: 48 100% 86%;
+    --accent-foreground: 48 100% 22%;
+
+    /* Destructive - Darker red */
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+
+    /* Borders and inputs */
+    --border: 0 0% 14.9%;
+    --input: 0 0% 14.9%;
+    --ring: 48 100% 86%;
+
+    /* Chart colors for dark mode */
+    --chart-1: 48 100% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
   }
 }
 
 /* React Phone Number Input Styling */
 .phone-input-wrapper .PhoneInputInput {
-  @apply w-full px-[var(--space-3)] py-[var(--space-2)]
-         border border-[var(--gray-7)] rounded-[var(--radius-2)]
-         focus:ring-2 focus:ring-[var(--accent-8)] focus:border-transparent
-         bg-[var(--color-surface)] text-[var(--gray-12)];
+  @apply w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-accent focus:border-transparent bg-background text-foreground;
 }
 
 .phone-input-wrapper .PhoneInputCountry {
-  @apply bg-[var(--color-surface)] border-[var(--gray-7)];
+  @apply bg-background border-gray-300 dark:border-gray-600;
 }
 
-.radix-themes {
-  --cursor-button: pointer;
-}
-
-/* Radix CSS Variable Utilities - Simplified Migration Helpers */
+/* Mobile-First Utilities */
 @layer utilities {
-  /* ========================================
-     ACCENT COLOR UTILITIES (Primary Brand Color)
-     ======================================== */
-  .bg-accent {
-    background-color: var(--accent-9);
-    color: var(--accent-contrast);
-  }
-
-  .hover\:bg-accent:hover {
-    background-color: var(--accent-10);
-    color: var(--accent-contrast);
-  }
-
-  .bg-accent-soft {
-    background-color: var(--accent-3);
-  }
-
-  .hover\:bg-accent-soft:hover {
-    background-color: var(--accent-4);
-  }
-
-  .border-accent {
-    border-color: var(--accent-8);
-  }
-
-  .hover\:border-accent:hover {
-    border-color: var(--accent-9);
-  }
-
-  .text-accent {
-    color: var(--accent-11);
-  }
-
-  .hover\:text-accent:hover {
-    color: var(--accent-12);
-  }
-
-  .ring-accent {
-    --tw-ring-color: var(--accent-8);
-  }
-
-  .outline-accent {
-    outline-color: var(--accent-9);
-  }
-
-  /* ========================================
-     SURFACE & PANEL UTILITIES
-     ======================================== */
-  .bg-surface {
-    background-color: var(--color-surface);
-  }
-
-  .bg-panel {
-    background-color: var(--color-panel);
-  }
-
-  .bg-panel-solid {
-    background-color: var(--color-panel-solid);
-  }
-
-  /* ========================================
-     GRAY SCALE UTILITIES
-     ======================================== */
-  .bg-gray-subtle {
-    background-color: var(--gray-2);
-  }
-
-  .bg-gray-ui {
-    background-color: var(--gray-3);
-  }
-
-  .hover\:bg-gray-ui:hover {
-    background-color: var(--gray-4);
-  }
-
-  .bg-gray-hover {
-    background-color: var(--gray-4);
-  }
-
-  .bg-gray-active {
-    background-color: var(--gray-5);
-  }
-
-  .border-gray {
-    border-color: var(--gray-6);
-  }
-
-  .border-gray-hover {
-    border-color: var(--gray-7);
-  }
-
-  .hover\:border-gray-hover:hover {
-    border-color: var(--gray-8);
-  }
-
-  .border-gray-solid {
-    border-color: var(--gray-8);
-  }
-
-  .text-gray-subtle {
-    color: var(--gray-11);
-  }
-
-  .text-gray {
-    color: var(--gray-12);
-  }
-
-  /* ========================================
-     SEMANTIC COLOR UTILITIES
-     ======================================== */
-
-  /* Success/Green */
-  .bg-success {
-    background-color: var(--green-9);
-    color: white;
-  }
-
-  .bg-success-soft {
-    background-color: var(--green-3);
-    color: var(--green-11);
-  }
-
-  .text-success {
-    color: var(--green-11);
-  }
-
-  .border-success {
-    border-color: var(--green-8);
-  }
-
-  /* Warning/Orange */
-  .bg-warning {
-    background-color: var(--orange-9);
-    color: white;
-  }
-
-  .bg-warning-soft {
-    background-color: var(--orange-3);
-    color: var(--orange-11);
-  }
-
-  .text-warning {
-    color: var(--orange-11);
-  }
-
-  .border-warning {
-    border-color: var(--orange-8);
-  }
-
-  /* Danger/Red */
-  .bg-danger {
-    background-color: var(--red-9);
-    color: white;
-  }
-
-  .bg-danger-soft {
-    background-color: var(--red-3);
-    color: var(--red-11);
-  }
-
-  .text-danger {
-    color: var(--red-11);
-  }
-
-  .border-danger {
-    border-color: var(--red-8);
-  }
-
-  /* Info/Blue */
-  .bg-info {
-    background-color: var(--blue-9);
-    color: white;
-  }
-
-  .bg-info-soft {
-    background-color: var(--blue-3);
-    color: var(--blue-11);
-  }
-
-  .text-info {
-    color: var(--blue-11);
-  }
-
-  .border-info {
-    border-color: var(--blue-8);
-  }
-
-  /* ========================================
-     FOCUS & INTERACTION UTILITIES
-     ======================================== */
-  .focus-ring-accent {
-    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-8)] focus-visible:ring-offset-2;
-  }
-
-  .focus-ring-danger {
-    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--red-8)] focus-visible:ring-offset-2;
-  }
-
-  /* ========================================
-     MOBILE-FIRST UTILITIES
-     ======================================== */
-
   /* Touch target sizes - minimum 44x44px per Apple HIG */
   .touch-target {
     @apply min-h-touch min-w-touch flex items-center justify-center;
@@ -267,7 +138,8 @@
   /* Mobile viewport height handling (accounts for browser chrome) */
   .h-screen-mobile {
     height: 100vh;
-    height: 100dvh; /* Dynamic viewport height - better for mobile */
+    height: 100dvh;
+    /* Dynamic viewport height - better for mobile */
   }
 
   .min-h-screen-mobile {
@@ -297,5 +169,15 @@
   /* Active state for mobile buttons */
   .active-scale {
     @apply active:scale-95 transition-transform duration-100;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
   }
 }

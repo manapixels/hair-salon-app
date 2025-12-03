@@ -5,11 +5,26 @@ import { toast } from 'sonner';
 import { format } from 'date-fns';
 import type { Appointment, Service } from '@/types';
 // Services are now fetched from API instead of hardcoded constants
-import { Button, Checkbox, Select } from '@radix-ui/themes';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Button } from '@/components/ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { formatTime12Hour } from '@/lib/timeUtils';
-import { TextField } from '@/components/ui/TextField';
 import { useIsMobile } from '@/hooks/useMediaQuery';
-import * as Dialog from '@radix-ui/react-dialog';
 import {
   Drawer,
   DrawerContent,
@@ -17,7 +32,7 @@ import {
   DrawerTitle,
   DrawerDescription,
 } from '@/components/ui/drawer';
-import { X } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 
 interface EditAppointmentModalProps {
   isOpen: boolean;
@@ -161,8 +176,8 @@ export default function EditAppointmentModal({
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-          <TextField
-            label="Customer Name *"
+          <Label>Customer Name</Label>
+          <Input
             type="text"
             value={formData.customerName}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
@@ -170,8 +185,8 @@ export default function EditAppointmentModal({
             }
             required
           />
-          <TextField
-            label="Customer Email *"
+          <Label>Customer Email</Label>
+          <Input
             type="email"
             value={formData.customerEmail}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
@@ -179,8 +194,8 @@ export default function EditAppointmentModal({
             }
             required
           />
-          <TextField
-            label="Date *"
+          <Label>Date</Label>
+          <Input
             type="date"
             value={formData.date}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
@@ -193,19 +208,21 @@ export default function EditAppointmentModal({
             <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
               Time *
             </label>
-            <Select.Root
+            <Select
               value={formData.time || undefined}
               onValueChange={value => setFormData(prev => ({ ...prev, time: value }))}
             >
-              <Select.Trigger placeholder="Select time" />
-              <Select.Content>
+              <SelectTrigger>
+                <SelectValue placeholder="Select time" />
+              </SelectTrigger>
+              <SelectContent>
                 {generateTimeSlots().map(slot => (
-                  <Select.Item key={slot} value={slot}>
+                  <SelectItem key={slot} value={slot}>
                     {formatTime12Hour(slot)}
-                  </Select.Item>
+                  </SelectItem>
                 ))}
-              </Select.Content>
-            </Select.Root>
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
@@ -223,7 +240,7 @@ export default function EditAppointmentModal({
                   key={service.id}
                   className={`flex items-center gap-3 rounded-lg border p-3 transition-colors ${
                     isSelected
-                      ? 'border-accent bg-accent-soft dark:bg-accent-soft'
+                      ? 'border-accent bg-accent/10 dark:bg-accent/10'
                       : 'border-gray-200 hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700'
                   }`}
                 >
@@ -265,7 +282,7 @@ export default function EditAppointmentModal({
         <div className="flex gap-3 md:gap-4 pt-6">
           <Button
             type="button"
-            variant="soft"
+            variant="secondary"
             className="flex-1 min-h-touch-lg active-scale"
             onClick={onClose}
           >
@@ -274,9 +291,9 @@ export default function EditAppointmentModal({
           <Button
             type="submit"
             className="flex-1 min-h-touch-lg active-scale"
-            loading={isLoading}
-            disabled={formData.services.length === 0}
+            disabled={formData.services.length === 0 || isLoading}
           >
+            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Update Appointment
           </Button>
         </div>
@@ -301,25 +318,16 @@ export default function EditAppointmentModal({
   }
 
   return (
-    <Dialog.Root open={isOpen} onOpenChange={open => !open && onClose()}>
-      <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-50 bg-black/80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
-        <Dialog.Content className="fixed left-1/2 top-1/2 z-50 max-h-[85vh] w-full max-w-lg -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-lg border bg-white shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%]">
-          <div className="flex items-center justify-between border-b p-6">
-            <div>
-              <Dialog.Title className="text-lg font-semibold">Edit Appointment</Dialog.Title>
-              <Dialog.Description className="mt-1 text-sm text-gray-600">
-                Update customer details, services, and scheduled time for this appointment.
-              </Dialog.Description>
-            </div>
-            <Dialog.Close className="rounded-sm opacity-70 ring-offset-white transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-gray-950 focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-gray-100 data-[state=open]:text-gray-500">
-              <X className="h-4 w-4" />
-              <span className="sr-only">Close</span>
-            </Dialog.Close>
-          </div>
-          {content}
-        </Dialog.Content>
-      </Dialog.Portal>
-    </Dialog.Root>
+    <Dialog open={isOpen} onOpenChange={open => !open && onClose()}>
+      <DialogContent className="max-h-[85vh] w-full max-w-lg overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Edit Appointment</DialogTitle>
+          <DialogDescription>
+            Update customer details, services, and scheduled time for this appointment.
+          </DialogDescription>
+        </DialogHeader>
+        {content}
+      </DialogContent>
+    </Dialog>
   );
 }

@@ -1,25 +1,20 @@
-'use client';
+﻿'use client';
 
-import { Heading, Text, Container, Section, Badge } from '@radix-ui/themes';
+import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
 
 export default function TeamCard() {
   return (
-    <Section size="3" className="bg-stone-50">
-      <Container size="3">
+    <section className="bg-stone-50 py-16">
+      <div className="container mx-auto px-4">
         <div className="text-center mb-6 sm:mb-12">
-          <Text
-            size="2"
-            className="uppercase tracking-[0.2em] text-gold-600 font-sans mb-2 sm:mb-4 block"
-          >
+          <span className="uppercase tracking-[0.2em] text-accent-foreground font-sans mb-2 sm:mb-4 block text-sm">
             Meet the Expert
-          </Text>
-          <Heading size="8" className="font-light text-stone-900">
-            Our Stylist
-          </Heading>
+          </span>
+          <h2 className="text-4xl font-light text-stone-900">Our Stylist</h2>
         </div>
 
-        <div className="max-w-4xl mx-auto sm:bg-white rounded-2xl overflow-hidden sm:shadow-sm border border-stone-100 flex flex-col md:flex-row mx-auto">
+        <div className="max-w-4xl mx-auto sm:bg-white rounded-2xl overflow-hidden sm:shadow-sm border border-stone-100 flex flex-col md:flex-row">
           {/* Image Section */}
           <div className="relative w-4/5 md:w-2/5 min-h-[300px] sm:min-h-[400px] mx-auto">
             <Image
@@ -35,21 +30,26 @@ export default function TeamCard() {
           <div className="p-8 md:p-12 flex flex-col justify-center w-full md:w-3/5">
             <div className="flex items-center justify-between mb-6">
               <div>
-                <Heading size="6" className="font-normal text-stone-900 mb-1">
-                  May
-                </Heading>
-                <Text size="2" className="text-stone-500 uppercase tracking-wider">
-                  Creative Director
-                </Text>
+                <h3 className="text-2xl font-normal text-stone-900 mb-1">May</h3>
+                <p className="text-sm text-stone-500 uppercase tracking-wider">Creative Director</p>
               </div>
               <div className="flex gap-2">
-                <Badge color="gold" variant="soft" radius="full">
+                <Badge
+                  variant="secondary"
+                  className="rounded-full bg-secondary text-accent-foreground hover:bg-secondary/80"
+                >
                   Cuts
                 </Badge>
-                <Badge color="gold" variant="soft" radius="full">
+                <Badge
+                  variant="secondary"
+                  className="rounded-full bg-secondary text-accent-foreground hover:bg-secondary/80"
+                >
                   Color
                 </Badge>
-                <Badge color="gold" variant="soft" radius="full">
+                <Badge
+                  variant="secondary"
+                  className="rounded-full bg-secondary text-accent-foreground hover:bg-secondary/80"
+                >
                   Treatment
                 </Badge>
               </div>
@@ -63,31 +63,21 @@ export default function TeamCard() {
 
             <div className="grid grid-cols-2 gap-6 border-t border-stone-100 pt-6">
               <div>
-                <Text
-                  size="1"
-                  className="uppercase text-stone-400 font-bold tracking-wider block mb-1"
-                >
+                <span className="uppercase text-stone-400 font-bold tracking-wider block mb-1 text-xs">
                   Experience
-                </Text>
-                <Text size="3" className="text-stone-800">
-                  20+ Years
-                </Text>
+                </span>
+                <p className="text-lg text-stone-800">20+ Years</p>
               </div>
               <div>
-                <Text
-                  size="1"
-                  className="uppercase text-stone-400 font-bold tracking-wider block mb-1"
-                >
+                <span className="uppercase text-stone-400 font-bold tracking-wider block mb-1 text-xs">
                   Specialty
-                </Text>
-                <Text size="3" className="text-stone-800">
-                  Asian Hair
-                </Text>
+                </span>
+                <p className="text-lg text-stone-800">Asian Hair</p>
               </div>
             </div>
           </div>
         </div>
-      </Container>
-    </Section>
+      </div>
+    </section>
   );
 }

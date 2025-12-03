@@ -1,4 +1,4 @@
-import Image from 'next/image';
+﻿import Image from 'next/image';
 
 interface ServiceStat {
   label: string;
@@ -13,7 +13,7 @@ export function ServiceStats({ stats }: ServiceStatsProps) {
   return (
     <section className="py-8 md:py-16 px-4 md:px-6 -mt-20 relative z-10">
       <div className="max-w-6xl mx-auto">
-        <div className="bg-white rounded-2xl border border-base-primary/40 p-6 md:p-8 relative overflow-hidden">
+        <div className="bg-white rounded-2xl border border-accent/40 p-6 md:p-8 relative overflow-hidden">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 md:gap-8 relative z-10">
             {stats.map((stat, index) => (
               <div key={index} className="text-right md:text-center">

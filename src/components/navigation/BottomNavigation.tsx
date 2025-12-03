@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
@@ -80,7 +80,7 @@ export default function BottomNavigation() {
         className="
           md:hidden fixed bottom-0 left-0 right-0 z-50
           bg-white/80 backdrop-blur-xl
-          border-t border-base-primary/20
+          border-t border-accent/20
           pb-safe-bottom
         "
         role="navigation"

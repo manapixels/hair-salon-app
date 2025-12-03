@@ -56,37 +56,35 @@ export function ConcernOutcomeFilter({
   const hasSelections = selectedTags.length > 0;
 
   return (
-    <div className={`bg-white rounded-lg border-2 border-[var(--gray-6)] ${className}`}>
+    <div className={`bg-white rounded-lg border-2 border-border ${className}`}>
       {/* Header */}
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full px-4 py-3 flex items-center justify-between hover:bg-[var(--gray-2)] transition-colors"
+        className="w-full px-4 py-3 flex items-center justify-between hover:bg-muted transition-colors"
         aria-expanded={isExpanded}
       >
         <div className="flex items-center gap-3">
-          <span className="font-serif text-lg text-[var(--gray-12)]">
-            Find by hair concern or goal
-          </span>
+          <span className="font-serif text-lg text-foreground">Find by hair concern or goal</span>
           {hasSelections && (
-            <span className="px-2 py-1 rounded-full bg-[var(--accent-3)] text-[var(--accent-11)] text-xs font-medium">
+            <span className="px-2 py-1 rounded-full bg-accent/10 text-accent-foreground text-xs font-medium">
               {selectedTags.length} selected
             </span>
           )}
         </div>
         {isExpanded ? (
-          <ChevronUp className="w-5 h-5 text-[var(--gray-11)]" />
+          <ChevronUp className="w-5 h-5 text-muted-foreground" />
         ) : (
-          <ChevronDown className="w-5 h-5 text-[var(--gray-11)]" />
+          <ChevronDown className="w-5 h-5 text-muted-foreground" />
         )}
       </button>
 
       {/* Filter Content */}
       {isExpanded && (
-        <div className="px-4 pb-4 space-y-4 border-t border-[var(--gray-6)]">
+        <div className="px-4 pb-4 space-y-4 border-t border-border">
           {/* Concerns Section */}
           {concernTags.length > 0 && (
             <div className="pt-4">
-              <h3 className="text-sm font-semibold text-[var(--gray-12)] mb-3">
+              <h3 className="text-sm font-semibold text-foreground mb-3">
                 What&apos;s your hair concern?
               </h3>
               <div className="flex flex-wrap gap-2">
@@ -106,7 +104,7 @@ export function ConcernOutcomeFilter({
           {/* Outcomes Section */}
           {outcomeTags.length > 0 && (
             <div>
-              <h3 className="text-sm font-semibold text-[var(--gray-12)] mb-3">
+              <h3 className="text-sm font-semibold text-foreground mb-3">
                 What do you want to achieve?
               </h3>
               <div className="flex flex-wrap gap-2">
@@ -128,7 +126,7 @@ export function ConcernOutcomeFilter({
             <div className="flex justify-end pt-2">
               <button
                 onClick={handleClear}
-                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-[var(--accent-11)] hover:text-[var(--accent-12)] transition-colors"
+                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-accent-foreground hover:text-accent-foreground transition-colors"
               >
                 <X className="w-4 h-4" />
                 Clear all filters

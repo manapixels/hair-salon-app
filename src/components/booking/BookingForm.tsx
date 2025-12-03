@@ -1,24 +1,11 @@
-'use client';
+﻿'use client';
 
-import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import dynamic from 'next/dynamic';
-import Image from 'next/image';
 import { toast } from 'sonner';
 
-import type {
-  Service,
-  TimeSlot,
-  Appointment,
-  Stylist,
-  ServiceCategory,
-  ServiceAddon,
-  ServiceTag,
-} from '@/types';
-import {
-  BOOKING_CATEGORIES,
-  type BookingCategory,
-  getCategoryBySlug,
-} from '@/data/bookingCategories';
+import type { Service, TimeSlot, Appointment, Stylist, ServiceCategory } from '@/types';
+import { type BookingCategory, getCategoryBySlug } from '@/data/bookingCategories';
 import { useBooking } from '@/context/BookingContext';
 import { useAuth } from '@/context/AuthContext';
 import { toZonedTime } from 'date-fns-tz';
@@ -32,11 +19,13 @@ import {
 } from '@/lib/timeUtils';
 import { LoadingSpinner } from '../feedback/loaders/LoadingSpinner';
 import { StylistCardSkeleton } from '../feedback/loaders/StylistCardSkeleton';
-import { ErrorState } from '../feedback/ErrorState';
-import { EmptyState } from '../feedback/EmptyState';
 import { useDelayedLoading } from '@/hooks/useDelayedLoading';
-import { TextField } from '../ui/TextField';
-import { Button, Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Button } from '@/components/ui/button';
+
 import {
   Accordion,
   AccordionContent,
@@ -266,7 +255,7 @@ const ServiceSelector: React.FC<{
                     <div className="flex flex-col items-start text-left">
                       <span>{category.title}</span>
                       {category.description && (
-                        <span className="text-xs font-normal normal-case text-[var(--gray-10)] tracking-normal mt-0.5">
+                        <span className="text-xs font-normal normal-case text-gray-500 tracking-normal mt-0.5">
                           {category.description}
                           {category.priceRangeMin && category.priceRangeMax && (
                             <>
@@ -286,37 +275,43 @@ const ServiceSelector: React.FC<{
                         return (
                           <Card
                             key={service.id}
-                            variant="interactive"
-                            selected={isSelected}
-                            showCheckmark
                             onClick={() => onServiceToggle(service)}
-                            className="cursor-pointer h-full"
+                            className={`cursor-pointer h-full transition-all hover:border-accent ${
+                              isSelected ? 'border-accent bg-accent/10' : 'hover:shadow-md'
+                            }`}
                           >
                             <CardHeader className="pb-2">
                               <div className="flex justify-between items-start gap-2">
                                 <div className="flex-1">
-                                  <CardTitle className="text-base">{service.name}</CardTitle>
+                                  <div className="flex items-center gap-2">
+                                    <CardTitle className="text-base">{service.name}</CardTitle>
+                                    {isSelected && (
+                                      <div className="flex items-center justify-center w-5 h-5 rounded-full bg-accent text-white shrink-0">
+                                        <Check className="w-3 h-3" />
+                                      </div>
+                                    )}
+                                  </div>
                                   {service.subtitle && (
-                                    <p className="text-xs text-[var(--gray-10)] mt-0.5">
+                                    <p className="text-xs text-gray-500 mt-0.5">
                                       {service.subtitle}
                                     </p>
                                   )}
                                 </div>
-                                <span className="text-sm font-semibold text-[var(--gray-12)] shrink-0">
+                                <span className="text-sm font-semibold text-foreground shrink-0">
                                   {service.price}
                                 </span>
                               </div>
                             </CardHeader>
                             <CardContent>
                               {service.description && (
-                                <p className="text-sm text-[var(--gray-11)] mb-2">
+                                <p className="text-sm text-muted-foreground mb-2">
                                   {service.description}
                                 </p>
                               )}
-                              <div className="flex items-center gap-3 text-xs text-[var(--gray-10)] mb-3">
+                              <div className="flex items-center gap-3 text-xs text-gray-500 mb-3">
                                 <span>{service.duration} mins</span>
                                 {service.popularityScore >= 80 && (
-                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[var(--accent-3)] text-[var(--accent-11)] font-medium">
+                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-accent/10 text-accent-foreground font-medium">
                                     <svg
                                       className="w-3 h-3"
                                       fill="currentColor"
@@ -336,11 +331,11 @@ const ServiceSelector: React.FC<{
                                   onClick={e => e.stopPropagation()}
                                 >
                                   <div className="flex items-center justify-between mb-3">
-                                    <p className="text-xs font-semibold text-[var(--gray-11)] uppercase tracking-wide">
+                                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
                                       Enhance Your Service
                                     </p>
                                     {service.addons.some(a => a.isRecommended) && (
-                                      <span className="text-xs px-2 py-0.5 rounded-full bg-[var(--accent-3)] text-[var(--accent-11)] font-medium">
+                                      <span className="text-xs px-2 py-0.5 rounded-full bg-accent/10 text-accent-foreground font-medium">
                                         Recommended
                                       </span>
                                     )}
@@ -357,29 +352,30 @@ const ServiceSelector: React.FC<{
                                             transition-all
                                             ${
                                               isAddonSelected
-                                                ? 'border-[var(--accent-8)] bg-[var(--accent-2)]'
+                                                ? 'border-accent bg-accent/10'
                                                 : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
                                             }
                                           `}
                                         >
-                                          <input
-                                            type="checkbox"
+                                          <Checkbox
                                             id={addon.id}
                                             checked={isAddonSelected}
-                                            onChange={() => onAddonToggle(addon.id, service.id)}
-                                            className="mt-0.5 h-4 w-4 rounded border-gray-300 text-accent focus:ring-accent shrink-0"
+                                            onCheckedChange={() =>
+                                              onAddonToggle(addon.id, service.id)
+                                            }
+                                            className="mt-0.5 shrink-0 border-gray-300 data-[state=checked]:bg-accent data-[state=checked]:border-accent"
                                           />
                                           <div className="flex-1 min-w-0">
                                             <div className="flex items-start justify-between gap-2">
-                                              <span className="text-sm font-medium text-[var(--gray-12)]">
+                                              <span className="text-sm font-medium text-foreground">
                                                 {addon.name}
                                               </span>
-                                              <span className="text-sm font-semibold text-[var(--gray-12)] shrink-0">
+                                              <span className="text-sm font-semibold text-foreground shrink-0">
                                                 {addon.price}
                                               </span>
                                             </div>
                                             {addon.description && (
-                                              <p className="text-xs text-[var(--gray-11)] mt-1">
+                                              <p className="text-xs text-muted-foreground mt-1">
                                                 {addon.description}
                                               </p>
                                             )}
@@ -388,7 +384,7 @@ const ServiceSelector: React.FC<{
                                                 {addon.benefits.map((benefit, i) => (
                                                   <li
                                                     key={i}
-                                                    className="text-xs text-[var(--gray-10)] flex items-center gap-1"
+                                                    className="text-xs text-gray-500 flex items-center gap-1"
                                                   >
                                                     <svg
                                                       className="w-3 h-3 text-green-600 shrink-0"
@@ -407,7 +403,7 @@ const ServiceSelector: React.FC<{
                                               </ul>
                                             )}
                                             {addon.isPopular && (
-                                              <p className="text-xs text-[var(--accent-11)] mt-1.5 font-medium">
+                                              <p className="text-xs text-accent-foreground mt-1.5 font-medium">
                                                 ⭐ Popular choice
                                               </p>
                                             )}
@@ -468,7 +464,7 @@ const TimeSlotCard: React.FC<{
         {/* Duration bar */}
         <div
           className={`mb-1 rounded-full h-1.5 overflow-hidden ${
-            isSelected ? 'bg-accent-soft' : 'bg-gray-200 dark:bg-gray-700'
+            isSelected ? 'bg-accent/10' : 'bg-gray-200 dark:bg-gray-700'
           }`}
         >
           <div
@@ -678,8 +674,8 @@ const ConfirmationForm: React.FC<{
         onSubmit={handleSubmit}
         className="space-y-4 max-w-lg bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-200 dark:border-gray-700"
       >
-        <TextField
-          label="Full Name"
+        <Label>Full Name</Label>
+        <Input
           id="name"
           type="text"
           value={name}
@@ -688,8 +684,8 @@ const ConfirmationForm: React.FC<{
           required
           className="text-base"
         />
-        <TextField
-          label="Email Address"
+        <Label>Email Address</Label>
+        <Input
           id="email"
           type="email"
           value={email}
@@ -698,20 +694,26 @@ const ConfirmationForm: React.FC<{
           required
           className="text-base"
         />
-        {error && <p className="text-[length:var(--font-size-2)] text-[var(--red-11)]">{error}</p>}
+        {error && <p className="text-sm text-destructive">{error}</p>}
         <Button
           type="submit"
-          variant="solid"
+          variant="default"
           size="lg"
-          fullWidth
-          loading={isSubmitting}
-          loadingText="Booking..."
           disabled={isSubmitting}
-          className="py-4 text-[length:var(--font-size-4)]"
+          className="w-full py-4 text-base"
           aria-label={isSubmitting ? 'Booking in progress' : 'Confirm your appointment'}
         >
-          <CheckCircle className="h-6 w-6" aria-hidden="true" />
-          Confirm Appointment
+          {isSubmitting ? (
+            <>
+              <LoadingSpinner size="sm" className="mr-2" />
+              Booking...
+            </>
+          ) : (
+            <>
+              <CheckCircle className="h-6 w-6 mr-2" aria-hidden="true" />
+              Confirm Appointment
+            </>
+          )}
         </Button>
 
         {/* WhatsApp Fallback */}
@@ -1186,7 +1188,7 @@ Please confirm availability. Thank you!`;
         <p className="mt-2 text-sm text-gray-500">
           A confirmation has been sent to {bookingConfirmed.customerEmail}.
         </p>
-        <Button variant="solid" size="md" onClick={handleReset} className="mt-6">
+        <Button variant="default" size="default" onClick={handleReset} className="mt-6">
           Make Another Booking
         </Button>
       </div>

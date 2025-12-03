@@ -2,7 +2,7 @@ import type { Config } from 'tailwindcss';
 
 const config: Config = {
   prefix: '',
-  darkMode: 'class',
+  darkMode: ['class', 'class'],
   mode: 'jit',
   content: [
     './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
@@ -20,11 +20,6 @@ const config: Config = {
     },
     extend: {
       colors: {
-        base: {
-          dark: '#6e5600',
-          primary: '#7A6400',
-          light: '#FFF2BB',
-        },
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',
@@ -58,6 +53,13 @@ const config: Config = {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
         },
+        chart: {
+          '1': 'hsl(var(--chart-1))',
+          '2': 'hsl(var(--chart-2))',
+          '3': 'hsl(var(--chart-3))',
+          '4': 'hsl(var(--chart-4))',
+          '5': 'hsl(var(--chart-5))',
+        },
       },
       spacing: {
         'safe-top': 'env(safe-area-inset-top)',
@@ -77,18 +79,26 @@ const config: Config = {
         'safe-bottom': 'env(safe-area-inset-bottom)',
       },
       borderRadius: {
-        lg: 'var(--radius-3)',
-        md: 'var(--radius-2)',
-        sm: 'var(--radius-1)',
+        lg: 'var(--radius)',
+        md: 'calc(var(--radius) - 2px)',
+        sm: 'calc(var(--radius) - 4px)',
       },
       keyframes: {
         'accordion-down': {
-          from: { height: '0' },
-          to: { height: 'var(--radix-accordion-content-height)' },
+          from: {
+            height: '0',
+          },
+          to: {
+            height: 'var(--radix-accordion-content-height)',
+          },
         },
         'accordion-up': {
-          from: { height: 'var(--radix-accordion-content-height)' },
-          to: { height: '0' },
+          from: {
+            height: 'var(--radix-accordion-content-height)',
+          },
+          to: {
+            height: '0',
+          },
         },
         'slide-in-bottom': {
           from: {
@@ -111,8 +121,12 @@ const config: Config = {
           },
         },
         'fade-in': {
-          from: { opacity: '0' },
-          to: { opacity: '1' },
+          from: {
+            opacity: '0',
+          },
+          to: {
+            opacity: '1',
+          },
         },
         'scale-in': {
           from: {

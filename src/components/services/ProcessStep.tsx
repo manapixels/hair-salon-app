@@ -1,4 +1,4 @@
-type ColorScheme = 'primary' | 'amber' | 'teal' | 'rose';
+﻿type ColorScheme = 'primary' | 'amber' | 'teal' | 'rose';
 
 interface ProcessStepProps {
   number: string;
@@ -8,7 +8,7 @@ interface ProcessStepProps {
 }
 
 const colorClasses: Record<ColorScheme, string> = {
-  primary: 'bg-base-primary',
+  primary: 'bg-accent',
   amber: 'bg-amber-500',
   teal: 'bg-teal-500',
   rose: 'bg-rose-500',

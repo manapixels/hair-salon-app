@@ -1,8 +1,9 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useEffect, memo } from 'react';
-import { Button } from '@/components/ui';
+import { Button } from '@/components/ui/button';
 import { formatDuration } from '@/lib/timeUtils';
+import { Spinner } from '@/components/ui/spinner';
 
 interface MobileBookingSummaryProps {
   totalPrice: number;
@@ -107,12 +108,12 @@ export const MobileBookingSummary = memo<MobileBookingSummaryProps>(
 
             <Button
               onClick={onNext}
-              variant="solid"
-              size={isCompact ? 'sm' : 'md'}
-              loading={isSubmitting}
+              variant="default"
+              size={isCompact ? 'sm' : 'default'}
               disabled={isSubmitting}
               className="min-w-[120px] min-h-[44px] shadow-md"
             >
+              {isSubmitting && <Spinner className="mr-2" />}
               {nextLabel}
             </Button>
           </div>

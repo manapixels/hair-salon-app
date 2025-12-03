@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, MapPin, Clock, Instagram, Facebook } from 'lucide-react';
@@ -103,8 +103,8 @@ export default function InfoPopup({ isOpen, onClose }: InfoPopupProps) {
                 settings.businessAddress && (
                   <section>
                     <div className="flex items-start gap-3">
-                      <div className="p-2 bg-[var(--accent-2)] rounded-lg shrink-0">
-                        <MapPin className="w-5 h-5 text-[var(--accent-11)]" />
+                      <div className="p-2 bg-accent/10 rounded-lg shrink-0">
+                        <MapPin className="w-5 h-5 text-accent-foreground" />
                       </div>
                       <div>
                         <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-1">
@@ -136,8 +136,8 @@ export default function InfoPopup({ isOpen, onClose }: InfoPopupProps) {
                 settings.weeklySchedule && (
                   <section>
                     <div className="flex items-start gap-3">
-                      <div className="p-2 bg-[var(--accent-2)] rounded-lg shrink-0">
-                        <Clock className="w-5 h-5 text-[var(--accent-11)]" />
+                      <div className="p-2 bg-accent/10 rounded-lg shrink-0">
+                        <Clock className="w-5 h-5 text-accent-foreground" />
                       </div>
                       <div className="flex-1">
                         <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">

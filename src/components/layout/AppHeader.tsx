@@ -1,12 +1,18 @@
-'use client';
+﻿'use client';
 
 import { useAuth } from '@/context/AuthContext';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
-import { Button } from '@/components/ui';
-import * as Avatar from '@radix-ui/react-avatar';
-import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Calendar, User, Shield, LogIn, LogOut, ChevronDown } from '@/lib/icons';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -155,7 +161,7 @@ export default function AppHeader({ view, onViewChange }: AppHeaderProps) {
   return (
     <>
       {/* Desktop Header - Hidden on Mobile */}
-      <header className="hidden md:block sticky top-0 z-50 border-b border-base-primary/10 bg-stone-50 bg-opacity-50 backdrop-blur-md transition-all duration-300 dark:border-gray-800 dark:bg-gray-900">
+      <header className="hidden md:block sticky top-0 z-50 border-b border-accent/10 bg-stone-50 bg-opacity-50 backdrop-blur-md transition-all duration-300 dark:border-gray-800 dark:bg-gray-900">
         <nav className="w-full flex items-center justify-between px-6 py-3 lg:px-12">
           <div className="flex items-center gap-3">
             <Link href="/" className="cursor-pointer">
@@ -176,7 +182,7 @@ export default function AppHeader({ view, onViewChange }: AppHeaderProps) {
 
                 {/* Full Width Mega Menu Overlay */}
                 <div
-                  className={`fixed left-0 top-[73px] w-screen bg-[var(--accent-9)] text-white transition-all duration-300 ease-in-out z-50 shadow-2xl border-t border-[var(--accent-8)] ${isMegaMenuOpen ? 'opacity-100 visible' : 'opacity-0 invisible'}`}
+                  className={`fixed left-0 top-[73px] w-screen bg-accent text-white transition-all duration-300 ease-in-out z-50 shadow-2xl border-t border-accent ${isMegaMenuOpen ? 'opacity-100 visible' : 'opacity-0 invisible'}`}
                   onMouseLeave={() => setIsMegaMenuOpen(false)}
                 >
                   <div className="mx-auto">
@@ -201,12 +207,12 @@ export default function AppHeader({ view, onViewChange }: AppHeaderProps) {
                             key={service.href}
                             href={service.href}
                             onClick={() => setIsMegaMenuOpen(false)}
-                            className="group/item flex items-center justify-between py-4 border-b border-[var(--accent-7)] hover:border-white transition-colors"
+                            className="group/item flex items-center justify-between py-4 border-b border-accent hover:border-white transition-colors"
                           >
                             <span className="text-2xl font-light tracking-wide group-hover/item:text-white text-white/90 transition-colors">
                               {service.title}
                             </span>
-                            <div className="w-10 h-10 rounded-full border border-[var(--accent-8)] flex items-center justify-center group-hover/item:border-white group-hover/item:bg-white group-hover/item:text-[var(--accent-11)] transition-all">
+                            <div className="w-10 h-10 rounded-full border border-accent flex items-center justify-center group-hover/item:border-white group-hover/item:bg-white group-hover/item:text-accent-foreground transition-all">
                               <ChevronDown className="w-5 h-5 -rotate-90" />
                             </div>
                           </Link>
@@ -228,8 +234,8 @@ export default function AppHeader({ view, onViewChange }: AppHeaderProps) {
 
               <Button
                 variant="outline"
-                size="md"
-                className="border-base-primary/50 bg-white/80 backdrop-blur-xs text-base-primary"
+                size="default"
+                className="border-accent/50 bg-white/80 backdrop-blur-xs text-accent-foreground"
                 onClick={() => handleNavigation('booking', '/')}
               >
                 <Calendar className="h-4 w-4" aria-hidden="true" />
@@ -239,8 +245,8 @@ export default function AppHeader({ view, onViewChange }: AppHeaderProps) {
               {user && user.role === 'CUSTOMER' && (
                 <div className="relative">
                   <Button
-                    variant={activeView === 'dashboard' ? 'solid' : 'ghost'}
-                    size="md"
+                    variant={activeView === 'dashboard' ? 'default' : 'ghost'}
+                    size="default"
                     onClick={() => handleNavigation('dashboard', '/dashboard')}
                   >
                     <User className="h-4 w-4" aria-hidden="true" />
@@ -252,8 +258,8 @@ export default function AppHeader({ view, onViewChange }: AppHeaderProps) {
 
               {user?.role === 'ADMIN' && (
                 <Button
-                  variant={activeView === 'admin' ? 'solid' : 'soft'}
-                  size="md"
+                  variant={activeView === 'admin' ? 'default' : 'secondary'}
+                  size="default"
                   onClick={() => handleNavigation('admin', '/admin')}
                 >
                   <Shield className="h-4 w-4" aria-hidden="true" />
@@ -262,87 +268,85 @@ export default function AppHeader({ view, onViewChange }: AppHeaderProps) {
               )}
             </div>
             {user ? (
-              <DropdownMenu.Root>
-                <DropdownMenu.Trigger asChild>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
                   <button
                     className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full bg-accent text-white transition-opacity hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2"
                     aria-label="User menu"
                   >
-                    <Avatar.Root className="h-10 w-10">
-                      <Avatar.Image
+                    <Avatar className="h-10 w-10">
+                      <AvatarImage
                         src={user.avatar}
                         alt={user.name}
                         className="h-full w-full rounded-full object-cover"
                       />
-                      <Avatar.Fallback className="flex h-full w-full items-center justify-center rounded-full bg-accent text-sm font-semibold text-white">
+                      <AvatarFallback className="flex h-full w-full items-center justify-center rounded-full bg-accent text-sm font-semibold text-white">
                         {user.name
                           .split(' ')
                           .map(n => n[0])
                           .join('')
                           .toUpperCase()
                           .slice(0, 2)}
-                      </Avatar.Fallback>
-                    </Avatar.Root>
+                      </AvatarFallback>
+                    </Avatar>
                   </button>
-                </DropdownMenu.Trigger>
+                </DropdownMenuTrigger>
 
-                <DropdownMenu.Portal>
-                  <DropdownMenu.Content
-                    className="min-w-[220px] rounded-lg border border-gray-200 bg-white p-1.5 shadow-lg dark:border-gray-700 dark:bg-gray-800"
-                    sideOffset={5}
-                    align="end"
-                  >
-                    <div className="px-3 py-2.5 border-b border-gray-100 dark:border-gray-700">
-                      <p className="text-sm font-semibold text-gray-900 dark:text-white">
-                        {user.name}
-                      </p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">{user.email}</p>
-                      <span className="mt-1.5 inline-block rounded-full bg-accent/10 px-2 py-0.5 text-[10px] font-medium text-accent">
-                        {user.role === 'ADMIN' ? 'Admin' : 'Customer'}
-                      </span>
-                    </div>
+                <DropdownMenuContent
+                  className="min-w-[220px] rounded-lg border border-gray-200 bg-white p-1.5 shadow-lg dark:border-gray-700 dark:bg-gray-800"
+                  sideOffset={5}
+                  align="end"
+                >
+                  <div className="px-3 py-2.5 border-b border-gray-100 dark:border-gray-700">
+                    <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                      {user.name}
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">{user.email}</p>
+                    <span className="mt-1.5 inline-block rounded-full bg-accent/10 px-2 py-0.5 text-[10px] font-medium text-accent">
+                      {user.role === 'ADMIN' ? 'Admin' : 'Customer'}
+                    </span>
+                  </div>
 
-                    {user.role === 'CUSTOMER' && activeView !== 'dashboard' && (
-                      <DropdownMenu.Item
-                        className="flex cursor-pointer items-center gap-2.5 rounded-md px-3 py-2 text-sm text-gray-700 outline-none transition-colors hover:bg-gray-100 focus:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700 dark:focus:bg-gray-700"
-                        onSelect={() => router.push('/dashboard')}
-                      >
-                        <User className="h-4 w-4" aria-hidden="true" />
-                        <span>Dashboard</span>
-                      </DropdownMenu.Item>
-                    )}
-
-                    {user.role === 'ADMIN' && activeView !== 'admin' && (
-                      <DropdownMenu.Item
-                        className="flex cursor-pointer items-center gap-2.5 rounded-md px-3 py-2 text-sm text-gray-700 outline-none transition-colors hover:bg-gray-100 focus:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700 dark:focus:bg-gray-700"
-                        onSelect={() => router.push('/admin')}
-                      >
-                        <Shield className="h-4 w-4" aria-hidden="true" />
-                        <span>Admin Panel</span>
-                      </DropdownMenu.Item>
-                    )}
-
-                    {((user.role === 'CUSTOMER' && activeView !== 'dashboard') ||
-                      (user.role === 'ADMIN' && activeView !== 'admin')) && (
-                      <DropdownMenu.Separator className="my-1.5 h-px bg-gray-100 dark:bg-gray-700" />
-                    )}
-
-                    <DropdownMenu.Item
-                      className="flex cursor-pointer items-center gap-2.5 rounded-md px-3 py-2 text-sm text-red-600 outline-none transition-colors hover:bg-red-50 focus:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20 dark:focus:bg-red-900/20"
-                      onSelect={async () => {
-                        await logout();
-                        router.push('/');
-                        toast.success('Logged out successfully');
-                      }}
+                  {user.role === 'CUSTOMER' && activeView !== 'dashboard' && (
+                    <DropdownMenuItem
+                      className="flex cursor-pointer items-center gap-2.5 rounded-md px-3 py-2 text-sm text-gray-700 outline-none transition-colors hover:bg-gray-100 focus:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700 dark:focus:bg-gray-700"
+                      onSelect={() => router.push('/dashboard')}
                     >
-                      <LogOut className="h-4 w-4" aria-hidden="true" />
-                      <span>Logout</span>
-                    </DropdownMenu.Item>
-                  </DropdownMenu.Content>
-                </DropdownMenu.Portal>
-              </DropdownMenu.Root>
+                      <User className="h-4 w-4" aria-hidden="true" />
+                      <span>Dashboard</span>
+                    </DropdownMenuItem>
+                  )}
+
+                  {user.role === 'ADMIN' && activeView !== 'admin' && (
+                    <DropdownMenuItem
+                      className="flex cursor-pointer items-center gap-2.5 rounded-md px-3 py-2 text-sm text-gray-700 outline-none transition-colors hover:bg-gray-100 focus:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700 dark:focus:bg-gray-700"
+                      onSelect={() => router.push('/admin')}
+                    >
+                      <Shield className="h-4 w-4" aria-hidden="true" />
+                      <span>Admin Panel</span>
+                    </DropdownMenuItem>
+                  )}
+
+                  {((user.role === 'CUSTOMER' && activeView !== 'dashboard') ||
+                    (user.role === 'ADMIN' && activeView !== 'admin')) && (
+                    <DropdownMenuSeparator className="my-1.5 h-px bg-gray-100 dark:bg-gray-700" />
+                  )}
+
+                  <DropdownMenuItem
+                    className="flex cursor-pointer items-center gap-2.5 rounded-md px-3 py-2 text-sm text-red-600 outline-none transition-colors hover:bg-red-50 focus:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20 dark:focus:bg-red-900/20"
+                    onSelect={async () => {
+                      await logout();
+                      router.push('/');
+                      toast.success('Logged out successfully');
+                    }}
+                  >
+                    <LogOut className="h-4 w-4" aria-hidden="true" />
+                    <span>Logout</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             ) : (
-              <Button variant="solid" size="md" onClick={() => setIsLoginOpen(true)}>
+              <Button variant="default" size="default" onClick={() => setIsLoginOpen(true)}>
                 <LogIn className="h-4 w-4" aria-hidden="true" />
                 Sign In
               </Button>

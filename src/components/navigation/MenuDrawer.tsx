@@ -1,7 +1,7 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState } from 'react';
-import { Dialog } from '@radix-ui/themes';
+
 import { X, MapPin, Clock, Instagram, Facebook } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
@@ -69,7 +69,7 @@ export default function MenuDrawer({ isOpen, onClose }: MenuDrawerProps) {
   };
 
   return (
-    <Dialog.Root open={isOpen} onOpenChange={open => !open && onClose()}>
+    <>
       {/* Backdrop */}
       <AnimatePresence>
         {isOpen && (
@@ -99,15 +99,19 @@ export default function MenuDrawer({ isOpen, onClose }: MenuDrawerProps) {
               shadow-[8px_0_24px_rgba(0,0,0,0.15)]
               overflow-y-auto
             "
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="menu-title"
+            aria-describedby="menu-description"
           >
             <VisuallyHidden>
-              <Dialog.Title>Menu</Dialog.Title>
-              <Dialog.Description>Location, hours, and contact information</Dialog.Description>
+              <h2 id="menu-title">Menu</h2>
+              <p id="menu-description">Location, hours, and contact information</p>
             </VisuallyHidden>
 
             {/* Header */}
             <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between z-10">
-              <h2 className="text-lg font-semibold text-[var(--gray-12)]">Menu</h2>
+              <h2 className="text-lg font-semibold text-foreground">Menu</h2>
               <button
                 onClick={onClose}
                 className="p-2 hover:bg-gray-100 rounded-lg transition-colors touch-target"
@@ -123,12 +127,12 @@ export default function MenuDrawer({ isOpen, onClose }: MenuDrawerProps) {
               {settings?.businessAddress && (
                 <section>
                   <div className="flex items-start gap-3">
-                    <div className="p-2 bg-[var(--accent-2)] rounded-lg">
-                      <MapPin className="w-5 h-5 text-[var(--accent-11)]" />
+                    <div className="p-2 bg-accent/10 rounded-lg">
+                      <MapPin className="w-5 h-5 text-accent-foreground" />
                     </div>
                     <div>
-                      <h3 className="text-sm font-semibold text-[var(--gray-12)] mb-1">Location</h3>
-                      <p className="text-sm text-[var(--gray-11)]">{settings.businessAddress}</p>
+                      <h3 className="text-sm font-semibold text-foreground mb-1">Location</h3>
+                      <p className="text-sm text-muted-foreground">{settings.businessAddress}</p>
                     </div>
                   </div>
                 </section>
@@ -138,20 +142,18 @@ export default function MenuDrawer({ isOpen, onClose }: MenuDrawerProps) {
               {settings?.weeklySchedule && (
                 <section>
                   <div className="flex items-start gap-3">
-                    <div className="p-2 bg-[var(--accent-2)] rounded-lg">
-                      <Clock className="w-5 h-5 text-[var(--accent-11)]" />
+                    <div className="p-2 bg-accent/10 rounded-lg">
+                      <Clock className="w-5 h-5 text-accent-foreground" />
                     </div>
                     <div className="flex-1">
-                      <h3 className="text-sm font-semibold text-[var(--gray-12)] mb-3">
+                      <h3 className="text-sm font-semibold text-foreground mb-3">
                         Operating Hours
                       </h3>
                       <div className="space-y-2">
                         {Object.entries(settings.weeklySchedule).map(([day, schedule]) => (
                           <div key={day} className="flex justify-between text-sm">
-                            <span className="text-[var(--gray-11)] capitalize">{day}</span>
-                            <span
-                              className={schedule.isOpen ? 'text-[var(--gray-12)]' : 'text-red-600'}
-                            >
+                            <span className="text-muted-foreground capitalize">{day}</span>
+                            <span className={schedule.isOpen ? 'text-foreground' : 'text-red-600'}>
                               {schedule.isOpen
                                 ? `${formatTime(schedule.openingTime)} - ${formatTime(schedule.closingTime)}`
                                 : 'Closed'}
@@ -166,9 +168,7 @@ export default function MenuDrawer({ isOpen, onClose }: MenuDrawerProps) {
 
               {/* Social Media */}
               <section>
-                <h3 className="text-sm font-semibold text-[var(--gray-12)] mb-3">
-                  Connect With Us
-                </h3>
+                <h3 className="text-sm font-semibold text-foreground mb-3">Connect With Us</h3>
                 <div className="flex items-center gap-3">
                   {/* Instagram */}
                   <a
@@ -208,6 +208,6 @@ export default function MenuDrawer({ isOpen, onClose }: MenuDrawerProps) {
           </motion.div>
         )}
       </AnimatePresence>
-    </Dialog.Root>
+    </>
   );
 }

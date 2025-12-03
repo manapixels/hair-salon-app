@@ -1,10 +1,11 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
-import { Button, Card, CardContent } from '@/components/ui';
+import { Button } from '@/components/ui/button';
 import { LoadingSpinner } from '@/components/feedback/loaders/LoadingSpinner';
 import { toast } from 'sonner';
 import { WhatsAppIcon, TelegramIcon } from '@/lib/icons';
+import { Spinner } from '@/components/ui/spinner';
 
 interface FlaggedConversation {
   userId: string;
@@ -171,7 +172,8 @@ export default function ChatDashboard() {
                 <Button variant="outline" onClick={() => handleResolve(selectedUser)}>
                   Resolve without Reply
                 </Button>
-                <Button onClick={handleReply} loading={isSending} disabled={!replyMessage.trim()}>
+                <Button onClick={handleReply} disabled={!replyMessage.trim()}>
+                  {isSending && <Spinner className="mr-2" />}
                   Send Reply & Resolve
                 </Button>
               </div>

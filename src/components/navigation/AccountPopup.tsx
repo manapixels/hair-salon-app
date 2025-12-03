@@ -13,8 +13,8 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
-import * as Avatar from '@radix-ui/react-avatar';
-import { Button } from '@/components/ui';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import OAuthLoginModal from '../auth/OAuthLoginModal';
 
@@ -80,21 +80,21 @@ export default function AccountPopup({ isOpen, onClose }: AccountPopupProps) {
                   <div className="space-y-6">
                     {/* User Info */}
                     <div className="flex items-center gap-4">
-                      <Avatar.Root className="h-14 w-14 rounded-full border-2 border-white dark:border-gray-800 shadow-sm">
-                        <Avatar.Image
+                      <Avatar className="h-14 w-14 rounded-full border-2 border-white dark:border-gray-800 shadow-sm">
+                        <AvatarImage
                           src={user.avatar}
                           alt={user.name}
                           className="h-full w-full rounded-full object-cover"
                         />
-                        <Avatar.Fallback className="flex h-full w-full items-center justify-center rounded-full bg-accent text-lg font-semibold text-white">
+                        <AvatarFallback className="flex h-full w-full items-center justify-center rounded-full bg-accent text-lg font-semibold text-white">
                           {user.name
                             .split(' ')
                             .map(n => n[0])
                             .join('')
                             .toUpperCase()
                             .slice(0, 2)}
-                        </Avatar.Fallback>
-                      </Avatar.Root>
+                        </AvatarFallback>
+                      </Avatar>
                       <div>
                         <p className="font-semibold text-gray-900 dark:text-white text-lg">
                           {user.name}
@@ -178,7 +178,7 @@ export default function AccountPopup({ isOpen, onClose }: AccountPopupProps) {
                       </p>
                     </div>
                     <Button
-                      variant="solid"
+                      variant="default"
                       size="lg"
                       className="w-full"
                       onClick={() => setIsLoginOpen(true)}

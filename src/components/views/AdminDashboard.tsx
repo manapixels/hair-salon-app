@@ -1,5 +1,5 @@
-import { useState, useEffect, useMemo } from 'react';
-import { toast, type ExternalToast } from 'sonner';
+﻿import { useState, useEffect, useMemo } from 'react';
+import { toast } from 'sonner';
 import { useBooking } from '@/context/BookingContext';
 import type { Appointment } from '@/types';
 import EditAppointmentModal from '../booking/EditAppointmentModal';
@@ -13,15 +13,29 @@ import SettingsLayout from '../admin/settings/SettingsLayout';
 import ChatDashboard from '../admin/ChatDashboard';
 import KnowledgeBaseManager from '../admin/KnowledgeBaseManager';
 import { formatDisplayDate, formatTime12Hour } from '@/lib/timeUtils';
-import * as Tabs from '@radix-ui/react-tabs';
-import * as Select from '@radix-ui/react-select';
-import * as Checkbox from '@radix-ui/react-checkbox';
-import * as AlertDialog from '@radix-ui/react-alert-dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { LoadingSpinner } from '../feedback/loaders/LoadingSpinner';
-import { LoadingButton } from '../feedback/loaders/LoadingButton';
-import { Button, Badge } from '@/components/ui';
-import { Refresh, Edit, Delete, X } from '@/lib/icons';
-import { DoubleArrowUpIcon } from '@radix-ui/react-icons';
+import { Button } from '@/components/ui/button';
+import { Refresh } from '@/lib/icons';
+import { ChevronsUp } from 'lucide-react';
 
 const AdminDashboard: React.FC = () => {
   const {
@@ -603,7 +617,7 @@ const AdminDashboard: React.FC = () => {
     className?: string;
   }) => (
     <th
-      className={`px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-[var(--gray-2)] dark:hover:bg-gray-700 transition-colors ${className}`}
+      className={`px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-muted dark:hover:bg-gray-700 transition-colors ${className}`}
       onClick={() => handleSort(field)}
       aria-sort={
         sortField === field ? (sortDirection === 'asc' ? 'ascending' : 'descending') : 'none'
@@ -648,72 +662,58 @@ const AdminDashboard: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen bg-[var(--gray-2)]">
+    <div className="min-h-screen bg-muted">
       <div className="max-w-[1600px] mx-auto px-6 py-8">
-        <h1 className="text-3xl font-serif font-light text-[var(--gray-12)] mb-6">
-          Admin Dashboard
-        </h1>
+        <h1 className="text-3xl font-serif font-light text-foreground mb-6">Admin Dashboard</h1>
 
-        <Tabs.Root
-          value={activeTab}
-          onValueChange={value => setActiveTab(value as typeof activeTab)}
-        >
-          <Tabs.List
-            className="flex gap-6 border-b border-gray-200 dark:border-gray-700 mb-8 overflow-x-auto pb-1 -mx-6 px-6 sm:mx-0 sm:px-0 scrollbar-hide"
-            role="tablist"
-          >
-            <Tabs.Trigger
+        <Tabs value={activeTab} onValueChange={value => setActiveTab(value as typeof activeTab)}>
+          <TabsList className="flex gap-6 border-b border-gray-200 dark:border-gray-700 mb-8 overflow-x-auto pb-1 -mx-6 px-6 sm:mx-0 sm:px-0 scrollbar-hide bg-transparent h-auto p-0">
+            <TabsTrigger
               value="appointments"
-              className="px-3 py-3 text-base font-semibold border-b-2 border-transparent data-[state=active]:border-accent data-[state=active]:text-accent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors whitespace-nowrap"
-              role="tab"
+              className="px-3 py-3 text-base font-semibold border-b-2 border-transparent data-[state=active]:border-accent data-[state=active]:text-accent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors whitespace-nowrap rounded-none bg-transparent shadow-none"
             >
               Appointments
-            </Tabs.Trigger>
-            <Tabs.Trigger
+            </TabsTrigger>
+            <TabsTrigger
               value="stylists"
-              className="px-3 py-3 text-base font-semibold border-b-2 border-transparent data-[state=active]:border-accent data-[state=active]:text-accent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors whitespace-nowrap"
-              role="tab"
+              className="px-3 py-3 text-base font-semibold border-b-2 border-transparent data-[state=active]:border-accent data-[state=active]:text-accent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors whitespace-nowrap rounded-none bg-transparent shadow-none"
             >
               Stylists
-            </Tabs.Trigger>
-            <Tabs.Trigger
+            </TabsTrigger>
+            <TabsTrigger
               value="availability"
-              className="px-3 py-3 text-base font-semibold border-b-2 border-transparent data-[state=active]:border-accent data-[state=active]:text-accent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors whitespace-nowrap"
-              role="tab"
+              className="px-3 py-3 text-base font-semibold border-b-2 border-transparent data-[state=active]:border-accent data-[state=active]:text-accent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors whitespace-nowrap rounded-none bg-transparent shadow-none"
             >
               Availability
-            </Tabs.Trigger>
-            <Tabs.Trigger
+            </TabsTrigger>
+            <TabsTrigger
               value="settings"
-              className="px-3 py-3 text-base font-semibold border-b-2 border-transparent data-[state=active]:border-accent data-[state=active]:text-accent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors whitespace-nowrap"
-              role="tab"
+              className="px-3 py-3 text-base font-semibold border-b-2 border-transparent data-[state=active]:border-accent data-[state=active]:text-accent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors whitespace-nowrap rounded-none bg-transparent shadow-none"
             >
               Settings
-            </Tabs.Trigger>
-            <Tabs.Trigger
+            </TabsTrigger>
+            <TabsTrigger
               value="chat"
-              className="px-3 py-3 text-base font-semibold border-b-2 border-transparent data-[state=active]:border-accent data-[state=active]:text-accent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors whitespace-nowrap"
-              role="tab"
+              className="px-3 py-3 text-base font-semibold border-b-2 border-transparent data-[state=active]:border-accent data-[state=active]:text-accent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors whitespace-nowrap rounded-none bg-transparent shadow-none"
             >
               Chat Management
-            </Tabs.Trigger>
-            <Tabs.Trigger
+            </TabsTrigger>
+            <TabsTrigger
               value="knowledge-base"
-              className="px-3 py-3 text-base font-semibold border-b-2 border-transparent data-[state=active]:border-accent data-[state=active]:text-accent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors whitespace-nowrap"
-              role="tab"
+              className="px-3 py-3 text-base font-semibold border-b-2 border-transparent data-[state=active]:border-accent data-[state=active]:text-accent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors whitespace-nowrap rounded-none bg-transparent shadow-none"
             >
               Knowledge Base
-            </Tabs.Trigger>
-          </Tabs.List>
+            </TabsTrigger>
+          </TabsList>
 
-          <Tabs.Content value="appointments" className="focus:outline-none" role="tabpanel">
+          <TabsContent value="appointments" className="focus:outline-none">
             {/* KPI Cards */}
             <section aria-labelledby="kpi-heading" className="mb-6">
               <h2 id="kpi-heading" className="sr-only">
                 Key Performance Metrics
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-                <div className="bg-white p-5 border border-[var(--gray-6)] transition-colors">
+                <div className="bg-white p-5 border border-border transition-colors">
                   <div className="flex items-center justify-between mb-3">
                     <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400">Today</h3>
                     <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
@@ -739,7 +739,7 @@ const AdminDashboard: React.FC = () => {
                   </p>
                 </div>
 
-                <div className="bg-white p-5 border border-[var(--gray-6)] transition-colors">
+                <div className="bg-white p-5 border border-border transition-colors">
                   <div className="flex items-center justify-between mb-3">
                     <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400">
                       This Week
@@ -769,7 +769,7 @@ const AdminDashboard: React.FC = () => {
                   </p>
                 </div>
 
-                <div className="bg-white p-5 border border-[var(--gray-6)] transition-colors">
+                <div className="bg-white p-5 border border-border transition-colors">
                   <div className="flex items-center justify-between mb-3">
                     <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400">
                       Upcoming
@@ -799,13 +799,13 @@ const AdminDashboard: React.FC = () => {
                   </p>
                 </div>
 
-                <div className="bg-white p-5 border border-[var(--gray-6)] transition-colors">
+                <div className="bg-white p-5 border border-border transition-colors">
                   <div className="flex items-center justify-between mb-3">
                     <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400">
                       Week Revenue
                     </h3>
                     <div className="w-10 h-10 rounded-full bg-accent/10 dark:bg-accent/20 flex items-center justify-center">
-                      <DoubleArrowUpIcon className="w-5 h-5 text-accent" />
+                      <ChevronsUp className="w-5 h-5 text-accent" />
                     </div>
                   </div>
                   <p className="text-3xl font-bold text-gray-900 dark:text-white">
@@ -820,9 +820,7 @@ const AdminDashboard: React.FC = () => {
             <section aria-label="Appointments management">
               <div className="flex flex-wrap justify-between items-center gap-4 mb-6">
                 <div>
-                  <h2 className="text-xl font-serif font-light text-[var(--gray-12)]">
-                    Appointments
-                  </h2>
+                  <h2 className="text-xl font-serif font-light text-foreground">Appointments</h2>
                   <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                     Showing {startIndex + 1}-{Math.min(endIndex, sortedAppointments.length)} of{' '}
                     {sortedAppointments.length} appointments
@@ -839,7 +837,7 @@ const AdminDashboard: React.FC = () => {
                     <button
                       onClick={handleRefresh}
                       disabled={isRefreshing}
-                      className="px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded hover:bg-[var(--gray-2)] dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      className="px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded hover:bg-muted dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                       title="Refresh appointments"
                       aria-label="Refresh appointments list"
                     >
@@ -856,68 +854,29 @@ const AdminDashboard: React.FC = () => {
                     >
                       Per page:
                     </label>
-                    <Select.Root
+                    <Select
                       value={itemsPerPage.toString()}
                       onValueChange={value => {
                         setItemsPerPage(Number(value));
                         setCurrentPage(1);
                       }}
                     >
-                      <Select.Trigger className="inline-flex items-center justify-between gap-[var(--space-2)] px-[var(--space-3)] py-[var(--space-2)] rounded-[var(--radius-2)] border border-[var(--gray-7)] bg-[var(--color-surface)] text-[length:var(--font-size-2)] text-[var(--gray-12)] hover:border-[var(--gray-8)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-8)] min-w-[70px]">
-                        <Select.Value />
-                        <Select.Icon>
-                          <svg
-                            className="w-4 h-4"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M19 9l-7 7-7-7"
-                            />
-                          </svg>
-                        </Select.Icon>
-                      </Select.Trigger>
-                      <Select.Portal>
-                        <Select.Content className="overflow-hidden bg-[var(--color-panel-solid)] rounded-[var(--radius-2)] border border-[var(--gray-6)] ">
-                          <Select.Viewport className="p-[var(--space-1)]">
-                            <Select.Item
-                              value="10"
-                              className="relative flex items-center px-[var(--space-3)] py-[var(--space-2)] rounded-[var(--radius-1)] text-[length:var(--font-size-2)] text-[var(--gray-12)] hover:bg-[var(--accent-4)] focus:bg-[var(--accent-4)] outline-none cursor-pointer data-[highlighted]:bg-[var(--accent-4)]"
-                            >
-                              <Select.ItemText>10</Select.ItemText>
-                            </Select.Item>
-                            <Select.Item
-                              value="25"
-                              className="relative flex items-center px-[var(--space-3)] py-[var(--space-2)] rounded-[var(--radius-1)] text-[length:var(--font-size-2)] text-[var(--gray-12)] hover:bg-[var(--accent-4)] focus:bg-[var(--accent-4)] outline-none cursor-pointer data-[highlighted]:bg-[var(--accent-4)]"
-                            >
-                              <Select.ItemText>25</Select.ItemText>
-                            </Select.Item>
-                            <Select.Item
-                              value="50"
-                              className="relative flex items-center px-[var(--space-3)] py-[var(--space-2)] rounded-[var(--radius-1)] text-[length:var(--font-size-2)] text-[var(--gray-12)] hover:bg-[var(--accent-4)] focus:bg-[var(--accent-4)] outline-none cursor-pointer data-[highlighted]:bg-[var(--accent-4)]"
-                            >
-                              <Select.ItemText>50</Select.ItemText>
-                            </Select.Item>
-                            <Select.Item
-                              value="100"
-                              className="relative flex items-center px-[var(--space-3)] py-[var(--space-2)] rounded-[var(--radius-1)] text-[length:var(--font-size-2)] text-[var(--gray-12)] hover:bg-[var(--accent-4)] focus:bg-[var(--accent-4)] outline-none cursor-pointer data-[highlighted]:bg-[var(--accent-4)]"
-                            >
-                              <Select.ItemText>100</Select.ItemText>
-                            </Select.Item>
-                          </Select.Viewport>
-                        </Select.Content>
-                      </Select.Portal>
-                    </Select.Root>
+                      <SelectTrigger className="inline-flex items-center justify-between gap-[2] px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-background text-sm text-foreground hover:border-gray-400 dark:hover:border-gray-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent min-w-[70px]">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="overflow-hidden bg-card rounded-md border border-border ">
+                        <SelectItem value="10">10</SelectItem>
+                        <SelectItem value="25">25</SelectItem>
+                        <SelectItem value="50">50</SelectItem>
+                        <SelectItem value="100">100</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
               </div>
 
               {/* Filter Controls */}
-              <div className="mb-6 p-5 bg-[var(--gray-2)] border border-[var(--gray-6)]">
+              <div className="mb-6 p-5 bg-muted border border-border">
                 <div className="flex flex-col md:flex-row md:flex-wrap items-stretch md:items-center gap-4 md:gap-6">
                   <div className="flex items-center gap-3 min-w-[180px]">
                     <label
@@ -926,69 +885,22 @@ const AdminDashboard: React.FC = () => {
                     >
                       Date:
                     </label>
-                    <Select.Root
-                      value={dateFilter}
-                      onValueChange={value => setDateFilter(value as any)}
-                    >
-                      <Select.Trigger
+                    <Select value={dateFilter} onValueChange={value => setDateFilter(value as any)}>
+                      <SelectTrigger
                         id="date-filter"
                         className="flex-1 md:flex-none inline-flex items-center justify-between gap-2 px-3 py-2 rounded-none border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-sm text-gray-900 dark:text-white hover:border-gray-400 dark:hover:border-gray-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:border-accent min-w-[140px]"
                         aria-label="Filter appointments by date range"
                       >
-                        <Select.Value />
-                        <Select.Icon>
-                          <svg
-                            className="w-4 h-4"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M19 9l-7 7-7-7"
-                            />
-                          </svg>
-                        </Select.Icon>
-                      </Select.Trigger>
-                      <Select.Portal>
-                        <Select.Content className="overflow-hidden bg-[var(--color-panel-solid)] rounded-[var(--radius-2)] border border-[var(--gray-6)] ">
-                          <Select.Viewport className="p-[var(--space-1)]">
-                            <Select.Item
-                              value="all"
-                              className="relative flex items-center px-[var(--space-3)] py-[var(--space-2)] rounded-[var(--radius-1)] text-[length:var(--font-size-2)] text-[var(--gray-12)] hover:bg-[var(--accent-4)] focus:bg-[var(--accent-4)] outline-none cursor-pointer data-[highlighted]:bg-[var(--accent-4)]"
-                            >
-                              <Select.ItemText>All Dates</Select.ItemText>
-                            </Select.Item>
-                            <Select.Item
-                              value="today"
-                              className="relative flex items-center px-[var(--space-3)] py-[var(--space-2)] rounded-[var(--radius-1)] text-[length:var(--font-size-2)] text-[var(--gray-12)] hover:bg-[var(--accent-4)] focus:bg-[var(--accent-4)] outline-none cursor-pointer data-[highlighted]:bg-[var(--accent-4)]"
-                            >
-                              <Select.ItemText>Today</Select.ItemText>
-                            </Select.Item>
-                            <Select.Item
-                              value="week"
-                              className="relative flex items-center px-[var(--space-3)] py-[var(--space-2)] rounded-[var(--radius-1)] text-[length:var(--font-size-2)] text-[var(--gray-12)] hover:bg-[var(--accent-4)] focus:bg-[var(--accent-4)] outline-none cursor-pointer data-[highlighted]:bg-[var(--accent-4)]"
-                            >
-                              <Select.ItemText>This Week</Select.ItemText>
-                            </Select.Item>
-                            <Select.Item
-                              value="month"
-                              className="relative flex items-center px-[var(--space-3)] py-[var(--space-2)] rounded-[var(--radius-1)] text-[length:var(--font-size-2)] text-[var(--gray-12)] hover:bg-[var(--accent-4)] focus:bg-[var(--accent-4)] outline-none cursor-pointer data-[highlighted]:bg-[var(--accent-4)]"
-                            >
-                              <Select.ItemText>This Month</Select.ItemText>
-                            </Select.Item>
-                            <Select.Item
-                              value="custom"
-                              className="relative flex items-center px-[var(--space-3)] py-[var(--space-2)] rounded-[var(--radius-1)] text-[length:var(--font-size-2)] text-[var(--gray-12)] hover:bg-[var(--accent-4)] focus:bg-[var(--accent-4)] outline-none cursor-pointer data-[highlighted]:bg-[var(--accent-4)]"
-                            >
-                              <Select.ItemText>Custom Range</Select.ItemText>
-                            </Select.Item>
-                          </Select.Viewport>
-                        </Select.Content>
-                      </Select.Portal>
-                    </Select.Root>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="overflow-hidden bg-card rounded-md border border-border ">
+                        <SelectItem value="all">All Dates</SelectItem>
+                        <SelectItem value="today">Today</SelectItem>
+                        <SelectItem value="week">This Week</SelectItem>
+                        <SelectItem value="month">This Month</SelectItem>
+                        <SelectItem value="custom">Custom Range</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   <div
@@ -1003,63 +915,24 @@ const AdminDashboard: React.FC = () => {
                     >
                       Status:
                     </label>
-                    <Select.Root
+                    <Select
                       value={statusFilter}
                       onValueChange={value => setStatusFilter(value as any)}
                     >
-                      <Select.Trigger
+                      <SelectTrigger
                         id="status-filter"
                         className="flex-1 md:flex-none inline-flex items-center justify-between gap-2 px-3 py-2 rounded-none border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-sm text-gray-900 dark:text-white hover:border-gray-400 dark:hover:border-gray-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:border-accent min-w-[120px]"
                         aria-label="Filter appointments by status"
                       >
-                        <Select.Value />
-                        <Select.Icon>
-                          <svg
-                            className="w-4 h-4"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M19 9l-7 7-7-7"
-                            />
-                          </svg>
-                        </Select.Icon>
-                      </Select.Trigger>
-                      <Select.Portal>
-                        <Select.Content className="overflow-hidden bg-[var(--color-panel-solid)] rounded-[var(--radius-2)] border border-[var(--gray-6)] ">
-                          <Select.Viewport className="p-[var(--space-1)]">
-                            <Select.Item
-                              value="all"
-                              className="relative flex items-center px-[var(--space-3)] py-[var(--space-2)] rounded-[var(--radius-1)] text-[length:var(--font-size-2)] text-[var(--gray-12)] hover:bg-[var(--accent-4)] focus:bg-[var(--accent-4)] outline-none cursor-pointer data-[highlighted]:bg-[var(--accent-4)]"
-                            >
-                              <Select.ItemText>All Status</Select.ItemText>
-                            </Select.Item>
-                            <Select.Item
-                              value="today"
-                              className="relative flex items-center px-[var(--space-3)] py-[var(--space-2)] rounded-[var(--radius-1)] text-[length:var(--font-size-2)] text-[var(--gray-12)] hover:bg-[var(--accent-4)] focus:bg-[var(--accent-4)] outline-none cursor-pointer data-[highlighted]:bg-[var(--accent-4)]"
-                            >
-                              <Select.ItemText>Today</Select.ItemText>
-                            </Select.Item>
-                            <Select.Item
-                              value="upcoming"
-                              className="relative flex items-center px-[var(--space-3)] py-[var(--space-2)] rounded-[var(--radius-1)] text-[length:var(--font-size-2)] text-[var(--gray-12)] hover:bg-[var(--accent-4)] focus:bg-[var(--accent-4)] outline-none cursor-pointer data-[highlighted]:bg-[var(--accent-4)]"
-                            >
-                              <Select.ItemText>Upcoming</Select.ItemText>
-                            </Select.Item>
-                            <Select.Item
-                              value="past"
-                              className="relative flex items-center px-[var(--space-3)] py-[var(--space-2)] rounded-[var(--radius-1)] text-[length:var(--font-size-2)] text-[var(--gray-12)] hover:bg-[var(--accent-4)] focus:bg-[var(--accent-4)] outline-none cursor-pointer data-[highlighted]:bg-[var(--accent-4)]"
-                            >
-                              <Select.ItemText>Past</Select.ItemText>
-                            </Select.Item>
-                          </Select.Viewport>
-                        </Select.Content>
-                      </Select.Portal>
-                    </Select.Root>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="overflow-hidden bg-card rounded-md border border-border ">
+                        <SelectItem value="all">All Status</SelectItem>
+                        <SelectItem value="today">Today</SelectItem>
+                        <SelectItem value="upcoming">Upcoming</SelectItem>
+                        <SelectItem value="past">Past</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   {dateFilter === 'custom' && (
@@ -1151,7 +1024,7 @@ const AdminDashboard: React.FC = () => {
 
               {/* Bulk Actions Toolbar */}
               {selectedAppointments.size > 0 && (
-                <div className="mb-6 p-5 bg-[var(--accent-3)] border-2 border-[var(--accent-6)] animate-in slide-in-from-top-2 fade-in duration-300">
+                <div className="mb-6 p-5 bg-accent/10 border-2 border-[hsl(var(--accent))] animate-in slide-in-from-top-2 fade-in duration-300">
                   <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                     <div className="flex items-center gap-4">
                       <div className="flex items-center justify-center w-10 h-10 bg-accent rounded-full ">
@@ -1204,7 +1077,7 @@ const AdminDashboard: React.FC = () => {
                       </button>
                       <button
                         onClick={() => setSelectedAppointments(new Set())}
-                        className="px-4 py-2 text-sm font-medium border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-none hover:bg-[var(--gray-2)] dark:hover:bg-gray-700 transition-all active:scale-95"
+                        className="px-4 py-2 text-sm font-medium border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-none hover:bg-muted dark:hover:bg-gray-700 transition-all active:scale-95"
                         aria-label="Clear selection"
                       >
                         Clear
@@ -1215,13 +1088,13 @@ const AdminDashboard: React.FC = () => {
               )}
 
               {appointmentsLoading ? (
-                <div className="bg-[var(--gray-2)] dark:bg-gray-700 p-6 rounded-none text-center">
+                <div className="bg-muted dark:bg-gray-700 p-6 rounded-none text-center">
                   <LoadingSpinner size="md" message="Loading appointments..." />
                 </div>
               ) : filteredAppointments.length === 0 ? (
                 <div className="bg-white dark:bg-gray-800 p-12 rounded-none text-center border-2 border-dashed border-gray-300 dark:border-gray-600">
                   <div className="flex flex-col items-center space-y-4">
-                    <div className="w-16 h-16 bg-[var(--gray-2)] dark:bg-gray-700 rounded-full flex items-center justify-center">
+                    <div className="w-16 h-16 bg-muted dark:bg-gray-700 rounded-full flex items-center justify-center">
                       {appointments.length === 0 ? (
                         <svg
                           className="w-8 h-8 text-gray-400"
@@ -1286,7 +1159,7 @@ const AdminDashboard: React.FC = () => {
                     {/* Calendar Toggle for Mobile */}
                     <button
                       onClick={() => setCalendarExpanded(!calendarExpanded)}
-                      className="lg:hidden w-full mb-4 px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-none text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-[var(--gray-2)] dark:hover:bg-gray-700 transition-colors flex items-center justify-between"
+                      className="lg:hidden w-full mb-4 px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-none text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-muted dark:hover:bg-gray-700 transition-colors flex items-center justify-between"
                       aria-expanded={calendarExpanded}
                       aria-controls="calendar-sidebar"
                     >
@@ -1335,7 +1208,7 @@ const AdminDashboard: React.FC = () => {
                               new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1),
                             )
                           }
-                          className="p-2 hover:bg-[var(--gray-2)] dark:hover:bg-gray-700 rounded transition-colors"
+                          className="p-2 hover:bg-muted dark:hover:bg-gray-700 rounded transition-colors"
                           aria-label="Previous month"
                         >
                           <svg
@@ -1364,7 +1237,7 @@ const AdminDashboard: React.FC = () => {
                               new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1),
                             )
                           }
-                          className="p-2 hover:bg-[var(--gray-2)] dark:hover:bg-gray-700 rounded transition-colors"
+                          className="p-2 hover:bg-muted dark:hover:bg-gray-700 rounded transition-colors"
                           aria-label="Next month"
                         >
                           <svg
@@ -1392,7 +1265,7 @@ const AdminDashboard: React.FC = () => {
                             setCustomFromDate('');
                             setCustomToDate('');
                           }}
-                          className="w-full mb-3 px-3 py-1.5 text-sm text-gray-600 dark:text-gray-400 hover:bg-[var(--gray-2)] dark:hover:bg-gray-700 rounded transition-colors"
+                          className="w-full mb-3 px-3 py-1.5 text-sm text-gray-600 dark:text-gray-400 hover:bg-muted dark:hover:bg-gray-700 rounded transition-colors"
                         >
                           Clear date filter
                         </button>
@@ -1448,7 +1321,7 @@ const AdminDashboard: React.FC = () => {
                                   ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-900 dark:text-blue-100 font-semibold ring-2 ring-blue-300 dark:ring-blue-700'
                                   : hasAppointments
                                     ? 'bg-green-50 dark:bg-green-900/20 text-gray-900 dark:text-gray-100 hover:bg-green-100 dark:hover:bg-green-900/30'
-                                    : 'text-gray-600 dark:text-gray-400 hover:bg-[var(--gray-2)] dark:hover:bg-gray-700'
+                                    : 'text-gray-600 dark:text-gray-400 hover:bg-muted dark:hover:bg-gray-700'
                             }
                           `}
                               role="gridcell"
@@ -1493,7 +1366,7 @@ const AdminDashboard: React.FC = () => {
                         role="status"
                       >
                         <div className="flex flex-col items-center justify-center text-center">
-                          <div className="mb-4 p-4 bg-[var(--gray-2)] dark:bg-gray-700 rounded-full">
+                          <div className="mb-4 p-4 bg-muted dark:bg-gray-700 rounded-full">
                             <svg
                               className="w-12 h-12 text-gray-400 dark:text-gray-500"
                               fill="none"
@@ -1543,37 +1416,21 @@ const AdminDashboard: React.FC = () => {
                         </div>
                       </div>
                     ) : (
-                      <div className="bg-white border border-[var(--gray-6)]">
+                      <div className="bg-white border border-border">
                         {/* Mobile Card View */}
                         <div className="md:hidden divide-y divide-gray-200 dark:divide-gray-700">
                           {paginatedAppointments.map(appointment => (
                             <div
                               key={appointment.id}
-                              className={`p-4 ${selectedAppointments.has(appointment.id) ? 'bg-[var(--accent-3)]' : ''}`}
+                              className={`p-4 ${selectedAppointments.has(appointment.id) ? 'bg-accent/10' : ''}`}
                             >
                               <div className="flex items-start justify-between mb-3">
                                 <div className="flex items-center gap-3">
-                                  <Checkbox.Root
+                                  <Checkbox
                                     checked={selectedAppointments.has(appointment.id)}
                                     onCheckedChange={() => handleSelectAppointment(appointment.id)}
-                                    className="flex items-center justify-center w-5 h-5 rounded-[var(--radius-1)] border border-[var(--gray-7)] bg-[var(--color-surface)] hover:border-[var(--gray-8)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-8)] data-[state=checked]:bg-accent data-[state=checked]:border-[var(--accent-9)]"
-                                  >
-                                    <Checkbox.Indicator>
-                                      <svg
-                                        className="w-4 h-4 text-white"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        viewBox="0 0 24 24"
-                                      >
-                                        <path
-                                          strokeLinecap="round"
-                                          strokeLinejoin="round"
-                                          strokeWidth={3}
-                                          d="M5 13l4 4L19 7"
-                                        />
-                                      </svg>
-                                    </Checkbox.Indicator>
-                                  </Checkbox.Root>
+                                    className="flex items-center justify-center w-5 h-5 rounded-sm border border-gray-300 dark:border-gray-600 bg-background hover:border-gray-400 dark:hover:border-gray-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent data-[state=checked]:bg-accent data-[state=checked]:border-[hsl(var(--accent))]"
+                                  />
                                   <div>
                                     <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
                                       {appointment.customerName}
@@ -1593,7 +1450,7 @@ const AdminDashboard: React.FC = () => {
                                     );
                                   } else if (status === 'NO_SHOW') {
                                     return (
-                                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[var(--gray-2)] text-gray-800 dark:bg-gray-700 dark:text-gray-300">
+                                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-muted text-gray-800 dark:bg-gray-700 dark:text-gray-300">
                                         No-Show
                                       </span>
                                     );
@@ -1741,34 +1598,18 @@ const AdminDashboard: React.FC = () => {
                         </div>
 
                         <div className="hidden md:block overflow-x-auto">
-                          <table className="min-w-full divide-y divide-[var(--gray-6)]">
-                            <thead className="bg-[var(--gray-3)]">
+                          <table className="min-w-full divide-y divide-[hsl(var(--border))]">
+                            <thead className="bg-gray-100 dark:bg-gray-800">
                               <tr>
                                 <th className="px-4 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
-                                  <Checkbox.Root
+                                  <Checkbox
                                     checked={
                                       selectedAppointments.size === paginatedAppointments.length &&
                                       paginatedAppointments.length > 0
                                     }
                                     onCheckedChange={handleSelectAll}
-                                    className="flex items-center justify-center w-5 h-5 rounded-[var(--radius-1)] border border-[var(--gray-7)] bg-[var(--color-surface)] hover:border-[var(--gray-8)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-8)] data-[state=checked]:bg-accent data-[state=checked]:border-[var(--accent-9)]"
-                                  >
-                                    <Checkbox.Indicator>
-                                      <svg
-                                        className="w-4 h-4 text-white"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        viewBox="0 0 24 24"
-                                      >
-                                        <path
-                                          strokeLinecap="round"
-                                          strokeLinejoin="round"
-                                          strokeWidth={3}
-                                          d="M5 13l4 4L19 7"
-                                        />
-                                      </svg>
-                                    </Checkbox.Indicator>
-                                  </Checkbox.Root>
+                                    className="flex items-center justify-center w-5 h-5 rounded-sm border border-gray-300 dark:border-gray-600 bg-background hover:border-gray-400 dark:hover:border-gray-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent data-[state=checked]:bg-accent data-[state=checked]:border-[hsl(var(--accent))]"
+                                  />
                                 </th>
                                 <SortableHeader field="date">Date & Time</SortableHeader>
                                 <SortableHeader field="customer">Customer</SortableHeader>
@@ -1786,32 +1627,16 @@ const AdminDashboard: React.FC = () => {
                               {paginatedAppointments.map(appointment => (
                                 <tr
                                   key={appointment.id}
-                                  className={`hover:bg-[var(--gray-2)] ${selectedAppointments.has(appointment.id) ? 'bg-[var(--accent-3)]' : ''}`}
+                                  className={`hover:bg-muted ${selectedAppointments.has(appointment.id) ? 'bg-accent/10' : ''}`}
                                 >
                                   <td className="px-4 py-4 whitespace-nowrap">
-                                    <Checkbox.Root
+                                    <Checkbox
                                       checked={selectedAppointments.has(appointment.id)}
                                       onCheckedChange={() =>
                                         handleSelectAppointment(appointment.id)
                                       }
-                                      className="flex items-center justify-center w-5 h-5 rounded-[var(--radius-1)] border border-[var(--gray-7)] bg-[var(--color-surface)] hover:border-[var(--gray-8)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-8)] data-[state=checked]:bg-accent data-[state=checked]:border-[var(--accent-9)]"
-                                    >
-                                      <Checkbox.Indicator>
-                                        <svg
-                                          className="w-4 h-4 text-white"
-                                          fill="none"
-                                          stroke="currentColor"
-                                          viewBox="0 0 24 24"
-                                        >
-                                          <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            strokeWidth={3}
-                                            d="M5 13l4 4L19 7"
-                                          />
-                                        </svg>
-                                      </Checkbox.Indicator>
-                                    </Checkbox.Root>
+                                      className="flex items-center justify-center w-5 h-5 rounded-sm border border-gray-300 dark:border-gray-600 bg-background hover:border-gray-400 dark:hover:border-gray-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent data-[state=checked]:bg-accent data-[state=checked]:border-[hsl(var(--accent))]"
+                                    />
                                   </td>
                                   <td className="px-4 py-4 whitespace-nowrap">
                                     <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
@@ -1868,7 +1693,7 @@ const AdminDashboard: React.FC = () => {
                                         );
                                       } else if (status === 'NO_SHOW') {
                                         return (
-                                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[var(--gray-2)] text-gray-800 dark:bg-gray-700 dark:text-gray-300">
+                                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-muted text-gray-800 dark:bg-gray-700 dark:text-gray-300">
                                             No-Show
                                           </span>
                                         );
@@ -1971,7 +1796,7 @@ const AdminDashboard: React.FC = () => {
 
                         {/* Pagination Controls */}
                         {totalPages > 1 && (
-                          <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-[var(--gray-2)] dark:bg-gray-800">
+                          <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-muted dark:bg-gray-800">
                             <div className="flex items-center justify-between">
                               <div className="text-sm text-gray-700 dark:text-gray-300">
                                 Page {currentPage} of {totalPages}
@@ -1984,7 +1809,7 @@ const AdminDashboard: React.FC = () => {
                                 <button
                                   onClick={() => setCurrentPage(1)}
                                   disabled={currentPage === 1}
-                                  className="px-3 py-1 text-sm border rounded-none hover:bg-[var(--gray-2)] dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                  className="px-3 py-1 text-sm border rounded-none hover:bg-muted dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                   aria-label="Go to first page"
                                 >
                                   &laquo;
@@ -1992,7 +1817,7 @@ const AdminDashboard: React.FC = () => {
                                 <button
                                   onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                                   disabled={currentPage === 1}
-                                  className="px-3 py-1 text-sm border rounded-none hover:bg-[var(--gray-2)] dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                  className="px-3 py-1 text-sm border rounded-none hover:bg-muted dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                   aria-label="Go to previous page"
                                 >
                                   &lsaquo;
@@ -2010,7 +1835,7 @@ const AdminDashboard: React.FC = () => {
                                       className={`px-3 py-1 text-sm border rounded-none transition-colors ${
                                         currentPage === pageNum
                                           ? 'bg-accent border-accent text-white font-semibold'
-                                          : 'hover:bg-[var(--gray-2)] dark:hover:bg-gray-700'
+                                          : 'hover:bg-muted dark:hover:bg-gray-700'
                                       }`}
                                       aria-label={`Go to page ${pageNum}`}
                                       aria-current={currentPage === pageNum ? 'page' : undefined}
@@ -2025,7 +1850,7 @@ const AdminDashboard: React.FC = () => {
                                     setCurrentPage(Math.min(totalPages, currentPage + 1))
                                   }
                                   disabled={currentPage === totalPages}
-                                  className="px-3 py-1 text-sm border rounded-none hover:bg-[var(--gray-2)] dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                  className="px-3 py-1 text-sm border rounded-none hover:bg-muted dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                   aria-label="Go to next page"
                                 >
                                   &rsaquo;
@@ -2033,7 +1858,7 @@ const AdminDashboard: React.FC = () => {
                                 <button
                                   onClick={() => setCurrentPage(totalPages)}
                                   disabled={currentPage === totalPages}
-                                  className="px-3 py-1 text-sm border rounded-none hover:bg-[var(--gray-2)] dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                  className="px-3 py-1 text-sm border rounded-none hover:bg-muted dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                   aria-label="Go to last page"
                                 >
                                   &raquo;
@@ -2048,40 +1873,42 @@ const AdminDashboard: React.FC = () => {
                 </div>
               )}
             </section>
-          </Tabs.Content>
+          </TabsContent>
 
-          <Tabs.Content value="stylists" className="focus:outline-none" role="tabpanel">
+          <TabsContent value="stylists" className="focus:outline-none">
             <StylistManagement onClose={() => {}} />
-          </Tabs.Content>
+          </TabsContent>
 
-          <Tabs.Content value="availability" className="focus:outline-none" role="tabpanel">
-            <AvailabilityModeToggle mode={availabilityMode} onChange={setAvailabilityMode} />
+          <TabsContent value="availability" className="focus:outline-none">
+            <div className="space-y-6">
+              <AvailabilityModeToggle mode={availabilityMode} onChange={setAvailabilityMode} />
 
-            {availabilityMode === 'salon-wide' ? (
-              <SalonAvailability
-                adminSettings={adminSettings}
-                appointments={appointments}
-                getAvailableSlots={getAvailableSlots}
-                blockTimeSlot={blockTimeSlot}
-                unblockTimeSlot={unblockTimeSlot}
-              />
-            ) : (
-              <StylistAvailability onNavigateToStylists={() => setActiveTab('stylists')} />
-            )}
-          </Tabs.Content>
+              {availabilityMode === 'salon-wide' ? (
+                <SalonAvailability
+                  adminSettings={adminSettings}
+                  appointments={appointments}
+                  getAvailableSlots={getAvailableSlots}
+                  blockTimeSlot={blockTimeSlot}
+                  unblockTimeSlot={unblockTimeSlot}
+                />
+              ) : (
+                <StylistAvailability onNavigateToStylists={() => setActiveTab('stylists')} />
+              )}
+            </div>
+          </TabsContent>
 
-          <Tabs.Content value="settings" className="focus:outline-none" role="tabpanel">
+          <TabsContent value="settings" className="focus:outline-none">
             <SettingsLayout adminSettings={adminSettings} onSave={saveAdminSettings} />
-          </Tabs.Content>
+          </TabsContent>
 
-          <Tabs.Content value="chat" className="focus:outline-none" role="tabpanel">
+          <TabsContent value="chat" className="focus:outline-none">
             <ChatDashboard />
-          </Tabs.Content>
+          </TabsContent>
 
-          <Tabs.Content value="knowledge-base" className="focus:outline-none" role="tabpanel">
+          <TabsContent value="knowledge-base" className="focus:outline-none">
             <KnowledgeBaseManager />
-          </Tabs.Content>
-        </Tabs.Root>
+          </TabsContent>
+        </Tabs>
 
         {/* Edit Appointment Modal */}
         <EditAppointmentModal
@@ -2095,90 +1922,87 @@ const AdminDashboard: React.FC = () => {
         />
 
         {/* Cancel Appointment Dialog */}
-        <AlertDialog.Root open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
-          <AlertDialog.Portal>
-            <AlertDialog.Overlay className="fixed inset-0 bg-black/50 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
-            <AlertDialog.Content className="fixed left-[50%] top-[50%] max-h-[85vh] w-[90vw] max-w-[500px] translate-x-[-50%] translate-y-[-50%] rounded-none bg-white dark:bg-gray-800 p-6  border border-gray-200 dark:border-gray-700 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%]">
-              <AlertDialog.Title className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+        <AlertDialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
+          <AlertDialogContent className="fixed left-[50%] top-[50%] max-h-[85vh] w-[90vw] max-w-[500px] translate-x-[-50%] translate-y-[-50%] rounded-none bg-white dark:bg-gray-800 p-6  border border-gray-200 dark:border-gray-700 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%]">
+            <AlertDialogHeader>
+              <AlertDialogTitle className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
                 Cancel Appointment
-              </AlertDialog.Title>
-              <AlertDialog.Description className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+              </AlertDialogTitle>
+              <AlertDialogDescription className="text-sm text-gray-600 dark:text-gray-400 mb-4">
                 Are you sure you want to cancel the appointment for{' '}
                 {appointmentToCancel?.customerName}?
-              </AlertDialog.Description>
-              <div className="flex gap-3 justify-end">
-                <AlertDialog.Cancel asChild>
-                  <Button variant="soft" size="sm">
-                    No
-                  </Button>
-                </AlertDialog.Cancel>
-                <AlertDialog.Action asChild>
-                  <Button variant="danger" size="sm" onClick={confirmCancelAppointment}>
-                    Yes, Cancel
-                  </Button>
-                </AlertDialog.Action>
-              </div>
-            </AlertDialog.Content>
-          </AlertDialog.Portal>
-        </AlertDialog.Root>
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel asChild>
+                <Button variant="secondary" size="sm">
+                  No
+                </Button>
+              </AlertDialogCancel>
+              <AlertDialogAction asChild>
+                <Button variant="destructive" size="sm" onClick={confirmCancelAppointment}>
+                  Yes, Cancel
+                </Button>
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
 
         {/* No-Show Dialog */}
-        <AlertDialog.Root open={noShowDialogOpen} onOpenChange={setNoShowDialogOpen}>
-          <AlertDialog.Portal>
-            <AlertDialog.Overlay className="fixed inset-0 bg-black/50 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
-            <AlertDialog.Content className="fixed left-[50%] top-[50%] max-h-[85vh] w-[90vw] max-w-[500px] translate-x-[-50%] translate-y-[-50%] rounded-none bg-white dark:bg-gray-800 p-6  border border-gray-200 dark:border-gray-700 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%]">
-              <AlertDialog.Title className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+        <AlertDialog open={noShowDialogOpen} onOpenChange={setNoShowDialogOpen}>
+          <AlertDialogContent className="fixed left-[50%] top-[50%] max-h-[85vh] w-[90vw] max-w-[500px] translate-x-[-50%] translate-y-[-50%] rounded-none bg-white dark:bg-gray-800 p-6  border border-gray-200 dark:border-gray-700 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%]">
+            <AlertDialogHeader>
+              <AlertDialogTitle className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
                 Mark as No-Show
-              </AlertDialog.Title>
-              <AlertDialog.Description className="text-sm text-gray-600 dark:text-gray-400 mb-1">
+              </AlertDialogTitle>
+              <AlertDialogDescription className="text-sm text-gray-600 dark:text-gray-400 mb-1">
                 Mark {appointmentForNoShow?.customerName} as no-show?
-              </AlertDialog.Description>
-              <p className="text-xs text-gray-500 dark:text-gray-500 mb-4">
-                This will reverse their visit stats and exclude them from retention campaigns.
-              </p>
-              <div className="flex gap-3 justify-end">
-                <AlertDialog.Cancel asChild>
-                  <Button variant="soft" size="sm">
-                    Cancel
-                  </Button>
-                </AlertDialog.Cancel>
-                <AlertDialog.Action asChild>
-                  <Button variant="solid" size="sm" onClick={confirmMarkNoShow}>
-                    Yes, Mark No-Show
-                  </Button>
-                </AlertDialog.Action>
-              </div>
-            </AlertDialog.Content>
-          </AlertDialog.Portal>
-        </AlertDialog.Root>
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <p className="text-xs text-gray-500 dark:text-gray-500 mb-4">
+              This will reverse their visit stats and exclude them from retention campaigns.
+            </p>
+            <AlertDialogFooter>
+              <AlertDialogCancel asChild>
+                <Button variant="secondary" size="sm">
+                  Cancel
+                </Button>
+              </AlertDialogCancel>
+              <AlertDialogAction asChild>
+                <Button variant="default" size="sm" onClick={confirmMarkNoShow}>
+                  Yes, Mark No-Show
+                </Button>
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
 
         {/* Bulk Cancel Dialog */}
-        <AlertDialog.Root open={bulkCancelDialogOpen} onOpenChange={setBulkCancelDialogOpen}>
-          <AlertDialog.Portal>
-            <AlertDialog.Overlay className="fixed inset-0 bg-black/50 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
-            <AlertDialog.Content className="fixed left-[50%] top-[50%] max-h-[85vh] w-[90vw] max-w-[500px] translate-x-[-50%] translate-y-[-50%] rounded-none bg-white dark:bg-gray-800 p-6  border border-gray-200 dark:border-gray-700 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%]">
-              <AlertDialog.Title className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+        <AlertDialog open={bulkCancelDialogOpen} onOpenChange={setBulkCancelDialogOpen}>
+          <AlertDialogContent className="fixed left-[50%] top-[50%] max-h-[85vh] w-[90vw] max-w-[500px] translate-x-[-50%] translate-y-[-50%] rounded-none bg-white dark:bg-gray-800 p-6  border border-gray-200 dark:border-gray-700 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%]">
+            <AlertDialogHeader>
+              <AlertDialogTitle className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
                 Cancel Multiple Appointments
-              </AlertDialog.Title>
-              <AlertDialog.Description className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+              </AlertDialogTitle>
+              <AlertDialogDescription className="text-sm text-gray-600 dark:text-gray-400 mb-4">
                 Are you sure you want to cancel {selectedAppointments.size} appointment
                 {selectedAppointments.size > 1 ? 's' : ''}?
-              </AlertDialog.Description>
-              <div className="flex gap-3 justify-end">
-                <AlertDialog.Cancel asChild>
-                  <Button variant="soft" size="sm">
-                    No
-                  </Button>
-                </AlertDialog.Cancel>
-                <AlertDialog.Action asChild>
-                  <Button variant="danger" size="sm" onClick={confirmBulkCancel}>
-                    Yes, Cancel All
-                  </Button>
-                </AlertDialog.Action>
-              </div>
-            </AlertDialog.Content>
-          </AlertDialog.Portal>
-        </AlertDialog.Root>
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel asChild>
+                <Button variant="secondary" size="sm">
+                  No
+                </Button>
+              </AlertDialogCancel>
+              <AlertDialogAction asChild>
+                <Button variant="destructive" size="sm" onClick={confirmBulkCancel}>
+                  Yes, Cancel All
+                </Button>
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );

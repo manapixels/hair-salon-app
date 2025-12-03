@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
@@ -11,10 +11,11 @@ import { EmptyState } from '../feedback/EmptyState';
 import { useDelayedLoading } from '@/hooks/useDelayedLoading';
 import { formatDisplayDate } from '@/lib/timeUtils';
 import type { Appointment } from '@/types';
-import { TextField } from '../ui/TextField';
-import { Button, Card, CardContent, CardHeader, CardTitle, Badge } from '@/components/ui';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import * as AlertDialog from '@radix-ui/react-alert-dialog';
-import { Edit, Calendar, Clock, Delete, WhatsAppIcon, TelegramIcon } from '@/lib/icons';
+import { Edit, Calendar, Delete, WhatsAppIcon, TelegramIcon } from '@/lib/icons';
+import { Spinner } from '../ui/spinner';
 
 export default function CustomerDashboard() {
   const { user, refreshSession } = useAuth();
@@ -250,7 +251,7 @@ export default function CustomerDashboard() {
                 </label>
                 {isEditingName ? (
                   <div className="space-y-2">
-                    <TextField
+                    <Input
                       type="text"
                       value={newName}
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
@@ -260,7 +261,7 @@ export default function CustomerDashboard() {
                       maxLength={50}
                     />
                     <div className="flex space-x-2">
-                      <Button variant="solid" size="sm" onClick={handleNameSave}>
+                      <Button variant="default" size="sm" onClick={handleNameSave}>
                         Save
                       </Button>
                       <Button variant="outline" size="sm" onClick={handleNameCancel}>
@@ -418,21 +419,27 @@ export default function CustomerDashboard() {
                           variant="ghost"
                           size="sm"
                           onClick={() => handleRescheduleAppointment(appointment.id)}
-                          loading={reschedulingId === appointment.id}
                           disabled={reschedulingId === appointment.id}
                         >
-                          <Calendar className="h-4 w-4" aria-hidden="true" />
+                          {reschedulingId === appointment.id ? (
+                            <Spinner className="mr-2" />
+                          ) : (
+                            <Calendar className="h-4 w-4" aria-hidden="true" />
+                          )}
                           Reschedule
                         </Button>
                         <Button
                           variant="ghost"
                           size="sm"
                           onClick={() => handleCancelAppointment(appointment.id)}
-                          loading={cancellingId === appointment.id}
                           disabled={cancellingId === appointment.id}
                           className="text-red-600 hover:text-red-800 dark:text-red-400"
                         >
-                          <Delete className="h-4 w-4" aria-hidden="true" />
+                          {cancellingId === appointment.id ? (
+                            <Spinner className="mr-2" />
+                          ) : (
+                            <Delete className="h-4 w-4" aria-hidden="true" />
+                          )}
                           Cancel
                         </Button>
                       </div>
@@ -468,12 +475,12 @@ export default function CustomerDashboard() {
             </AlertDialog.Description>
             <div className="flex gap-3 justify-end">
               <AlertDialog.Cancel asChild>
-                <Button variant="soft" size="sm">
+                <Button variant="secondary" size="sm">
                   No, keep it
                 </Button>
               </AlertDialog.Cancel>
               <AlertDialog.Action asChild>
-                <Button variant="danger" size="sm" onClick={confirmCancelAppointment}>
+                <Button variant="destructive" size="sm" onClick={confirmCancelAppointment}>
                   Yes, cancel it
                 </Button>
               </AlertDialog.Action>

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import Link from 'next/link';
 import { LucideIcon, X } from 'lucide-react';
@@ -36,10 +36,10 @@ export default function BottomNavItem({
       whileTap={{ scale: 0.92 }}
       className={`
         flex flex-col items-center justify-center
-        ${isPrimary ? 'w-14 h-14 rounded-full bg-[var(--accent-9)] text-white -mt-8 border-4 border-white dark:border-gray-900' : 'min-w-[56px] min-h-[56px] px-3 py-2 text-[var(--gray-10)] hover:text-[var(--gray-12)]'}
+        ${isPrimary ? 'w-14 h-14 rounded-full bg-accent text-white -mt-8 border-4 border-white dark:border-gray-900' : 'min-w-[56px] min-h-[56px] px-3 py-2 text-gray-500 hover:text-foreground'}
         relative
         transition-all duration-300 ease-out
-        ${!isPrimary && (active || isOpen) ? 'text-base-primary' : ''}
+        ${!isPrimary && (active || isOpen) ? 'text-accent-foreground' : ''}
         ${className}
       `}
       onClick={onClick}
@@ -53,7 +53,7 @@ export default function BottomNavItem({
         className={`
         relative flex items-center justify-center
         transition-all duration-300 ease-out
-        ${(active || isOpen) && !isPrimary ? 'bg-base-primary/10 rounded-full px-5 py-1' : 'px-0 py-0'}
+        ${(active || isOpen) && !isPrimary ? 'bg-accent/10 rounded-full px-5 py-1' : 'px-0 py-0'}
       `}
       >
         <AnimatePresence mode="wait">

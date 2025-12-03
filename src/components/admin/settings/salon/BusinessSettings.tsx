@@ -1,4 +1,5 @@
-import { TextField } from '@/components/ui/TextField';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 interface BusinessSettingsProps {
   businessName: string;
@@ -14,20 +15,18 @@ export default function BusinessSettings({
   onChange,
 }: BusinessSettingsProps) {
   return (
-    <div className="space-y-[var(--space-6)]">
+    <div className="space-y-6">
       <div>
-        <h3 className="text-[length:var(--font-size-5)] font-bold text-[var(--gray-12)] mb-[var(--space-2)]">
-          Business Information
-        </h3>
-        <p className="text-[length:var(--font-size-2)] text-[var(--gray-11)]">
+        <h3 className="text-lg font-bold text-foreground mb-2">Business Information</h3>
+        <p className="text-sm text-muted-foreground">
           Update your salon&apos;s public contact information. This appears in booking confirmations
           and notifications.
         </p>
       </div>
 
-      <div className="space-y-[var(--space-4)]">
-        <TextField
-          label="Business Name"
+      <div className="space-y-4">
+        <Label>Business Name</Label>
+        <Input
           id="businessName"
           type="text"
           value={businessName}
@@ -36,8 +35,8 @@ export default function BusinessSettings({
           required
         />
 
-        <TextField
-          label="Business Address"
+        <Label>Business Address</Label>
+        <Input
           id="businessAddress"
           type="text"
           value={businessAddress}
@@ -46,8 +45,8 @@ export default function BusinessSettings({
           required
         />
 
-        <TextField
-          label="Business Phone"
+        <Label>Business Phone</Label>
+        <Input
           id="businessPhone"
           type="tel"
           value={businessPhone}
@@ -57,10 +56,10 @@ export default function BusinessSettings({
         />
       </div>
 
-      <div className="p-[var(--space-4)] bg-[var(--accent-3)] border border-[var(--accent-6)] rounded-[var(--radius-3)]">
-        <div className="flex items-start space-x-[var(--space-3)]">
+      <div className="p-4 bg-accent/10 border border-accent rounded-lg">
+        <div className="flex items-start space-x-3">
           <svg
-            className="w-5 h-5 text-[var(--accent-11)] flex-shrink-0 mt-0.5"
+            className="w-5 h-5 text-accent-foreground flex-shrink-0 mt-0.5"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -73,10 +72,8 @@ export default function BusinessSettings({
             />
           </svg>
           <div>
-            <p className="text-[length:var(--font-size-2)] text-[var(--gray-12)] font-medium mb-1">
-              Where is this displayed?
-            </p>
-            <ul className="text-[length:var(--font-size-1)] text-[var(--gray-11)] space-y-1 list-disc list-inside">
+            <p className="text-sm text-foreground font-medium mb-1">Where is this displayed?</p>
+            <ul className="text-xs text-muted-foreground space-y-1 list-disc list-inside">
               <li>WhatsApp and Telegram booking confirmations</li>
               <li>Appointment reminder messages</li>
               <li>Business hours command (/hours)</li>

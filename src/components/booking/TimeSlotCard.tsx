@@ -4,7 +4,6 @@ import {
   getDurationColor,
   getDurationPercentage,
 } from '@/lib/timeUtils';
-import { Button } from '@radix-ui/themes';
 
 export const TimeSlotCard: React.FC<{
   time: string;
@@ -17,11 +16,12 @@ export const TimeSlotCard: React.FC<{
   const durationText = formatDuration(duration);
 
   return (
-    <Button
+    <button
+      type="button"
       disabled={!isAvailable}
       onClick={onClick}
       className={`
-        relative p-4 rounded-lg text-left transition-all duration-200 h-auto
+        relative p-4 rounded-lg text-left transition-all duration-200 h-auto w-full
         ${
           isSelected
             ? 'bg-accent ring-2 ring-accent shadow-lg scale-105'
@@ -40,7 +40,7 @@ export const TimeSlotCard: React.FC<{
         {/* Duration bar */}
         <div
           className={`mb-1 rounded-full h-1.5 overflow-hidden ${
-            isSelected ? 'bg-accent-soft' : 'bg-gray-200 dark:bg-gray-700'
+            isSelected ? 'bg-accent/10' : 'bg-gray-200 dark:bg-gray-700'
           }`}
         >
           <div
@@ -75,6 +75,6 @@ export const TimeSlotCard: React.FC<{
           <span>{durationText}</span>
         </div>
       </div>
-    </Button>
+    </button>
   );
 };

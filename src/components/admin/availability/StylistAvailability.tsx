@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { formatDisplayDate } from '@/lib/timeUtils';
 import * as Select from '@radix-ui/react-select';
 import { LoadingSpinner } from '@/components/feedback/loaders/LoadingSpinner';
@@ -72,7 +72,7 @@ export default function StylistAvailability({ onNavigateToStylists }: StylistAva
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center p-[var(--space-8)]">
+      <div className="flex items-center justify-center p-8">
         <LoadingSpinner size="md" message="Loading stylists..." />
       </div>
     );
@@ -80,9 +80,9 @@ export default function StylistAvailability({ onNavigateToStylists }: StylistAva
 
   if (stylists.length === 0) {
     return (
-      <div className="text-center py-[var(--space-8)] border-2 border-dashed border-[var(--gray-6)] rounded-[var(--radius-3)]">
+      <div className="text-center py-8 border-2 border-dashed border-border rounded-lg">
         <svg
-          className="w-12 h-12 text-[var(--gray-9)] mx-auto mb-[var(--space-3)]"
+          className="w-12 h-12 text-gray-400 mx-auto mb-[3]"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -94,16 +94,16 @@ export default function StylistAvailability({ onNavigateToStylists }: StylistAva
             d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
           />
         </svg>
-        <p className="text-[length:var(--font-size-3)] font-medium text-[var(--gray-11)] mb-1">
+        <p className="text-[length:var(--font-size-3)] font-medium text-muted-foreground mb-1">
           No Stylists Yet
         </p>
-        <p className="text-[length:var(--font-size-2)] text-[var(--gray-10)] mb-4">
+        <p className="text-sm text-gray-500 mb-4">
           Add stylists to manage their individual availability schedules.
         </p>
         {onNavigateToStylists && (
           <button
             onClick={onNavigateToStylists}
-            className="px-[var(--space-4)] py-[var(--space-2)] bg-accent text-white rounded-[var(--radius-2)] text-[length:var(--font-size-2)] font-medium hover:opacity-90 transition-opacity"
+            className="px-[4] py-2 bg-accent text-white rounded-md text-sm font-medium hover:opacity-90 transition-opacity"
           >
             Go to Stylists Tab
           </button>
@@ -113,12 +113,10 @@ export default function StylistAvailability({ onNavigateToStylists }: StylistAva
   }
 
   return (
-    <div className="space-y-[var(--space-6)]">
+    <div className="space-y-6">
       <div>
-        <h3 className="text-[length:var(--font-size-5)] font-bold text-[var(--gray-12)] mb-[var(--space-2)]">
-          Per-Stylist Availability
-        </h3>
-        <p className="text-[length:var(--font-size-2)] text-[var(--gray-11)]">
+        <h3 className="text-lg font-bold text-foreground mb-[2]">Per-Stylist Availability</h3>
+        <p className="text-sm text-muted-foreground">
           View each stylist&apos;s working schedule and blocked dates. To edit, use the Stylists
           tab.
         </p>
@@ -126,11 +124,9 @@ export default function StylistAvailability({ onNavigateToStylists }: StylistAva
 
       {/* Stylist Selector */}
       <div>
-        <label className="block text-[length:var(--font-size-2)] font-medium text-[var(--gray-12)] mb-[var(--space-2)]">
-          Select Stylist
-        </label>
+        <label className="block text-sm font-medium text-foreground mb-[2]">Select Stylist</label>
         <Select.Root value={selectedStylistId} onValueChange={setSelectedStylistId}>
-          <Select.Trigger className="inline-flex items-center justify-between gap-[var(--space-2)] px-[var(--space-3)] py-[var(--space-2)] rounded-[var(--radius-2)] border border-[var(--gray-7)] bg-[var(--color-surface)] text-[length:var(--font-size-2)] text-[var(--gray-12)] hover:border-[var(--gray-8)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-8)] min-w-[250px]">
+          <Select.Trigger className="inline-flex items-center justify-between gap-[2] px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-background text-sm text-foreground hover:border-gray-400 dark:hover:border-gray-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent min-w-[250px]">
             <Select.Value />
             <Select.Icon>
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -144,13 +140,13 @@ export default function StylistAvailability({ onNavigateToStylists }: StylistAva
             </Select.Icon>
           </Select.Trigger>
           <Select.Portal>
-            <Select.Content className="overflow-hidden bg-[var(--color-panel-solid)] rounded-[var(--radius-2)] border border-[var(--gray-6)] shadow-lg">
-              <Select.Viewport className="p-[var(--space-1)]">
+            <Select.Content className="overflow-hidden bg-card rounded-md border border-border shadow-lg">
+              <Select.Viewport className="p-[0.5]">
                 {stylists.map(stylist => (
                   <Select.Item
                     key={stylist.id}
                     value={stylist.id}
-                    className="relative flex items-center px-[var(--space-3)] py-[var(--space-2)] rounded-[var(--radius-1)] text-[length:var(--font-size-2)] text-[var(--gray-12)] hover:bg-[var(--accent-4)] focus:bg-[var(--accent-4)] outline-none cursor-pointer data-[highlighted]:bg-[var(--accent-4)]"
+                    className="relative flex items-center px-3 py-2 rounded-sm text-sm text-foreground hover:bg-accent/20 focus:bg-accent/20 outline-none cursor-pointer data-[highlighted]:bg-accent/20"
                   >
                     <Select.ItemText>{stylist.name}</Select.ItemText>
                   </Select.Item>
@@ -164,25 +160,19 @@ export default function StylistAvailability({ onNavigateToStylists }: StylistAva
       {selectedStylist && (
         <>
           {/* Stylist Info Card */}
-          <div className="bg-[var(--gray-2)] border border-[var(--gray-6)] rounded-[var(--radius-3)] p-[var(--space-4)]">
+          <div className="bg-muted border border-border rounded-lg p-4">
             <div className="flex items-start justify-between">
               <div>
-                <h4 className="text-[length:var(--font-size-4)] font-bold text-[var(--gray-12)] mb-1">
-                  {selectedStylist.name}
-                </h4>
-                <p className="text-[length:var(--font-size-2)] text-[var(--gray-11)] mb-2">
-                  {selectedStylist.email}
-                </p>
+                <h4 className="text-base font-bold text-foreground mb-1">{selectedStylist.name}</h4>
+                <p className="text-sm text-muted-foreground mb-2">{selectedStylist.email}</p>
                 {selectedStylist.bio && (
-                  <p className="text-[length:var(--font-size-2)] text-[var(--gray-11)]">
-                    {selectedStylist.bio}
-                  </p>
+                  <p className="text-sm text-muted-foreground">{selectedStylist.bio}</p>
                 )}
               </div>
               {onNavigateToStylists && (
                 <button
                   onClick={onNavigateToStylists}
-                  className="px-[var(--space-3)] py-[var(--space-2)] text-[length:var(--font-size-2)] text-[var(--accent-11)] hover:text-[var(--accent-12)] font-medium transition-colors"
+                  className="px-3 py-2 text-sm text-accent-foreground hover:text-accent-foreground font-medium transition-colors"
                 >
                   Edit Full Profile →
                 </button>
@@ -192,19 +182,17 @@ export default function StylistAvailability({ onNavigateToStylists }: StylistAva
 
           {/* Working Hours */}
           <div>
-            <h4 className="text-[length:var(--font-size-3)] font-semibold text-[var(--gray-12)] mb-[var(--space-3)]">
+            <h4 className="text-[length:var(--font-size-3)] font-semibold text-foreground mb-[3]">
               Working Hours
             </h4>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-[var(--space-3)]">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-[3]">
               {Object.entries(selectedStylist.workingHours).map(([day, hours]) => (
                 <div
                   key={day}
-                  className="flex items-center justify-between p-[var(--space-3)] bg-[var(--gray-2)] border border-[var(--gray-6)] rounded-[var(--radius-2)]"
+                  className="flex items-center justify-between p-[3] bg-muted border border-border rounded-md"
                 >
-                  <span className="text-[length:var(--font-size-2)] font-medium text-[var(--gray-12)] capitalize">
-                    {day}
-                  </span>
-                  <span className="text-[length:var(--font-size-2)] text-[var(--gray-11)]">
+                  <span className="text-sm font-medium text-foreground capitalize">{day}</span>
+                  <span className="text-sm text-muted-foreground">
                     {hours.isWorking ? `${hours.start} - ${hours.end}` : 'Off'}
                   </span>
                 </div>
@@ -214,18 +202,18 @@ export default function StylistAvailability({ onNavigateToStylists }: StylistAva
 
           {/* Calendar View */}
           <div>
-            <div className="flex items-center justify-between mb-[var(--space-4)]">
-              <h4 className="text-[length:var(--font-size-3)] font-semibold text-[var(--gray-12)]">
+            <div className="flex items-center justify-between mb-[4]">
+              <h4 className="text-[length:var(--font-size-3)] font-semibold text-foreground">
                 Blocked Dates Calendar
               </h4>
-              <div className="flex items-center space-x-[var(--space-3)]">
+              <div className="flex items-center space-x-[3]">
                 <button
                   onClick={() =>
                     setCurrentMonth(
                       new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1),
                     )
                   }
-                  className="p-2 hover:bg-[var(--gray-3)] rounded-[var(--radius-2)] transition-colors"
+                  className="p-2 hover:bg-gray-100 dark:bg-gray-800 rounded-md transition-colors"
                   aria-label="Previous month"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -237,7 +225,7 @@ export default function StylistAvailability({ onNavigateToStylists }: StylistAva
                     />
                   </svg>
                 </button>
-                <span className="text-[length:var(--font-size-3)] font-medium text-[var(--gray-12)] min-w-[150px] text-center">
+                <span className="text-[length:var(--font-size-3)] font-medium text-foreground min-w-[150px] text-center">
                   {currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
                 </span>
                 <button
@@ -246,7 +234,7 @@ export default function StylistAvailability({ onNavigateToStylists }: StylistAva
                       new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1),
                     )
                   }
-                  className="p-2 hover:bg-[var(--gray-3)] rounded-[var(--radius-2)] transition-colors"
+                  className="p-2 hover:bg-gray-100 dark:bg-gray-800 rounded-md transition-colors"
                   aria-label="Next month"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -262,11 +250,11 @@ export default function StylistAvailability({ onNavigateToStylists }: StylistAva
             </div>
 
             {/* Calendar Grid */}
-            <div className="grid grid-cols-7 gap-[var(--space-1)]">
+            <div className="grid grid-cols-7 gap-0.5">
               {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
                 <div
                   key={day}
-                  className="text-center text-[length:var(--font-size-1)] font-semibold text-[var(--gray-11)] py-[var(--space-2)]"
+                  className="text-center text-xs font-semibold text-muted-foreground py-2"
                 >
                   {day}
                 </div>
@@ -283,36 +271,34 @@ export default function StylistAvailability({ onNavigateToStylists }: StylistAva
                 return (
                   <div
                     key={date.toISOString()}
-                    className={`aspect-square p-[var(--space-2)] rounded-[var(--radius-2)] text-center text-[length:var(--font-size-2)] border transition-colors ${
+                    className={`aspect-square p-[2] rounded-md text-center text-sm border transition-colors ${
                       isBlocked
-                        ? 'bg-[var(--red-3)] border-[var(--red-6)] text-[var(--red-11)]'
+                        ? 'bg-destructive/10 border-destructive text-destructive'
                         : !isWorking
-                          ? 'bg-[var(--gray-3)] border-[var(--gray-6)] text-[var(--gray-9)]'
-                          : 'bg-[var(--gray-2)] border-[var(--gray-5)] text-[var(--gray-12)]'
-                    } ${isToday ? 'ring-2 ring-[var(--accent-8)]' : ''}`}
+                          ? 'bg-gray-100 dark:bg-gray-800 border-border text-gray-400'
+                          : 'bg-muted border-gray-300 dark:border-gray-600 text-foreground'
+                    } ${isToday ? 'ring-2 ring-accent' : ''}`}
                   >
                     <div className="font-medium">{date.getDate()}</div>
-                    {isBlocked && (
-                      <div className="text-[length:var(--font-size-1)] mt-0.5">Blocked</div>
-                    )}
+                    {isBlocked && <div className="text-xs mt-0.5">Blocked</div>}
                   </div>
                 );
               })}
             </div>
 
             {/* Legend */}
-            <div className="mt-[var(--space-4)] flex items-center space-x-[var(--space-6)] text-[length:var(--font-size-2)]">
-              <div className="flex items-center space-x-[var(--space-2)]">
-                <div className="w-4 h-4 rounded-[var(--radius-1)] bg-[var(--gray-2)] border border-[var(--gray-5)]"></div>
-                <span className="text-[var(--gray-11)]">Working Day</span>
+            <div className="mt-[4] flex items-center space-x-6 text-sm">
+              <div className="flex items-center space-x-[2]">
+                <div className="w-4 h-4 rounded-sm bg-muted border border-gray-300 dark:border-gray-600"></div>
+                <span className="text-muted-foreground">Working Day</span>
               </div>
-              <div className="flex items-center space-x-[var(--space-2)]">
-                <div className="w-4 h-4 rounded-[var(--radius-1)] bg-[var(--gray-3)] border border-[var(--gray-6)]"></div>
-                <span className="text-[var(--gray-11)]">Day Off</span>
+              <div className="flex items-center space-x-[2]">
+                <div className="w-4 h-4 rounded-sm bg-gray-100 dark:bg-gray-800 border border-border"></div>
+                <span className="text-muted-foreground">Day Off</span>
               </div>
-              <div className="flex items-center space-x-[var(--space-2)]">
-                <div className="w-4 h-4 rounded-[var(--radius-1)] bg-[var(--red-3)] border border-[var(--red-6)]"></div>
-                <span className="text-[var(--gray-11)]">Blocked Date</span>
+              <div className="flex items-center space-x-[2]">
+                <div className="w-4 h-4 rounded-sm bg-destructive/10 border border-destructive"></div>
+                <span className="text-muted-foreground">Blocked Date</span>
               </div>
             </div>
           </div>
@@ -320,10 +306,10 @@ export default function StylistAvailability({ onNavigateToStylists }: StylistAva
           {/* Blocked Dates List */}
           {selectedStylist.blockedDates.length > 0 && (
             <div>
-              <h4 className="text-[length:var(--font-size-3)] font-semibold text-[var(--gray-12)] mb-[var(--space-3)]">
+              <h4 className="text-[length:var(--font-size-3)] font-semibold text-foreground mb-[3]">
                 Upcoming Blocked Dates
               </h4>
-              <div className="space-y-[var(--space-2)]">
+              <div className="space-y-[2]">
                 {selectedStylist.blockedDates
                   .filter(date => date >= new Date().toISOString().split('T')[0])
                   .sort()
@@ -331,10 +317,10 @@ export default function StylistAvailability({ onNavigateToStylists }: StylistAva
                   .map(date => (
                     <div
                       key={date}
-                      className="flex items-center space-x-[var(--space-3)] p-[var(--space-3)] bg-[var(--red-3)] border border-[var(--red-6)] rounded-[var(--radius-2)]"
+                      className="flex items-center space-x-[3] p-[3] bg-destructive/10 border border-destructive rounded-md"
                     >
                       <svg
-                        className="w-5 h-5 text-[var(--red-11)]"
+                        className="w-5 h-5 text-destructive"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -346,12 +332,10 @@ export default function StylistAvailability({ onNavigateToStylists }: StylistAva
                           d="M6 18L18 6M6 6l12 12"
                         />
                       </svg>
-                      <span className="text-[length:var(--font-size-2)] font-medium text-[var(--gray-12)]">
+                      <span className="text-sm font-medium text-foreground">
                         {formatDisplayDate(new Date(date))}
                       </span>
-                      <span className="text-[length:var(--font-size-1)] text-[var(--gray-11)]">
-                        ({date})
-                      </span>
+                      <span className="text-xs text-muted-foreground">({date})</span>
                     </div>
                   ))}
               </div>

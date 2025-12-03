@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import * as React from 'react';
 import { Check } from 'lucide-react';
@@ -25,11 +25,11 @@ export function FilterPill({
         inline-flex items-center gap-2 px-4 py-2 rounded-full
         font-medium text-sm transition-all duration-200
         border-2 whitespace-nowrap
-        focus:outline-none focus:ring-2 focus:ring-[var(--accent-8)] focus:ring-offset-2
+        focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2
         ${
           active
-            ? 'bg-[var(--accent-9)] text-white border-[var(--accent-9)] shadow-md shadow-[var(--accent-4)]'
-            : 'bg-white text-[var(--gray-11)] border-[var(--gray-6)] hover:border-[var(--accent-8)] hover:text-[var(--accent-11)]'
+            ? 'bg-accent text-white border-accent shadow-md shadow-accent/20'
+            : 'bg-white text-muted-foreground border-border hover:border-accent hover:text-accent-foreground'
         }
         ${className}
       `}

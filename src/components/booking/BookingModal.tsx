@@ -5,7 +5,13 @@ import { useBookingModal } from '@/context/BookingModalContext';
 import BookingForm from './BookingForm';
 import { BookingProgress } from './BookingProgress';
 import { useIsMobile } from '@/hooks/useMediaQuery';
-import * as Dialog from '@radix-ui/react-dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import {
   Drawer,
   DrawerContent,
@@ -13,7 +19,6 @@ import {
   DrawerTitle,
   DrawerDescription,
 } from '@/components/ui/drawer';
-import { X } from 'lucide-react';
 
 /**
  * Global booking modal that can be triggered from anywhere in the app
@@ -82,28 +87,19 @@ export function BookingModal() {
   }
 
   return (
-    <Dialog.Root open={isOpen} onOpenChange={open => !open && closeModal()}>
-      <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-50 bg-black/80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
-        <Dialog.Content className="fixed left-1/2 top-1/2 z-50 max-h-[95vh] w-full max-w-3xl -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-lg border bg-white shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%]">
-          <div className="flex items-center justify-between border-b p-6">
-            <div className="flex-1">
-              <Dialog.Title className="text-lg font-semibold">Book Your Appointment</Dialog.Title>
-              <Dialog.Description className="mt-1 text-sm text-gray-600">
-                Select your services, stylist, and preferred time
-              </Dialog.Description>
-              <div className="mt-4">
-                <BookingProgress currentStep={currentStep} />
-              </div>
-            </div>
-            <Dialog.Close className="rounded-sm opacity-70 ring-offset-white transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-gray-950 focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-gray-100 data-[state=open]:text-gray-500">
-              <X className="h-4 w-4" />
-              <span className="sr-only">Close</span>
-            </Dialog.Close>
+    <Dialog open={isOpen} onOpenChange={open => !open && closeModal()}>
+      <DialogContent className="max-h-[95vh] w-full max-w-3xl overflow-y-auto p-0 gap-0">
+        <DialogHeader className="border-b p-6 text-left">
+          <DialogTitle className="text-lg font-semibold">Book Your Appointment</DialogTitle>
+          <DialogDescription className="mt-1 text-sm text-gray-600">
+            Select your services, stylist, and preferred time
+          </DialogDescription>
+          <div className="mt-4">
+            <BookingProgress currentStep={currentStep} />
           </div>
-          {content}
-        </Dialog.Content>
-      </Dialog.Portal>
-    </Dialog.Root>
+        </DialogHeader>
+        {content}
+      </DialogContent>
+    </Dialog>
   );
 }

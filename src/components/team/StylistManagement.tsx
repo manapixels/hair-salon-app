@@ -4,14 +4,23 @@ import Image from 'next/image';
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import type { Stylist, Service } from '@/types';
-import * as Dialog from '@radix-ui/react-dialog';
-import * as Checkbox from '@radix-ui/react-checkbox';
-import * as AlertDialog from '@radix-ui/react-alert-dialog';
-import { Button } from '@radix-ui/themes';
-import { TextField } from '../ui/TextField';
-import { TextArea } from '../ui/TextArea';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Checkbox } from '@/components/ui/checkbox';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { LoadingSpinner } from '../feedback/loaders/LoadingSpinner';
-import { Plus, X, Users, User, Edit, Delete } from '@/lib/icons';
+import { Plus, X, Users, User, Edit, Delete, Check } from '@/lib/icons';
 
 interface StylistManagementProps {
   onClose?: () => void;
@@ -251,34 +260,23 @@ export default function StylistManagement({ onClose }: StylistManagementProps) {
         />
       </div>
 
-      <AlertDialog.Root open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialog.Portal>
-          <AlertDialog.Overlay className="fixed inset-0 bg-black/50 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 z-50" />
-          <AlertDialog.Content className="fixed left-[50%] top-[50%] max-h-[85vh] w-[90vw] max-w-[500px] translate-x-[-50%] translate-y-[-50%] rounded-lg bg-white dark:bg-gray-800 p-6 shadow-lg border border-gray-200 dark:border-gray-700 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] z-50">
-            <AlertDialog.Title className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-              Delete Stylist
-            </AlertDialog.Title>
-            <AlertDialog.Description className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-              Are you sure you want to delete this stylist? This action cannot be undone.
-            </AlertDialog.Description>
-            <div className="flex gap-3 justify-end">
-              <AlertDialog.Cancel asChild>
-                <button className="px-4 py-2 text-sm bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">
-                  No
-                </button>
-              </AlertDialog.Cancel>
-              <AlertDialog.Action asChild>
-                <button
-                  onClick={confirmDeleteStylist}
-                  className="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-                >
-                  Yes, Delete
-                </button>
-              </AlertDialog.Action>
-            </div>
-          </AlertDialog.Content>
-        </AlertDialog.Portal>
-      </AlertDialog.Root>
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogTitle>Delete Stylist</AlertDialogTitle>
+          <AlertDialogDescription>
+            Are you sure you want to delete this stylist? This action cannot be undone.
+          </AlertDialogDescription>
+          <AlertDialogFooter>
+            <AlertDialogCancel>No</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDeleteStylist}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Yes, Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
@@ -397,235 +395,209 @@ function StylistModal({ isOpen, onClose, stylist, availableServices, onSave }: S
   }
 
   return (
-    <Dialog.Root open={isOpen} onOpenChange={open => !open && onClose()}>
-      <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 bg-black/50 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 z-50" />
-        <Dialog.Content className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-[var(--color-panel-solid)] rounded-[var(--radius-4)] border border-[var(--gray-6)] shadow-lg data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%]">
-          <div className="p-[var(--space-6)]">
-            <div className="flex justify-between items-center mb-[var(--space-6)]">
-              <Dialog.Title className="text-[length:var(--font-size-6)] font-bold text-[var(--gray-12)]">
-                {stylist ? 'Edit Stylist' : 'Add New Stylist'}
-              </Dialog.Title>
-              <Dialog.Close asChild>
-                <button
-                  onClick={onClose}
-                  className="text-[var(--gray-11)] hover:text-[var(--gray-12)] transition-colors"
-                >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M6 18L18 6M6 6l12 12"
+    <Dialog open={isOpen} onOpenChange={open => !open && onClose()}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>{stylist ? 'Edit Stylist' : 'Add New Stylist'}</DialogTitle>
+        </DialogHeader>
+
+        {error && (
+          <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Label>Name</Label>
+            <Input
+              type="text"
+              value={formData.name}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                setFormData(prev => ({ ...prev, name: e.target.value }))
+              }
+              required
+            />
+            <Label>Email</Label>
+            <Input
+              type="email"
+              value={formData.email}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                setFormData(prev => ({ ...prev, email: e.target.value }))
+              }
+              required
+            />
+          </div>
+
+          <div>
+            <label
+              htmlFor="stylist-bio"
+              className="block text-sm font-medium text-gray-900 dark:text-white mb-2"
+            >
+              Bio
+            </label>
+            <Textarea
+              id="stylist-bio"
+              value={formData.bio}
+              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+                setFormData(prev => ({ ...prev, bio: e.target.value }))
+              }
+              rows={3}
+              placeholder="Brief description of the stylist's experience and style"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
+              Specialties *
+            </label>
+            <div className="grid grid-cols-1 gap-3 max-h-60 overflow-y-auto border border-gray-200 dark:border-gray-600 rounded-md p-3">
+              {availableServices.map(service => {
+                const isSelected = formData.specialtyIds.includes(service.id);
+                return (
+                  <label
+                    key={service.id}
+                    className={`flex items-center p-3 rounded-md border cursor-pointer transition-colors ${
+                      isSelected
+                        ? 'border-accent bg-accent/10 dark:bg-accent/10'
+                        : 'border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
+                    }`}
+                  >
+                    <Checkbox
+                      checked={isSelected}
+                      onCheckedChange={() => handleSpecialtyToggle(service.id)}
+                      className="mr-3"
                     />
-                  </svg>
-                </button>
-              </Dialog.Close>
-            </div>
-
-            {error && (
-              <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
-                {error}
-              </div>
-            )}
-
-            <form onSubmit={handleSubmit} className="space-y-[var(--space-6)]">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-[var(--space-4)]">
-                <TextField
-                  label="Name *"
-                  type="text"
-                  value={formData.name}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    setFormData(prev => ({ ...prev, name: e.target.value }))
-                  }
-                  required
-                />
-                <TextField
-                  label="Email *"
-                  type="email"
-                  value={formData.email}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    setFormData(prev => ({ ...prev, email: e.target.value }))
-                  }
-                  required
-                />
-              </div>
-
-              <TextArea
-                label="Bio"
-                value={formData.bio}
-                onChange={e => setFormData(prev => ({ ...prev, bio: e.target.value }))}
-                rows={3}
-                placeholder="Brief description of the stylist's experience and style"
-              />
-
-              <div>
-                <label className="block text-[length:var(--font-size-2)] font-medium text-[var(--gray-12)] mb-[var(--space-2)]">
-                  Specialties *
-                </label>
-                <div className="grid grid-cols-1 gap-[var(--space-3)] max-h-60 overflow-y-auto border border-[var(--gray-6)] rounded-[var(--radius-3)] p-[var(--space-3)]">
-                  {availableServices.map(service => {
-                    const isSelected = formData.specialtyIds.includes(service.id);
-                    return (
-                      <label
-                        key={service.id}
-                        className={`flex items-center p-[var(--space-3)] rounded-[var(--radius-3)] border cursor-pointer transition-colors ${
-                          isSelected
-                            ? 'border-[var(--accent-8)] bg-[var(--accent-3)]'
-                            : 'border-[var(--gray-6)] hover:bg-[var(--gray-3)]'
-                        }`}
-                      >
-                        <Checkbox.Root
-                          checked={isSelected}
-                          onCheckedChange={() => handleSpecialtyToggle(service.id)}
-                          className="flex items-center justify-center w-5 h-5 mr-3 rounded-[var(--radius-1)] border border-[var(--gray-7)] bg-[var(--color-surface)] hover:border-[var(--gray-8)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-8)] data-[state=checked]:bg-accent data-[state=checked]:border-[var(--accent-9)]"
-                        >
-                          <Checkbox.Indicator>
-                            <svg
-                              className="w-4 h-4 text-white"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={3}
-                                d="M5 13l4 4L19 7"
-                              />
-                            </svg>
-                          </Checkbox.Indicator>
-                        </Checkbox.Root>
-                        <div className="flex-1">
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <h4 className="font-medium text-[var(--gray-12)]">{service.name}</h4>
-                              <p className="text-[length:var(--font-size-2)] text-[var(--gray-11)]">
-                                {service.description}
-                              </p>
-                            </div>
-                            <div className="text-right">
-                              <div className="font-semibold text-[var(--gray-12)]">
-                                ${service.price}
-                              </div>
-                              <div className="text-[length:var(--font-size-2)] text-[var(--gray-11)]">
-                                {service.duration} min
-                              </div>
-                            </div>
+                    <div className="flex-1">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h4 className="font-medium text-gray-900 dark:text-white">
+                            {service.name}
+                          </h4>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                            {service.description}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <div className="font-semibold text-gray-900 dark:text-white">
+                            ${service.price}
+                          </div>
+                          <div className="text-sm text-gray-600 dark:text-gray-400">
+                            {service.duration} min
                           </div>
                         </div>
-                      </label>
-                    );
-                  })}
-                </div>
-              </div>
+                      </div>
+                    </div>
+                  </label>
+                );
+              })}
+            </div>
+          </div>
 
-              {/* Blocked Dates Section */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Blocked Dates (Holidays/Days Off)
-                </label>
-                <div className="border border-gray-200 dark:border-gray-600 rounded-md p-3">
-                  <div className="space-y-2 mb-3">
-                    {formData.blockedDates.length === 0 ? (
-                      <p className="text-sm text-gray-500 dark:text-gray-400 italic">
-                        No blocked dates. Stylist is available according to their schedule.
-                      </p>
-                    ) : (
-                      formData.blockedDates.map(date => (
-                        <div
-                          key={date}
-                          className="flex items-center justify-between bg-gray-50 dark:bg-gray-700 p-2 rounded"
-                        >
-                          <span className="text-sm text-gray-900 dark:text-white">{date}</span>
-                          <button
-                            type="button"
-                            onClick={() =>
-                              setFormData(prev => ({
-                                ...prev,
-                                blockedDates: prev.blockedDates.filter(d => d !== date),
-                              }))
-                            }
-                            className="text-red-600 hover:text-red-800 text-sm"
-                          >
-                            Remove
-                          </button>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                  <div className="flex gap-2">
-                    <input
-                      type="date"
-                      value={newBlockedDate}
-                      onChange={e => setNewBlockedDate(e.target.value)}
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                      min={new Date().toISOString().split('T')[0]}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (newBlockedDate && !formData.blockedDates.includes(newBlockedDate)) {
+          {/* Blocked Dates Section */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Blocked Dates (Holidays/Days Off)
+            </label>
+            <div className="border border-gray-200 dark:border-gray-600 rounded-md p-3">
+              <div className="space-y-2 mb-3">
+                {formData.blockedDates.length === 0 ? (
+                  <p className="text-sm text-gray-500 dark:text-gray-400 italic">
+                    No blocked dates. Stylist is available according to their schedule.
+                  </p>
+                ) : (
+                  formData.blockedDates.map(date => (
+                    <div
+                      key={date}
+                      className="flex items-center justify-between bg-gray-50 dark:bg-gray-700 p-2 rounded"
+                    >
+                      <span className="text-sm text-gray-900 dark:text-white">{date}</span>
+                      <button
+                        type="button"
+                        onClick={() =>
                           setFormData(prev => ({
                             ...prev,
-                            blockedDates: [...prev.blockedDates, newBlockedDate].sort(),
-                          }));
-                          setNewBlockedDate('');
+                            blockedDates: prev.blockedDates.filter(d => d !== date),
+                          }))
                         }
-                      }}
-                      disabled={!newBlockedDate}
-                      className="px-4 py-2 bg-yellow-600 text-white rounded text-sm hover:bg-yellow-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      Add
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex gap-[var(--space-3)] pt-[var(--space-4)]">
-                <Button type="button" onClick={onClose} variant="outline" className="flex-1">
-                  Cancel
-                </Button>
-                <Button
-                  type="submit"
-                  disabled={isLoading || formData.specialtyIds.length === 0}
-                  className="flex-1 bg-accent"
-                >
-                  {isLoading ? (
-                    <span className="flex items-center justify-center">
-                      <svg
-                        className="animate-spin -ml-1 mr-2 h-4 w-4"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
+                        className="text-red-600 hover:text-red-800 text-sm"
                       >
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"
-                        ></circle>
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                        ></path>
-                      </svg>
-                      {stylist ? 'Updating...' : 'Creating...'}
-                    </span>
-                  ) : stylist ? (
-                    'Update Stylist'
-                  ) : (
-                    'Create Stylist'
-                  )}
-                </Button>
+                        Remove
+                      </button>
+                    </div>
+                  ))
+                )}
               </div>
-            </form>
+              <div className="flex gap-2">
+                <input
+                  type="date"
+                  value={newBlockedDate}
+                  onChange={e => setNewBlockedDate(e.target.value)}
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  min={new Date().toISOString().split('T')[0]}
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (newBlockedDate && !formData.blockedDates.includes(newBlockedDate)) {
+                      setFormData(prev => ({
+                        ...prev,
+                        blockedDates: [...prev.blockedDates, newBlockedDate].sort(),
+                      }));
+                      setNewBlockedDate('');
+                    }
+                  }}
+                  disabled={!newBlockedDate}
+                  className="px-4 py-2 bg-yellow-600 text-white rounded text-sm hover:bg-yellow-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Add
+                </button>
+              </div>
+            </div>
           </div>
-        </Dialog.Content>
-      </Dialog.Portal>
-    </Dialog.Root>
+
+          <div className="flex gap-3 pt-4">
+            <Button type="button" onClick={onClose} variant="outline" className="flex-1">
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              disabled={isLoading || formData.specialtyIds.length === 0}
+              className="flex-1"
+            >
+              {isLoading ? (
+                <span className="flex items-center justify-center">
+                  <svg
+                    className="animate-spin -ml-1 mr-2 h-4 w-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                  </svg>
+                  {stylist ? 'Updating...' : 'Creating...'}
+                </span>
+              ) : stylist ? (
+                'Update Stylist'
+              ) : (
+                'Create Stylist'
+              )}
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }

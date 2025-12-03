@@ -86,7 +86,7 @@ export default function SettingsLayout({ adminSettings, onSave }: SettingsLayout
       <SettingsSidebar activeSection={activeSection} onSectionChange={setActiveSection} />
 
       {/* Content Area */}
-      <div className="flex-1 p-[var(--space-6)]">
+      <div className="flex-1 p-6">
         <div className="max-w-3xl">
           {/* Render Active Section */}
           {activeSection === 'salon-business' && (
@@ -105,12 +105,12 @@ export default function SettingsLayout({ adminSettings, onSave }: SettingsLayout
           )}
 
           {/* Save Button */}
-          <div className="mt-[var(--space-8)] pt-[var(--space-6)] border-t border-[var(--gray-6)] flex justify-end">
+          <div className="mt-8 pt-6 border-t border-border flex justify-end">
             <LoadingButton
               loading={isSaving}
               loadingText="Saving..."
               onClick={handleSave}
-              className="px-[var(--space-5)] py-[var(--space-3)] bg-accent text-white rounded-[var(--radius-2)] text-[length:var(--font-size-3)] font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
+              className="px-[5] py-[3] bg-accent text-white rounded-md text-[length:var(--font-size-3)] font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
             >
               Save Changes
             </LoadingButton>

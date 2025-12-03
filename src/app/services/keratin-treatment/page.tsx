@@ -1,7 +1,6 @@
-import React from 'react';
-import { Heading, Text, Container, Grid } from '@radix-ui/themes';
+﻿import React from 'react';
+
 import { CheckCircle, Plus } from '@/lib/icons';
-import { notFound } from 'next/navigation';
 import {
   ServiceHero,
   ServiceStats,
@@ -389,15 +388,11 @@ const TreatmentCard = ({
 }) => (
   <div className="bg-white p-6 rounded-2xl border border-stone-100 shadow-sm hover:shadow-md transition-all h-full flex flex-col">
     <div className="flex justify-between items-start mb-4">
-      <Heading size="4" className="font-serif text-stone-900">
-        {title}
-      </Heading>
+      <h2 className="text-3xl font-serif font-light">{title}</h2>
     </div>
-    <Text className="text-stone-600 text-sm mb-6 flex-grow">{description}</Text>
+    <p className="text-base">{description}</p>
     <div className="pt-4 border-t border-stone-50">
-      <Text className="text-xs font-bold uppercase tracking-wider text-stone-400 mb-3 block">
-        Benefits
-      </Text>
+      <p className="text-base">Benefits</p>
       <ul className="space-y-2">
         {benefits.map((b, i) => (
           <li key={i} className="flex items-center gap-2 text-sm text-stone-500">
@@ -416,8 +411,8 @@ const ProblemSolution = ({ problem, solution }: { problem: string; solution: str
       <Plus className="w-5 h-5 rotate-45" />
     </div>
     <div>
-      <Text className="block font-bold text-stone-900 mb-1">{problem}</Text>
-      <Text className="text-stone-600 text-sm">{solution}</Text>
+      <p className="text-base">{problem}</p>
+      <p className="text-base">{solution}</p>
     </div>
   </div>
 );
@@ -458,15 +453,13 @@ export default async function KeratinTreatmentPage() {
       />
 
       {/* About Keratin Section */}
-      <Container size="4" className="px-6 md:px-12 py-16 bg-stone-50">
-        <Container size="4" className="px-6 md:px-12 py-16 bg-white md:rounded-2xl">
+      <div className="container mx-auto px-6 md:px-12 py-16 bg-stone-50">
+        <div className="container mx-auto px-6 md:px-12 py-16 bg-white md:rounded-2xl">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center mb-20">
             {/* Why Keratin Treatment? */}
             <div>
-              <Heading size="7" className="font-serif text-stone-900 mb-6">
-                {content.why.title}
-              </Heading>
-              <Text className="text-stone-600 mb-8 block">{content.why.subtitle}</Text>
+              <h2 className="text-3xl font-serif font-light mb-6">{content.why.title}</h2>
+              <p className="text-base">{content.why.subtitle}</p>
               <div className="space-y-6">
                 {content.why.items.map((why, index) => (
                   <ProblemSolution key={index} problem={why.title} solution={why.solution} />
@@ -483,15 +476,13 @@ export default async function KeratinTreatmentPage() {
               />
             </div>
           </div>
-        </Container>
-      </Container>
+        </div>
+      </div>
 
       {/* Available Treatments */}
-      <Container size="4" className="px-6 md:px-12 py-16 bg-white">
-        <Heading size="6" className="font-serif text-center text-stone-900 mb-10">
-          {content.treatmentsTitle}
-        </Heading>
-        <Grid columns={{ initial: '1', md: '3' }} gap="6">
+      <div className="container mx-auto px-6 md:px-12 py-16 bg-white">
+        <h2 className="text-3xl font-serif font-light mb-10">{content.treatmentsTitle}</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {content.treatments.map((treatment, index) => (
             <TreatmentCard
               key={index}
@@ -500,17 +491,15 @@ export default async function KeratinTreatmentPage() {
               benefits={treatment.benefits}
             />
           ))}
-        </Grid>
-      </Container>
+        </div>
+      </div>
 
       {/* Process & Aftercare */}
-      <Container size="4" className="px-6 md:px-12 py-16 bg-white">
-        <Grid columns={{ initial: '1', md: '2' }} gap="16">
+      <div className="container mx-auto px-6 md:px-12 py-16 bg-white">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {/* Left: Process */}
           <div className="p-8 md:p-12">
-            <Heading size="7" className="font-serif text-stone-900 mb-8">
-              {content.process.title}
-            </Heading>
+            <h2 className="text-3xl font-serif font-light mb-8">{content.process.title}</h2>
             <div className="space-y-8">
               {content.process.steps.map((step, index) => (
                 <ProcessStep
@@ -526,17 +515,15 @@ export default async function KeratinTreatmentPage() {
 
           {/* Right: Aftercare */}
           <div className="bg-stone-50 rounded-3xl p-8 md:p-12">
-            <Heading size="7" className="font-serif text-stone-900 mb-8">
-              {content.aftercare.title}
-            </Heading>
+            <h2 className="text-3xl font-serif font-light mb-8">{content.aftercare.title}</h2>
             <div className="space-y-4">
               {content.aftercare.tips.map((tip, index) => (
                 <MaintenanceTip key={index} title={tip.title} text={tip.text} />
               ))}
             </div>
           </div>
-        </Grid>
-      </Container>
+        </div>
+      </div>
 
       {/* FAQ Section */}
       <ServiceFAQ

@@ -1,9 +1,14 @@
-'use client';
+﻿'use client';
 
 import Image from 'next/image';
 import Link from 'next/link';
 import { Instagram, Star, Search } from 'lucide-react';
-import { Heading, Text, DropdownMenu } from '@radix-ui/themes';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { TeamCard } from '@/components/team';
 import LocationCard from '../components/locations/LocationCard';
 import { Sparkles } from '@/lib/icons';
@@ -46,7 +51,7 @@ export default function HomePage() {
     <div className="bg-[#FDFCF8] min-h-screen text-stone-900 font-serif">
       {/* Hero Section */}
       <section className="relative flex flex-col lg:flex-row lg:min-h-screen overflow-hidden">
-        <div className="w-full lg:w-1/2 flex items-center justify-center p-6 py-8 sm:py-12 md:p-8 lg:p-24 relative z-10 bg-base-primary/10">
+        <div className="w-full lg:w-1/2 flex items-center justify-center p-6 py-8 sm:py-12 md:p-8 lg:p-24 relative z-10 bg-accent/10">
           <div className="max-w-xl fade-in-up w-full">
             <div className="relative w-16 h-16 sm:w-28 sm:h-28 mb-6">
               <Image
@@ -57,11 +62,11 @@ export default function HomePage() {
                 sizes="112px"
               />
             </div>
-            <span className="text-base-primary/80 sm:text-base-primary font-medium tracking-widest text-xs md:text-sm mb-3 md:mb-4 block">
+            <span className="text-primary/80 sm:text-primary font-medium tracking-widest text-xs md:text-sm mb-3 md:mb-4 block">
               Est. 2024 • Yishun, Singapore
             </span>
-            <h1 className="font-serif text-2xl font-semibold sm:font-normal sm:text-4xl md:text-5xl lg:text-7xl text-base-primary sm:text-base-dark leading-tight mb-0 sm:mb-6">
-              Craft your <span className="italic text-base-primary">Signature</span> look with us
+            <h1 className="font-serif text-2xl font-semibold sm:font-normal sm:text-4xl md:text-5xl lg:text-7xl text-primary sm:text-primary-foreground leading-tight mb-0 sm:mb-6">
+              Craft your <span className="italic text-primary">Signature</span> look with us
             </h1>
             <p className="hidden sm:block text-gray-500 text-base md:text-lg mb-6 md:mb-8 leading-relaxed max-w-md">
               Experience hair artistry at Signature Trims, a neighbourhood hair salon where we bring
@@ -70,18 +75,18 @@ export default function HomePage() {
             <div className="hidden sm:flex flex-col sm:flex-row gap-3 md:gap-4 mb-8 md:mb-12">
               <button
                 onClick={() => openModal()}
-                className="min-h-touch-lg bg-gray-900 text-white px-8 py-4 rounded-full hover:bg-base-primary active-scale transition-all duration-300 shadow-lg shadow-base-dark/20 text-sm font-medium uppercase tracking-wide"
+                className="min-h-touch-lg bg-gray-900 text-white px-8 py-4 rounded-full hover:bg-accent active-scale transition-all duration-300 shadow-lg shadow-primary/20 text-sm font-medium uppercase tracking-wide"
               >
                 Book Your Visit
               </button>
               <a
                 href="#services"
-                className="min-h-touch-lg px-8 py-4 rounded-full border border-base-dark text-base-dark hover:bg-base-dark hover:text-white active-scale transition-all duration-300 text-sm font-medium uppercase tracking-wide flex items-center justify-center"
+                className="min-h-touch-lg px-8 py-4 rounded-full border border-primary text-primary-foreground hover:bg-primary hover:text-white active-scale transition-all duration-300 text-sm font-medium uppercase tracking-wide flex items-center justify-center"
               >
                 View Menu
               </a>
             </div>
-            <div className="flex flex-row items-start sm:items-center gap-4 sm:gap-8 text-base-primary/80 sm:text-gray-400 text-sm">
+            <div className="flex flex-row items-start sm:items-center gap-4 sm:gap-8 text-primary/80 sm:text-gray-400 text-sm">
               <a
                 href="https://maps.app.goo.gl/umK5KbT3rN1HeEg5A"
                 target="_blank"
@@ -95,7 +100,7 @@ export default function HomePage() {
                 target="_blank"
                 className="flex items-center gap-2 min-h-touch active-scale"
               >
-                <Star className="w-5 h-5 fill-[var(--accent-9)] text-transparent flex-shrink-0" />
+                <Star className="w-5 h-5 fill-[hsl(var(--accent))] text-transparent flex-shrink-0" />
                 <span>5.0 (100+ Reviews)</span>
               </a>
             </div>
@@ -123,12 +128,12 @@ export default function HomePage() {
         {/* Find by Concern Button */}
         <button
           onClick={() => setIsConcernModalOpen(true)}
-          className="group/item flex flex-col items-center justify-between gap-1 border-2 border-base-primary bg-base-primary/5 hover:bg-base-primary/10 transition-colors rounded-lg p-2"
+          className="group/item flex flex-col items-center justify-between gap-1 border-2 border-accent bg-accent/5 hover:bg-accent/10 transition-colors rounded-lg p-2"
         >
-          <div className="flex items-center justify-center w-16 h-16 rounded-lg bg-base-primary/10">
-            <Search className="w-8 h-8 text-base-primary" />
+          <div className="flex items-center justify-center w-16 h-16 rounded-lg bg-accent/10">
+            <Search className="w-8 h-8 text-primary" />
           </div>
-          <span className="text-md text-center leading-none text-base-primary font-semibold">
+          <span className="text-md text-center leading-none text-primary font-semibold">
             Find by Concern
           </span>
         </button>
@@ -138,9 +143,9 @@ export default function HomePage() {
           const serviceId = serviceData?.id;
 
           return (
-            <DropdownMenu.Root key={service.href}>
-              <DropdownMenu.Trigger>
-                <button className="group/item flex flex-col items-center justify-between gap-1 border border-base-primary/50 hover:border-base-primary transition-colors rounded-lg p-2 w-full outline-none focus:ring-2 focus:ring-base-primary/20 bg-transparent cursor-pointer">
+            <DropdownMenu key={service.href}>
+              <DropdownMenuTrigger asChild>
+                <button className="group/item flex flex-col items-center justify-between gap-1 border border-accent/50 hover:border-accent transition-colors rounded-lg p-2 w-full outline-none focus:ring-2 focus:ring-accent/20 bg-transparent cursor-pointer">
                   <div className="relative w-16 h-16 rounded-lg">
                     <Image
                       src={service.illustration || ''}
@@ -150,23 +155,23 @@ export default function HomePage() {
                       sizes="64px"
                     />
                   </div>
-                  <span className="text-md text-center leading-none text-base-primary flex-1 flex items-center justify-center w-full">
+                  <span className="text-md text-center leading-none text-primary flex-1 flex items-center justify-center w-full">
                     {service.short_title}
                   </span>
                 </button>
-              </DropdownMenu.Trigger>
-              <DropdownMenu.Content>
-                <DropdownMenu.Item asChild>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem asChild>
                   <Link href={service.href}>Learn more</Link>
-                </DropdownMenu.Item>
-                <DropdownMenu.Item
+                </DropdownMenuItem>
+                <DropdownMenuItem
                   onSelect={() => openModal({ preSelectedServiceId: serviceId })}
-                  className="bg-gray-900 text-white hover:bg-base-primary hover:text-white mt-1 justify-center"
+                  className="bg-gray-900 text-white hover:bg-accent hover:text-white mt-1 justify-center"
                 >
                   Book now
-                </DropdownMenu.Item>
-              </DropdownMenu.Content>
-            </DropdownMenu.Root>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           );
         })}
       </section>
@@ -177,18 +182,16 @@ export default function HomePage() {
             <Sparkles className="w-4 h-4" />
             <span className="uppercase tracking-wider">Signature Selections</span>
           </div>
-          <Heading size="8" className="font-serif font-light mb-4">
-            Our Premium Services
-          </Heading>
-          <Text size="3" className="text-stone-600 max-w-2xl mx-auto mb-6">
+          <h2 className="text-4xl font-serif font-light mb-4">Our Premium Services</h2>
+          <p className="text-lg text-stone-600 max-w-2xl mx-auto mb-6">
             Experience our most sought-after treatments, expertly crafted to deliver exceptional
             results and lasting beauty.
-          </Text>
+          </p>
 
           {/* Find by Concern Button */}
           <button
             onClick={() => setIsConcernModalOpen(true)}
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-base-primary text-white hover:bg-base-primary/90 transition-colors font-medium text-sm"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-accent text-white hover:bg-accent/90 transition-colors font-medium text-sm"
           >
             <Search className="w-4 h-4" />
             Find by Hair Concern
@@ -213,10 +216,10 @@ export default function HomePage() {
                     <div className="text-gold-primary text-3xl md:text-4xl mb-4 md:mb-6 group-hover:translate-x-2 transition-transform duration-300">
                       0{index + 1}.
                     </div>
-                    <h3 className="font-serif text-xl md:text-2xl text-base-primary mb-2">
+                    <h3 className="font-serif text-xl md:text-2xl text-primary mb-2">
                       {service.name}
                     </h3>
-                    <div className="h-px w-full bg-base-primary/10 my-3 md:my-4"></div>
+                    <div className="h-px w-full bg-accent/10 my-3 md:my-4"></div>
                     <div className="text-sm text-gray-400 uppercase tracking-wider mb-3 md:mb-4">
                       <span></span>
                       <span className="text-gold-light">{service.price}</span>
@@ -232,7 +235,7 @@ export default function HomePage() {
                             {serviceUrl && (
                               <Link
                                 href={serviceUrl}
-                                className="min-h-touch-lg flex-1 py-3 bg-white text-base-primary/60 border-2 border-base-primary/60 rounded-lg hover:bg-stone-50 active-scale transition-colors duration-200 font-medium text-center"
+                                className="min-h-touch-lg flex-1 py-3 bg-white text-primary/60 border-2 border-accent/60 rounded-lg hover:bg-stone-50 active-scale transition-colors duration-200 font-medium text-center"
                               >
                                 Learn More
                               </Link>
@@ -261,12 +264,12 @@ export default function HomePage() {
                 </div>
               );
             })}
-            <div className="group p-6 md:p-8 rounded-3xl bg-base-primary/30 text-black border border-transparent hover:scale-[1.02] active-scale transition-all duration-300 flex flex-col justify-center items-center text-center min-h-touch-lg">
+            <div className="group p-6 md:p-8 rounded-3xl bg-accent/30 text-black border border-transparent hover:scale-[1.02] active-scale transition-all duration-300 flex flex-col justify-center items-center text-center min-h-touch-lg">
               <h3 className="text-xl md:text-2xl font-serif mb-2">Need Advice?</h3>
               <p className="text-sm mb-6">Book a free 15-min consultation with a master stylist.</p>
               <button
                 onClick={() => openModal()}
-                className="min-h-touch-lg bg-white text-base-primary px-6 py-3 rounded-lg text-sm font-medium hover:bg-base-primary hover:text-white active-scale transition-colors"
+                className="min-h-touch-lg bg-white text-primary px-6 py-3 rounded-lg text-sm font-medium hover:bg-accent hover:text-white active-scale transition-colors"
               >
                 Book Consult
               </button>

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
@@ -58,11 +58,7 @@ export default function ServicesPopup({ isOpen, onClose }: ServicesPopupProps) {
                     onClick={onClose}
                     className={`
                       flex items-center justify-between px-5 py-3 mx-3 rounded-full transition-all duration-200 group
-                      ${
-                        isActive
-                          ? 'bg-base-primary/10'
-                          : 'hover:bg-gray-100 dark:hover:bg-gray-800/50'
-                      }
+                      ${isActive ? 'bg-accent/10' : 'hover:bg-gray-100 dark:hover:bg-gray-800/50'}
                     `}
                   >
                     <span
@@ -70,14 +66,14 @@ export default function ServicesPopup({ isOpen, onClose }: ServicesPopupProps) {
                         text-sm font-medium transition-colors
                         ${
                           isActive
-                            ? 'text-base-primary font-semibold'
+                            ? 'text-accent-foreground font-semibold'
                             : 'text-gray-700 dark:text-gray-200 group-hover:text-gray-900 dark:group-hover:text-white'
                         }
                       `}
                     >
                       {service.title}
                     </span>
-                    {isActive && <div className="w-1.5 h-1.5 rounded-full bg-base-primary" />}
+                    {isActive && <div className="w-1.5 h-1.5 rounded-full bg-accent" />}
                     {!isActive && (
                       <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors" />
                     )}

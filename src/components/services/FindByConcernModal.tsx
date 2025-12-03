@@ -15,7 +15,7 @@ import { ArrowLeft, Clock, X } from 'lucide-react';
 import { useBookingModal } from '@/context/BookingModalContext';
 import { useIsMobile } from '@/hooks/useMediaQuery';
 import { FilterPill } from './FilterPill';
-import { Button } from '@/components/ui';
+import { Button } from '@/components/ui/button';
 import { SERVICE_LINKS } from '@/config/navigation';
 import { LoadingSpinner } from '../feedback/loaders/LoadingSpinner';
 import type { Service, ServiceTag } from '@/types';
@@ -272,7 +272,7 @@ export function FindByConcernModal({ isOpen, onClose }: FindByConcernModalProps)
                           Learn More
                         </Button>
                         <Button
-                          variant="solid"
+                          variant="default"
                           size="sm"
                           onClick={() => handleBookNow(service)}
                           className="flex-1"

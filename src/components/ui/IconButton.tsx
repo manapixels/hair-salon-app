@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { forwardRef, ButtonHTMLAttributes, ReactNode } from 'react';
 import { cn } from '@/lib/utils';
@@ -53,35 +53,35 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
 
     const variantStyles = {
       solid: cn(
-        'bg-[var(--accent-9)] text-white',
-        'hover:bg-[var(--accent-10)]',
-        'active:bg-[var(--accent-11)]',
-        'focus-visible:ring-[var(--accent-8)]',
+        'bg-accent text-white',
+        'hover:bg-accent hover:bg-accent/90',
+        'active:bg-accent-foreground',
+        'focus-visible:ring-accent',
         'shadow-sm hover:shadow-md',
       ),
       soft: cn(
-        'bg-[var(--accent-3)] text-[var(--accent-11)]',
-        'hover:bg-[var(--accent-4)]',
-        'active:bg-[var(--accent-5)]',
-        'focus-visible:ring-[var(--accent-8)]',
+        'bg-accent/10 text-accent-foreground',
+        'hover:bg-accent/20',
+        'active:bg-accent/30',
+        'focus-visible:ring-accent',
       ),
       outline: cn(
-        'border border-[var(--gray-7)] text-[var(--gray-12)]',
-        'hover:bg-[var(--gray-2)] hover:border-[var(--gray-8)]',
-        'active:bg-[var(--gray-3)]',
-        'focus-visible:ring-[var(--accent-8)]',
+        'border border-gray-300 dark:border-gray-600 text-foreground',
+        'hover:bg-muted hover:border-gray-400 dark:hover:border-gray-500',
+        'active:bg-gray-100 dark:bg-gray-800',
+        'focus-visible:ring-accent',
       ),
       ghost: cn(
-        'text-[var(--gray-11)] hover:text-[var(--gray-12)]',
-        'hover:bg-[var(--gray-3)]',
-        'active:bg-[var(--gray-4)]',
-        'focus-visible:ring-[var(--accent-8)]',
+        'text-muted-foreground hover:text-foreground',
+        'hover:bg-gray-100 dark:bg-gray-800',
+        'active:bg-gray-200 dark:bg-gray-700',
+        'focus-visible:ring-accent',
       ),
       danger: cn(
-        'bg-[var(--red-9)] text-white',
-        'hover:bg-[var(--red-10)]',
-        'active:bg-[var(--red-11)]',
-        'focus-visible:ring-[var(--red-8)]',
+        'bg-destructive text-white',
+        'hover:bg-destructive/90',
+        'active:bg-destructive',
+        'focus-visible:ring-destructive',
         'shadow-sm hover:shadow-md',
       ),
     };

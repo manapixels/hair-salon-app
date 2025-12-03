@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { forwardRef, ReactNode } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
@@ -79,11 +79,11 @@ export const ModalContent = forwardRef<
           'w-full',
           sizeStyles[size],
           'max-h-[85vh] overflow-y-auto',
-          'rounded-[var(--radius-4)]',
-          'bg-[var(--color-panel)]',
-          'border border-[var(--gray-6)]',
+          'rounded-xl',
+          'bg-card',
+          'border border-border',
           'shadow-xl',
-          'p-[var(--space-6)]',
+          'p-6',
           'data-[state=open]:animate-in data-[state=closed]:animate-out',
           'data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0',
           'data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95',
@@ -98,12 +98,12 @@ export const ModalContent = forwardRef<
         {showClose && (
           <Dialog.Close
             className={cn(
-              'absolute right-[var(--space-4)] top-[var(--space-4)]',
-              'rounded-full p-[var(--space-2)]',
-              'text-[var(--gray-11)] hover:text-[var(--gray-12)]',
-              'hover:bg-[var(--gray-4)]',
+              'absolute right-[4] top-4',
+              'rounded-full p-[2]',
+              'text-muted-foreground hover:text-foreground',
+              'hover:bg-gray-200 dark:bg-gray-700',
               'transition-colors',
-              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-8)]',
+              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent',
             )}
             aria-label="Close modal"
           >
@@ -121,11 +121,7 @@ ModalContent.displayName = 'ModalContent';
  */
 export const ModalHeader = forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
   ({ className, children, ...props }, ref) => (
-    <div
-      ref={ref}
-      className={cn('flex flex-col gap-[var(--space-2)] mb-[var(--space-5)]', className)}
-      {...props}
-    >
+    <div ref={ref} className={cn('flex flex-col gap-[2] mb-[5]', className)} {...props}>
       {children}
     </div>
   ),
@@ -141,10 +137,7 @@ export const ModalTitle = forwardRef<
 >(({ className, children, ...props }, ref) => (
   <Dialog.Title
     ref={ref}
-    className={cn(
-      'text-[length:var(--font-size-6)] font-semibold text-[var(--gray-12)]',
-      className,
-    )}
+    className={cn('text-xl font-semibold text-foreground', className)}
     {...props}
   >
     {children}
@@ -161,7 +154,7 @@ export const ModalDescription = forwardRef<
 >(({ className, children, ...props }, ref) => (
   <Dialog.Description
     ref={ref}
-    className={cn('text-[length:var(--font-size-2)] text-[var(--gray-11)]', className)}
+    className={cn('text-sm text-muted-foreground', className)}
     {...props}
   >
     {children}
@@ -174,7 +167,7 @@ ModalDescription.displayName = 'ModalDescription';
  */
 export const ModalBody = forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
   ({ className, children, ...props }, ref) => (
-    <div ref={ref} className={cn('space-y-[var(--space-4)]', className)} {...props}>
+    <div ref={ref} className={cn('space-y-[4]', className)} {...props}>
       {children}
     </div>
   ),
@@ -189,7 +182,7 @@ export const ModalFooter = forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLD
     <div
       ref={ref}
       className={cn(
-        'flex items-center justify-end gap-[var(--space-3)] mt-[var(--space-6)] pt-[var(--space-5)] border-t border-[var(--gray-6)]',
+        'flex items-center justify-end gap-[3] mt-6 pt-[5] border-t border-border',
         className,
       )}
       {...props}

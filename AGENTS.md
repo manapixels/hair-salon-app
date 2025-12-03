@@ -937,7 +937,7 @@ When creating a new page or component, ask:
 ## 🔗 Related Files
 
 - **Implementation Plan**: `../implementation-plans/ai-agents-plan.md`
-- **Design System**: `../design/DESIGN_SYSTEM.md` - UI components for chat interfaces
+- **Design System**: `../design/DESIGN_SYSTEM.md` - UI components
 - **Telegram Testing**: `../telegram/TELEGRAM_TESTING_GUIDE.md`
 - **Coding Guidelines**: `../../CLAUDE.md`
 - **Services Directory**: `../../src/services/`

@@ -1,5 +1,5 @@
-import React from 'react';
-import { Heading, Text, Container, Grid } from '@radix-ui/themes';
+﻿import React from 'react';
+
 import { notFound } from 'next/navigation';
 import {
   ServiceHero,
@@ -392,16 +392,12 @@ export default async function HairColouringPage() {
       />
 
       {/* Services */}
-      <Container size="4" className="px-6 md:px-12 py-16 bg-white">
+      <div className="container mx-auto px-6 md:px-12 py-16 bg-white">
         <div className="text-center mb-16">
-          <Heading size="8" className="font-serif text-stone-900 mb-4">
-            {content.overview.title}
-          </Heading>
-          <Text className="text-stone-500 text-lg max-w-2xl mx-auto">
-            {content.overview.subtitle}
-          </Text>
+          <h2 className="text-3xl font-serif font-light mb-4">{content.overview.title}</h2>
+          <p className="text-base">{content.overview.subtitle}</p>
         </div>
-        <Grid columns={{ initial: '1', sm: '2', md: '4' }} gap="8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {content.types.map((type, index) => (
             <ServiceTypeCard
               key={index}
@@ -410,17 +406,15 @@ export default async function HairColouringPage() {
               image={type.image}
             />
           ))}
-        </Grid>
-      </Container>
+        </div>
+      </div>
 
       {/* Process & Aftercare */}
-      <Container size="4" className="px-6 md:px-12 py-16 bg-white">
-        <Grid columns={{ initial: '1', md: '2' }} gap="16">
+      <div className="container mx-auto px-4 px-6 md:px-12 py-16 bg-white">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {/* Left: Process */}
           <div className="p-8 md:p-12">
-            <Heading size="7" className="font-serif text-stone-900 mb-8">
-              {content.process.title}
-            </Heading>
+            <h2 className="text-3xl font-serif font-light mb-8">{content.process.title}</h2>
             <div className="space-y-8">
               {content.process.steps.map((step, index) => (
                 <ProcessStep
@@ -435,17 +429,15 @@ export default async function HairColouringPage() {
 
           {/* Right: Aftercare */}
           <div className="bg-stone-50 rounded-3xl p-8 md:p-12">
-            <Heading size="7" className="font-serif text-stone-900 mb-8">
-              {content.aftercare.title}
-            </Heading>
+            <h2 className="text-3xl font-serif font-light mb-8">{content.aftercare.title}</h2>
             <div className="space-y-4">
               {content.aftercare.tips.map((tip, index) => (
                 <MaintenanceTip key={index} title={tip.title} text={tip.text} />
               ))}
             </div>
           </div>
-        </Grid>
-      </Container>
+        </div>
+      </div>
 
       {/* FAQ Section */}
       <ServiceFAQ

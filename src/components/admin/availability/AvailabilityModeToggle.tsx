@@ -1,4 +1,4 @@
-export type AvailabilityMode = 'salon-wide' | 'per-stylist';
+﻿export type AvailabilityMode = 'salon-wide' | 'per-stylist';
 
 interface AvailabilityModeToggleProps {
   mode: AvailabilityMode;
@@ -7,16 +7,16 @@ interface AvailabilityModeToggleProps {
 
 export default function AvailabilityModeToggle({ mode, onChange }: AvailabilityModeToggleProps) {
   return (
-    <div className="bg-[var(--gray-2)] border border-[var(--gray-6)] rounded-[var(--radius-3)] p-[var(--space-1)] inline-flex">
+    <div className="bg-muted border border-border rounded-lg p-[0.5] inline-flex">
       <button
         onClick={() => onChange('salon-wide')}
-        className={`px-[var(--space-4)] py-[var(--space-2)] rounded-[var(--radius-2)] text-[length:var(--font-size-2)] font-medium transition-all ${
+        className={`px-[4] py-2 rounded-md text-sm font-medium transition-all ${
           mode === 'salon-wide'
-            ? 'bg-[var(--color-surface)] text-[var(--accent-11)] shadow-sm border border-[var(--gray-6)]'
-            : 'text-[var(--gray-11)] hover:text-[var(--gray-12)]'
+            ? 'bg-background text-accent-foreground shadow-sm border border-border'
+            : 'text-muted-foreground hover:text-foreground'
         }`}
       >
-        <div className="flex items-center space-x-[var(--space-2)]">
+        <div className="flex items-center space-x-[2]">
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               strokeLinecap="round"
@@ -30,13 +30,13 @@ export default function AvailabilityModeToggle({ mode, onChange }: AvailabilityM
       </button>
       <button
         onClick={() => onChange('per-stylist')}
-        className={`px-[var(--space-4)] py-[var(--space-2)] rounded-[var(--radius-2)] text-[length:var(--font-size-2)] font-medium transition-all ${
+        className={`px-[4] py-2 rounded-md text-sm font-medium transition-all ${
           mode === 'per-stylist'
-            ? 'bg-[var(--color-surface)] text-[var(--accent-11)] shadow-sm border border-[var(--gray-6)]'
-            : 'text-[var(--gray-11)] hover:text-[var(--gray-12)]'
+            ? 'bg-background text-accent-foreground shadow-sm border border-border'
+            : 'text-muted-foreground hover:text-foreground'
         }`}
       >
-        <div className="flex items-center space-x-[var(--space-2)]">
+        <div className="flex items-center space-x-[2]">
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               strokeLinecap="round"

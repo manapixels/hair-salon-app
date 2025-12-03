@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import type { TimeSlot, Appointment, AdminSettings } from '@/types';
 import { LoadingSpinner } from '@/components/feedback/loaders/LoadingSpinner';
@@ -97,56 +97,52 @@ export default function SalonAvailability({
   };
 
   return (
-    <div className="space-y-[var(--space-6)]">
+    <div className="space-y-6">
       <div>
-        <h3 className="text-[length:var(--font-size-5)] font-bold text-[var(--gray-12)] mb-[var(--space-2)]">
-          Salon-Wide Time Blocking
-        </h3>
-        <p className="text-[length:var(--font-size-2)] text-[var(--gray-11)]">
+        <h3 className="text-lg font-bold text-foreground mb-[2]">Salon-Wide Time Blocking</h3>
+        <p className="text-sm text-muted-foreground">
           Block or unblock time slots for the entire salon. Blocked slots will not be available for
           booking by any customer.
         </p>
       </div>
 
       {/* Color Legend */}
-      <div className="flex items-center space-x-[var(--space-6)] text-[length:var(--font-size-2)]">
-        <div className="flex items-center space-x-[var(--space-2)]">
-          <div className="w-4 h-4 rounded-[var(--radius-1)] bg-green-100 dark:bg-green-800 border border-green-300 dark:border-green-700"></div>
-          <span className="text-[var(--gray-11)]">Available</span>
+      <div className="flex items-center space-x-6 text-sm">
+        <div className="flex items-center space-x-[2]">
+          <div className="w-4 h-4 rounded-sm bg-green-100 dark:bg-green-800 border border-green-300 dark:border-green-700"></div>
+          <span className="text-muted-foreground">Available</span>
         </div>
-        <div className="flex items-center space-x-[var(--space-2)]">
-          <div className="w-4 h-4 rounded-[var(--radius-1)] bg-gray-300 dark:bg-gray-600 border border-gray-400 dark:border-gray-500"></div>
-          <span className="text-[var(--gray-11)]">Blocked</span>
+        <div className="flex items-center space-x-[2]">
+          <div className="w-4 h-4 rounded-sm bg-gray-300 dark:bg-gray-600 border border-gray-400 dark:border-gray-500"></div>
+          <span className="text-muted-foreground">Blocked</span>
         </div>
-        <div className="flex items-center space-x-[var(--space-2)]">
-          <div className="w-4 h-4 rounded-[var(--radius-1)] bg-red-500 border border-red-600"></div>
-          <span className="text-[var(--gray-11)]">Booked</span>
+        <div className="flex items-center space-x-[2]">
+          <div className="w-4 h-4 rounded-sm bg-red-500 border border-red-600"></div>
+          <span className="text-muted-foreground">Booked</span>
         </div>
       </div>
 
       {/* Date Selector */}
       <div>
-        <label className="block text-[length:var(--font-size-2)] font-medium text-[var(--gray-12)] mb-[var(--space-2)]">
-          Select Date
-        </label>
+        <label className="block text-sm font-medium text-foreground mb-[2]">Select Date</label>
         <input
           type="date"
           value={selectedDate.toISOString().split('T')[0]}
           onChange={e => setSelectedDate(new Date(e.target.value))}
-          className="px-[var(--space-3)] py-[var(--space-2)] border border-[var(--gray-7)] rounded-[var(--radius-2)] text-[length:var(--font-size-2)] bg-[var(--color-surface)] text-[var(--gray-12)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-8)] focus-visible:border-[var(--accent-8)] hover:border-[var(--gray-8)] transition-colors"
+          className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-background text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:border-accent hover:border-gray-400 dark:hover:border-gray-500 transition-colors"
           aria-label="Select date to manage availability"
         />
       </div>
 
       {/* Time Slots Grid */}
       {loading ? (
-        <div className="flex items-center justify-center p-[var(--space-8)]">
+        <div className="flex items-center justify-center p-8">
           <LoadingSpinner size="md" message="Loading time slots..." />
         </div>
       ) : timeSlots.length === 0 ? (
-        <div className="text-center py-[var(--space-8)] border-2 border-dashed border-[var(--gray-6)] rounded-[var(--radius-3)]">
+        <div className="text-center py-8 border-2 border-dashed border-border rounded-lg">
           <svg
-            className="w-12 h-12 text-[var(--gray-9)] mx-auto mb-[var(--space-3)]"
+            className="w-12 h-12 text-gray-400 mx-auto mb-[3]"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -158,10 +154,10 @@ export default function SalonAvailability({
               d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
             />
           </svg>
-          <p className="text-[length:var(--font-size-3)] font-medium text-[var(--gray-11)] mb-1">
+          <p className="text-[length:var(--font-size-3)] font-medium text-muted-foreground mb-1">
             Salon is closed on this day
           </p>
-          <p className="text-[length:var(--font-size-2)] text-[var(--gray-10)]">
+          <p className="text-sm text-gray-500">
             Update business hours in Settings to make this day available.
           </p>
         </div>
@@ -192,17 +188,15 @@ export default function SalonAvailability({
                 key={time}
                 onClick={() => !isBooked && handleTimeSlotClick(time, available)}
                 disabled={isBooked}
-                className={`p-3 rounded-[var(--radius-2)] text-[length:var(--font-size-2)] font-medium transition-colors text-center ${buttonClass}`}
+                className={`p-3 rounded-md text-sm font-medium transition-colors text-center ${buttonClass}`}
               >
                 {time}
-                {isBooked && (
-                  <span className="block text-[length:var(--font-size-1)] mt-1">Booked</span>
-                )}
+                {isBooked && <span className="block text-xs mt-1">Booked</span>}
                 {!isBooked &&
                   (available ? (
-                    <span className="block text-[length:var(--font-size-1)] mt-1">Available</span>
+                    <span className="block text-xs mt-1">Available</span>
                   ) : (
-                    <span className="block text-[length:var(--font-size-1)] mt-1">Blocked</span>
+                    <span className="block text-xs mt-1">Blocked</span>
                   ))}
               </button>
             );

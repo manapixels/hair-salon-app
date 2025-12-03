@@ -4,8 +4,16 @@ import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import TelegramLoginWidget from './TelegramLoginWidget';
 import WhatsAppOTPLogin from './WhatsAppOTPLogin';
-import { Button, Dialog } from '@radix-ui/themes';
-import { X, WhatsAppIcon, TelegramIcon } from '@/lib/icons';
+
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { WhatsAppIcon, TelegramIcon } from '@/lib/icons';
+import { Button } from '@/components/ui/button';
 
 interface OAuthLoginModalProps {
   isOpen: boolean;
@@ -62,22 +70,16 @@ export default function OAuthLoginModal({ isOpen, onClose }: OAuthLoginModalProp
     setShowTelegramWidget(previous => !previous);
   };
   return (
-    <Dialog.Root open={isOpen} onOpenChange={open => (!open ? onClose() : undefined)}>
-      <Dialog.Content className="max-w-lg space-y-6">
-        <div className="flex items-start justify-between">
+    <Dialog open={isOpen} onOpenChange={open => (!open ? onClose() : undefined)}>
+      <DialogContent className="max-w-lg space-y-6">
+        <DialogHeader className="flex flex-row items-start justify-between space-y-0">
           <div>
-            <Dialog.Title>Sign In</Dialog.Title>
-            <Dialog.Description>
+            <DialogTitle>Sign In</DialogTitle>
+            <DialogDescription>
               Choose your preferred messaging platform to continue to Signature Trims.
-            </Dialog.Description>
+            </DialogDescription>
           </div>
-          <Dialog.Close>
-            <Button variant="ghost" className="h-10 w-10 rounded-full p-0 text-gray-500">
-              <X className="h-5 w-5" aria-hidden="true" />
-              <span className="sr-only">Close sign in modal</span>
-            </Button>
-          </Dialog.Close>
-        </div>
+        </DialogHeader>
 
         {showWhatsAppOTP ? (
           <WhatsAppOTPLogin onSuccess={onClose} onBack={() => setShowWhatsAppOTP(false)} />
@@ -91,17 +93,16 @@ export default function OAuthLoginModal({ isOpen, onClose }: OAuthLoginModalProp
               onClick={handleWhatsAppLogin}
               className="w-full border border-[#1ebe5d] bg-[#25D366] text-white hover:bg-[#1ebe5d]"
             >
-              <WhatsAppIcon className="h-5 w-5" />
+              <WhatsAppIcon className="h-5 w-5 mr-2" />
               Continue with WhatsApp
             </Button>
 
             <Button
               onClick={handleTelegramLogin}
-              loading={loadingTelegram}
-              disabled={!telegramBotUsername || !!telegramError}
+              disabled={!telegramBotUsername || !!telegramError || loadingTelegram}
               className="w-full bg-[#0088cc] text-white hover:bg-[#007ab8] disabled:bg-[#8ccae8]"
             >
-              <TelegramIcon className="h-5 w-5" />
+              <TelegramIcon className="h-5 w-5 mr-2" />
               {showTelegramWidget ? 'Hide Telegram' : 'Continue with Telegram'}
             </Button>
 
@@ -119,7 +120,7 @@ export default function OAuthLoginModal({ isOpen, onClose }: OAuthLoginModalProp
                   </div>
                   <Button
                     variant="ghost"
-                    className="h-8 px-3 text-xs text-blue-700"
+                    className="h-8 px-3 text-xs text-blue-700 hover:text-blue-800 hover:bg-blue-100 dark:text-blue-300 dark:hover:bg-blue-900/40"
                     onClick={() => setShowTelegramWidget(false)}
                   >
                     Close
@@ -156,7 +157,7 @@ export default function OAuthLoginModal({ isOpen, onClose }: OAuthLoginModalProp
                 </p>
                 <Button
                   variant="ghost"
-                  className="mt-2 h-8 px-3 text-sm text-red-600 hover:text-red-700 dark:text-red-400"
+                  className="mt-2 h-8 px-3 text-sm text-red-600 hover:text-red-700 hover:bg-red-100 dark:text-red-400 dark:hover:bg-red-900/40"
                   onClick={() => {
                     setTelegramError(null);
                     setTelegramBotUsername(null);
@@ -174,7 +175,7 @@ export default function OAuthLoginModal({ isOpen, onClose }: OAuthLoginModalProp
             By signing in, you agree to our terms of service and privacy policy.
           </p>
         </div>
-      </Dialog.Content>
-    </Dialog.Root>
+      </DialogContent>
+    </Dialog>
   );
 }

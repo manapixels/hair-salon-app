@@ -1,11 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Button, Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
-import { TextField } from '@/components/ui/TextField';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { LoadingSpinner } from '@/components/feedback/loaders/LoadingSpinner';
 import { toast } from 'sonner';
-import { Delete, Edit, Plus } from '@/lib/icons';
+import { Delete, Plus } from '@/lib/icons';
 
 interface KBItem {
   id: string;
@@ -115,7 +116,7 @@ export default function KnowledgeBaseManager() {
           <CardContent className="space-y-4">
             <div>
               <label className="block text-sm font-medium mb-1">Question</label>
-              <TextField
+              <Input
                 value={newQuestion}
                 onChange={(e: any) => setNewQuestion(e.target.value)}
                 placeholder="e.g., What is your cancellation policy?"
@@ -133,7 +134,7 @@ export default function KnowledgeBaseManager() {
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">Tags (comma separated)</label>
-              <TextField
+              <Input
                 value={newTags}
                 onChange={(e: any) => setNewTags(e.target.value)}
                 placeholder="policy, booking, general"

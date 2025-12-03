@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { forwardRef, InputHTMLAttributes } from 'react';
 import { cn } from '@/lib/utils';
@@ -14,12 +14,9 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
     const inputId = id || `field-${label?.toLowerCase().replace(/\s+/g, '-')}`;
 
     return (
-      <div className="flex flex-col gap-[var(--space-1)]">
+      <div className="flex flex-col gap-0.5">
         {label && (
-          <label
-            htmlFor={inputId}
-            className="text-[length:var(--font-size-2)] font-medium text-[var(--gray-12)]"
-          >
+          <label htmlFor={inputId} className="text-sm font-medium text-foreground">
             {label}
           </label>
         )}
@@ -27,30 +24,28 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
           ref={ref}
           id={inputId}
           className={cn(
-            'w-full px-[var(--space-3)] py-[var(--space-2)]',
-            'rounded-[var(--radius-2)]',
-            'border border-[var(--gray-7)]',
-            'bg-[var(--color-surface)]',
-            'text-[length:var(--font-size-2)] text-[var(--gray-12)]',
-            'placeholder:text-[var(--gray-9)]',
+            'w-full px-3 py-2',
+            'rounded-md',
+            'border border-gray-300 dark:border-gray-600',
+            'bg-background',
+            'text-sm text-foreground',
+            'placeholder:text-gray-400',
             'transition-colors',
-            'hover:border-[var(--gray-8)]',
-            'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-8)] focus-visible:border-[var(--accent-8)]',
-            'disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-[var(--gray-2)]',
-            error && 'border-[var(--red-8)] focus-visible:ring-[var(--red-8)]',
+            'hover:border-gray-400 dark:hover:border-gray-500',
+            'focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:border-accent',
+            'disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-muted',
+            error && 'border-destructive focus-visible:ring-destructive',
             className,
           )}
           {...props}
         />
         {error && (
-          <span className="text-[length:var(--font-size-1)] text-[var(--red-11)]" role="alert">
+          <span className="text-xs text-destructive" role="alert">
             {error}
           </span>
         )}
         {helperText && !error && (
-          <span className="text-[length:var(--font-size-1)] text-[var(--gray-11)]">
-            {helperText}
-          </span>
+          <span className="text-xs text-muted-foreground">{helperText}</span>
         )}
       </div>
     );
