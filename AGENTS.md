@@ -13,6 +13,11 @@ AI Layer:
 ├── WhatsApp Chat         # Customer support & booking
 ├── NLU Helpers           # Service aliases, datetime parsing
 └── Retention Engine      # Automated feedback/rebooking/winback
+
+Data Layer:
+├── Database Caching      # Next.js unstable_cache with tag-based revalidation
+├── Server Actions        # Cache invalidation on mutations
+└── PostgreSQL/Neon       # Persistent storage
 ```
 
 ---
@@ -33,6 +38,48 @@ import { SERVICE_LINKS } from '@/config/navigation';
   <Link href={service.href}>{service.title}</Link>
 ))}
 ```
+
+---
+
+## 💾 Database Layer Caching
+
+### **Overview**
+
+Next.js 14 caching layer using `unstable_cache` with tag-based revalidation for faster page loads. Caches frequently accessed data (services, categories, stylists) and auto-invalidates when data changes via Server Actions.
+
+**Performance**: Instant page loads for service listings, reduced database queries, better UX.
+
+### **Key Files**
+
+- **`src/lib/database.ts`** - Cached query functions (`getServices`, `getServiceCategories`, `getServiceById`)
+- **`src/lib/actions/services.ts`** - Server Actions with cache revalidation (`updateService`, `createService`, `deleteService`)
+- **Cache tag constants** - Defined in both files, must match exactly
+
+### **How It Works**
+
+1. **Cached Queries**: Functions wrapped with `unstable_cache` using cache tags (`'services'`, `'service-categories'`, `'service-{id}'`)
+2. **Mutations**: Server Actions update database then call `revalidateTag()` to invalidate affected caches
+3. **Strategy**: On-demand revalidation (`revalidate: false`) - caches persist until explicitly invalidated
+
+### **Cache Invalidation Patterns**
+
+| Operation                    | Invalidated Tags                                 |
+| ---------------------------- | ------------------------------------------------ |
+| Create/Update/Delete Service | `services`, `service-{id}`, `service-categories` |
+| Update Category              | `service-categories`, `category-{id}`            |
+| Update Service Tags          | `services`, `service-{id}`, `service-categories` |
+
+### **Critical Notes for Developers**
+
+⚠️ **When updating services/categories:**
+
+- Use Server Actions from `src/lib/actions/services.ts` (they handle cache invalidation)
+- Don't directly call Prisma mutations without invalidating caches
+- Check server logs for `[Revalidation]` messages to verify cache invalidation
+
+⚠️ **Cache tags must match** between `database.ts` and `actions/services.ts`
+
+⚠️ **New cached functions**: Follow the pattern in `getServiceById()` - use dynamic cache keys and appropriate tags
 
 ---
 

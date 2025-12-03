@@ -5,6 +5,7 @@ import SettingsSidebar, { type SettingsSection } from './SettingsSidebar';
 import BusinessSettings from './salon/BusinessSettings';
 import ScheduleSettings from './salon/ScheduleSettings';
 import ClosuresSettings from './salon/ClosuresSettings';
+import ServicesSettings from './salon/ServicesSettings';
 import { LoadingButton } from '@/components/feedback/loaders/LoadingButton';
 import type { AdminSettings } from '@/types';
 
@@ -103,18 +104,21 @@ export default function SettingsLayout({ adminSettings, onSave }: SettingsLayout
           {activeSection === 'salon-closures' && (
             <ClosuresSettings closedDates={closedDates} onChange={setClosedDates} />
           )}
+          {activeSection === 'salon-services' && <ServicesSettings />}
 
-          {/* Save Button */}
-          <div className="mt-8 pt-6 border-t border-border flex justify-end">
-            <LoadingButton
-              loading={isSaving}
-              loadingText="Saving..."
-              onClick={handleSave}
-              className="px-[5] py-[3] bg-accent text-white rounded-md text-[length:var(--font-size-3)] font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
-            >
-              Save Changes
-            </LoadingButton>
-          </div>
+          {/* Save Button - Only show for sections that use the parent save handler */}
+          {activeSection !== 'salon-services' && (
+            <div className="mt-8 pt-6 border-t border-border flex justify-end">
+              <LoadingButton
+                loading={isSaving}
+                loadingText="Saving..."
+                onClick={handleSave}
+                className="px-[5] py-[3] bg-accent text-white rounded-md text-[length:var(--font-size-3)] font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
+              >
+                Save Changes
+              </LoadingButton>
+            </div>
+          )}
         </div>
       </div>
     </div>

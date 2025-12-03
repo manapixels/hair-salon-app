@@ -9,11 +9,22 @@ import type {
   StylistSummary,
 } from '../types';
 import { prisma } from './prisma';
+import { unstable_cache } from 'next/cache';
 
 /**
  * DATABASE FUNCTIONS USING PRISMA + NEON
  * Persistent PostgreSQL database for production use
  */
+
+// Cache tags for on-demand revalidation
+const CACHE_TAGS = {
+  SERVICE_CATEGORIES: 'service-categories',
+  SERVICES: 'services',
+  SERVICE_BY_ID: (id: string) => `service-${id}`,
+  CATEGORY_BY_ID: (id: string) => `category-${id}`,
+  STYLISTS: 'stylists',
+  STYLIST_BY_ID: (id: string) => `stylist-${id}`,
+} as const;
 
 // Helper to normalize service ID for comparison (handles both string and number IDs)
 const normalizeServiceId = (id: any): string => String(id);
@@ -225,51 +236,111 @@ export const promoteUserToAdmin = async (email: string): Promise<User | null> =>
 };
 
 // Service Management
-export const getServices = async (): Promise<Service[]> => {
-  const services = await prisma.service.findMany({
-    where: { isActive: true },
-  });
-  return services.map(s => ({
-    ...s,
-    subtitle: s.subtitle ?? undefined,
-    description: s.description ?? undefined,
-    maxPrice: s.maxPrice ?? undefined,
-    imageUrl: s.imageUrl ?? undefined,
-  }));
-};
-
-export const getServiceCategories = async (): Promise<ServiceCategory[]> => {
-  const categories = await prisma.serviceCategory.findMany({
-    include: {
-      items: {
-        where: { isActive: true },
-        include: {
-          addons: true,
-        },
-      },
-    },
-  });
-
-  return categories.map(cat => ({
-    ...cat,
-    description: cat.description ?? undefined,
-    icon: cat.icon ?? undefined,
-    priceRangeMin: cat.priceRangeMin ?? undefined,
-    priceRangeMax: cat.priceRangeMax ?? undefined,
-    items: cat.items.map(s => ({
+export const getServices = unstable_cache(
+  async (): Promise<Service[]> => {
+    const services = await prisma.service.findMany({
+      where: { isActive: true },
+    });
+    return services.map(s => ({
       ...s,
       subtitle: s.subtitle ?? undefined,
       description: s.description ?? undefined,
       maxPrice: s.maxPrice ?? undefined,
       imageUrl: s.imageUrl ?? undefined,
-      addons: s.addons?.map(a => ({
-        ...a,
-        description: a.description ?? undefined,
-        benefits: (a.benefits as string[]) ?? undefined,
+    }));
+  },
+  ['services'],
+  {
+    tags: [CACHE_TAGS.SERVICES],
+    revalidate: false,
+  },
+);
+
+export const getServiceCategories = unstable_cache(
+  async (): Promise<ServiceCategory[]> => {
+    const categories = await prisma.serviceCategory.findMany({
+      include: {
+        items: {
+          where: { isActive: true },
+          include: {
+            addons: true,
+            serviceTags: {
+              include: {
+                tag: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    return categories.map(cat => ({
+      ...cat,
+      shortTitle: cat.shortTitle ?? undefined,
+      description: cat.description ?? undefined,
+      icon: cat.icon ?? undefined,
+      priceRangeMin: cat.priceRangeMin ?? undefined,
+      priceRangeMax: cat.priceRangeMax ?? undefined,
+      priceNote: cat.priceNote ?? undefined,
+      estimatedDuration: cat.estimatedDuration ?? undefined,
+      isFeatured: cat.isFeatured ?? undefined,
+      imageUrl: cat.imageUrl ?? undefined,
+      illustrationUrl: cat.illustrationUrl ?? undefined,
+      items: cat.items.map(s => ({
+        ...s,
+        subtitle: s.subtitle ?? undefined,
+        description: s.description ?? undefined,
+        maxPrice: s.maxPrice ?? undefined,
+        imageUrl: s.imageUrl ?? undefined,
+        addons: s.addons?.map(a => ({
+          ...a,
+          description: a.description ?? undefined,
+          benefits: (a.benefits as string[]) ?? undefined,
+        })),
       })),
-    })),
-  }));
-};
+    }));
+  },
+  ['service-categories'],
+  {
+    tags: [CACHE_TAGS.SERVICE_CATEGORIES],
+    revalidate: false,
+  },
+);
+
+export async function getServiceById(id: string): Promise<Service | null> {
+  const getCachedService = unstable_cache(
+    async () => {
+      const service = await prisma.service.findUnique({
+        where: { id },
+        include: {
+          addons: true,
+        },
+      });
+
+      if (!service) return null;
+
+      return {
+        ...service,
+        subtitle: service.subtitle ?? undefined,
+        description: service.description ?? undefined,
+        maxPrice: service.maxPrice ?? undefined,
+        imageUrl: service.imageUrl ?? undefined,
+        addons: service.addons?.map(a => ({
+          ...a,
+          description: a.description ?? undefined,
+          benefits: (a.benefits as string[]) ?? undefined,
+        })),
+      };
+    },
+    ['service', id],
+    {
+      tags: [CACHE_TAGS.SERVICE_BY_ID(id), CACHE_TAGS.SERVICES],
+      revalidate: false,
+    },
+  );
+
+  return getCachedService();
+}
 
 // Appointment Management
 export const getAppointments = async (): Promise<Appointment[]> => {
@@ -310,10 +381,16 @@ export const getAppointments = async (): Promise<Appointment[]> => {
     category: apt.category
       ? {
           ...apt.category,
+          shortTitle: apt.category.shortTitle ?? undefined,
           description: apt.category.description ?? undefined,
           icon: apt.category.icon ?? undefined,
           priceRangeMin: apt.category.priceRangeMin ?? undefined,
           priceRangeMax: apt.category.priceRangeMax ?? undefined,
+          priceNote: apt.category.priceNote ?? undefined,
+          estimatedDuration: apt.category.estimatedDuration ?? undefined,
+          isFeatured: apt.category.isFeatured ?? undefined,
+          imageUrl: apt.category.imageUrl ?? undefined,
+          illustrationUrl: apt.category.illustrationUrl ?? undefined,
           items: [], // Don't load all services for appointments
         }
       : undefined,
@@ -606,10 +683,16 @@ export const bookNewAppointment = async (
     category: newAppointment.category
       ? {
           ...newAppointment.category,
+          shortTitle: newAppointment.category.shortTitle ?? undefined,
           description: newAppointment.category.description ?? undefined,
           icon: newAppointment.category.icon ?? undefined,
           priceRangeMin: newAppointment.category.priceRangeMin ?? undefined,
           priceRangeMax: newAppointment.category.priceRangeMax ?? undefined,
+          priceNote: newAppointment.category.priceNote ?? undefined,
+          estimatedDuration: newAppointment.category.estimatedDuration ?? undefined,
+          isFeatured: newAppointment.category.isFeatured ?? undefined,
+          imageUrl: newAppointment.category.imageUrl ?? undefined,
+          illustrationUrl: newAppointment.category.illustrationUrl ?? undefined,
           items: [], // Don't load all services for appointments
         }
       : undefined,

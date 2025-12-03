@@ -52,11 +52,17 @@ export interface ServiceCategory {
   id: string;
   slug: string;
   title: string;
+  shortTitle?: string;
   description?: string;
   icon?: string;
   priceRangeMin?: number;
   priceRangeMax?: number;
+  priceNote?: string;
+  estimatedDuration?: number;
   sortOrder: number;
+  isFeatured?: boolean;
+  imageUrl?: string;
+  illustrationUrl?: string;
   items: Service[];
 }
 

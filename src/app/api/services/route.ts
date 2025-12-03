@@ -1,29 +1,13 @@
 import { NextResponse, NextRequest } from 'next/server';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { getServiceCategories } from '@/lib/database';
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const tagSlugs = searchParams.get('tags')?.split(',').filter(Boolean) || [];
 
-    // Fetch categories with items and tags
-    const categories = await prisma.serviceCategory.findMany({
-      include: {
-        items: {
-          where: { isActive: true },
-          include: {
-            addons: true,
-            serviceTags: {
-              include: {
-                tag: true,
-              },
-            },
-          },
-        },
-      },
-    });
+    // Use cached database function instead of direct Prisma query
+    const categories = await getServiceCategories();
 
     // Client-side filtering by tags if tags are provided
     if (tagSlugs.length > 0) {
@@ -31,7 +15,7 @@ export async function GET(request: NextRequest) {
         .map(category => ({
           ...category,
           items: category.items.filter(service =>
-            service.serviceTags.some(st => tagSlugs.includes(st.tag.slug)),
+            service.serviceTags?.some((st: any) => tagSlugs.includes(st.tag.slug)),
           ),
         }))
         .filter(category => category.items.length > 0);
