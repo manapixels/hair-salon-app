@@ -84,6 +84,7 @@ export async function setSessionCookie(user: User): Promise<void> {
 
 /**
  * Gets session data from HTTP-only cookie
+ * Fetches fresh user data from database to ensure role changes are reflected
  */
 export async function getSessionFromCookie(): Promise<User | null> {
   try {
@@ -99,19 +100,17 @@ export async function getSessionFromCookie(): Promise<User | null> {
       return null;
     }
 
-    // Convert session data back to User format
-    const user: User = {
-      id: sessionData.userId,
-      email: sessionData.email,
-      name: sessionData.name,
-      role: sessionData.role,
-      authProvider: sessionData.authProvider,
-      telegramId: undefined, // Not stored in session for security
-      whatsappPhone: undefined, // Not stored in session for security
-      avatar: undefined, // Not stored in session for security
-    };
+    // Fetch fresh user data from database to get latest role and other updates
+    // This ensures admin promotions and other changes are reflected immediately
+    const { findUserById } = await import('./database');
+    const freshUser = await findUserById(sessionData.userId);
 
-    return user;
+    if (!freshUser) {
+      // User was deleted from database, invalidate session
+      return null;
+    }
+
+    return freshUser;
   } catch (error) {
     console.error('Failed to get session from cookie:', error);
     return null;
