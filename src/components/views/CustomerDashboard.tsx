@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Image from 'next/image';
-import { toast } from 'sonner';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth, useUserAppointments, useUserPattern } from '@/hooks/queries';
+import { useCancelAppointment, useUpdateProfile } from '@/hooks/mutations';
 import RescheduleModal from '../booking/RescheduleModal';
 import { LoadingSpinner } from '../feedback/loaders/LoadingSpinner';
 import { ErrorState } from '../feedback/ErrorState';
@@ -18,100 +18,40 @@ import { Edit, Calendar, Delete, WhatsAppIcon, TelegramIcon } from '@/lib/icons'
 import { Spinner } from '../ui/spinner';
 
 export default function CustomerDashboard() {
-  const { user, refreshSession } = useAuth();
-  const [appointments, setAppointments] = useState<Appointment[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const { user } = useAuth();
+
+  // Use React Query hooks
+  const { data: appointments = [], isLoading, error, refetch } = useUserAppointments();
+  const { data: userPattern } = useUserPattern();
+  const cancelAppointmentMutation = useCancelAppointment();
+  const updateProfileMutation = useUpdateProfile();
+
   const showLoader = useDelayedLoading(isLoading);
-  const [error, setError] = useState<string | null>(null);
   const [isEditingName, setIsEditingName] = useState(false);
   const [newName, setNewName] = useState('');
-  const [cancellingId, setCancellingId] = useState<string | null>(null);
-  const [reschedulingId, setReschedulingId] = useState<string | null>(null);
   const [rescheduleModalOpen, setRescheduleModalOpen] = useState(false);
   const [appointmentToReschedule, setAppointmentToReschedule] = useState<Appointment | null>(null);
 
   // AlertDialog states
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const [appointmentToCancelId, setAppointmentToCancelId] = useState<string | null>(null);
-  const [userPattern, setUserPattern] = useState<{
-    favoriteService?: string;
-    favoriteStylistId?: string;
-    typicalTime?: string;
-  } | null>(null);
-
-  useEffect(() => {
-    if (user) {
-      fetchUserAppointments();
-      fetchUserPattern();
-    }
-  }, [user]);
-
-  const fetchUserPattern = async () => {
-    try {
-      const response = await fetch('/api/user/pattern');
-      if (response.ok) {
-        const data = await response.json();
-        setUserPattern(data);
-      }
-    } catch (error) {
-      console.error('Failed to fetch user pattern:', error);
-    }
-  };
-
-  const fetchUserAppointments = async () => {
-    try {
-      setIsLoading(true);
-      const response = await fetch('/api/appointments/user');
-      if (!response.ok) {
-        throw new Error('Failed to fetch appointments');
-      }
-
-      const data = await response.json();
-
-      // Validate response is an array
-      if (!Array.isArray(data)) {
-        console.error('Invalid response format:', data);
-        throw new Error('Invalid response format from server');
-      }
-
-      setAppointments(data);
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'An error occurred';
-      setError(errorMessage);
-      toast.error(errorMessage);
-      setAppointments([]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const handleNameEdit = () => {
     setNewName(user?.name || '');
     setIsEditingName(true);
   };
 
-  const handleNameSave = async () => {
+  const handleNameSave = () => {
     if (!newName.trim()) return;
 
-    try {
-      const response = await fetch('/api/user/profile', {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
+    updateProfileMutation.mutate(
+      { name: newName.trim() },
+      {
+        onSuccess: () => {
+          setIsEditingName(false);
         },
-        body: JSON.stringify({ name: newName.trim() }),
-      });
-
-      if (response.ok) {
-        await refreshSession(); // Refresh user data
-        setIsEditingName(false);
-        toast.success('Display name updated successfully!');
-      } else {
-        throw new Error('Failed to update name');
-      }
-    } catch (err) {
-      toast.error('Failed to update name. Please try again.');
-    }
+      },
+    );
   };
 
   const handleNameCancel = () => {
@@ -124,36 +64,18 @@ export default function CustomerDashboard() {
     setCancelDialogOpen(true);
   };
 
-  const confirmCancelAppointment = async () => {
+  const confirmCancelAppointment = () => {
     if (!appointmentToCancelId) return;
 
-    setCancellingId(appointmentToCancelId);
-    try {
-      const response = await fetch('/api/appointments/user-cancel', {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
+    cancelAppointmentMutation.mutate(
+      { appointmentId: appointmentToCancelId },
+      {
+        onSettled: () => {
+          setCancelDialogOpen(false);
+          setAppointmentToCancelId(null);
         },
-        body: JSON.stringify({ appointmentId: appointmentToCancelId }),
-      });
-
-      if (response.ok) {
-        // Remove the cancelled appointment from the list
-        setAppointments(prev =>
-          Array.isArray(prev) ? prev.filter(apt => apt.id !== appointmentToCancelId) : [],
-        );
-        toast.success('Appointment cancelled successfully');
-      } else {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to cancel appointment');
-      }
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to cancel appointment');
-    } finally {
-      setCancellingId(null);
-      setCancelDialogOpen(false);
-      setAppointmentToCancelId(null);
-    }
+      },
+    );
   };
 
   const handleRescheduleAppointment = (appointmentId: string) => {
@@ -165,8 +87,8 @@ export default function CustomerDashboard() {
   };
 
   const handleRescheduleSuccess = () => {
-    // Refresh appointments list after successful reschedule
-    fetchUserAppointments();
+    // React Query will automatically refetch due to invalidation in the mutation
+    // No manual refetch needed
   };
 
   const handleRescheduleClose = () => {
@@ -327,8 +249,8 @@ export default function CustomerDashboard() {
             ) : error ? (
               <ErrorState
                 title="Failed to Load Appointments"
-                message={error}
-                onRetry={fetchUserAppointments}
+                message={error instanceof Error ? error.message : 'Unable to load appointments'}
+                onRetry={() => refetch()}
               />
             ) : appointments.length === 0 ? (
               <EmptyState
@@ -397,23 +319,18 @@ export default function CustomerDashboard() {
                           variant="ghost"
                           size="sm"
                           onClick={() => handleRescheduleAppointment(appointment.id)}
-                          disabled={reschedulingId === appointment.id}
                         >
-                          {reschedulingId === appointment.id ? (
-                            <Spinner className="mr-2" />
-                          ) : (
-                            <Calendar className="h-4 w-4" aria-hidden="true" />
-                          )}
+                          <Calendar className="h-4 w-4" aria-hidden="true" />
                           Reschedule
                         </Button>
                         <Button
                           variant="ghost"
                           size="sm"
                           onClick={() => handleCancelAppointment(appointment.id)}
-                          disabled={cancellingId === appointment.id}
+                          disabled={cancelAppointmentMutation.isPending}
                           className="text-red-600 hover:text-red-800"
                         >
-                          {cancellingId === appointment.id ? (
+                          {cancelAppointmentMutation.isPending ? (
                             <Spinner className="mr-2" />
                           ) : (
                             <Delete className="h-4 w-4" aria-hidden="true" />

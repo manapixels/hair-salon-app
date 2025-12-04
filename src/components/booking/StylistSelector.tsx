@@ -1,16 +1,16 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React from 'react';
 import Image from 'next/image';
-import { toast } from 'sonner';
-import { User, Check } from 'lucide-react';
+import { Check } from 'lucide-react';
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { LoadingSpinner } from '../feedback/loaders/LoadingSpinner';
 import { StylistCardSkeleton } from '../feedback/loaders/StylistCardSkeleton';
 import { ErrorState } from '../feedback/ErrorState';
 import { EmptyState } from '../feedback/EmptyState';
 import { useDelayedLoading } from '@/hooks/useDelayedLoading';
+import { useStylists } from '@/hooks/queries';
 import type { Service, Stylist } from '@/types';
 import type { ServiceCategory } from '@/lib/categories';
 import { useTranslations } from 'next-intl';
@@ -31,72 +31,33 @@ export const StylistSelector: React.FC<StylistSelectorProps> = ({
   selectedCategory,
 }) => {
   const t = useTranslations('BookingForm');
-  const [stylists, setStylists] = useState<Stylist[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  // Delayed loading to prevent flash on fast connections
-  const showLoader = useDelayedLoading(loading, { delay: 150, minDuration: 300 });
 
   // Determine if we're in category-based or service-based mode
   const isCategoryBased =
     selectedServices.length === 0 && selectedCategory !== null && selectedCategory !== undefined;
 
-  // Extract fetch function so it can be reused for retry
-  const fetchStylists = useCallback(async () => {
-    // For category-based booking, fetch all active stylists
-    // For service-based booking, fetch stylists who can perform the selected services
-    if (!isCategoryBased && selectedServices.length === 0) {
-      setStylists([]);
-      return;
-    }
+  // Use React Query hook for stylists (must be called before any early returns)
+  const serviceIds = isCategoryBased ? undefined : selectedServices.map(s => String(s.id));
+  const {
+    data: stylists = [],
+    isLoading,
+    error,
+    refetch,
+  } = useStylists({
+    serviceIds,
+    enabled: isCategoryBased || selectedServices.length > 0,
+  });
 
-    setLoading(true);
-    setError(null);
-
-    try {
-      let response;
-      if (isCategoryBased) {
-        // Fetch all active stylists for category-based booking
-        response = await fetch('/api/stylists');
-      } else {
-        // Fetch stylists filtered by service IDs for service-based booking
-        const serviceIds = selectedServices.map(s => s.id);
-        response = await fetch(`/api/stylists?services=${serviceIds.join(',')}`);
-      }
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch stylists: ${response.status}`);
-      }
-
-      const availableStylists = await response.json();
-
-      // Validate response is an array
-      if (!Array.isArray(availableStylists)) {
-        console.error('Invalid response format:', availableStylists);
-        throw new Error('Invalid response format from server');
-      }
-
-      setStylists(availableStylists);
-    } catch (error) {
-      console.error('Failed to fetch stylists:', error);
-      const errorMsg = error instanceof Error ? error.message : 'Unable to load stylists';
-      setError(errorMsg);
-      toast.error(errorMsg);
-      setStylists([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [selectedServices, isCategoryBased]);
-
-  useEffect(() => {
-    fetchStylists();
-  }, [fetchStylists]);
+  // Delayed loading to prevent flash on fast connections (must be called before any early returns)
+  const showLoader = useDelayedLoading(isLoading, { delay: 150, minDuration: 300 });
 
   // Don't render if neither services nor category is selected
   if (!isCategoryBased && selectedServices.length === 0) {
     return null;
   }
+
+  // Format error message
+  const errorMessage = error instanceof Error ? error.message : 'Unable to load stylists';
 
   return (
     <div className="scroll-mt-24" id="stylist-selector" tabIndex={-1}>
@@ -104,10 +65,10 @@ export const StylistSelector: React.FC<StylistSelectorProps> = ({
 
       {/* Screen reader announcement */}
       <div className="sr-only" aria-live="polite" aria-atomic="true">
-        {loading &&
+        {isLoading &&
           (isCategoryBased ? t('loadingAvailableStylists') : t('loadingStylistsForServices'))}
-        {!loading && stylists.length > 0 && `${stylists.length} ${t('stylistsAvailable')}`}
-        {!loading && stylists.length === 0 && t('noStylistsAvailable')}
+        {!isLoading && stylists.length > 0 && `${stylists.length} ${t('stylistsAvailable')}`}
+        {!isLoading && stylists.length === 0 && t('noStylistsAvailable')}
       </div>
 
       {showLoader ? (
@@ -127,8 +88,8 @@ export const StylistSelector: React.FC<StylistSelectorProps> = ({
       ) : error ? (
         <ErrorState
           title={t('failedToLoadStylists')}
-          message={error}
-          onRetry={fetchStylists}
+          message={errorMessage}
+          onRetry={() => refetch()}
           retryText={t('tryAgain')}
         />
       ) : stylists.length === 0 ? (

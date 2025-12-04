@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { AuthProvider } from '@/context/AuthContext';
 import { BookingProvider } from '@/context/BookingContext';
 import { BookingModalProvider } from '@/context/BookingModalContext';
+import { QueryProvider } from '@/components/providers/QueryProvider';
 import { Toaster } from 'sonner';
 import { autoConfigureTelegramBotMenu } from '@/lib/telegramBotSetup';
 import { getAdminSettings } from '@/lib/database';
@@ -53,20 +54,22 @@ export default async function RootLayout({
         <link rel="icon" type="image/svg+xml" href="/logo.svg" />
       </head>
       <body>
-        <NextIntlClientProvider messages={messages}>
-          <AuthProvider>
-            <BookingProvider>
-              <BookingModalProvider bookingCategories={bookingCategories}>
-                <AppHeader serviceLinks={navigationLinks} />
-                <main className="min-h-screen pb-16 md:pb-0">{children}</main>
-                <BottomNavigation serviceLinks={navigationLinks} />
-                <AppFooter adminSettings={adminSettings} />
-                <BookingModal />
-              </BookingModalProvider>
-            </BookingProvider>
-          </AuthProvider>
-        </NextIntlClientProvider>
-        <Toaster position="top-right" richColors closeButton />
+        <QueryProvider>
+          <NextIntlClientProvider messages={messages}>
+            <AuthProvider>
+              <BookingProvider>
+                <BookingModalProvider bookingCategories={bookingCategories}>
+                  <AppHeader serviceLinks={navigationLinks} />
+                  <main className="min-h-screen pb-16 md:pb-0">{children}</main>
+                  <BottomNavigation serviceLinks={navigationLinks} />
+                  <AppFooter adminSettings={adminSettings} />
+                  <BookingModal />
+                </BookingModalProvider>
+              </BookingProvider>
+            </AuthProvider>
+          </NextIntlClientProvider>
+          <Toaster position="top-right" richColors closeButton />
+        </QueryProvider>
       </body>
     </html>
   );

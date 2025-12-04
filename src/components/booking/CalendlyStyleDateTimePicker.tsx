@@ -1,13 +1,13 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useRef, useMemo } from 'react';
 import { format } from 'date-fns';
-import { toast } from 'sonner';
 import { CalendarView } from './CalendarView';
 import { TimeSlotList } from './TimeSlotList';
 import { MobileDateTimePicker } from './MobileDateTimePicker';
 import { useCalendar } from '@/hooks/useCalendar';
 import { useDelayedLoading } from '@/hooks/useDelayedLoading';
+import { useAvailability } from '@/hooks/queries';
 import type { TimeSlot, Stylist } from '@/types';
 
 interface CalendlyStyleDateTimePickerProps {
@@ -30,45 +30,20 @@ export default function CalendlyStyleDateTimePicker({
   const { currentMonth, daysInMonth, goToPreviousMonth, goToNextMonth } = useCalendar(selectedDate);
   const timeSlotsRef = useRef<HTMLDivElement>(null);
 
-  const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
-  const [loading, setLoading] = useState(false);
-  const showLoader = useDelayedLoading(loading, { delay: 150, minDuration: 300 });
+  // Use React Query hook for availability with 1-minute cache
+  const { data: availabilityData = [], isLoading } = useAvailability({
+    date: selectedDate,
+    stylistId: selectedStylist?.id,
+    duration: totalDuration,
+  });
 
-  // Fetch time slots when date or stylist changes
-  const fetchTimeSlots = useCallback(async () => {
-    setLoading(true);
-    try {
-      const dateStr = format(selectedDate, 'yyyy-MM-dd');
-      const stylistParam = selectedStylist?.id ? `&stylistId=${selectedStylist.id}` : '';
-      const durationParam = totalDuration ? `&duration=${totalDuration}` : '';
+  // Convert availability data to TimeSlot format
+  const timeSlots = useMemo<TimeSlot[]>(
+    () => availabilityData.map(time => ({ time, available: true })),
+    [availabilityData],
+  );
 
-      const response = await fetch(
-        `/api/availability?date=${dateStr}${stylistParam}${durationParam}`,
-      );
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch available time slots');
-      }
-
-      const data = await response.json();
-      const slots: TimeSlot[] = data.map((time: string) => ({
-        time,
-        available: true,
-      }));
-
-      setTimeSlots(slots);
-    } catch (error) {
-      console.error('Failed to fetch time slots:', error);
-      toast.error('Unable to load available times. Please try another date.');
-      setTimeSlots([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [selectedDate, selectedStylist, totalDuration]);
-
-  useEffect(() => {
-    fetchTimeSlots();
-  }, [fetchTimeSlots]);
+  const showLoader = useDelayedLoading(isLoading, { delay: 150, minDuration: 300 });
 
   const handleDateChange = (date: Date) => {
     onDateChange(date);

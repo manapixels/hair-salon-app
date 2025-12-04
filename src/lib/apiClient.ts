@@ -56,4 +56,14 @@ export const apiClient = {
       }),
     );
   },
+
+  async patch(url: string, body?: any) {
+    return handleResponse(
+      await fetch(url, {
+        method: 'PATCH',
+        headers: body ? { 'Content-Type': 'application/json' } : {},
+        body: body ? JSON.stringify(body) : undefined,
+      }),
+    );
+  },
 };
