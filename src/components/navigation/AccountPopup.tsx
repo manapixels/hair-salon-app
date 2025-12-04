@@ -17,6 +17,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import OAuthLoginModal from '../auth/OAuthLoginModal';
+import { LanguageSwitcher } from '../common/LanguageSwitcher';
+import { useTranslations } from 'next-intl';
 
 interface AccountPopupProps {
   isOpen: boolean;
@@ -24,6 +26,7 @@ interface AccountPopupProps {
 }
 
 export default function AccountPopup({ isOpen, onClose }: AccountPopupProps) {
+  const t = useTranslations('AccountPopup');
   const { user, logout } = useAuth();
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -64,14 +67,20 @@ export default function AccountPopup({ isOpen, onClose }: AccountPopupProps) {
             >
               {/* Header */}
               <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-gray-800">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Account</h3>
-                <button
-                  onClick={onClose}
-                  className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                  aria-label="Close menu"
-                >
-                  <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-                </button>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                  {t('title')}
+                </h3>
+                <div className="flex items-center gap-2">
+                  <LanguageSwitcher />
+
+                  <button
+                    onClick={onClose}
+                    className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                    aria-label="Close menu"
+                  >
+                    <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+                  </button>
+                </div>
               </div>
 
               {/* Content */}
@@ -119,7 +128,7 @@ export default function AccountPopup({ isOpen, onClose }: AccountPopupProps) {
                               <LayoutDashboard className="w-5 h-5" />
                             </div>
                             <span className="font-medium text-gray-900 dark:text-white">
-                              Dashboard
+                              {t('dashboard')}
                             </span>
                           </div>
                           <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300" />
@@ -137,7 +146,7 @@ export default function AccountPopup({ isOpen, onClose }: AccountPopupProps) {
                               <Shield className="w-5 h-5" />
                             </div>
                             <span className="font-medium text-gray-900 dark:text-white">
-                              Admin Panel
+                              {t('adminPanel')}
                             </span>
                           </div>
                           <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300" />
@@ -154,12 +163,12 @@ export default function AccountPopup({ isOpen, onClose }: AccountPopupProps) {
                       {isLoggingOut ? (
                         <>
                           <Loader2 className="w-4 h-4 animate-spin" />
-                          Signing Out...
+                          {t('signingOut')}
                         </>
                       ) : (
                         <>
                           <LogOut className="w-4 h-4" />
-                          Sign Out
+                          {t('signOut')}
                         </>
                       )}
                     </button>
@@ -171,11 +180,9 @@ export default function AccountPopup({ isOpen, onClose }: AccountPopupProps) {
                     </div>
                     <div>
                       <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
-                        Sign In
+                        {t('signIn')}
                       </h4>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
-                        Log in to manage your appointments and view your history.
-                      </p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">{t('loginPrompt')}</p>
                     </div>
                     <Button
                       variant="default"
@@ -184,7 +191,7 @@ export default function AccountPopup({ isOpen, onClose }: AccountPopupProps) {
                       onClick={() => setIsLoginOpen(true)}
                     >
                       <LogIn className="w-4 h-4 mr-2" />
-                      Sign In / Sign Up
+                      {t('signInSignUp')}
                     </Button>
                   </div>
                 )}

@@ -3,6 +3,7 @@ import { User, Calendar, Clock, X, Scissors } from 'lucide-react';
 import { Service, Stylist } from '@/types';
 import type { ServiceCategory } from '@/lib/categories';
 import { formatShortDate, formatTimeDisplay } from '@/lib/timeUtils';
+import { useTranslations } from 'next-intl';
 
 interface BookingConfirmationSummaryProps {
   selectedServices?: Service[]; // Optional for backward compatibility
@@ -25,12 +26,13 @@ export const BookingConfirmationSummary: React.FC<BookingConfirmationSummaryProp
   timezone = 'Asia/Singapore',
   onClose,
 }) => {
+  const t = useTranslations('BookingForm');
   // Determine display based on booking type
   const displayText = selectedCategory
     ? selectedCategory.title
     : selectedServices && selectedServices.length > 0
       ? selectedServices.map(s => s.name).join(', ')
-      : 'No service selected';
+      : t('noServiceSelected');
 
   const isCategoryBased = Boolean(selectedCategory);
 
@@ -42,7 +44,7 @@ export const BookingConfirmationSummary: React.FC<BookingConfirmationSummaryProp
           <Scissors className="w-5 h-5 text-gray-500 dark:text-gray-400" />
           <div className="text-sm">
             <span className="text-gray-500 dark:text-gray-400 mr-2">
-              {isCategoryBased ? 'Service Category:' : 'Services:'}
+              {isCategoryBased ? t('serviceCategory') : t('services')}
             </span>
             <span className="font-medium text-gray-900 dark:text-white">{displayText}</span>
           </div>
@@ -52,9 +54,9 @@ export const BookingConfirmationSummary: React.FC<BookingConfirmationSummaryProp
         <div className="flex items-center gap-3 p-4 bg-gray-50/50 dark:bg-gray-800/50">
           <User className="w-5 h-5 text-gray-500 dark:text-gray-400" />
           <div className="text-sm">
-            <span className="text-gray-500 dark:text-gray-400 mr-2">With:</span>
+            <span className="text-gray-500 dark:text-gray-400 mr-2">{t('with')}</span>
             <span className="font-medium text-gray-900 dark:text-white">
-              {selectedStylist ? selectedStylist.name : 'Any Available Stylist'}
+              {selectedStylist ? selectedStylist.name : t('anyAvailableStylist')}
             </span>
           </div>
         </div>
@@ -63,7 +65,7 @@ export const BookingConfirmationSummary: React.FC<BookingConfirmationSummaryProp
         <div className="flex items-center gap-3 p-4 bg-gray-50/50 dark:bg-gray-800/50">
           <Calendar className="w-5 h-5 text-gray-500 dark:text-gray-400" />
           <div className="text-sm">
-            <span className="text-gray-500 dark:text-gray-400 mr-2">When:</span>
+            <span className="text-gray-500 dark:text-gray-400 mr-2">{t('when')}</span>
             <span className="font-medium text-gray-900 dark:text-white">
               {formatShortDate(selectedDate)}, {formatTimeDisplay(selectedTime)}
             </span>
@@ -74,9 +76,9 @@ export const BookingConfirmationSummary: React.FC<BookingConfirmationSummaryProp
         <div className="flex items-center gap-3 p-4 bg-gray-50/50 dark:bg-gray-800/50">
           <Clock className="w-5 h-5 text-gray-500 dark:text-gray-400" />
           <div className="text-sm">
-            <span className="text-gray-500 dark:text-gray-400 mr-2">Duration:</span>
+            <span className="text-gray-500 dark:text-gray-400 mr-2">{t('duration')}</span>
             <span className="font-medium text-gray-900 dark:text-white">
-              {totalDuration} minutes
+              {totalDuration} {t('minutes')}
             </span>
           </div>
         </div>

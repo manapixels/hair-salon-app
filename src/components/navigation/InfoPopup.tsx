@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, MapPin, Clock, Instagram, Facebook } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { SkeletonLoader } from '@/components/feedback/loaders/SkeletonLoader';
+import { useTranslations } from 'next-intl';
 
 interface InfoPopupProps {
   isOpen: boolean;
@@ -33,6 +34,7 @@ const WhatsAppIcon = ({ className }: { className?: string }) => (
 );
 
 export default function InfoPopup({ isOpen, onClose }: InfoPopupProps) {
+  const t = useTranslations('InfoPopup');
   const [settings, setSettings] = useState<AdminSettings | null>(null);
 
   // Fetch admin settings for location & hours
@@ -76,7 +78,7 @@ export default function InfoPopup({ isOpen, onClose }: InfoPopupProps) {
           >
             {/* Header */}
             <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-gray-800 sticky top-0 bg-white/90 dark:bg-gray-900/90 backdrop-blur-md z-10">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Information</h3>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{t('title')}</h3>
               <button
                 onClick={onClose}
                 className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
@@ -108,7 +110,7 @@ export default function InfoPopup({ isOpen, onClose }: InfoPopupProps) {
                       </div>
                       <div>
                         <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-1">
-                          Location
+                          {t('location')}
                         </h3>
                         <p className="text-sm text-gray-600 dark:text-gray-300">
                           {settings.businessAddress}
@@ -141,7 +143,7 @@ export default function InfoPopup({ isOpen, onClose }: InfoPopupProps) {
                       </div>
                       <div className="flex-1">
                         <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">
-                          Operating Hours
+                          {t('operatingHours')}
                         </h3>
                         <div className="space-y-2">
                           {Object.entries(settings.weeklySchedule).map(([day, schedule]) => (
@@ -156,7 +158,7 @@ export default function InfoPopup({ isOpen, onClose }: InfoPopupProps) {
                               >
                                 {schedule.isOpen
                                   ? `${formatTime(schedule.openingTime)} - ${formatTime(schedule.closingTime)}`
-                                  : 'Closed'}
+                                  : t('closed')}
                               </span>
                             </div>
                           ))}
@@ -170,7 +172,7 @@ export default function InfoPopup({ isOpen, onClose }: InfoPopupProps) {
               {/* Social Media */}
               <section>
                 <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">
-                  Connect With Us
+                  {t('connectWithUs')}
                 </h3>
                 <div className="flex items-center gap-3">
                   {/* Instagram */}

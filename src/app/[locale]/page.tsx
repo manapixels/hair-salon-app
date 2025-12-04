@@ -10,15 +10,18 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { TeamCard } from '@/components/team';
-import LocationCard from '../components/locations/LocationCard';
+import LocationCard from '@/components/locations/LocationCard';
 import { Sparkles } from '@/lib/icons';
 import type { ServiceLink } from '@/lib/categories';
 import { useBookingModal } from '@/context/BookingModalContext';
 import { FindByConcernModal } from '@/components/services/FindByConcernModal';
 import { useState, useEffect } from 'react';
 import type { ServiceCategory, AdminSettings } from '@/types';
+import { useTranslations } from 'next-intl';
 
 export default function HomePage() {
+  const t = useTranslations('HomePage');
+  const tNav = useTranslations('Navigation');
   const { openModal, bookingCategories } = useBookingModal();
   const [adminSettings, setAdminSettings] = useState<AdminSettings | null>(null);
   const [serviceLinks, setServiceLinks] = useState<ServiceLink[]>([]);
@@ -74,27 +77,28 @@ export default function HomePage() {
               />
             </div>
             <span className="text-primary/80 sm:text-primary font-medium tracking-widest text-xs md:text-sm mb-3 md:mb-4 block">
-              Est. 2024 • Yishun, Singapore
+              {t('est')}
             </span>
             <h1 className="font-serif text-2xl font-semibold sm:font-normal sm:text-4xl md:text-5xl lg:text-7xl text-primary sm:text-primary-foreground leading-tight mb-0 sm:mb-6">
-              Craft your <span className="italic text-primary">Signature</span> look with us
+              {t.rich('heroTitle', {
+                italic: chunks => <span className="italic text-primary">{chunks}</span>,
+              })}
             </h1>
             <p className="hidden sm:block text-gray-500 text-base md:text-lg mb-6 md:mb-8 leading-relaxed max-w-md">
-              Experience hair artistry at Signature Trims, a neighbourhood hair salon where we bring
-              out the best in you.
+              {t('heroDescription')}
             </p>
             <div className="hidden sm:flex flex-col sm:flex-row gap-3 md:gap-4 mb-8 md:mb-12">
               <button
                 onClick={() => openModal()}
                 className="min-h-touch-lg bg-gray-900 text-white px-8 py-4 rounded-full hover:bg-accent active-scale transition-all duration-300 shadow-lg shadow-primary/20 text-sm font-medium uppercase tracking-wide"
               >
-                Book Your Visit
+                {t('bookVisit')}
               </button>
               <a
                 href="#services"
                 className="min-h-touch-lg px-8 py-4 rounded-full border border-primary text-primary-foreground hover:bg-primary hover:text-white active-scale transition-all duration-300 text-sm font-medium uppercase tracking-wide flex items-center justify-center"
               >
-                View Menu
+                {t('viewMenu')}
               </a>
             </div>
             <div className="flex flex-row items-start sm:items-center gap-4 sm:gap-8 text-primary/80 sm:text-gray-400 text-sm">
@@ -145,7 +149,7 @@ export default function HomePage() {
             <Search className="w-8 h-8 text-primary" />
           </div>
           <span className="text-md text-center leading-none text-primary font-semibold">
-            Find by Concern
+            {t('findByConcern')}
           </span>
         </button>
 
@@ -167,19 +171,19 @@ export default function HomePage() {
                     />
                   </div>
                   <span className="text-md text-center leading-none text-primary flex-1 flex items-center justify-center w-full">
-                    {service.short_title}
+                    {tNav(`serviceNames.${service.slug}`)}
                   </span>
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent>
                 <DropdownMenuItem asChild>
-                  <Link href={service.href}>Learn more</Link>
+                  <Link href={service.href}>{t('learnMore')}</Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onSelect={() => openModal({ preSelectedServiceId: serviceId })}
                   className="bg-gray-900 text-white hover:bg-accent hover:text-white mt-1 justify-center"
                 >
-                  Book now
+                  {t('bookNow')}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -191,12 +195,11 @@ export default function HomePage() {
         <div className="text-center mb-12">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gold-50 text-gold-700 text-sm font-medium mb-4">
             <Sparkles className="w-4 h-4" />
-            <span className="uppercase tracking-wider">Signature Selections</span>
+            <span className="uppercase tracking-wider">{t('signatureSelections')}</span>
           </div>
-          <h2 className="text-4xl font-serif font-light mb-4">Our Premium Services</h2>
+          <h2 className="text-4xl font-serif font-light mb-4">{t('premiumServicesTitle')}</h2>
           <p className="text-lg text-stone-600 max-w-2xl mx-auto mb-6">
-            Experience our most sought-after treatments, expertly crafted to deliver exceptional
-            results and lasting beauty.
+            {t('premiumServicesDescription')}
           </p>
 
           {/* Find by Concern Button */}
@@ -205,7 +208,7 @@ export default function HomePage() {
             className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-accent text-white hover:bg-accent/90 transition-colors font-medium text-sm"
           >
             <Search className="w-4 h-4" />
-            Find by Hair Concern
+            {t('findByHairConcern')}
           </button>
         </div>
 
@@ -248,14 +251,14 @@ export default function HomePage() {
                                 href={serviceUrl}
                                 className="min-h-touch-lg flex-1 py-3 bg-white text-primary/60 border-2 border-accent/60 rounded-lg hover:bg-stone-50 active-scale transition-colors duration-200 font-medium text-center"
                               >
-                                Learn More
+                                {t('learnMore')}
                               </Link>
                             )}
                             <button
                               onClick={() => openModal({ preSelectedServiceId: service.id })}
                               className={`min-h-touch-lg py-3 bg-gray-800 text-white rounded-lg hover:bg-stone-800 active-scale transition-colors duration-200 font-medium text-center ${serviceUrl ? 'flex-1' : 'w-full'}`}
                             >
-                              Book Now
+                              {t('bookNow')}
                             </button>
                           </>
                         );
@@ -276,13 +279,13 @@ export default function HomePage() {
               );
             })}
             <div className="group p-6 md:p-8 rounded-3xl bg-accent/30 text-black border border-transparent hover:scale-[1.02] active-scale transition-all duration-300 flex flex-col justify-center items-center text-center min-h-touch-lg">
-              <h3 className="text-xl md:text-2xl font-serif mb-2">Need Advice?</h3>
-              <p className="text-sm mb-6">Book a free 15-min consultation with a master stylist.</p>
+              <h3 className="text-xl md:text-2xl font-serif mb-2">{t('needAdvice')}</h3>
+              <p className="text-sm mb-6">{t('consultationDescription')}</p>
               <button
                 onClick={() => openModal()}
                 className="min-h-touch-lg bg-white text-primary px-6 py-3 rounded-lg text-sm font-medium hover:bg-accent hover:text-white active-scale transition-colors"
               >
-                Book Consult
+                {t('bookConsult')}
               </button>
             </div>
           </div>

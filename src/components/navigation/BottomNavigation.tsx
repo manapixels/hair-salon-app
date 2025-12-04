@@ -10,12 +10,14 @@ import AccountPopup from './AccountPopup';
 import { useAuth } from '@/context/AuthContext';
 import { useBookingModal } from '@/context/BookingModalContext';
 import type { ServiceLink } from '@/lib/categories';
+import { useTranslations } from 'next-intl';
 
 interface BottomNavigationProps {
   serviceLinks: ServiceLink[];
 }
 
 export default function BottomNavigation({ serviceLinks }: BottomNavigationProps) {
+  const t = useTranslations('Navigation');
   const pathname = usePathname();
   const { user } = useAuth();
   const { openModal } = useBookingModal();
@@ -97,13 +99,13 @@ export default function BottomNavigation({ serviceLinks }: BottomNavigationProps
       >
         <div className="grid grid-cols-5 items-center h-16 px-1">
           {/* 1. Home */}
-          <BottomNavItem icon={Home} label="Home" active={activeTab === 'home'} href="/" />
+          <BottomNavItem icon={Home} label={t('home')} active={activeTab === 'home'} href="/" />
 
           {/* 2. Services */}
           <div className="relative flex justify-center">
             <BottomNavItem
               icon={Scissors}
-              label="Services"
+              label={t('services')}
               active={activeTab === 'services'}
               isOpen={showServicesDropdown}
               onClick={toggleServices}
@@ -114,7 +116,7 @@ export default function BottomNavigation({ serviceLinks }: BottomNavigationProps
           <div className="flex justify-center relative z-10">
             <BottomNavItem
               icon={Calendar}
-              label="Book"
+              label={t('book')}
               active={false}
               variant="primary"
               onClick={() => openModal()}
@@ -124,7 +126,7 @@ export default function BottomNavigation({ serviceLinks }: BottomNavigationProps
           {/* 4. Info */}
           <BottomNavItem
             icon={MapPinned}
-            label="Info"
+            label={t('info')}
             active={false}
             isOpen={showInfoDropdown}
             onClick={toggleInfo}
@@ -134,7 +136,7 @@ export default function BottomNavigation({ serviceLinks }: BottomNavigationProps
           <div className="relative flex justify-center">
             <BottomNavItem
               icon={User}
-              label={user ? 'Account' : 'Login'}
+              label={user ? t('account') : t('login')}
               active={activeTab === 'dashboard'}
               isOpen={showAccountDropdown}
               isAdmin={user?.role === 'ADMIN'}

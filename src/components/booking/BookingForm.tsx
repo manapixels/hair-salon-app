@@ -32,42 +32,49 @@ import { BookingConfirmationSummary } from './BookingConfirmationSummary';
 import { SimpleCategorySelector } from './SimpleCategorySelector';
 import { useRef } from 'react';
 import { Pencil } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 // Code-split heavy components for better performance
+const StylistSelectorLoading = () => {
+  const t = useTranslations('BookingForm');
+  return (
+    <div className="scroll-mt-24">
+      <h2 className="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-200">{t('step2')}</h2>
+      <div className="space-y-4">
+        <div className="flex items-center gap-2 mb-4">
+          <LoadingSpinner size="sm" />
+          <p className="text-sm text-gray-600 dark:text-gray-400">{t('loadingStylists')}</p>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <StylistCardSkeleton count={3} />
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const StylistSelector = dynamic(
   () => import('./StylistSelector').then(mod => ({ default: mod.StylistSelector })),
   {
-    loading: () => (
-      <div className="scroll-mt-24">
-        <h2 className="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-200">
-          2. Choose Your Stylist
-        </h2>
-        <div className="space-y-4">
-          <div className="flex items-center gap-2 mb-4">
-            <LoadingSpinner size="sm" />
-            <p className="text-sm text-gray-600 dark:text-gray-400">Loading stylists...</p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <StylistCardSkeleton count={3} />
-          </div>
-        </div>
-      </div>
-    ),
+    loading: StylistSelectorLoading,
     ssr: false,
   },
 );
 
-const CalendlyStyleDateTimePicker = dynamic(() => import('./CalendlyStyleDateTimePicker'), {
-  loading: () => (
+const DateTimePickerLoading = () => {
+  const t = useTranslations('BookingForm');
+  return (
     <div>
-      <h2 className="text-lg font-semibold mb-6 text-gray-800 dark:text-gray-200">
-        3. Select Date & Time
-      </h2>
+      <h2 className="text-lg font-semibold mb-6 text-gray-800 dark:text-gray-200">{t('step3')}</h2>
       <div className="flex items-center justify-center p-8">
-        <LoadingSpinner message="Loading calendar..." />
+        <LoadingSpinner message={t('loadingCalendar')} />
       </div>
     </div>
-  ),
+  );
+};
+
+const CalendlyStyleDateTimePicker = dynamic(() => import('./CalendlyStyleDateTimePicker'), {
+  loading: DateTimePickerLoading,
   ssr: false,
 });
 
@@ -89,6 +96,7 @@ const CollapsedStepSummary: React.FC<{
   onEdit: () => void;
   id?: string;
 }> = ({ selectionType, selection, price, duration, onEdit, id }) => {
+  const t = useTranslations('BookingForm');
   return (
     <div
       className="border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 rounded-lg mb-4 transition-all duration-200"
@@ -139,7 +147,7 @@ const CollapsedStepSummary: React.FC<{
           aria-label={`Edit ${selection}`}
         >
           <Pencil className="h-3.5 w-3.5" />
-          <span className="hidden sm:inline">Edit</span>
+          <span className="hidden sm:inline">{t('edit')}</span>
         </Button>
       </div>
     </div>
@@ -155,6 +163,7 @@ const TimeSlotCard: React.FC<{
 }> = ({ time, duration, isSelected, isAvailable, onClick }) => {
   const endTime = calculateEndTime(time, duration);
   const durationText = formatDuration(duration);
+  const t = useTranslations('BookingForm');
 
   return (
     <button
@@ -195,7 +204,7 @@ const TimeSlotCard: React.FC<{
         <span
           className={`text-xs ${isSelected ? 'text-white/90' : 'text-gray-600 dark:text-gray-400'}`}
         >
-          to {endTime}
+          {t('to')} {endTime}
         </span>
 
         {/* Duration label */}
@@ -234,6 +243,7 @@ const DateTimePicker: React.FC<{
   totalDuration,
   selectedStylist,
 }) => {
+  const t = useTranslations('BookingForm');
   const { getAvailableSlots } = useBooking();
   const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
   const [loading, setLoading] = useState(false);
@@ -266,7 +276,7 @@ const DateTimePicker: React.FC<{
       {/* Time Slots */}
       {showLoader ? (
         <div className="flex items-center justify-center p-8">
-          <LoadingSpinner message="Finding available times..." />
+          <LoadingSpinner message={t('findingTimes')} />
         </div>
       ) : (
         <div className="space-y-4">
@@ -278,7 +288,7 @@ const DateTimePicker: React.FC<{
               </span>
             </h3>
             <span className="text-sm text-gray-500 dark:text-gray-400">
-              {timeSlots.length} slot{timeSlots.length !== 1 ? 's' : ''} available
+              {timeSlots.length} {timeSlots.length !== 1 ? t('slotsAvailable') : t('slot')}
             </span>
           </div>
 
@@ -310,11 +320,9 @@ const DateTimePicker: React.FC<{
                   />
                 </svg>
                 <p className="mt-2 text-gray-600 dark:text-gray-400 font-medium">
-                  No available slots on {format(selectedDate, 'MMMM d, yyyy')}
+                  {t('noSlots')} {format(selectedDate, 'MMMM d, yyyy')}
                 </p>
-                <p className="text-sm text-gray-500 dark:text-gray-500 mt-1">
-                  Try selecting a different date, or contact us for assistance
-                </p>
+                <p className="text-sm text-gray-500 dark:text-gray-500 mt-1">{t('tryDifferent')}</p>
               </div>
             )}
           </div>
@@ -347,6 +355,7 @@ const ConfirmationForm: React.FC<{
   selectedTime,
   totalDuration,
 }) => {
+  const t = useTranslations('BookingForm');
   const { user } = useAuth();
   const [name, setName] = useState(user?.name || '');
   const [email, setEmail] = useState(user?.email || '');
@@ -374,7 +383,7 @@ const ConfirmationForm: React.FC<{
         id="step-4-heading"
         className="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-200"
       >
-        4. Confirm Your Booking
+        {t('step4')}
       </h2>
 
       <BookingConfirmationSummary
@@ -390,10 +399,10 @@ const ConfirmationForm: React.FC<{
         <div className="px-6 py-4 space-y-2 mb-2">
           <div className="flex items-center justify-between">
             <div className="text-md font-semibold text-gray-800 dark:text-gray-200">
-              Booking using
+              {t('bookingUsing')}
             </div>
             <div className="text-sm text-gray-500 dark:text-gray-400">
-              {user ? 'Logged in' : 'Not logged in'}
+              {user ? t('loggedIn') : t('notLoggedIn')}
             </div>
           </div>
           <InputGroup className="bg-white dark:bg-gray-800">
@@ -408,7 +417,7 @@ const ConfirmationForm: React.FC<{
             />
             <InputGroupAddon align="block-start">
               <Label htmlFor="name" className="text-foreground">
-                Name
+                {t('name')}
               </Label>
             </InputGroupAddon>
           </InputGroup>
@@ -425,7 +434,7 @@ const ConfirmationForm: React.FC<{
             />
             <InputGroupAddon align="block-start">
               <Label htmlFor="email" className="text-foreground">
-                Email
+                {t('email')}
               </Label>
             </InputGroupAddon>
           </InputGroup>
@@ -442,12 +451,12 @@ const ConfirmationForm: React.FC<{
           {isSubmitting ? (
             <>
               <LoadingSpinner size="sm" className="mr-2" />
-              Booking...
+              {t('booking')}
             </>
           ) : (
             <>
               <Check className="h-6 w-6 mr-2" aria-hidden="true" />
-              Confirm Appointment
+              {t('confirmAppointment')}
             </>
           )}
         </Button>
@@ -475,16 +484,17 @@ const BookingSummary: React.FC<{
   selectedAddons,
   onClear,
 }) => {
+  const t = useTranslations('BookingForm');
   return (
     <div className="p-6 bg-white dark:bg-gray-800 rounded-2xl shadow-lg sticky top-8">
       <div className="flex justify-between items-center mb-5 border-b pb-4 dark:border-gray-700">
-        <h3 className="text-xl font-bold">Booking Summary</h3>
+        <h3 className="text-xl font-bold">{t('bookingSummary')}</h3>
         <button onClick={onClear} className="text-sm text-red-500 hover:underline font-semibold">
-          Clear All
+          {t('clearAll')}
         </button>
       </div>
       {selectedServices.length === 0 ? (
-        <p className="text-gray-500 dark:text-gray-400">Select services to get started.</p>
+        <p className="text-gray-500 dark:text-gray-400">{t('selectServices')}</p>
       ) : (
         <>
           <div className="space-y-3 mb-4">
@@ -514,24 +524,27 @@ const BookingSummary: React.FC<{
           </div>
           <div className="border-t pt-4 dark:border-gray-700 space-y-2">
             <div className="flex justify-between font-bold text-lg">
-              <span>Total</span>
+              <span>{t('total')}</span>
               <span>${totalPrice}</span>
             </div>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              Total Duration: {totalDuration} mins
+              {t('totalDuration')}: {totalDuration} {t('mins')}
             </p>
             {selectedStylist && (
               <p className="text-sm text-gray-700 dark:text-gray-300">
-                Stylist: <span className="font-semibold">{selectedStylist.name}</span>
+                {t('stylist')}: <span className="font-semibold">{selectedStylist.name}</span>
               </p>
             )}
             {selectedDate && (
               <p className="text-sm text-gray-700 dark:text-gray-300">
-                Date: <span className="font-semibold">{formatDisplayDate(selectedDate)}</span>
+                {t('date')}:{' '}
+                <span className="font-semibold">{formatDisplayDate(selectedDate)}</span>
               </p>
             )}
             {selectedTime && (
-              <p className="text-sm font-bold text-accent dark:text-accent">Time: {selectedTime}</p>
+              <p className="text-sm font-bold text-accent dark:text-accent">
+                {t('time')}: {selectedTime}
+              </p>
             )}
           </div>
         </>
@@ -551,6 +564,7 @@ const BookingForm: React.FC<BookingFormProps> = ({
   disableAutoScroll,
   onStepChange,
 }) => {
+  const t = useTranslations('BookingForm');
   // Get booking categories from context
   const { bookingCategories } = useBookingModal();
 

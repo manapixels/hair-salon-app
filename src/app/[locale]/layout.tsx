@@ -1,13 +1,13 @@
 import type { Metadata } from 'next';
-import { AuthProvider } from '../context/AuthContext';
-import { BookingProvider } from '../context/BookingContext';
-import { BookingModalProvider } from '../context/BookingModalContext';
+import { AuthProvider } from '@/context/AuthContext';
+import { BookingProvider } from '@/context/BookingContext';
+import { BookingModalProvider } from '@/context/BookingModalContext';
 import { Toaster } from 'sonner';
 import { ThemeProvider } from '@/components/providers/ThemeProvider';
-import { autoConfigureTelegramBotMenu } from '../lib/telegramBotSetup';
+import { autoConfigureTelegramBotMenu } from '@/lib/telegramBotSetup';
 import { getAdminSettings } from '@/lib/database';
 import { getNavigationLinks, getAllCategories } from '@/lib/categories';
-import '../styles/globals.css';
+import '@/styles/globals.css';
 import 'dotenv/config';
 import { AppFooter, AppHeader } from '@/components/layout';
 import { BottomNavigation } from '@/components/navigation';
@@ -27,15 +27,29 @@ if (typeof window === 'undefined') {
   });
 }
 
-export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const [adminSettings, navigationLinks, bookingCategories] = await Promise.all([
+import { NextIntlClientProvider } from 'next-intl';
+import { getMessages } from 'next-intl/server';
+
+// ... existing imports
+
+export default async function RootLayout({
+  children,
+  params,
+}: {
+  children: React.ReactNode;
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+
+  const [adminSettings, navigationLinks, bookingCategories, messages] = await Promise.all([
     getAdminSettings(),
     getNavigationLinks(),
     getAllCategories(),
+    getMessages(),
   ]);
 
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang={locale} suppressHydrationWarning>
       <head>
         <link rel="icon" type="image/svg+xml" href="/logo.svg" />
       </head>
@@ -46,17 +60,19 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           enableSystem
           disableTransitionOnChange
         >
-          <AuthProvider>
-            <BookingProvider>
-              <BookingModalProvider bookingCategories={bookingCategories}>
-                <AppHeader serviceLinks={navigationLinks} />
-                <main className="min-h-screen pb-16 md:pb-0">{children}</main>
-                <BottomNavigation serviceLinks={navigationLinks} />
-                <AppFooter adminSettings={adminSettings} />
-                <BookingModal />
-              </BookingModalProvider>
-            </BookingProvider>
-          </AuthProvider>
+          <NextIntlClientProvider messages={messages}>
+            <AuthProvider>
+              <BookingProvider>
+                <BookingModalProvider bookingCategories={bookingCategories}>
+                  <AppHeader serviceLinks={navigationLinks} />
+                  <main className="min-h-screen pb-16 md:pb-0">{children}</main>
+                  <BottomNavigation serviceLinks={navigationLinks} />
+                  <AppFooter adminSettings={adminSettings} />
+                  <BookingModal />
+                </BookingModalProvider>
+              </BookingProvider>
+            </AuthProvider>
+          </NextIntlClientProvider>
           <Toaster position="top-right" richColors closeButton />
         </ThemeProvider>
       </body>

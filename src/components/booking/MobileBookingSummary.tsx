@@ -4,6 +4,7 @@ import React, { useState, useEffect, memo } from 'react';
 import { Button } from '@/components/ui/button';
 import { formatDuration } from '@/lib/timeUtils';
 import { Spinner } from '@/components/ui/spinner';
+import { useTranslations } from 'next-intl';
 
 interface MobileBookingSummaryProps {
   totalPrice: number;
@@ -25,6 +26,7 @@ export const MobileBookingSummary = memo<MobileBookingSummaryProps>(
     nextLabel,
     isSubmitting = false,
   }) => {
+    const t = useTranslations('BookingForm');
     const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
     const [isCompact, setIsCompact] = useState(false);
 
@@ -86,7 +88,8 @@ export const MobileBookingSummary = memo<MobileBookingSummaryProps>(
       >
         {/* Screen reader announcement for updates */}
         <div className="sr-only" aria-live="polite" role="status">
-          Step {currentStep} of {totalSteps}. Estimated duration: {formatDuration(totalDuration)}
+          {t('stepOf', { current: currentStep, total: totalSteps })}. {t('est')} {t('duration')}{' '}
+          {formatDuration(totalDuration)}
         </div>
 
         <div className="px-4 max-w-md mx-auto">
@@ -94,16 +97,16 @@ export const MobileBookingSummary = memo<MobileBookingSummaryProps>(
             <div className="flex-1">
               {!isCompact && (
                 <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-0.5">
-                  Step {currentStep} of {totalSteps}
+                  {t('stepOf', { current: currentStep, total: totalSteps })}
                 </p>
               )}
               <div className="flex items-baseline gap-2">
                 <span className="text-base font-semibold text-gray-900 dark:text-white">
-                  Category selected
+                  {t('categorySelected')}
                 </span>
                 {!isCompact && (
                   <span className="text-sm text-gray-500 dark:text-gray-400">
-                    • {formatDuration(totalDuration)} est.
+                    • {formatDuration(totalDuration)} {t('est')}
                   </span>
                 )}
               </div>

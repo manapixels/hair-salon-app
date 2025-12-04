@@ -13,6 +13,7 @@ import { EmptyState } from '../feedback/EmptyState';
 import { useDelayedLoading } from '@/hooks/useDelayedLoading';
 import type { Service, Stylist } from '@/types';
 import type { ServiceCategory } from '@/lib/categories';
+import { useTranslations } from 'next-intl';
 
 interface StylistSelectorProps {
   selectedServices: Service[];
@@ -29,6 +30,7 @@ export const StylistSelector: React.FC<StylistSelectorProps> = ({
   onSkip,
   selectedCategory,
 }) => {
+  const t = useTranslations('BookingForm');
   const [stylists, setStylists] = useState<Stylist[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -98,18 +100,14 @@ export const StylistSelector: React.FC<StylistSelectorProps> = ({
 
   return (
     <div className="scroll-mt-24" id="stylist-selector" tabIndex={-1}>
-      <h2 className="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-200">
-        2. Choose Your Stylist
-      </h2>
+      <h2 className="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-200">{t('step2')}</h2>
 
       {/* Screen reader announcement */}
       <div className="sr-only" aria-live="polite" aria-atomic="true">
         {loading &&
-          (isCategoryBased
-            ? 'Loading available stylists'
-            : 'Loading stylists for your selected services')}
-        {!loading && stylists.length > 0 && `${stylists.length} stylists available`}
-        {!loading && stylists.length === 0 && 'No stylists available'}
+          (isCategoryBased ? t('loadingAvailableStylists') : t('loadingStylistsForServices'))}
+        {!loading && stylists.length > 0 && `${stylists.length} ${t('stylistsAvailable')}`}
+        {!loading && stylists.length === 0 && t('noStylistsAvailable')}
       </div>
 
       {showLoader ? (
@@ -118,8 +116,8 @@ export const StylistSelector: React.FC<StylistSelectorProps> = ({
             <LoadingSpinner size="sm" />
             <p className="text-sm text-gray-600 dark:text-gray-400">
               {isCategoryBased
-                ? `Finding available stylists for ${selectedCategory?.title}...`
-                : `Finding stylists who can perform ${selectedServices.map(s => s.name).join(', ')}...`}
+                ? `${t('findingStylistsFor')} ${selectedCategory?.title}...`
+                : `${t('findingStylistsWhoCan')} ${selectedServices.map(s => s.name).join(', ')}...`}
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -128,10 +126,10 @@ export const StylistSelector: React.FC<StylistSelectorProps> = ({
         </div>
       ) : error ? (
         <ErrorState
-          title="Failed to Load Stylists"
+          title={t('failedToLoadStylists')}
           message={error}
           onRetry={fetchStylists}
-          retryText="Try Again"
+          retryText={t('tryAgain')}
         />
       ) : stylists.length === 0 ? (
         <EmptyState
@@ -150,8 +148,8 @@ export const StylistSelector: React.FC<StylistSelectorProps> = ({
               />
             </svg>
           }
-          title="No Stylists Available"
-          description="No stylists can perform the selected services. Try selecting different services or contact us for assistance."
+          title={t('noStylistsTitle')}
+          description={t('noStylistsDesc')}
         />
       ) : (
         <>

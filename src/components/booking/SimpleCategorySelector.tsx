@@ -5,6 +5,7 @@ import type { ServiceCategory } from '@/lib/categories';
 import { CategoryCard } from './CategoryCard';
 import { LoadingSpinner } from '../feedback/loaders/LoadingSpinner';
 import { useBookingModal } from '@/context/BookingModalContext';
+import { useTranslations } from 'next-intl';
 
 interface SimpleCategorySelectorProps {
   selectedCategory: ServiceCategory | null;
@@ -17,6 +18,7 @@ export const SimpleCategorySelector: React.FC<SimpleCategorySelectorProps> = ({
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const { bookingCategories } = useBookingModal();
+  const t = useTranslations('BookingForm');
 
   // Auto-focus first category on mount for keyboard navigation
   useEffect(() => {
@@ -28,14 +30,9 @@ export const SimpleCategorySelector: React.FC<SimpleCategorySelectorProps> = ({
 
   return (
     <div id="service-selector" className="space-y-4">
-      <h2 className="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">
-        1. Select Service Category
-      </h2>
+      <h2 className="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">{t('step1')}</h2>
 
-      <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
-        Choose the type of service you&apos;d like to book. Specific service details will be
-        confirmed with your stylist during the appointment.
-      </p>
+      <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">{t('chooseCategoryDesc')}</p>
 
       <div
         ref={containerRef}
@@ -56,8 +53,8 @@ export const SimpleCategorySelector: React.FC<SimpleCategorySelectorProps> = ({
       {/* Screen reader announcement */}
       <div role="status" aria-live="polite" aria-atomic="true" className="sr-only">
         {selectedCategory
-          ? `${selectedCategory.title} category selected. Proceeding to stylist selection.`
-          : 'No category selected'}
+          ? `${selectedCategory.title} ${t('categorySelected')}`
+          : t('noCategorySelected')}
       </div>
     </div>
   );

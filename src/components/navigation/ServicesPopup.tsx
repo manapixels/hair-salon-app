@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { X, ChevronRight } from 'lucide-react';
 import type { ServiceLink } from '@/lib/categories';
+import { useTranslations } from 'next-intl';
 
 interface ServicesPopupProps {
   isOpen: boolean;
@@ -13,6 +14,8 @@ interface ServicesPopupProps {
 }
 
 export default function ServicesPopup({ isOpen, onClose, serviceLinks }: ServicesPopupProps) {
+  const t = useTranslations('ServicesPopup');
+  const tNav = useTranslations('Navigation');
   const pathname = usePathname();
 
   return (
@@ -38,7 +41,7 @@ export default function ServicesPopup({ isOpen, onClose, serviceLinks }: Service
           >
             {/* Header */}
             <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-gray-800">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Our Services</h3>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{t('title')}</h3>
               <button
                 onClick={onClose}
                 className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
@@ -72,7 +75,7 @@ export default function ServicesPopup({ isOpen, onClose, serviceLinks }: Service
                         }
                       `}
                     >
-                      {service.title}
+                      {tNav(`serviceNames.${service.slug}`)}
                     </span>
                     {isActive && <div className="w-1.5 h-1.5 rounded-full bg-accent" />}
                     {!isActive && (
@@ -91,7 +94,7 @@ export default function ServicesPopup({ isOpen, onClose, serviceLinks }: Service
                 onClick={onClose}
                 className="flex items-center justify-between px-5 py-3 mx-3 rounded-full transition-all duration-200"
               >
-                <span className="text-sm font-semibold text-primary">View Full Price List</span>
+                <span className="text-sm font-semibold text-primary">{t('viewPriceList')}</span>
                 <ChevronRight className="w-4 h-4 text-accent-foreground" />
               </Link>
             </div>

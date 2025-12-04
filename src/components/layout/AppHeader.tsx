@@ -20,6 +20,8 @@ import Logo from './Logo';
 import { ServiceCategory } from '@/types';
 import type { ServiceLink } from '@/lib/categories';
 import OAuthLoginModal from '../auth/OAuthLoginModal';
+import { LanguageSwitcher } from '../common/LanguageSwitcher';
+import { useTranslations } from 'next-intl';
 
 type View = 'booking' | 'admin' | 'dashboard' | 'services';
 
@@ -45,6 +47,8 @@ const NotificationBadge: React.FC<{ count: number }> = ({ count }) => {
 };
 
 export default function AppHeader({ view, onViewChange, serviceLinks }: AppHeaderProps) {
+  const t = useTranslations('Layout.header');
+  const tAccount = useTranslations('AccountPopup');
   const { user, logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
@@ -163,10 +167,11 @@ export default function AppHeader({ view, onViewChange, serviceLinks }: AppHeade
       {/* Desktop Header - Hidden on Mobile */}
       <header className="hidden md:block sticky top-0 z-50 border-b border-accent/10 bg-stone-50 bg-opacity-50 backdrop-blur-md transition-all duration-300 dark:border-gray-800 dark:bg-gray-900">
         <nav className="w-full flex items-center justify-between px-6 py-3 lg:px-12">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-6">
             <Link href="/" className="cursor-pointer">
               <Logo />
             </Link>
+            <LanguageSwitcher />
           </div>
           <div className="flex items-center gap-4">
             <div className="hidden items-center gap-6 sm:flex">
@@ -176,7 +181,7 @@ export default function AppHeader({ view, onViewChange, serviceLinks }: AppHeade
                   className={`flex items-center gap-1 text-sm font-medium text-gray-600 hover:text-black transition-colors h-full py-3 text-black`}
                   onClick={() => handleNavigation('services', '/services')}
                 >
-                  Our Services
+                  {t('services')}
                   <ChevronDown className="w-3 h-3" />
                 </button>
 
@@ -222,23 +227,20 @@ export default function AppHeader({ view, onViewChange, serviceLinks }: AppHeade
                   </div>
                 </div>
               </div>
-
               <button
                 className="text-sm font-medium text-gray-600 hover:text-black dark:text-gray-300 dark:hover:text-white transition-colors"
                 onClick={() => router.push('/prices')}
               >
-                Pricing
+                {t('prices')}
               </button>
 
               <button
                 className="text-sm font-medium text-gray-600 hover:text-black dark:text-gray-300 dark:hover:text-white transition-colors"
                 onClick={() => router.push('/#contact')}
               >
-                Contact Us
+                {t('contact')}
               </button>
-
               <div className="h-6 w-px bg-gray-200 dark:bg-gray-700 mx-2"></div>
-
               <Button
                 variant="outline"
                 size="default"
@@ -246,9 +248,8 @@ export default function AppHeader({ view, onViewChange, serviceLinks }: AppHeade
                 onClick={() => handleNavigation('booking', '/')}
               >
                 <Calendar className="h-4 w-4" aria-hidden="true" />
-                Book Now
+                {t('bookNow')}
               </Button>
-
               {user && user.role === 'CUSTOMER' && (
                 <div className="relative">
                   <Button
@@ -257,12 +258,11 @@ export default function AppHeader({ view, onViewChange, serviceLinks }: AppHeade
                     onClick={() => handleNavigation('dashboard', '/dashboard')}
                   >
                     <User className="h-4 w-4" aria-hidden="true" />
-                    Dashboard
+                    {tAccount('dashboard')}
                   </Button>
                   <NotificationBadge count={appointmentCount} />
                 </div>
               )}
-
               {user?.role === 'ADMIN' && (
                 <Button
                   variant={activeView === 'admin' ? 'default' : 'secondary'}
@@ -270,7 +270,7 @@ export default function AppHeader({ view, onViewChange, serviceLinks }: AppHeade
                   onClick={() => handleNavigation('admin', '/admin')}
                 >
                   <Shield className="h-4 w-4" aria-hidden="true" />
-                  Admin
+                  {tAccount('adminPanel')}
                 </Button>
               )}
             </div>
@@ -320,7 +320,7 @@ export default function AppHeader({ view, onViewChange, serviceLinks }: AppHeade
                       onSelect={() => router.push('/dashboard')}
                     >
                       <User className="h-4 w-4" aria-hidden="true" />
-                      <span>Dashboard</span>
+                      <span>{tAccount('dashboard')}</span>
                     </DropdownMenuItem>
                   )}
 
@@ -330,7 +330,7 @@ export default function AppHeader({ view, onViewChange, serviceLinks }: AppHeade
                       onSelect={() => router.push('/admin')}
                     >
                       <Shield className="h-4 w-4" aria-hidden="true" />
-                      <span>Admin Panel</span>
+                      <span>{tAccount('adminPanel')}</span>
                     </DropdownMenuItem>
                   )}
 
@@ -348,14 +348,14 @@ export default function AppHeader({ view, onViewChange, serviceLinks }: AppHeade
                     }}
                   >
                     <LogOut className="h-4 w-4" aria-hidden="true" />
-                    <span>Logout</span>
+                    <span>{tAccount('signOut')}</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
               <Button variant="default" size="default" onClick={() => setIsLoginOpen(true)}>
                 <LogIn className="h-4 w-4" aria-hidden="true" />
-                Sign In
+                {tAccount('signIn')}
               </Button>
             )}
           </div>

@@ -1,10 +1,13 @@
 ﻿import { AdminSettings } from '@/types';
+import { useTranslations } from 'next-intl';
 
 interface AppFooterProps {
   adminSettings: AdminSettings;
 }
 
 export default function AppFooter({ adminSettings }: AppFooterProps) {
+  const t = useTranslations('Layout.footer');
+  const tCommon = useTranslations('Common');
   const { businessName, businessAddress, businessPhone, weeklySchedule } = adminSettings;
 
   // Format business hours from weeklySchedule
@@ -18,13 +21,13 @@ export default function AppFooter({ adminSettings }: AppFooterProps) {
     'sunday',
   ] as const;
   const dayDisplayNames: Record<string, string> = {
-    monday: 'Monday',
-    tuesday: 'Tuesday',
-    wednesday: 'Wednesday',
-    thursday: 'Thursday',
-    friday: 'Friday',
-    saturday: 'Saturday',
-    sunday: 'Sunday',
+    monday: tCommon('days.monday'),
+    tuesday: tCommon('days.tuesday'),
+    wednesday: tCommon('days.wednesday'),
+    thursday: tCommon('days.thursday'),
+    friday: tCommon('days.friday'),
+    saturday: tCommon('days.saturday'),
+    sunday: tCommon('days.sunday'),
   };
 
   const formatTime = (time: string) => {
@@ -41,7 +44,7 @@ export default function AppFooter({ adminSettings }: AppFooterProps) {
       return {
         day: dayDisplayNames[day],
         isOpen: false,
-        hours: 'Closed',
+        hours: tCommon('closed'),
       };
     }
     return {
@@ -49,7 +52,7 @@ export default function AppFooter({ adminSettings }: AppFooterProps) {
       isOpen: schedule.isOpen,
       hours: schedule.isOpen
         ? `${formatTime(schedule.openingTime)} - ${formatTime(schedule.closingTime)}`
-        : 'Closed',
+        : tCommon('closed'),
     };
   });
 
@@ -60,11 +63,11 @@ export default function AppFooter({ adminSettings }: AppFooterProps) {
           <div>
             <p>
               &copy; {new Date().getFullYear()} {businessName}
-              <br /> All Rights Reserved.
+              <br /> {t('copyright').replace('© 2024 Signature Trims. ', '')}
             </p>
           </div>
           <div>
-            <h4 className="text-lg font-serif mb-6 text-brand-primary">Visit Us</h4>
+            <h4 className="text-lg font-serif mb-6 text-brand-primary">{t('visitUs')}</h4>
             <ul className="space-y-4 text-sm">
               <li className="flex items-start gap-3">
                 <i className="fa-solid fa-location-dot mt-1 text-brand-primary"></i>
@@ -77,7 +80,7 @@ export default function AppFooter({ adminSettings }: AppFooterProps) {
             </ul>
           </div>
           <div>
-            <h4 className="text-lg font-serif mb-6 text-brand-primary">Hours</h4>
+            <h4 className="text-lg font-serif mb-6 text-brand-primary">{t('hours')}</h4>
             <ul className="space-y-2 text-sm">
               {hoursData.map((item, index) => (
                 <li
