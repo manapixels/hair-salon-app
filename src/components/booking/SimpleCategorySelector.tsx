@@ -37,7 +37,7 @@ export const SimpleCategorySelector: React.FC<SimpleCategorySelectorProps> = ({
       <div
         ref={containerRef}
         role="radiogroup"
-        aria-label="Service categories"
+        aria-label={t('serviceCategories')}
         className="max-w-2xl grid grid-cols-3 gap-4 md:gap-8 bg-white p-4"
       >
         {bookingCategories.map((category, index) => (

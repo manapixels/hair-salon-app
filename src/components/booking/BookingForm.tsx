@@ -267,7 +267,7 @@ const DateTimePicker: React.FC<{
 
   return (
     <div>
-      <h2 className="text-lg font-semibold mb-6 text-gray-800">3. Select Date & Time</h2>
+      <h2 className="text-lg font-semibold mb-6 text-gray-800">{t('step3')}</h2>
 
       {/* Time Slots */}
       {showLoader ? (
@@ -278,7 +278,7 @@ const DateTimePicker: React.FC<{
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-medium text-gray-900">
-              Available Times for{' '}
+              {t('availableTimesFor')}{' '}
               <span className="text-accent font-bold">{format(selectedDate, 'EEEE, MMMM d')}</span>
             </h3>
             <span className="text-sm text-gray-500">
@@ -433,7 +433,7 @@ const ConfirmationForm: React.FC<{
           size="lg"
           disabled={isSubmitting}
           className="w-full py-6 text-base"
-          aria-label={isSubmitting ? 'Booking in progress' : 'Confirm your appointment'}
+          aria-label={isSubmitting ? t('bookingInProgress') : t('confirmYourAppointment')}
         >
           {isSubmitting ? (
             <>
@@ -552,11 +552,18 @@ const BookingForm: React.FC<BookingFormProps> = ({
   onStepChange,
 }) => {
   const t = useTranslations('BookingForm');
+  const tNav = useTranslations('Navigation');
   // Get booking categories from context
   const { bookingCategories } = useBookingModal();
 
   // Category-based booking state (NEW)
   const [selectedCategory, setSelectedCategory] = useState<ServiceCategory | null>(null);
+
+  // Helper function to get translated category name
+  const getCategoryName = (category: ServiceCategory | null) => {
+    if (!category) return '';
+    return tNav(`serviceNames.${category.slug}`, { default: category.title });
+  };
 
   // Common state
   const [selectedStylist, setSelectedStylist] = useState<Stylist | null>(null);
@@ -834,34 +841,40 @@ Please confirm availability. Thank you!`;
         <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-green-100">
           <Check className="h-10 w-10 text-green-600" aria-hidden="true" />
         </div>
-        <h2 className="mt-4 text-3xl font-bold text-gray-900">Booking Confirmed!</h2>
-        <p className="mt-2 text-gray-600">Thank you, {bookingConfirmed.customerName}.</p>
+        <h2 className="mt-4 text-3xl font-bold text-gray-900">{t('bookingConfirmed')}</h2>
+        <p className="mt-2 text-gray-600">
+          {t('thankYou')}, {bookingConfirmed.customerName}.
+        </p>
         <div className="mt-6 text-left bg-gray-50 p-4 rounded-md space-y-2">
           <p>
-            <strong>Service Category:</strong> {bookingConfirmed.category?.title || 'N/A'}
+            <strong>{t('serviceCategoryLabel')}:</strong>{' '}
+            {bookingConfirmed.category
+              ? getCategoryName(bookingConfirmed.category as ServiceCategory)
+              : 'N/A'}
           </p>
           {bookingConfirmed.stylist && (
             <p>
-              <strong>Stylist:</strong> {bookingConfirmed.stylist.name}
+              <strong>{t('stylistLabel')}:</strong> {bookingConfirmed.stylist.name}
             </p>
           )}
           <p>
-            <strong>Date:</strong> {formatDisplayDate(bookingConfirmed.date)}
+            <strong>{t('dateLabel')}:</strong> {formatDisplayDate(bookingConfirmed.date)}
           </p>
           <p>
-            <strong>Time:</strong> {bookingConfirmed.time}
+            <strong>{t('timeLabel')}:</strong> {bookingConfirmed.time}
           </p>
           {bookingConfirmed.estimatedDuration && (
             <p>
-              <strong>Estimated Duration:</strong> {bookingConfirmed.estimatedDuration} minutes
+              <strong>{t('estimatedDuration')}:</strong> {bookingConfirmed.estimatedDuration}{' '}
+              {t('minutes')}
             </p>
           )}
         </div>
         <p className="mt-2 text-sm text-gray-500">
-          A confirmation has been sent to {bookingConfirmed.customerEmail}.
+          {t('confirmationSent')} {bookingConfirmed.customerEmail}.
         </p>
         <Button variant="default" size="default" onClick={handleReset} className="mt-6">
-          Make Another Booking
+          {t('makeAnotherBooking')}
         </Button>
       </div>
     );
@@ -899,8 +912,8 @@ Please confirm availability. Thank you!`;
           >
             {currentStep > 1 && selectedCategory && editingStep !== 1 ? (
               <CollapsedStepSummary
-                selectionType="Service"
-                selection={`${selectedCategory.title}`}
+                selectionType={t('service')}
+                selection={getCategoryName(selectedCategory)}
                 onEdit={() => handleEditStep(1)}
                 id="step-1-heading"
               />
@@ -923,7 +936,7 @@ Please confirm availability. Thank you!`;
             >
               {currentStep > 2 && selectedStylist && editingStep !== 2 ? (
                 <CollapsedStepSummary
-                  selectionType="Stylist"
+                  selectionType={t('stylist')}
                   selection={selectedStylist ? selectedStylist.name : 'No preference (Quick Book)'}
                   onEdit={() => handleEditStep(2)}
                   id="step-2-heading"
@@ -952,7 +965,7 @@ Please confirm availability. Thank you!`;
             >
               {currentStep > 3 && selectedTime && editingStep !== 3 ? (
                 <CollapsedStepSummary
-                  selectionType="Date & Time"
+                  selectionType={t('dateAndTime')}
                   selection={`${formatDisplayDate(selectedDate)}, ${formatTimeDisplay(selectedTime)}`}
                   duration={`${totalDuration} min`}
                   onEdit={() => handleEditStep(3)}
@@ -1022,12 +1035,12 @@ Please confirm availability. Thank you!`;
         onNext={handleNextStep}
         nextLabel={
           currentStep === 1
-            ? 'Choose Stylist'
+            ? t('chooseStylist')
             : currentStep === 2
-              ? 'Select Time'
+              ? t('selectTime')
               : currentStep === 3
-                ? 'Confirm'
-                : 'Book Now'
+                ? t('confirm')
+                : t('bookNow')
         }
         isSubmitting={isSubmitting}
       />

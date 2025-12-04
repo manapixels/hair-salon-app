@@ -4,6 +4,7 @@ import { Check } from '@/lib/icons';
 import type { ServiceCategory } from '@/lib/categories';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
+import { useTranslations } from 'next-intl';
 
 interface CategoryCardProps {
   category: ServiceCategory;
@@ -12,13 +13,17 @@ interface CategoryCardProps {
 }
 
 export const CategoryCard: React.FC<CategoryCardProps> = ({ category, isSelected, onClick }) => {
+  const t = useTranslations('Navigation');
+
+  // Get translated name, fallback to database title if translation doesn't exist
+  const categoryName = t(`serviceNames.${category.slug}`, { default: category.title });
   return (
     <Button
       type="button"
       variant="outline"
       role="radio"
       aria-checked={isSelected}
-      aria-label={`${category.title}: ${category.description}`}
+      aria-label={`${categoryName}: ${category.description || ''}`}
       onClick={onClick}
       className={`
         relative h-auto text-left px-5 py-2 flex flex-col items-center justify-between gap-1 border hover:border-accent focus:ring-2 focus:ring-accent/20 whitespace-normal
@@ -28,7 +33,7 @@ export const CategoryCard: React.FC<CategoryCardProps> = ({ category, isSelected
       <div className="relative w-16 h-16 rounded-lg">
         <Image
           src={`/images/illustrations/${category.slug}.png` || ''}
-          alt={category.title}
+          alt={categoryName}
           fill
           className="object-cover"
           sizes="128px"
@@ -37,7 +42,7 @@ export const CategoryCard: React.FC<CategoryCardProps> = ({ category, isSelected
       <span
         className={`text-md text-center leading-none flex-1 flex items-center justify-center w-full ${isSelected ? 'text-accent' : 'text-gray-900'}`}
       >
-        {category.title}
+        {categoryName}
       </span>
 
       {/* Checkmark (Selected State) */}

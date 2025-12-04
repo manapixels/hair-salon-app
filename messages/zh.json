@@ -3,7 +3,7 @@
     "title": "美发沙龙",
     "welcome": "欢迎光临",
     "est": "成立于 2024 • 新加坡义顺",
-    "heroTitle": "与我们一起打造您的<italic>标志性</italic>造型",
+    "heroTitle": "打造您的<italic>标志性</italic>造型",
     "heroDescription": "在 Signature Trims 体验发艺，这是一家邻里美发沙龙，我们将展现您最美的一面。",
     "bookVisit": "预约",
     "viewMenu": "查看菜单",
@@ -26,6 +26,7 @@
     "account": "账户",
     "login": "登录",
     "serviceNames": {
+      "haircut": "理发",
       "hair-colouring": "染发",
       "hair-perm": "烫发",
       "hair-rebonding": "负离子烫",
@@ -107,7 +108,27 @@
     "failedToLoadStylists": "加载发型师失败",
     "tryAgain": "重试",
     "noStylistsTitle": "没有可用发型师",
-    "noStylistsDesc": "没有发型师能提供所选服务。请尝试选择其他服务或联系我们寻求帮助。"
+    "noStylistsDesc": "没有发型师能提供所选服务。请尝试选择其他服务或联系我们寻求帮助。",
+    "bookYourAppointment": "预约您的服务",
+    "selectServicesDesc": "选择您的服务、发型师和首选时间",
+    "serviceCategories": "服务类别",
+    "bookingConfirmed": "预约已确认！",
+    "thankYou": "谢谢您",
+    "serviceCategoryLabel": "服务类别",
+    "stylistLabel": "发型师",
+    "dateLabel": "日期",
+    "timeLabel": "时间",
+    "estimatedDuration": "预计时长",
+    "confirmationSent": "确认邮件已发送至",
+    "makeAnotherBooking": "再次预约",
+    "chooseStylist": "选择发型师",
+    "selectTime": "选择时间",
+    "confirm": "确认",
+    "bookNow": "立即预约",
+    "service": "服务",
+    "dateAndTime": "日期和时间",
+    "bookingInProgress": "正在预约",
+    "confirmYourAppointment": "确认您的预约"
   },
   "Layout": {
     "header": {
@@ -873,5 +894,21 @@
         "button": "预约头皮护理"
       }
     }
+  },
+  "Team": {
+    "meetTheExpert": "遇见专家",
+    "ourStylist": "我们的发型师",
+    "name": "May",
+    "role": "创意总监",
+    "specialties": {
+      "cuts": "剪发",
+      "color": "染发",
+      "treatment": "护理"
+    },
+    "bio": "May 擅长为您打造个性化的造型，既突显您的面部特征，又契合您的生活方式。凭借敏锐的细节洞察力，她确保每位客户都能自信满满、焕然一新地离开。",
+    "experienceLabel": "从业经验",
+    "experienceValue": "20+ 年",
+    "specialtyLabel": "专长",
+    "specialtyValue": "亚洲发质"
   }
 }

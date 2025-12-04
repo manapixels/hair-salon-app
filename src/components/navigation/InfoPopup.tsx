@@ -35,6 +35,7 @@ const WhatsAppIcon = ({ className }: { className?: string }) => (
 
 export default function InfoPopup({ isOpen, onClose }: InfoPopupProps) {
   const t = useTranslations('InfoPopup');
+  const tCommon = useTranslations('Common');
   const [settings, setSettings] = useState<AdminSettings | null>(null);
 
   // Fetch admin settings for location & hours
@@ -146,7 +147,9 @@ export default function InfoPopup({ isOpen, onClose }: InfoPopupProps) {
                         <div className="space-y-2">
                           {Object.entries(settings.weeklySchedule).map(([day, schedule]) => (
                             <div key={day} className="flex justify-between text-sm">
-                              <span className="text-gray-600 capitalize">{day}</span>
+                              <span className="text-gray-600 capitalize">
+                                {tCommon(`days.${day}`)}
+                              </span>
                               <span className={schedule.isOpen ? 'text-gray-900' : 'text-red-500'}>
                                 {schedule.isOpen
                                   ? `${formatTime(schedule.openingTime)} - ${formatTime(schedule.closingTime)}`

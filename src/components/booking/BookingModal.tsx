@@ -5,6 +5,7 @@ import { useBookingModal } from '@/context/BookingModalContext';
 import BookingForm from './BookingForm';
 import { BookingProgress } from './BookingProgress';
 import { useIsMobile } from '@/hooks/useMediaQuery';
+import { useTranslations } from 'next-intl';
 import {
   Dialog,
   DialogContent,
@@ -29,6 +30,7 @@ export function BookingModal() {
   const bookingFormRef = useRef<HTMLDivElement>(null);
   const [currentStep, setCurrentStep] = useState(1);
   const isMobile = useIsMobile();
+  const t = useTranslations('BookingForm');
 
   // Auto-close modal on successful booking
   useEffect(() => {
@@ -45,7 +47,7 @@ export function BookingModal() {
     // Monitor for booking confirmation success state
     const checkForSuccess = () => {
       const successHeading = bookingFormRef.current?.querySelector('h2');
-      if (successHeading?.textContent?.includes('Booking Confirmed')) {
+      if (successHeading?.textContent?.includes(t('bookingConfirmed'))) {
         // Auto-close after showing success message
         setTimeout(() => {
           closeModal();
@@ -57,7 +59,7 @@ export function BookingModal() {
     const interval = setInterval(checkForSuccess, 500);
 
     return () => clearInterval(interval);
-  }, [isOpen, closeModal]);
+  }, [isOpen, closeModal, t]);
 
   const content = (
     <div ref={bookingFormRef} className="max-h-[95vh] overflow-y-auto">
@@ -74,8 +76,8 @@ export function BookingModal() {
       <Drawer open={isOpen} onOpenChange={open => !open && closeModal()}>
         <DrawerContent className="max-h-[95vh]">
           <DrawerHeader>
-            <DrawerTitle>Book Your Appointment</DrawerTitle>
-            <DrawerDescription>Select your services, stylist, and preferred time</DrawerDescription>
+            <DrawerTitle>{t('bookYourAppointment')}</DrawerTitle>
+            <DrawerDescription>{t('selectServicesDesc')}</DrawerDescription>
             <div className="mt-4">
               <BookingProgress currentStep={currentStep} />
             </div>
@@ -90,9 +92,9 @@ export function BookingModal() {
     <Dialog open={isOpen} onOpenChange={open => !open && closeModal()}>
       <DialogContent className="max-h-[95vh] w-full max-w-3xl overflow-y-auto p-0 gap-0">
         <DialogHeader className="border-b p-6 text-left">
-          <DialogTitle className="text-lg font-semibold">Book Your Appointment</DialogTitle>
+          <DialogTitle className="text-lg font-semibold">{t('bookYourAppointment')}</DialogTitle>
           <DialogDescription className="mt-1 text-sm text-gray-600">
-            Select your services, stylist, and preferred time
+            {t('selectServicesDesc')}
           </DialogDescription>
           <div className="mt-4">
             <BookingProgress currentStep={currentStep} />

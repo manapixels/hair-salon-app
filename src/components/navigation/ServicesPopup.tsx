@@ -18,6 +18,9 @@ export default function ServicesPopup({ isOpen, onClose, serviceLinks }: Service
   const tNav = useTranslations('Navigation');
   const pathname = usePathname();
 
+  // Filter out 'haircut' as it has no dedicated page
+  const filteredServiceLinks = serviceLinks.filter(service => service.slug !== 'haircut');
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -53,7 +56,7 @@ export default function ServicesPopup({ isOpen, onClose, serviceLinks }: Service
 
             {/* Links */}
             <div className="py-2 space-y-1">
-              {serviceLinks.map(service => {
+              {filteredServiceLinks.map(service => {
                 const isActive = pathname === service.href;
                 return (
                   <Link

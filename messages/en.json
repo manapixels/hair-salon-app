@@ -26,6 +26,7 @@
     "account": "Account",
     "login": "Login",
     "serviceNames": {
+      "haircut": "Haircut",
       "hair-colouring": "Hair Colouring",
       "hair-perm": "Hair Perm",
       "hair-rebonding": "Hair Rebonding",
@@ -881,5 +882,21 @@
         "button": "Book Scalp Treatment"
       }
     }
+  },
+  "Team": {
+    "meetTheExpert": "Meet the Expert",
+    "ourStylist": "Our Stylist",
+    "name": "May",
+    "role": "Creative Director",
+    "specialties": {
+      "cuts": "Cuts",
+      "color": "Color",
+      "treatment": "Treatment"
+    },
+    "bio": "May specializes in creating personalized looks that flatters your features and fits your lifestyle. With a keen eye for detail, she ensures every client leaves feeling confident and refreshed.",
+    "experienceLabel": "Experience",
+    "experienceValue": "20+ Years",
+    "specialtyLabel": "Specialty",
+    "specialtyValue": "Asian Hair"
   }
 }

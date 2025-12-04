@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { formatDuration } from '@/lib/timeUtils';
 import { Spinner } from '@/components/ui/spinner';
 import { useTranslations } from 'next-intl';
+import { Clock } from 'lucide-react';
 
 interface MobileBookingSummaryProps {
   totalPrice: number;
@@ -105,8 +106,9 @@ export const MobileBookingSummary = memo<MobileBookingSummaryProps>(
                   {t('categorySelected')}
                 </span>
                 {!isCompact && (
-                  <span className="text-sm text-gray-500">
-                     {formatDuration(totalDuration)} {t('est')}
+                  <span className="text-sm text-gray-500 flex items-center gap-1">
+                    <Clock className="inline-block w-3 h-3" /> {formatDuration(totalDuration)}{' '}
+                    {t('est')}
                   </span>
                 )}
               </div>
