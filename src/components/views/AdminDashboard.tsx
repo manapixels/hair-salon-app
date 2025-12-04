@@ -667,43 +667,13 @@ const AdminDashboard: React.FC = () => {
         <h1 className="text-3xl font-serif font-light text-foreground mb-6">Admin Dashboard</h1>
 
         <Tabs value={activeTab} onValueChange={value => setActiveTab(value as typeof activeTab)}>
-          <TabsList className="flex gap-6 border-b border-gray-200 mb-8 overflow-x-auto pb-1 -mx-6 px-6 sm:mx-0 sm:px-0 scrollbar-hide bg-transparent h-auto p-0">
-            <TabsTrigger
-              value="appointments"
-              className="px-3 py-3 text-base font-semibold border-b-2 border-transparent data-[state=active]:border-accent data-[state=active]:text-accent text-gray-600 hover:text-gray-900 transition-colors whitespace-nowrap rounded-none bg-transparent shadow-none"
-            >
-              Appointments
-            </TabsTrigger>
-            <TabsTrigger
-              value="stylists"
-              className="px-3 py-3 text-base font-semibold border-b-2 border-transparent data-[state=active]:border-accent data-[state=active]:text-accent text-gray-600 hover:text-gray-900 transition-colors whitespace-nowrap rounded-none bg-transparent shadow-none"
-            >
-              Stylists
-            </TabsTrigger>
-            <TabsTrigger
-              value="availability"
-              className="px-3 py-3 text-base font-semibold border-b-2 border-transparent data-[state=active]:border-accent data-[state=active]:text-accent text-gray-600 hover:text-gray-900 transition-colors whitespace-nowrap rounded-none bg-transparent shadow-none"
-            >
-              Availability
-            </TabsTrigger>
-            <TabsTrigger
-              value="settings"
-              className="px-3 py-3 text-base font-semibold border-b-2 border-transparent data-[state=active]:border-accent data-[state=active]:text-accent text-gray-600 hover:text-gray-900 transition-colors whitespace-nowrap rounded-none bg-transparent shadow-none"
-            >
-              Settings
-            </TabsTrigger>
-            <TabsTrigger
-              value="chat"
-              className="px-3 py-3 text-base font-semibold border-b-2 border-transparent data-[state=active]:border-accent data-[state=active]:text-accent text-gray-600 hover:text-gray-900 transition-colors whitespace-nowrap rounded-none bg-transparent shadow-none"
-            >
-              Chat Management
-            </TabsTrigger>
-            <TabsTrigger
-              value="knowledge-base"
-              className="px-3 py-3 text-base font-semibold border-b-2 border-transparent data-[state=active]:border-accent data-[state=active]:text-accent text-gray-600 hover:text-gray-900 transition-colors whitespace-nowrap rounded-none bg-transparent shadow-none"
-            >
-              Knowledge Base
-            </TabsTrigger>
+          <TabsList>
+            <TabsTrigger value="appointments">Appointments</TabsTrigger>
+            <TabsTrigger value="stylists">Stylists</TabsTrigger>
+            <TabsTrigger value="availability">Availability</TabsTrigger>
+            <TabsTrigger value="settings">Settings</TabsTrigger>
+            <TabsTrigger value="chat">Chat Management</TabsTrigger>
+            <TabsTrigger value="knowledge-base">Knowledge Base</TabsTrigger>
           </TabsList>
 
           <TabsContent value="appointments" className="focus:outline-none">
