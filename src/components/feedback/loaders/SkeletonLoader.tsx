@@ -11,7 +11,7 @@ export const SkeletonLoader: React.FC<SkeletonLoaderProps> = ({
   className = '',
   variant = 'text',
 }) => {
-  const baseClasses = 'animate-pulse bg-gray-200 dark:bg-gray-700 rounded-lg';
+  const baseClasses = 'animate-pulse bg-gray-200 rounded-lg';
 
   const variantClasses = {
     text: 'w-full',

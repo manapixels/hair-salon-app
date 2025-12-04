@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
@@ -98,10 +98,8 @@ export default function ChatDashboard() {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[600px]">
       {/* Sidebar List */}
-      <div className="lg:col-span-1 border-r dark:border-gray-700 pr-4 overflow-y-auto">
-        <h3 className="font-semibold mb-4 text-gray-700 dark:text-gray-300">
-          Flagged Conversations
-        </h3>
+      <div className="lg:col-span-1 border-r pr-4 overflow-y-auto">
+        <h3 className="font-semibold mb-4 text-gray-700">Flagged Conversations</h3>
         {isLoading ? (
           <LoadingSpinner />
         ) : conversations.length === 0 ? (
@@ -115,7 +113,7 @@ export default function ChatDashboard() {
                 className={`p-3 rounded-lg cursor-pointer transition-colors ${
                   selectedUser === conv.userId
                     ? 'bg-accent/10 border-accent border'
-                    : 'bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700'
+                    : 'bg-white hover:bg-gray-50'
                 }`}
               >
                 <div className="flex justify-between items-start mb-1">
@@ -135,9 +133,7 @@ export default function ChatDashboard() {
                   </span>
                 </div>
                 <p className="text-xs text-red-500 font-medium mb-1">Reason: {conv.reason}</p>
-                <p className="text-sm text-gray-600 dark:text-gray-400 truncate">
-                  {conv.lastMessage}
-                </p>
+                <p className="text-sm text-gray-600 truncate">{conv.lastMessage}</p>
               </div>
             ))}
           </div>
@@ -148,13 +144,13 @@ export default function ChatDashboard() {
       <div className="lg:col-span-2 flex flex-col h-full">
         {selectedUser ? (
           <>
-            <div className="flex-1 bg-gray-50 dark:bg-gray-900 rounded-lg p-4 mb-4 overflow-y-auto border dark:border-gray-700">
+            <div className="flex-1 bg-gray-50 rounded-lg p-4 mb-4 overflow-y-auto border">
               <div className="text-center text-sm text-gray-500 mb-4">
                 Replying to {selectedUser}
               </div>
               {/* Here we could fetch and show full history if we had an API for it */}
-              <div className="bg-white dark:bg-gray-800 p-3 rounded-lg shadow-sm max-w-[80%] mb-2">
-                <p className="text-sm text-gray-800 dark:text-gray-200">
+              <div className="bg-white p-3 rounded-lg shadow-sm max-w-[80%] mb-2">
+                <p className="text-sm text-gray-800">
                   {conversations.find(c => c.userId === selectedUser)?.lastMessage}
                 </p>
               </div>
@@ -162,7 +158,7 @@ export default function ChatDashboard() {
 
             <div className="space-y-3">
               <textarea
-                className="w-full p-3 border rounded-lg dark:bg-gray-800 dark:border-gray-700 focus:ring-2 focus:ring-accent outline-none resize-none"
+                className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-accent outline-none resize-none"
                 rows={3}
                 placeholder="Type your reply..."
                 value={replyMessage}

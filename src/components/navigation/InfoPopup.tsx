@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, MapPin, Clock, Instagram, Facebook } from 'lucide-react';
@@ -74,17 +74,17 @@ export default function InfoPopup({ isOpen, onClose }: InfoPopupProps) {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             transition={{ duration: 0.2, ease: 'easeOut' }}
-            className="fixed bottom-20 left-4 right-4 z-50 bg-white/90 dark:bg-gray-900/90 backdrop-blur-md rounded-2xl shadow-xl border border-white/20 dark:border-gray-700 overflow-hidden max-h-[85vh] overflow-y-auto"
+            className="fixed bottom-20 left-4 right-4 z-50 bg-white/90 backdrop-blur-md rounded-2xl shadow-xl border border-white/20 overflow-hidden max-h-[85vh] overflow-y-auto"
           >
             {/* Header */}
-            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-gray-800 sticky top-0 bg-white/90 dark:bg-gray-900/90 backdrop-blur-md z-10">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{t('title')}</h3>
+            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 sticky top-0 bg-white/90 backdrop-blur-md z-10">
+              <h3 className="text-lg font-semibold text-gray-900">{t('title')}</h3>
               <button
                 onClick={onClose}
-                className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                className="p-1 rounded-full hover:bg-gray-100 transition-colors"
                 aria-label="Close menu"
               >
-                <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+                <X className="w-5 h-5 text-gray-500" />
               </button>
             </div>
 
@@ -109,12 +109,10 @@ export default function InfoPopup({ isOpen, onClose }: InfoPopupProps) {
                         <MapPin className="w-5 h-5 text-accent-foreground" />
                       </div>
                       <div>
-                        <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-1">
+                        <h3 className="text-sm font-semibold text-gray-900 mb-1">
                           {t('location')}
                         </h3>
-                        <p className="text-sm text-gray-600 dark:text-gray-300">
-                          {settings.businessAddress}
-                        </p>
+                        <p className="text-sm text-gray-600">{settings.businessAddress}</p>
                       </div>
                     </div>
                   </section>
@@ -142,20 +140,14 @@ export default function InfoPopup({ isOpen, onClose }: InfoPopupProps) {
                         <Clock className="w-5 h-5 text-accent-foreground" />
                       </div>
                       <div className="flex-1">
-                        <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">
+                        <h3 className="text-sm font-semibold text-gray-900 mb-3">
                           {t('operatingHours')}
                         </h3>
                         <div className="space-y-2">
                           {Object.entries(settings.weeklySchedule).map(([day, schedule]) => (
                             <div key={day} className="flex justify-between text-sm">
-                              <span className="text-gray-600 dark:text-gray-400 capitalize">
-                                {day}
-                              </span>
-                              <span
-                                className={
-                                  schedule.isOpen ? 'text-gray-900 dark:text-white' : 'text-red-500'
-                                }
-                              >
+                              <span className="text-gray-600 capitalize">{day}</span>
+                              <span className={schedule.isOpen ? 'text-gray-900' : 'text-red-500'}>
                                 {schedule.isOpen
                                   ? `${formatTime(schedule.openingTime)} - ${formatTime(schedule.closingTime)}`
                                   : t('closed')}
@@ -171,9 +163,7 @@ export default function InfoPopup({ isOpen, onClose }: InfoPopupProps) {
 
               {/* Social Media */}
               <section>
-                <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">
-                  {t('connectWithUs')}
-                </h3>
+                <h3 className="text-sm font-semibold text-gray-900 mb-3">{t('connectWithUs')}</h3>
                 <div className="flex items-center gap-3">
                   {/* Instagram */}
                   <a

@@ -147,43 +147,33 @@ export default function RescheduleModal({
 
   const content = (
     <div className="space-y-6 p-6">
-      <section className="rounded-xl border border-gray-200 bg-gray-50 px-6 py-5 dark:border-gray-700 dark:bg-gray-800/60">
-        <h3 className="mb-3 text-sm font-semibold text-gray-900 dark:text-white">
-          Current Appointment Details
-        </h3>
+      <section className="rounded-xl border border-gray-200 bg-gray-50 px-6 py-5">
+        <h3 className="mb-3 text-sm font-semibold text-gray-900">Current Appointment Details</h3>
         <dl className="grid grid-cols-1 gap-4 text-sm md:grid-cols-2">
           <div>
-            <dt className="font-medium text-gray-600 dark:text-gray-300">Date</dt>
-            <dd className="font-semibold text-gray-900 dark:text-white">
-              {formatDisplayDate(appointment.date)}
-            </dd>
+            <dt className="font-medium text-gray-600">Date</dt>
+            <dd className="font-semibold text-gray-900">{formatDisplayDate(appointment.date)}</dd>
           </div>
           <div>
-            <dt className="font-medium text-gray-600 dark:text-gray-300">Time</dt>
-            <dd className="font-semibold text-gray-900 dark:text-white">
-              {formatTime12Hour(appointment.time)}
-            </dd>
+            <dt className="font-medium text-gray-600">Time</dt>
+            <dd className="font-semibold text-gray-900">{formatTime12Hour(appointment.time)}</dd>
           </div>
           <div>
-            <dt className="font-medium text-gray-600 dark:text-gray-300">Services</dt>
-            <dd className="font-semibold text-gray-900 dark:text-white">
+            <dt className="font-medium text-gray-600">Services</dt>
+            <dd className="font-semibold text-gray-900">
               {appointment.services.map(s => s.name).join(', ')}
             </dd>
           </div>
           <div>
-            <dt className="font-medium text-gray-600 dark:text-gray-300">Total</dt>
-            <dd className="font-semibold text-gray-900 dark:text-white">
-              ${appointment.totalPrice}
-            </dd>
+            <dt className="font-medium text-gray-600">Total</dt>
+            <dd className="font-semibold text-gray-900">${appointment.totalPrice}</dd>
           </div>
         </dl>
       </section>
 
       <section className="space-y-6">
         <div>
-          <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-            New Date
-          </label>
+          <label className="mb-2 block text-sm font-medium text-gray-700">New Date</label>
           <input
             type="date"
             value={toDateInputValue(selectedDate)}
@@ -192,15 +182,13 @@ export default function RescheduleModal({
               const [year, month, day] = e.target.value.split('-').map(Number);
               setSelectedDate(new Date(year, month - 1, day));
             }}
-            className="w-full min-h-touch-lg rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-accent dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+            className="w-full min-h-touch-lg rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-accent"
             disabled={isRescheduling}
           />
         </div>
 
         <div>
-          <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-            Available Times
-          </label>
+          <label className="mb-2 block text-sm font-medium text-gray-700">Available Times</label>
 
           {loading ? (
             <div className="py-8 text-center">
@@ -208,7 +196,7 @@ export default function RescheduleModal({
             </div>
           ) : timeSlots.length === 0 ? (
             <div className="py-8 text-center">
-              <p className="text-gray-600 dark:text-gray-400">No available times for this date</p>
+              <p className="text-gray-600">No available times for this date</p>
             </div>
           ) : (
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
@@ -225,8 +213,8 @@ export default function RescheduleModal({
                       isSelected
                         ? 'shadow-md'
                         : isAvailable
-                          ? 'border-gray-300 bg-white text-gray-700 hover:border-accent hover:text-accent hover:shadow-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200'
-                          : 'border-gray-200 bg-gray-100 text-gray-400 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-500',
+                          ? 'border-gray-300 bg-white text-gray-700 hover:border-accent hover:text-accent hover:shadow-sm'
+                          : 'border-gray-200 bg-gray-100 text-gray-400',
                     )}
                     onClick={() => setSelectedTime(slot.time)}
                     disabled={!isAvailable || isRescheduling}
@@ -240,7 +228,7 @@ export default function RescheduleModal({
         </div>
       </section>
 
-      <div className="flex justify-end gap-3 border-t border-gray-200 pt-4 dark:border-gray-700">
+      <div className="flex justify-end gap-3 border-t border-gray-200 pt-4">
         <Button
           variant="secondary"
           className="min-h-touch-lg active-scale"

@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import { formatDisplayDate } from '@/lib/timeUtils';
 
 interface ClosuresSettingsProps {
@@ -46,7 +46,7 @@ export default function ClosuresSettings({ closedDates, onChange }: ClosuresSett
             value={newClosedDate}
             onChange={e => setNewClosedDate(e.target.value)}
             min={today}
-            className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-background text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:border-accent hover:border-gray-400 dark:hover:border-gray-500 transition-colors"
+            className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm bg-background text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:border-accent hover:border-gray-400 transition-colors"
           />
           <button
             onClick={handleAddClosedDate}
@@ -128,7 +128,7 @@ export default function ClosuresSettings({ closedDates, onChange }: ClosuresSett
             {pastDates.map(date => (
               <div
                 key={date}
-                className="flex items-center justify-between p-[3] bg-gray-100 dark:bg-gray-800 border border-border rounded-md opacity-60"
+                className="flex items-center justify-between p-[3] bg-gray-100 border border-border rounded-md opacity-60"
               >
                 <div className="flex items-center space-x-[3]">
                   <svg

@@ -1,4 +1,4 @@
-﻿import * as Checkbox from '@radix-ui/react-checkbox';
+import * as Checkbox from '@radix-ui/react-checkbox';
 import type { AdminSettings } from '@/types';
 
 interface ScheduleSettingsProps {
@@ -69,14 +69,14 @@ export default function ScheduleSettings({ weeklySchedule, onChange }: ScheduleS
           return (
             <div
               key={day}
-              className="flex items-center justify-between p-4 bg-muted border border-border rounded-lg hover:border-gray-300 dark:border-gray-600 transition-colors"
+              className="flex items-center justify-between p-4 bg-muted border border-border rounded-lg hover:border-gray-300 transition-colors"
             >
               <div className="flex items-center space-x-[3] flex-1">
                 <label className="flex items-center space-x-[3] cursor-pointer min-w-[140px]">
                   <Checkbox.Root
                     checked={schedule.isOpen}
                     onCheckedChange={checked => handleDayToggle(day, checked === true)}
-                    className="flex items-center justify-center w-5 h-5 rounded-sm border border-gray-300 dark:border-gray-600 bg-background hover:border-gray-400 dark:hover:border-gray-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent data-[state=checked]:bg-accent data-[state=checked]:border-[hsl(var(--accent))]"
+                    className="flex items-center justify-center w-5 h-5 rounded-sm border border-gray-300 bg-background hover:border-gray-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent data-[state=checked]:bg-accent data-[state=checked]:border-[hsl(var(--accent))]"
                   >
                     <Checkbox.Indicator>
                       <svg
@@ -105,14 +105,14 @@ export default function ScheduleSettings({ weeklySchedule, onChange }: ScheduleS
                       type="time"
                       value={schedule.openingTime || '09:00'}
                       onChange={e => handleTimeChange(day, 'openingTime', e.target.value)}
-                      className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-background text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:border-accent hover:border-gray-400 dark:hover:border-gray-500 transition-colors"
+                      className="px-3 py-2 border border-gray-300 rounded-md text-sm bg-background text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:border-accent hover:border-gray-400 transition-colors"
                     />
                     <span className="text-muted-foreground">to</span>
                     <input
                       type="time"
                       value={schedule.closingTime || '17:00'}
                       onChange={e => handleTimeChange(day, 'closingTime', e.target.value)}
-                      className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-background text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:border-accent hover:border-gray-400 dark:hover:border-gray-500 transition-colors"
+                      className="px-3 py-2 border border-gray-300 rounded-md text-sm bg-background text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:border-accent hover:border-gray-400 transition-colors"
                     />
                   </div>
                 ) : (
@@ -124,10 +124,10 @@ export default function ScheduleSettings({ weeklySchedule, onChange }: ScheduleS
         })}
       </div>
 
-      <div className="p-4 bg-blue-50 dark:bg-blue-950 border border-blue-500 rounded-lg">
+      <div className="p-4 bg-blue-50 border border-blue-500 rounded-lg">
         <div className="flex items-start space-x-[3]">
           <svg
-            className="w-5 h-5 text-blue-700 dark:text-blue-400 flex-shrink-0 mt-0.5"
+            className="w-5 h-5 text-blue-700 flex-shrink-0 mt-0.5"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"

@@ -85,7 +85,7 @@ export default function OAuthLoginModal({ isOpen, onClose }: OAuthLoginModalProp
           <WhatsAppOTPLogin onSuccess={onClose} onBack={() => setShowWhatsAppOTP(false)} />
         ) : (
           <div className="space-y-4">
-            <p className="text-center text-sm text-gray-600 dark:text-gray-400">
+            <p className="text-center text-sm text-gray-600">
               Sign in with your preferred messaging platform
             </p>
 
@@ -107,20 +107,20 @@ export default function OAuthLoginModal({ isOpen, onClose }: OAuthLoginModalProp
             </Button>
 
             {showTelegramWidget && (
-              <div className="rounded-xl border border-blue-100 bg-blue-50 p-5 dark:border-blue-900/40 dark:bg-blue-900/10">
+              <div className="rounded-xl border border-blue-100 bg-blue-50 p-5">
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <h3 className="text-sm font-semibold text-blue-800 dark:text-blue-200">
+                    <h3 className="text-sm font-semibold text-blue-800">
                       Ready to sign in with Telegram?
                     </h3>
-                    <p className="mt-1 text-sm text-blue-700 dark:text-blue-300">
+                    <p className="mt-1 text-sm text-blue-700">
                       A new tab will open. Tap <span className="font-semibold">Start</span> in the
                       bot chat to finish logging in.
                     </p>
                   </div>
                   <Button
                     variant="ghost"
-                    className="h-8 px-3 text-xs text-blue-700 hover:text-blue-800 hover:bg-blue-100 dark:text-blue-300 dark:hover:bg-blue-900/40"
+                    className="h-8 px-3 text-xs text-blue-700 hover:text-blue-800 hover:bg-blue-100"
                     onClick={() => setShowTelegramWidget(false)}
                   >
                     Close
@@ -135,17 +135,15 @@ export default function OAuthLoginModal({ isOpen, onClose }: OAuthLoginModalProp
                       className="flex justify-center"
                     />
                   ) : (
-                    <p className="text-sm text-blue-700 dark:text-blue-300">
-                      Loading Telegram login...
-                    </p>
+                    <p className="text-sm text-blue-700">Loading Telegram login...</p>
                   )}
                 </div>
               </div>
             )}
 
             {telegramError && (
-              <div className="rounded-lg border border-red-200 bg-red-50 p-3 dark:border-red-800 dark:bg-red-900/20">
-                <p className="flex items-center gap-2 text-sm text-red-700 dark:text-red-300">
+              <div className="rounded-lg border border-red-200 bg-red-50 p-3">
+                <p className="flex items-center gap-2 text-sm text-red-700">
                   <svg className="h-4 w-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                     <path
                       fillRule="evenodd"
@@ -157,7 +155,7 @@ export default function OAuthLoginModal({ isOpen, onClose }: OAuthLoginModalProp
                 </p>
                 <Button
                   variant="ghost"
-                  className="mt-2 h-8 px-3 text-sm text-red-600 hover:text-red-700 hover:bg-red-100 dark:text-red-400 dark:hover:bg-red-900/40"
+                  className="mt-2 h-8 px-3 text-sm text-red-600 hover:text-red-700 hover:bg-red-100"
                   onClick={() => {
                     setTelegramError(null);
                     setTelegramBotUsername(null);
@@ -170,8 +168,8 @@ export default function OAuthLoginModal({ isOpen, onClose }: OAuthLoginModalProp
           </div>
         )}
 
-        <div className="border-t border-gray-200 pt-4 text-center dark:border-gray-800">
-          <p className="text-sm text-gray-500 dark:text-gray-400">
+        <div className="border-t border-gray-200 pt-4 text-center">
+          <p className="text-sm text-gray-500">
             By signing in, you agree to our terms of service and privacy policy.
           </p>
         </div>

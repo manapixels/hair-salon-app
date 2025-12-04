@@ -84,9 +84,7 @@ export default function CalendlyStyleDateTimePicker({
 
   return (
     <div className="mt-8" id="date-time-picker">
-      <h2 className="text-2xl font-semibold mb-6 text-gray-800 dark:text-gray-200">
-        3. Select Date & Time
-      </h2>
+      <h2 className="text-2xl font-semibold mb-6 text-gray-800">3. Select Date & Time</h2>
 
       {/* ARIA Live Region for Screen Readers */}
       <div aria-live="polite" aria-atomic="true" className="sr-only">
@@ -119,9 +117,7 @@ export default function CalendlyStyleDateTimePicker({
       <div className="hidden lg:grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
         {/* Left Column: Calendar */}
         <div className="flex flex-col">
-          <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">
-            Choose a Date
-          </h3>
+          <h3 className="text-lg font-medium text-gray-900 mb-4">Choose a Date</h3>
           <CalendarView
             selectedDate={selectedDate}
             onDateChange={handleDateChange}
@@ -137,12 +133,8 @@ export default function CalendlyStyleDateTimePicker({
         {/* Right Column: Time Slots */}
         <div className="flex flex-col" ref={timeSlotsRef}>
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">
-              Available Times
-            </h3>
-            <span className="text-sm text-gray-500 dark:text-gray-400">
-              {format(selectedDate, 'EEEE, MMM d')}
-            </span>
+            <h3 className="text-lg font-medium text-gray-900">Available Times</h3>
+            <span className="text-sm text-gray-500">{format(selectedDate, 'EEEE, MMM d')}</span>
           </div>
 
           <div className="max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
@@ -156,7 +148,7 @@ export default function CalendlyStyleDateTimePicker({
 
           {/* Keyboard Hints */}
           {timeSlots.length > 0 && !showLoader && (
-            <p className="text-xs text-gray-500 dark:text-gray-500 mt-3 text-center">
+            <p className="text-xs text-gray-500 mt-3 text-center">
               Use Tab to navigate, Enter to select
             </p>
           )}

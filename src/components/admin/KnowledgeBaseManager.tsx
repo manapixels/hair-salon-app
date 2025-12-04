@@ -101,7 +101,7 @@ export default function KnowledgeBaseManager() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-xl font-bold text-gray-900 dark:text-white">Knowledge Base</h2>
+        <h2 className="text-xl font-bold text-gray-900">Knowledge Base</h2>
         <Button onClick={() => setIsAdding(!isAdding)}>
           <Plus className="w-4 h-4 mr-2" />
           Add New
@@ -125,7 +125,7 @@ export default function KnowledgeBaseManager() {
             <div>
               <label className="block text-sm font-medium mb-1">Answer</label>
               <textarea
-                className="w-full p-2 border rounded-md dark:bg-gray-800 dark:border-gray-700"
+                className="w-full p-2 border rounded-md"
                 rows={4}
                 value={newAnswer}
                 onChange={e => setNewAnswer(e.target.value)}
@@ -160,13 +160,10 @@ export default function KnowledgeBaseManager() {
                 <div className="flex justify-between items-start">
                   <div className="space-y-2">
                     <h3 className="font-semibold text-lg">{item.question}</h3>
-                    <p className="text-gray-600 dark:text-gray-300">{item.answer}</p>
+                    <p className="text-gray-600">{item.answer}</p>
                     <div className="flex gap-2 mt-2">
                       {item.tags.map(tag => (
-                        <span
-                          key={tag}
-                          className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded-full text-xs"
-                        >
+                        <span key={tag} className="px-2 py-1 bg-gray-100 rounded-full text-xs">
                           {tag}
                         </span>
                       ))}

@@ -30,21 +30,17 @@ export function LanguageSwitcher() {
         onClick={() => onSelectChange('en')}
         disabled={isPending}
         className={`font-medium transition-colors ${
-          activeLocale === 'en'
-            ? 'text-accent dark:text-accent'
-            : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+          activeLocale === 'en' ? 'text-accent' : 'text-gray-500 hover:text-gray-900'
         }`}
       >
         EN
       </button>
-      <span className="text-gray-300 dark:text-gray-600">/</span>
+      <span className="text-gray-300">/</span>
       <button
         onClick={() => onSelectChange('zh')}
         disabled={isPending}
         className={`font-medium transition-colors ${
-          activeLocale === 'zh'
-            ? 'text-accent dark:text-accent'
-            : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+          activeLocale === 'zh' ? 'text-accent' : 'text-gray-500 hover:text-gray-900'
         }`}
       >
         ZH

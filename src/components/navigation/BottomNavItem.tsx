@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import Link from 'next/link';
 import { LucideIcon, X } from 'lucide-react';
@@ -36,7 +36,7 @@ export default function BottomNavItem({
       whileTap={{ scale: 0.92 }}
       className={`
         flex flex-col items-center justify-center
-        ${isPrimary ? 'w-14 h-14 rounded-full bg-accent text-white -mt-8 border-4 border-white dark:border-gray-900' : 'min-w-[56px] min-h-[56px] px-3 py-2 text-gray-500 hover:text-foreground'}
+        ${isPrimary ? 'w-14 h-14 rounded-full bg-accent text-white -mt-8 border-4 border-white' : 'min-w-[56px] min-h-[56px] px-3 py-2 text-gray-500 hover:text-foreground'}
         relative
         transition-all duration-300 ease-out
         ${!isPrimary && (active || isOpen) ? 'text-accent-foreground' : ''}

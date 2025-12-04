@@ -106,17 +106,17 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
   );
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 sm:p-6">
+    <div className="bg-white rounded-lg border border-gray-200 p-4 sm:p-6">
       {/* Month Navigation */}
       <div className="flex items-center justify-between mb-6 px-2">
         <button
           onClick={onPreviousMonth}
           disabled={loading}
-          className="min-w-touch min-h-touch w-12 h-12 md:w-10 md:h-10 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-accent disabled:opacity-50 disabled:cursor-not-allowed active-scale"
+          className="min-w-touch min-h-touch w-12 h-12 md:w-10 md:h-10 rounded-full hover:bg-gray-100 flex items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-accent disabled:opacity-50 disabled:cursor-not-allowed active-scale"
           aria-label="Previous month"
         >
           <svg
-            className="w-5 h-5 text-gray-600 dark:text-gray-400"
+            className="w-5 h-5 text-gray-600"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -131,7 +131,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
         </button>
 
         <div className="flex items-center gap-2">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+          <h2 className="text-lg font-semibold text-gray-900">
             {format(currentMonth, 'MMMM yyyy')}
           </h2>
           {loading && <LoadingSpinner size="sm" className="text-accent" />}
@@ -140,11 +140,11 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
         <button
           onClick={onNextMonth}
           disabled={loading}
-          className="min-w-touch min-h-touch w-12 h-12 md:w-10 md:h-10 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-accent disabled:opacity-50 disabled:cursor-not-allowed active-scale"
+          className="min-w-touch min-h-touch w-12 h-12 md:w-10 md:h-10 rounded-full hover:bg-gray-100 flex items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-accent disabled:opacity-50 disabled:cursor-not-allowed active-scale"
           aria-label="Next month"
         >
           <svg
-            className="w-5 h-5 text-gray-600 dark:text-gray-400"
+            className="w-5 h-5 text-gray-600"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -157,10 +157,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
       {/* Weekday Header */}
       <div className="grid grid-cols-7 gap-1 mb-2">
         {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-          <div
-            key={day}
-            className="text-xs font-medium text-gray-600 dark:text-gray-400 text-center py-2 uppercase"
-          >
+          <div key={day} className="text-xs font-medium text-gray-600 text-center py-2 uppercase">
             {day}
           </div>
         ))}
@@ -197,9 +194,9 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                 focus:outline-none focus:ring-2 focus:ring-accent active-scale
                 ${isSelected ? 'bg-accent font-semibold' : ''}
                 ${!isSelected && isTodayDate ? 'ring-2 ring-accent ring-offset-2' : ''}
-                ${!isSelected && !isDisabled && isCurrentMonth ? 'hover:bg-accent/10 dark:hover:bg-accent/10 cursor-pointer' : ''}
-                ${isDisabled || !isCurrentMonth ? 'text-gray-300 dark:text-gray-700 cursor-not-allowed' : ''}
-                ${!isDisabled && !isSelected && isCurrentMonth ? 'text-gray-900 dark:text-gray-100' : ''}
+                ${!isSelected && !isDisabled && isCurrentMonth ? 'hover:bg-accent/10 cursor-pointer' : ''}
+                ${isDisabled || !isCurrentMonth ? 'text-gray-300 cursor-not-allowed' : ''}
+                ${!isDisabled && !isSelected && isCurrentMonth ? 'text-gray-900' : ''}
               `}
             >
               {format(date, 'd')}

@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { formatDisplayDate } from '@/lib/timeUtils';
 import * as Select from '@radix-ui/react-select';
 import { LoadingSpinner } from '@/components/feedback/loaders/LoadingSpinner';
@@ -126,7 +126,7 @@ export default function StylistAvailability({ onNavigateToStylists }: StylistAva
       <div>
         <label className="block text-sm font-medium text-foreground mb-[2]">Select Stylist</label>
         <Select.Root value={selectedStylistId} onValueChange={setSelectedStylistId}>
-          <Select.Trigger className="inline-flex items-center justify-between gap-[2] px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-background text-sm text-foreground hover:border-gray-400 dark:hover:border-gray-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent min-w-[250px]">
+          <Select.Trigger className="inline-flex items-center justify-between gap-[2] px-3 py-2 rounded-md border border-gray-300 bg-background text-sm text-foreground hover:border-gray-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent min-w-[250px]">
             <Select.Value />
             <Select.Icon>
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -174,7 +174,7 @@ export default function StylistAvailability({ onNavigateToStylists }: StylistAva
                   onClick={onNavigateToStylists}
                   className="px-3 py-2 text-sm text-accent-foreground hover:text-accent-foreground font-medium transition-colors"
                 >
-                  Edit Full Profile →
+                  Edit Full Profile ?
                 </button>
               )}
             </div>
@@ -213,7 +213,7 @@ export default function StylistAvailability({ onNavigateToStylists }: StylistAva
                       new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1),
                     )
                   }
-                  className="p-2 hover:bg-gray-100 dark:bg-gray-800 rounded-md transition-colors"
+                  className="p-2 hover:bg-gray-100 rounded-md transition-colors"
                   aria-label="Previous month"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -234,7 +234,7 @@ export default function StylistAvailability({ onNavigateToStylists }: StylistAva
                       new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1),
                     )
                   }
-                  className="p-2 hover:bg-gray-100 dark:bg-gray-800 rounded-md transition-colors"
+                  className="p-2 hover:bg-gray-100 rounded-md transition-colors"
                   aria-label="Next month"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -275,8 +275,8 @@ export default function StylistAvailability({ onNavigateToStylists }: StylistAva
                       isBlocked
                         ? 'bg-destructive/10 border-destructive text-destructive'
                         : !isWorking
-                          ? 'bg-gray-100 dark:bg-gray-800 border-border text-gray-400'
-                          : 'bg-muted border-gray-300 dark:border-gray-600 text-foreground'
+                          ? 'bg-gray-100 border-border text-gray-400'
+                          : 'bg-muted border-gray-300 text-foreground'
                     } ${isToday ? 'ring-2 ring-accent' : ''}`}
                   >
                     <div className="font-medium">{date.getDate()}</div>
@@ -289,11 +289,11 @@ export default function StylistAvailability({ onNavigateToStylists }: StylistAva
             {/* Legend */}
             <div className="mt-[4] flex items-center space-x-6 text-sm">
               <div className="flex items-center space-x-[2]">
-                <div className="w-4 h-4 rounded-sm bg-muted border border-gray-300 dark:border-gray-600"></div>
+                <div className="w-4 h-4 rounded-sm bg-muted border border-gray-300"></div>
                 <span className="text-muted-foreground">Working Day</span>
               </div>
               <div className="flex items-center space-x-[2]">
-                <div className="w-4 h-4 rounded-sm bg-gray-100 dark:bg-gray-800 border border-border"></div>
+                <div className="w-4 h-4 rounded-sm bg-gray-100 border border-border"></div>
                 <span className="text-muted-foreground">Day Off</span>
               </div>
               <div className="flex items-center space-x-[2]">

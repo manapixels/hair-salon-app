@@ -14,10 +14,10 @@ interface EmptyStateProps {
  */
 export const EmptyState: React.FC<EmptyStateProps> = ({ icon, title, description, action }) => {
   return (
-    <div className="text-center py-12 px-4 bg-gray-50 dark:bg-gray-800 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-700">
+    <div className="text-center py-12 px-4 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
       {icon || (
         <svg
-          className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500"
+          className="mx-auto h-12 w-12 text-gray-400"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -30,10 +30,8 @@ export const EmptyState: React.FC<EmptyStateProps> = ({ icon, title, description
           />
         </svg>
       )}
-      <h3 className="mt-4 text-lg font-medium text-gray-900 dark:text-gray-100">{title}</h3>
-      {description && (
-        <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">{description}</p>
-      )}
+      <h3 className="mt-4 text-lg font-medium text-gray-900">{title}</h3>
+      {description && <p className="mt-2 text-sm text-gray-600">{description}</p>}
       {action && (
         <button
           onClick={action.onClick}

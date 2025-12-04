@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
@@ -100,7 +100,7 @@ export const StylistSelector: React.FC<StylistSelectorProps> = ({
 
   return (
     <div className="scroll-mt-24" id="stylist-selector" tabIndex={-1}>
-      <h2 className="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-200">{t('step2')}</h2>
+      <h2 className="text-lg font-semibold mb-4 text-gray-800">{t('step2')}</h2>
 
       {/* Screen reader announcement */}
       <div className="sr-only" aria-live="polite" aria-atomic="true">
@@ -114,7 +114,7 @@ export const StylistSelector: React.FC<StylistSelectorProps> = ({
         <div className="space-y-4">
           <div className="flex items-center gap-2 mb-4">
             <LoadingSpinner size="sm" />
-            <p className="text-sm text-gray-600 dark:text-gray-400">
+            <p className="text-sm text-gray-600">
               {isCategoryBased
                 ? `${t('findingStylistsFor')} ${selectedCategory?.title}...`
                 : `${t('findingStylistsWhoCan')} ${selectedServices.map(s => s.name).join(', ')}...`}
@@ -175,7 +175,7 @@ export const StylistSelector: React.FC<StylistSelectorProps> = ({
                           className="w-13 h-13 rounded-full mr-4 object-cover"
                         />
                       ) : (
-                        <div className="w-12 h-12 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mr-4 shrink-0"></div>
+                        <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mr-4 shrink-0"></div>
                       )}
                       <div className="overflow-hidden flex-1">
                         <div className="flex items-center justify-between">

@@ -169,7 +169,7 @@ export default function EditAppointmentModal({
   const content = (
     <div className="p-6">
       {error && (
-        <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-700 dark:bg-red-900/20 dark:text-red-300">
+        <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
           {error}
         </div>
       )}
@@ -205,9 +205,7 @@ export default function EditAppointmentModal({
             required
           />
           <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-              Time *
-            </label>
+            <label className="mb-2 block text-sm font-medium text-gray-700">Time *</label>
             <Select
               value={formData.time || undefined}
               onValueChange={value => setFormData(prev => ({ ...prev, time: value }))}
@@ -227,10 +225,8 @@ export default function EditAppointmentModal({
         </div>
 
         <div>
-          <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-            Services *
-          </label>
-          <div className="grid max-h-64 grid-cols-1 gap-3 overflow-y-auto rounded-lg border border-gray-200 p-4 sm:grid-cols-2 dark:border-gray-600">
+          <label className="mb-2 block text-sm font-medium text-gray-700">Services *</label>
+          <div className="grid max-h-64 grid-cols-1 gap-3 overflow-y-auto rounded-lg border border-gray-200 p-4 sm:grid-cols-2">
             {availableServices.map(service => {
               const isSelected = formData.services.some(s => s.id === service.id);
               const checkboxId = `service-${service.id}`;
@@ -239,9 +235,7 @@ export default function EditAppointmentModal({
                 <div
                   key={service.id}
                   className={`flex items-center gap-3 rounded-lg border p-3 transition-colors ${
-                    isSelected
-                      ? 'border-accent bg-accent/10 dark:bg-accent/10'
-                      : 'border-gray-200 hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700'
+                    isSelected ? 'border-accent bg-accent/10' : 'border-gray-200 hover:bg-gray-50'
                   }`}
                 >
                   <Checkbox
@@ -251,7 +245,7 @@ export default function EditAppointmentModal({
                     aria-labelledby={`${checkboxId}-label`}
                   />
                   <div className="flex-1" id={`${checkboxId}-label`}>
-                    <h4 className="font-semibold text-gray-900 dark:text-white">{service.name}</h4>
+                    <h4 className="font-semibold text-gray-900">{service.name}</h4>
                   </div>
                 </div>
               );
@@ -260,20 +254,16 @@ export default function EditAppointmentModal({
         </div>
 
         {formData.services.length > 0 && (
-          <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-600 dark:bg-gray-700">
-            <h3 className="mb-2 font-semibold text-gray-900 dark:text-white">
-              Appointment Summary
-            </h3>
+          <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
+            <h3 className="mb-2 font-semibold text-gray-900">Appointment Summary</h3>
             <div className="space-y-1 text-sm">
               <div className="flex justify-between">
-                <span className="text-gray-600 dark:text-gray-400">Total Duration:</span>
-                <span className="font-semibold text-gray-900 dark:text-white">
-                  {totalDuration} minutes
-                </span>
+                <span className="text-gray-600">Total Duration:</span>
+                <span className="font-semibold text-gray-900">{totalDuration} minutes</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600 dark:text-gray-400">Total Price:</span>
-                <span className="font-semibold text-gray-900 dark:text-white">${totalPrice}</span>
+                <span className="text-gray-600">Total Price:</span>
+                <span className="font-semibold text-gray-900">${totalPrice}</span>
               </div>
             </div>
           </div>

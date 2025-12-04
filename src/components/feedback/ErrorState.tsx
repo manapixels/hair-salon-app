@@ -15,7 +15,7 @@ export const ErrorState: React.FC<ErrorStateProps> = ({
   retryText = 'Try Again',
 }) => {
   return (
-    <div className="text-center p-8 bg-red-50 dark:bg-red-900/20 border-2 border-red-200 dark:border-red-800 rounded-lg">
+    <div className="text-center p-8 bg-red-50 border-2 border-red-200 rounded-lg">
       <svg
         className="mx-auto h-12 w-12 text-red-500"
         fill="none"
@@ -29,8 +29,8 @@ export const ErrorState: React.FC<ErrorStateProps> = ({
           d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
         />
       </svg>
-      <h3 className="mt-4 text-lg font-medium text-red-900 dark:text-red-100">{title}</h3>
-      <p className="mt-2 text-red-700 dark:text-red-300">{message}</p>
+      <h3 className="mt-4 text-lg font-medium text-red-900">{title}</h3>
+      <p className="mt-2 text-red-700">{message}</p>
       {onRetry && (
         <button
           onClick={onRetry}

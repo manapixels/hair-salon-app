@@ -50,57 +50,15 @@
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
   }
-
-  .dark {
-    /* Dark mode - Darker gold tones */
-    --background: 0 0% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 0 0% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 0 0% 3.9%;
-    --popover-foreground: 0 0% 98%;
-
-    /* Primary - Lighter gold for dark mode */
-    --primary: 48 100% 86%;
-    --primary-foreground: 48 100% 22%;
-
-    /* Secondary - Dark gold */
-    --secondary: 48 100% 15%;
-    --secondary-foreground: 48 100% 86%;
-
-    /* Muted - Dark with gold tint */
-    --muted: 48 20% 15%;
-    --muted-foreground: 0 0% 63.9%;
-
-    /* Accent - Lighter gold for dark mode */
-    --accent: 48 100% 86%;
-    --accent-foreground: 48 100% 22%;
-
-    /* Destructive - Darker red */
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-
-    /* Borders and inputs */
-    --border: 0 0% 14.9%;
-    --input: 0 0% 14.9%;
-    --ring: 48 100% 86%;
-
-    /* Chart colors for dark mode */
-    --chart-1: 48 100% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
-  }
 }
 
 /* React Phone Number Input Styling */
 .phone-input-wrapper .PhoneInputInput {
-  @apply w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-accent focus:border-transparent bg-background text-foreground;
+  @apply w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-accent focus:border-transparent bg-background text-foreground;
 }
 
 .phone-input-wrapper .PhoneInputCountry {
-  @apply bg-background border-gray-300 dark:border-gray-600;
+  @apply bg-background border-gray-300;
 }
 
 /* Mobile-First Utilities */

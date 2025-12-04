@@ -22,11 +22,7 @@ export const CategoryCard: React.FC<CategoryCardProps> = ({ category, isSelected
       onClick={onClick}
       className={`
         relative h-auto text-left px-5 py-2 flex flex-col items-center justify-between gap-1 border hover:border-accent focus:ring-2 focus:ring-accent/20 whitespace-normal
-        ${
-          isSelected
-            ? 'border-accent bg-accent/5 dark:bg-accent/10'
-            : 'bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700/50'
-        }
+        ${isSelected ? 'border-accent bg-accent/5' : 'bg-white hover:bg-gray-50'}
       `}
     >
       <div className="relative w-16 h-16 rounded-lg">
@@ -39,7 +35,7 @@ export const CategoryCard: React.FC<CategoryCardProps> = ({ category, isSelected
         />
       </div>
       <span
-        className={`text-md text-center leading-none flex-1 flex items-center justify-center w-full ${isSelected ? 'text-accent dark:text-accent' : 'text-gray-900 dark:text-gray-100'}`}
+        className={`text-md text-center leading-none flex-1 flex items-center justify-center w-full ${isSelected ? 'text-accent' : 'text-gray-900'}`}
       >
         {category.title}
       </span>

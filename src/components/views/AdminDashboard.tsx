@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { toast } from 'sonner';
 import { useBooking } from '@/context/BookingContext';
 import type { Appointment } from '@/types';
@@ -617,7 +617,7 @@ const AdminDashboard: React.FC = () => {
     className?: string;
   }) => (
     <th
-      className={`px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-muted dark:hover:bg-gray-700 transition-colors ${className}`}
+      className={`px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-muted transition-colors ${className}`}
       onClick={() => handleSort(field)}
       aria-sort={
         sortField === field ? (sortDirection === 'asc' ? 'ascending' : 'descending') : 'none'
@@ -667,40 +667,40 @@ const AdminDashboard: React.FC = () => {
         <h1 className="text-3xl font-serif font-light text-foreground mb-6">Admin Dashboard</h1>
 
         <Tabs value={activeTab} onValueChange={value => setActiveTab(value as typeof activeTab)}>
-          <TabsList className="flex gap-6 border-b border-gray-200 dark:border-gray-700 mb-8 overflow-x-auto pb-1 -mx-6 px-6 sm:mx-0 sm:px-0 scrollbar-hide bg-transparent h-auto p-0">
+          <TabsList className="flex gap-6 border-b border-gray-200 mb-8 overflow-x-auto pb-1 -mx-6 px-6 sm:mx-0 sm:px-0 scrollbar-hide bg-transparent h-auto p-0">
             <TabsTrigger
               value="appointments"
-              className="px-3 py-3 text-base font-semibold border-b-2 border-transparent data-[state=active]:border-accent data-[state=active]:text-accent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors whitespace-nowrap rounded-none bg-transparent shadow-none"
+              className="px-3 py-3 text-base font-semibold border-b-2 border-transparent data-[state=active]:border-accent data-[state=active]:text-accent text-gray-600 hover:text-gray-900 transition-colors whitespace-nowrap rounded-none bg-transparent shadow-none"
             >
               Appointments
             </TabsTrigger>
             <TabsTrigger
               value="stylists"
-              className="px-3 py-3 text-base font-semibold border-b-2 border-transparent data-[state=active]:border-accent data-[state=active]:text-accent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors whitespace-nowrap rounded-none bg-transparent shadow-none"
+              className="px-3 py-3 text-base font-semibold border-b-2 border-transparent data-[state=active]:border-accent data-[state=active]:text-accent text-gray-600 hover:text-gray-900 transition-colors whitespace-nowrap rounded-none bg-transparent shadow-none"
             >
               Stylists
             </TabsTrigger>
             <TabsTrigger
               value="availability"
-              className="px-3 py-3 text-base font-semibold border-b-2 border-transparent data-[state=active]:border-accent data-[state=active]:text-accent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors whitespace-nowrap rounded-none bg-transparent shadow-none"
+              className="px-3 py-3 text-base font-semibold border-b-2 border-transparent data-[state=active]:border-accent data-[state=active]:text-accent text-gray-600 hover:text-gray-900 transition-colors whitespace-nowrap rounded-none bg-transparent shadow-none"
             >
               Availability
             </TabsTrigger>
             <TabsTrigger
               value="settings"
-              className="px-3 py-3 text-base font-semibold border-b-2 border-transparent data-[state=active]:border-accent data-[state=active]:text-accent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors whitespace-nowrap rounded-none bg-transparent shadow-none"
+              className="px-3 py-3 text-base font-semibold border-b-2 border-transparent data-[state=active]:border-accent data-[state=active]:text-accent text-gray-600 hover:text-gray-900 transition-colors whitespace-nowrap rounded-none bg-transparent shadow-none"
             >
               Settings
             </TabsTrigger>
             <TabsTrigger
               value="chat"
-              className="px-3 py-3 text-base font-semibold border-b-2 border-transparent data-[state=active]:border-accent data-[state=active]:text-accent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors whitespace-nowrap rounded-none bg-transparent shadow-none"
+              className="px-3 py-3 text-base font-semibold border-b-2 border-transparent data-[state=active]:border-accent data-[state=active]:text-accent text-gray-600 hover:text-gray-900 transition-colors whitespace-nowrap rounded-none bg-transparent shadow-none"
             >
               Chat Management
             </TabsTrigger>
             <TabsTrigger
               value="knowledge-base"
-              className="px-3 py-3 text-base font-semibold border-b-2 border-transparent data-[state=active]:border-accent data-[state=active]:text-accent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors whitespace-nowrap rounded-none bg-transparent shadow-none"
+              className="px-3 py-3 text-base font-semibold border-b-2 border-transparent data-[state=active]:border-accent data-[state=active]:text-accent text-gray-600 hover:text-gray-900 transition-colors whitespace-nowrap rounded-none bg-transparent shadow-none"
             >
               Knowledge Base
             </TabsTrigger>
@@ -715,10 +715,10 @@ const AdminDashboard: React.FC = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
                 <div className="bg-white p-5 border border-border transition-colors">
                   <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400">Today</h3>
-                    <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                    <h3 className="text-sm font-medium text-gray-600">Today</h3>
+                    <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
                       <svg
-                        className="w-5 h-5 text-blue-600 dark:text-blue-400"
+                        className="w-5 h-5 text-blue-600"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -733,20 +733,16 @@ const AdminDashboard: React.FC = () => {
                       </svg>
                     </div>
                   </div>
-                  <p className="text-3xl font-bold text-gray-900 dark:text-white">{kpis.today}</p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                    Appointments today
-                  </p>
+                  <p className="text-3xl font-bold text-gray-900">{kpis.today}</p>
+                  <p className="text-xs text-gray-500 mt-1">Appointments today</p>
                 </div>
 
                 <div className="bg-white p-5 border border-border transition-colors">
                   <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                      This Week
-                    </h3>
-                    <div className="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+                    <h3 className="text-sm font-medium text-gray-600">This Week</h3>
+                    <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
                       <svg
-                        className="w-5 h-5 text-green-600 dark:text-green-400"
+                        className="w-5 h-5 text-green-600"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -761,22 +757,16 @@ const AdminDashboard: React.FC = () => {
                       </svg>
                     </div>
                   </div>
-                  <p className="text-3xl font-bold text-gray-900 dark:text-white">
-                    {kpis.thisWeek}
-                  </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                    Appointments this week
-                  </p>
+                  <p className="text-3xl font-bold text-gray-900">{kpis.thisWeek}</p>
+                  <p className="text-xs text-gray-500 mt-1">Appointments this week</p>
                 </div>
 
                 <div className="bg-white p-5 border border-border transition-colors">
                   <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                      Upcoming
-                    </h3>
-                    <div className="w-10 h-10 rounded-full bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center">
+                    <h3 className="text-sm font-medium text-gray-600">Upcoming</h3>
+                    <div className="w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center">
                       <svg
-                        className="w-5 h-5 text-yellow-600 dark:text-yellow-400"
+                        className="w-5 h-5 text-yellow-600"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -791,27 +781,19 @@ const AdminDashboard: React.FC = () => {
                       </svg>
                     </div>
                   </div>
-                  <p className="text-3xl font-bold text-gray-900 dark:text-white">
-                    {kpis.upcoming}
-                  </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                    Future appointments
-                  </p>
+                  <p className="text-3xl font-bold text-gray-900">{kpis.upcoming}</p>
+                  <p className="text-xs text-gray-500 mt-1">Future appointments</p>
                 </div>
 
                 <div className="bg-white p-5 border border-border transition-colors">
                   <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                      Week Revenue
-                    </h3>
-                    <div className="w-10 h-10 rounded-full bg-accent/10 dark:bg-accent/20 flex items-center justify-center">
+                    <h3 className="text-sm font-medium text-gray-600">Week Revenue</h3>
+                    <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center">
                       <ChevronsUp className="w-5 h-5 text-accent" />
                     </div>
                   </div>
-                  <p className="text-3xl font-bold text-gray-900 dark:text-white">
-                    ${kpis.weekRevenue}
-                  </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Revenue this week</p>
+                  <p className="text-3xl font-bold text-gray-900">${kpis.weekRevenue}</p>
+                  <p className="text-xs text-gray-500 mt-1">Revenue this week</p>
                 </div>
               </div>
             </section>
@@ -821,7 +803,7 @@ const AdminDashboard: React.FC = () => {
               <div className="flex flex-wrap justify-between items-center gap-4 mb-6">
                 <div>
                   <h2 className="text-xl font-serif font-light text-foreground">Appointments</h2>
-                  <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                  <div className="text-sm text-gray-600 mt-1">
                     Showing {startIndex + 1}-{Math.min(endIndex, sortedAppointments.length)} of{' '}
                     {sortedAppointments.length} appointments
                     {filteredAppointments.length !== appointments.length && (
@@ -831,13 +813,13 @@ const AdminDashboard: React.FC = () => {
                 </div>
                 <div className="flex items-center gap-4">
                   <div className="flex items-center gap-2">
-                    <div className="text-xs text-gray-500 dark:text-gray-400">
+                    <div className="text-xs text-gray-500">
                       Last updated: {lastRefresh.toLocaleTimeString()}
                     </div>
                     <button
                       onClick={handleRefresh}
                       disabled={isRefreshing}
-                      className="px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded hover:bg-muted dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      className="px-2 py-1 text-sm border border-gray-300 rounded hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                       title="Refresh appointments"
                       aria-label="Refresh appointments list"
                     >
@@ -850,7 +832,7 @@ const AdminDashboard: React.FC = () => {
                   <div className="flex items-center gap-3">
                     <label
                       htmlFor="items-per-page"
-                      className="text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap"
+                      className="text-sm font-medium text-gray-700 whitespace-nowrap"
                     >
                       Per page:
                     </label>
@@ -861,7 +843,7 @@ const AdminDashboard: React.FC = () => {
                         setCurrentPage(1);
                       }}
                     >
-                      <SelectTrigger className="inline-flex items-center justify-between gap-[2] px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-background text-sm text-foreground hover:border-gray-400 dark:hover:border-gray-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent min-w-[70px]">
+                      <SelectTrigger className="inline-flex items-center justify-between gap-[2] px-3 py-2 rounded-md border border-gray-300 bg-background text-sm text-foreground hover:border-gray-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent min-w-[70px]">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent className="overflow-hidden bg-card rounded-md border border-border ">
@@ -881,14 +863,14 @@ const AdminDashboard: React.FC = () => {
                   <div className="flex items-center gap-3 min-w-[180px]">
                     <label
                       htmlFor="date-filter"
-                      className="text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap"
+                      className="text-sm font-medium text-gray-700 whitespace-nowrap"
                     >
                       Date:
                     </label>
                     <Select value={dateFilter} onValueChange={value => setDateFilter(value as any)}>
                       <SelectTrigger
                         id="date-filter"
-                        className="flex-1 md:flex-none inline-flex items-center justify-between gap-2 px-3 py-2 rounded-none border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-sm text-gray-900 dark:text-white hover:border-gray-400 dark:hover:border-gray-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:border-accent min-w-[140px]"
+                        className="flex-1 md:flex-none inline-flex items-center justify-between gap-2 px-3 py-2 rounded-none border border-gray-300 bg-white text-sm text-gray-900 hover:border-gray-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:border-accent min-w-[140px]"
                         aria-label="Filter appointments by date range"
                       >
                         <SelectValue />
@@ -903,15 +885,12 @@ const AdminDashboard: React.FC = () => {
                     </Select>
                   </div>
 
-                  <div
-                    className="hidden md:block h-8 w-px bg-gray-300 dark:bg-gray-600"
-                    aria-hidden="true"
-                  />
+                  <div className="hidden md:block h-8 w-px bg-gray-300" aria-hidden="true" />
 
                   <div className="flex items-center gap-3 min-w-[140px]">
                     <label
                       htmlFor="status-filter"
-                      className="text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap"
+                      className="text-sm font-medium text-gray-700 whitespace-nowrap"
                     >
                       Status:
                     </label>
@@ -921,7 +900,7 @@ const AdminDashboard: React.FC = () => {
                     >
                       <SelectTrigger
                         id="status-filter"
-                        className="flex-1 md:flex-none inline-flex items-center justify-between gap-2 px-3 py-2 rounded-none border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-sm text-gray-900 dark:text-white hover:border-gray-400 dark:hover:border-gray-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:border-accent min-w-[120px]"
+                        className="flex-1 md:flex-none inline-flex items-center justify-between gap-2 px-3 py-2 rounded-none border border-gray-300 bg-white text-sm text-gray-900 hover:border-gray-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:border-accent min-w-[120px]"
                         aria-label="Filter appointments by status"
                       >
                         <SelectValue />
@@ -945,13 +924,11 @@ const AdminDashboard: React.FC = () => {
                         type="date"
                         value={customFromDate}
                         onChange={e => setCustomFromDate(e.target.value)}
-                        className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-none text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:border-accent hover:border-gray-400 dark:hover:border-gray-500 transition-colors"
+                        className="px-3 py-2 border border-gray-300 rounded-none text-sm bg-white text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:border-accent hover:border-gray-400 transition-colors"
                         placeholder="From date"
                         aria-label="Custom date range start"
                       />
-                      <span className="text-gray-600 dark:text-gray-400 text-sm text-center sm:text-left">
-                        to
-                      </span>
+                      <span className="text-gray-600 text-sm text-center sm:text-left">to</span>
                       <label htmlFor="custom-to-date" className="sr-only">
                         To date
                       </label>
@@ -960,7 +937,7 @@ const AdminDashboard: React.FC = () => {
                         type="date"
                         value={customToDate}
                         onChange={e => setCustomToDate(e.target.value)}
-                        className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-none text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:border-accent hover:border-gray-400 dark:hover:border-gray-500 transition-colors"
+                        className="px-3 py-2 border border-gray-300 rounded-none text-sm bg-white text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:border-accent hover:border-gray-400 transition-colors"
                         placeholder="To date"
                         aria-label="Custom date range end"
                       />
@@ -978,7 +955,7 @@ const AdminDashboard: React.FC = () => {
                         placeholder="Search appointments..."
                         value={searchTerm}
                         onChange={e => setSearchTerm(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-none bg-white dark:bg-gray-900 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:border-accent hover:border-gray-400 dark:hover:border-gray-500 transition-colors text-sm"
+                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-none bg-white text-gray-900 placeholder:text-gray-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:border-accent hover:border-gray-400 transition-colors text-sm"
                         aria-label="Search appointments by customer, service, or stylist"
                       />
                       <svg
@@ -1005,7 +982,7 @@ const AdminDashboard: React.FC = () => {
                         setCustomToDate('');
                         setSearchTerm('');
                       }}
-                      className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-gray-700 rounded-none transition-colors w-full md:w-auto"
+                      className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-200 rounded-none transition-colors w-full md:w-auto"
                       title="Clear all filters"
                       aria-label="Clear all appointment filters"
                     >
@@ -1044,13 +1021,11 @@ const AdminDashboard: React.FC = () => {
                         </svg>
                       </div>
                       <div>
-                        <div className="text-sm font-semibold text-gray-900 dark:text-white">
+                        <div className="text-sm font-semibold text-gray-900">
                           {selectedAppointments.size} appointment
                           {selectedAppointments.size > 1 ? 's' : ''} selected
                         </div>
-                        <div className="text-xs text-gray-600 dark:text-gray-400">
-                          Bulk actions available
-                        </div>
+                        <div className="text-xs text-gray-600">Bulk actions available</div>
                       </div>
                     </div>
                     <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
@@ -1077,7 +1052,7 @@ const AdminDashboard: React.FC = () => {
                       </button>
                       <button
                         onClick={() => setSelectedAppointments(new Set())}
-                        className="px-4 py-2 text-sm font-medium border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-none hover:bg-muted dark:hover:bg-gray-700 transition-all active:scale-95"
+                        className="px-4 py-2 text-sm font-medium border-2 border-gray-300 text-gray-700 rounded-none hover:bg-muted transition-all active:scale-95"
                         aria-label="Clear selection"
                       >
                         Clear
@@ -1088,13 +1063,13 @@ const AdminDashboard: React.FC = () => {
               )}
 
               {appointmentsLoading ? (
-                <div className="bg-muted dark:bg-gray-700 p-6 rounded-none text-center">
+                <div className="bg-muted p-6 rounded-none text-center">
                   <LoadingSpinner size="md" message="Loading appointments..." />
                 </div>
               ) : filteredAppointments.length === 0 ? (
-                <div className="bg-white dark:bg-gray-800 p-12 rounded-none text-center border-2 border-dashed border-gray-300 dark:border-gray-600">
+                <div className="bg-white p-12 rounded-none text-center border-2 border-dashed border-gray-300">
                   <div className="flex flex-col items-center space-y-4">
-                    <div className="w-16 h-16 bg-muted dark:bg-gray-700 rounded-full flex items-center justify-center">
+                    <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center">
                       {appointments.length === 0 ? (
                         <svg
                           className="w-8 h-8 text-gray-400"
@@ -1126,10 +1101,10 @@ const AdminDashboard: React.FC = () => {
                       )}
                     </div>
                     <div>
-                      <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">
+                      <h3 className="text-lg font-semibold text-gray-900 mb-1">
                         {appointments.length === 0 ? 'No Appointments Yet' : 'No Results Found'}
                       </h3>
-                      <p className="text-gray-500 dark:text-gray-400 text-sm">
+                      <p className="text-gray-500 text-sm">
                         {appointments.length === 0
                           ? 'Appointments will appear here once customers start booking.'
                           : 'Try adjusting your filters or search terms.'}
@@ -1159,7 +1134,7 @@ const AdminDashboard: React.FC = () => {
                     {/* Calendar Toggle for Mobile */}
                     <button
                       onClick={() => setCalendarExpanded(!calendarExpanded)}
-                      className="lg:hidden w-full mb-4 px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-none text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-muted dark:hover:bg-gray-700 transition-colors flex items-center justify-between"
+                      className="lg:hidden w-full mb-4 px-4 py-2 bg-white border border-gray-200 rounded-none text-sm font-medium text-gray-700 hover:bg-muted transition-colors flex items-center justify-between"
                       aria-expanded={calendarExpanded}
                       aria-controls="calendar-sidebar"
                     >
@@ -1198,7 +1173,7 @@ const AdminDashboard: React.FC = () => {
 
                     <div
                       id="calendar-sidebar"
-                      className={`${calendarExpanded || 'hidden'} lg:block bg-white dark:bg-gray-800 rounded-none border border-gray-200 dark:border-gray-700 p-4  lg:sticky lg:top-6`}
+                      className={`${calendarExpanded || 'hidden'} lg:block bg-white rounded-none border border-gray-200 p-4  lg:sticky lg:top-6`}
                     >
                       {/* Month Navigation */}
                       <div className="flex items-center justify-between mb-4">
@@ -1208,7 +1183,7 @@ const AdminDashboard: React.FC = () => {
                               new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1),
                             )
                           }
-                          className="p-2 hover:bg-muted dark:hover:bg-gray-700 rounded transition-colors"
+                          className="p-2 hover:bg-muted rounded transition-colors"
                           aria-label="Previous month"
                         >
                           <svg
@@ -1225,7 +1200,7 @@ const AdminDashboard: React.FC = () => {
                             />
                           </svg>
                         </button>
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                        <h3 className="text-lg font-semibold text-gray-900">
                           {currentMonth.toLocaleDateString('en-US', {
                             month: 'long',
                             year: 'numeric',
@@ -1237,7 +1212,7 @@ const AdminDashboard: React.FC = () => {
                               new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1),
                             )
                           }
-                          className="p-2 hover:bg-muted dark:hover:bg-gray-700 rounded transition-colors"
+                          className="p-2 hover:bg-muted rounded transition-colors"
                           aria-label="Next month"
                         >
                           <svg
@@ -1265,7 +1240,7 @@ const AdminDashboard: React.FC = () => {
                             setCustomFromDate('');
                             setCustomToDate('');
                           }}
-                          className="w-full mb-3 px-3 py-1.5 text-sm text-gray-600 dark:text-gray-400 hover:bg-muted dark:hover:bg-gray-700 rounded transition-colors"
+                          className="w-full mb-3 px-3 py-1.5 text-sm text-gray-600 hover:bg-muted rounded transition-colors"
                         >
                           Clear date filter
                         </button>
@@ -1276,7 +1251,7 @@ const AdminDashboard: React.FC = () => {
                         {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, i) => (
                           <div
                             key={i}
-                            className="text-center text-xs font-semibold text-gray-600 dark:text-gray-400 py-1"
+                            className="text-center text-xs font-semibold text-gray-600 py-1"
                           >
                             {day}
                           </div>
@@ -1316,12 +1291,12 @@ const AdminDashboard: React.FC = () => {
                             aspect-square p-1 rounded-none text-sm transition-all relative
                             ${
                               isSelected
-                                ? 'bg-accent text-white font-semibold  ring-2 ring-accent/50 ring-offset-2 dark:ring-offset-gray-800'
+                                ? 'bg-accent text-white font-semibold  ring-2 ring-accent/50 ring-offset-2'
                                 : isToday
-                                  ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-900 dark:text-blue-100 font-semibold ring-2 ring-blue-300 dark:ring-blue-700'
+                                  ? 'bg-blue-100 text-blue-900 font-semibold ring-2 ring-blue-300'
                                   : hasAppointments
-                                    ? 'bg-green-50 dark:bg-green-900/20 text-gray-900 dark:text-gray-100 hover:bg-green-100 dark:hover:bg-green-900/30'
-                                    : 'text-gray-600 dark:text-gray-400 hover:bg-muted dark:hover:bg-gray-700'
+                                    ? 'bg-green-50 text-gray-900 hover:bg-green-100'
+                                    : 'text-gray-600 hover:bg-muted'
                             }
                           `}
                               role="gridcell"
@@ -1332,7 +1307,7 @@ const AdminDashboard: React.FC = () => {
                               <span className="block">{date.getDate()}</span>
                               {hasAppointments && !isSelected && (
                                 <span
-                                  className="absolute bottom-0.5 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-green-500 dark:bg-green-400 rounded-full"
+                                  className="absolute bottom-0.5 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-green-500 rounded-full"
                                   aria-hidden="true"
                                 />
                               )}
@@ -1342,18 +1317,18 @@ const AdminDashboard: React.FC = () => {
                       </div>
 
                       {/* Legend */}
-                      <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 space-y-2 text-xs">
+                      <div className="mt-4 pt-4 border-t border-gray-200 space-y-2 text-xs">
                         <div className="flex items-center gap-2">
-                          <div className="w-3 h-3 rounded bg-blue-100 dark:bg-blue-900/30" />
-                          <span className="text-gray-600 dark:text-gray-400">Today</span>
+                          <div className="w-3 h-3 rounded bg-blue-100" />
+                          <span className="text-gray-600">Today</span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <div className="w-3 h-3 rounded bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800" />
-                          <span className="text-gray-600 dark:text-gray-400">Has appointments</span>
+                          <div className="w-3 h-3 rounded bg-green-50 border border-green-200" />
+                          <span className="text-gray-600">Has appointments</span>
                         </div>
                         <div className="flex items-center gap-2">
                           <div className="w-3 h-3 rounded bg-accent" />
-                          <span className="text-gray-600 dark:text-gray-400">Selected</span>
+                          <span className="text-gray-600">Selected</span>
                         </div>
                       </div>
                     </div>
@@ -1362,13 +1337,13 @@ const AdminDashboard: React.FC = () => {
                   <div className="flex-1 min-w-0">
                     {paginatedAppointments.length === 0 ? (
                       <div
-                        className="bg-white dark:bg-gray-800 rounded-none border border-gray-200 dark:border-gray-700  p-12"
+                        className="bg-white rounded-none border border-gray-200  p-12"
                         role="status"
                       >
                         <div className="flex flex-col items-center justify-center text-center">
-                          <div className="mb-4 p-4 bg-muted dark:bg-gray-700 rounded-full">
+                          <div className="mb-4 p-4 bg-muted rounded-full">
                             <svg
-                              className="w-12 h-12 text-gray-400 dark:text-gray-500"
+                              className="w-12 h-12 text-gray-400"
                               fill="none"
                               stroke="currentColor"
                               viewBox="0 0 24 24"
@@ -1382,12 +1357,12 @@ const AdminDashboard: React.FC = () => {
                             </svg>
                           </div>
                           <div>
-                            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">
+                            <h3 className="text-lg font-semibold text-gray-900 mb-1">
                               {appointments.length === 0
                                 ? 'No Appointments Yet'
                                 : 'No Results Found'}
                             </h3>
-                            <p className="text-gray-500 dark:text-gray-400 text-sm">
+                            <p className="text-gray-500 text-sm">
                               {appointments.length === 0
                                 ? 'Appointments will appear here once customers start booking.'
                                 : selectedCalendarDate
@@ -1418,7 +1393,7 @@ const AdminDashboard: React.FC = () => {
                     ) : (
                       <div className="bg-white border border-border">
                         {/* Mobile Card View */}
-                        <div className="md:hidden divide-y divide-gray-200 dark:divide-gray-700">
+                        <div className="md:hidden divide-y divide-gray-200">
                           {paginatedAppointments.map(appointment => (
                             <div
                               key={appointment.id}
@@ -1429,13 +1404,13 @@ const AdminDashboard: React.FC = () => {
                                   <Checkbox
                                     checked={selectedAppointments.has(appointment.id)}
                                     onCheckedChange={() => handleSelectAppointment(appointment.id)}
-                                    className="flex items-center justify-center w-5 h-5 rounded-sm border border-gray-300 dark:border-gray-600 bg-background hover:border-gray-400 dark:hover:border-gray-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent data-[state=checked]:bg-accent data-[state=checked]:border-[hsl(var(--accent))]"
+                                    className="flex items-center justify-center w-5 h-5 rounded-sm border border-gray-300 bg-background hover:border-gray-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent data-[state=checked]:bg-accent data-[state=checked]:border-[hsl(var(--accent))]"
                                   />
                                   <div>
-                                    <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                    <div className="text-sm font-medium text-gray-900">
                                       {appointment.customerName}
                                     </div>
-                                    <div className="text-xs text-gray-500 dark:text-gray-400">
+                                    <div className="text-xs text-gray-500">
                                       {appointment.customerEmail}
                                     </div>
                                   </div>
@@ -1444,25 +1419,25 @@ const AdminDashboard: React.FC = () => {
                                   const status = (appointment as any).status || 'SCHEDULED';
                                   if (status === 'COMPLETED') {
                                     return (
-                                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                                         Completed
                                       </span>
                                     );
                                   } else if (status === 'NO_SHOW') {
                                     return (
-                                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-muted text-gray-800 dark:bg-gray-700 dark:text-gray-300">
+                                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-muted text-gray-800">
                                         No-Show
                                       </span>
                                     );
                                   } else if (status === 'CANCELLED') {
                                     return (
-                                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">
+                                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
                                         Cancelled
                                       </span>
                                     );
                                   } else {
                                     return (
-                                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                                         Scheduled
                                       </span>
                                     );
@@ -1472,13 +1447,11 @@ const AdminDashboard: React.FC = () => {
 
                               <div className="grid grid-cols-2 gap-4 mb-3 text-sm">
                                 <div>
-                                  <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">
-                                    Date & Time
-                                  </div>
-                                  <div className="text-gray-900 dark:text-gray-100">
+                                  <div className="text-xs text-gray-500 mb-1">Date & Time</div>
+                                  <div className="text-gray-900">
                                     {formatDisplayDate(appointment.date)}
                                   </div>
-                                  <div className="text-gray-500 dark:text-gray-400 text-xs">
+                                  <div className="text-gray-500 text-xs">
                                     {(() => {
                                       const [hours, minutes] = appointment.time
                                         .split(':')
@@ -1496,10 +1469,8 @@ const AdminDashboard: React.FC = () => {
                                   </div>
                                 </div>
                                 <div>
-                                  <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">
-                                    Stylist
-                                  </div>
-                                  <div className="text-gray-900 dark:text-gray-100">
+                                  <div className="text-xs text-gray-500 mb-1">Stylist</div>
+                                  <div className="text-gray-900">
                                     {appointment.stylist
                                       ? appointment.stylist.name
                                       : 'No stylist assigned'}
@@ -1508,21 +1479,19 @@ const AdminDashboard: React.FC = () => {
                               </div>
 
                               <div className="mb-3">
-                                <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">
-                                  Services
-                                </div>
-                                <div className="text-sm text-gray-900 dark:text-gray-100">
+                                <div className="text-xs text-gray-500 mb-1">Services</div>
+                                <div className="text-sm text-gray-900">
                                   {appointment.services.map(s => s.name).join(', ')}
                                 </div>
-                                <div className="text-sm font-semibold text-gray-900 dark:text-gray-100 mt-1">
+                                <div className="text-sm font-semibold text-gray-900 mt-1">
                                   ${appointment.totalPrice}
                                 </div>
                               </div>
 
-                              <div className="flex justify-end gap-3 pt-3 border-t border-gray-100 dark:border-gray-700">
+                              <div className="flex justify-end gap-3 pt-3 border-t border-gray-100">
                                 <button
                                   onClick={() => handleEditAppointment(appointment)}
-                                  className="flex items-center gap-1 text-sm text-accent hover:text-accent dark:text-accent dark:hover:text-accent transition-colors"
+                                  className="flex items-center gap-1 text-sm text-accent hover:text-accent transition-colors"
                                 >
                                   <svg
                                     className="h-4 w-4"
@@ -1541,7 +1510,7 @@ const AdminDashboard: React.FC = () => {
                                 </button>
                                 <button
                                   onClick={() => handleCancelAppointment(appointment)}
-                                  className="flex items-center gap-1 text-sm text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 transition-colors"
+                                  className="flex items-center gap-1 text-sm text-red-600 hover:text-red-900 transition-colors"
                                 >
                                   <svg
                                     className="h-4 w-4"
@@ -1572,7 +1541,7 @@ const AdminDashboard: React.FC = () => {
                                     return (
                                       <button
                                         onClick={() => handleMarkNoShow(appointment)}
-                                        className="flex items-center gap-1 text-sm text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
+                                        className="flex items-center gap-1 text-sm text-gray-600 hover:text-gray-900 transition-colors"
                                       >
                                         <svg
                                           className="h-4 w-4"
@@ -1599,31 +1568,31 @@ const AdminDashboard: React.FC = () => {
 
                         <div className="hidden md:block overflow-x-auto">
                           <table className="min-w-full divide-y divide-[hsl(var(--border))]">
-                            <thead className="bg-gray-100 dark:bg-gray-800">
+                            <thead className="bg-gray-100">
                               <tr>
-                                <th className="px-4 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+                                <th className="px-4 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                                   <Checkbox
                                     checked={
                                       selectedAppointments.size === paginatedAppointments.length &&
                                       paginatedAppointments.length > 0
                                     }
                                     onCheckedChange={handleSelectAll}
-                                    className="flex items-center justify-center w-5 h-5 rounded-sm border border-gray-300 dark:border-gray-600 bg-background hover:border-gray-400 dark:hover:border-gray-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent data-[state=checked]:bg-accent data-[state=checked]:border-[hsl(var(--accent))]"
+                                    className="flex items-center justify-center w-5 h-5 rounded-sm border border-gray-300 bg-background hover:border-gray-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent data-[state=checked]:bg-accent data-[state=checked]:border-[hsl(var(--accent))]"
                                   />
                                 </th>
                                 <SortableHeader field="date">Date & Time</SortableHeader>
                                 <SortableHeader field="customer">Customer</SortableHeader>
                                 <SortableHeader field="stylist">Stylist</SortableHeader>
                                 <SortableHeader field="price">Services & Price</SortableHeader>
-                                <th className="px-4 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+                                <th className="px-4 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                                   Status
                                 </th>
-                                <th className="px-4 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+                                <th className="px-4 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                                   Actions
                                 </th>
                               </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                            <tbody className="divide-y divide-gray-200">
                               {paginatedAppointments.map(appointment => (
                                 <tr
                                   key={appointment.id}
@@ -1635,14 +1604,14 @@ const AdminDashboard: React.FC = () => {
                                       onCheckedChange={() =>
                                         handleSelectAppointment(appointment.id)
                                       }
-                                      className="flex items-center justify-center w-5 h-5 rounded-sm border border-gray-300 dark:border-gray-600 bg-background hover:border-gray-400 dark:hover:border-gray-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent data-[state=checked]:bg-accent data-[state=checked]:border-[hsl(var(--accent))]"
+                                      className="flex items-center justify-center w-5 h-5 rounded-sm border border-gray-300 bg-background hover:border-gray-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent data-[state=checked]:bg-accent data-[state=checked]:border-[hsl(var(--accent))]"
                                     />
                                   </td>
                                   <td className="px-4 py-4 whitespace-nowrap">
-                                    <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                    <div className="text-sm font-medium text-gray-900">
                                       {formatDisplayDate(appointment.date)}
                                     </div>
-                                    <div className="text-sm text-gray-500 dark:text-gray-400">
+                                    <div className="text-sm text-gray-500">
                                       {(() => {
                                         const [hours, minutes] = appointment.time
                                           .split(':')
@@ -1660,25 +1629,25 @@ const AdminDashboard: React.FC = () => {
                                     </div>
                                   </td>
                                   <td className="px-4 py-4 whitespace-nowrap">
-                                    <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                    <div className="text-sm font-medium text-gray-900">
                                       {appointment.customerName}
                                     </div>
-                                    <div className="text-sm text-gray-500 dark:text-gray-400">
+                                    <div className="text-sm text-gray-500">
                                       {appointment.customerEmail}
                                     </div>
                                   </td>
                                   <td className="px-4 py-4 whitespace-nowrap">
-                                    <div className="text-sm text-gray-900 dark:text-gray-100">
+                                    <div className="text-sm text-gray-900">
                                       {appointment.stylist
                                         ? appointment.stylist.name
                                         : 'No stylist assigned'}
                                     </div>
                                   </td>
                                   <td className="px-4 py-4">
-                                    <div className="text-sm text-gray-900 dark:text-gray-100 mb-1">
+                                    <div className="text-sm text-gray-900 mb-1">
                                       {appointment.services.map(s => s.name).join(', ')}
                                     </div>
-                                    <div className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                                    <div className="text-sm font-semibold text-gray-900">
                                       ${appointment.totalPrice}
                                     </div>
                                   </td>
@@ -1687,25 +1656,25 @@ const AdminDashboard: React.FC = () => {
                                       const status = (appointment as any).status || 'SCHEDULED';
                                       if (status === 'COMPLETED') {
                                         return (
-                                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                                             Completed
                                           </span>
                                         );
                                       } else if (status === 'NO_SHOW') {
                                         return (
-                                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-muted text-gray-800 dark:bg-gray-700 dark:text-gray-300">
+                                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-muted text-gray-800">
                                             No-Show
                                           </span>
                                         );
                                       } else if (status === 'CANCELLED') {
                                         return (
-                                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">
+                                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
                                             Cancelled
                                           </span>
                                         );
                                       } else {
                                         return (
-                                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                                             Scheduled
                                           </span>
                                         );
@@ -1716,7 +1685,7 @@ const AdminDashboard: React.FC = () => {
                                     <div className="flex space-x-4">
                                       <button
                                         onClick={() => handleEditAppointment(appointment)}
-                                        className="text-accent hover:text-accent dark:text-accent dark:hover:text-accent transition-colors"
+                                        className="text-accent hover:text-accent transition-colors"
                                         title="Edit appointment"
                                       >
                                         <svg
@@ -1735,7 +1704,7 @@ const AdminDashboard: React.FC = () => {
                                       </button>
                                       <button
                                         onClick={() => handleCancelAppointment(appointment)}
-                                        className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 transition-colors"
+                                        className="text-red-600 hover:text-red-900 transition-colors"
                                         title="Cancel appointment"
                                       >
                                         <svg
@@ -1766,7 +1735,7 @@ const AdminDashboard: React.FC = () => {
                                           return (
                                             <button
                                               onClick={() => handleMarkNoShow(appointment)}
-                                              className="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
+                                              className="text-gray-600 hover:text-gray-900 transition-colors"
                                               title="Mark as no-show"
                                             >
                                               <svg
@@ -1796,9 +1765,9 @@ const AdminDashboard: React.FC = () => {
 
                         {/* Pagination Controls */}
                         {totalPages > 1 && (
-                          <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-muted dark:bg-gray-800">
+                          <div className="px-6 py-4 border-t border-gray-200 bg-muted">
                             <div className="flex items-center justify-between">
-                              <div className="text-sm text-gray-700 dark:text-gray-300">
+                              <div className="text-sm text-gray-700">
                                 Page {currentPage} of {totalPages}
                               </div>
                               <nav
@@ -1809,7 +1778,7 @@ const AdminDashboard: React.FC = () => {
                                 <button
                                   onClick={() => setCurrentPage(1)}
                                   disabled={currentPage === 1}
-                                  className="px-3 py-1 text-sm border rounded-none hover:bg-muted dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                  className="px-3 py-1 text-sm border rounded-none hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                   aria-label="Go to first page"
                                 >
                                   &laquo;
@@ -1817,7 +1786,7 @@ const AdminDashboard: React.FC = () => {
                                 <button
                                   onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                                   disabled={currentPage === 1}
-                                  className="px-3 py-1 text-sm border rounded-none hover:bg-muted dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                  className="px-3 py-1 text-sm border rounded-none hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                   aria-label="Go to previous page"
                                 >
                                   &lsaquo;
@@ -1835,7 +1804,7 @@ const AdminDashboard: React.FC = () => {
                                       className={`px-3 py-1 text-sm border rounded-none transition-colors ${
                                         currentPage === pageNum
                                           ? 'bg-accent border-accent text-white font-semibold'
-                                          : 'hover:bg-muted dark:hover:bg-gray-700'
+                                          : 'hover:bg-muted'
                                       }`}
                                       aria-label={`Go to page ${pageNum}`}
                                       aria-current={currentPage === pageNum ? 'page' : undefined}
@@ -1850,7 +1819,7 @@ const AdminDashboard: React.FC = () => {
                                     setCurrentPage(Math.min(totalPages, currentPage + 1))
                                   }
                                   disabled={currentPage === totalPages}
-                                  className="px-3 py-1 text-sm border rounded-none hover:bg-muted dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                  className="px-3 py-1 text-sm border rounded-none hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                   aria-label="Go to next page"
                                 >
                                   &rsaquo;
@@ -1858,7 +1827,7 @@ const AdminDashboard: React.FC = () => {
                                 <button
                                   onClick={() => setCurrentPage(totalPages)}
                                   disabled={currentPage === totalPages}
-                                  className="px-3 py-1 text-sm border rounded-none hover:bg-muted dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                  className="px-3 py-1 text-sm border rounded-none hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                   aria-label="Go to last page"
                                 >
                                   &raquo;
@@ -1923,12 +1892,12 @@ const AdminDashboard: React.FC = () => {
 
         {/* Cancel Appointment Dialog */}
         <AlertDialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
-          <AlertDialogContent className="fixed left-[50%] top-[50%] max-h-[85vh] w-[90vw] max-w-[500px] translate-x-[-50%] translate-y-[-50%] rounded-none bg-white dark:bg-gray-800 p-6  border border-gray-200 dark:border-gray-700 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%]">
+          <AlertDialogContent className="fixed left-[50%] top-[50%] max-h-[85vh] w-[90vw] max-w-[500px] translate-x-[-50%] translate-y-[-50%] rounded-none bg-white p-6  border border-gray-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%]">
             <AlertDialogHeader>
-              <AlertDialogTitle className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+              <AlertDialogTitle className="text-lg font-semibold text-gray-900 mb-2">
                 Cancel Appointment
               </AlertDialogTitle>
-              <AlertDialogDescription className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+              <AlertDialogDescription className="text-sm text-gray-600 mb-4">
                 Are you sure you want to cancel the appointment for{' '}
                 {appointmentToCancel?.customerName}?
               </AlertDialogDescription>
@@ -1950,16 +1919,16 @@ const AdminDashboard: React.FC = () => {
 
         {/* No-Show Dialog */}
         <AlertDialog open={noShowDialogOpen} onOpenChange={setNoShowDialogOpen}>
-          <AlertDialogContent className="fixed left-[50%] top-[50%] max-h-[85vh] w-[90vw] max-w-[500px] translate-x-[-50%] translate-y-[-50%] rounded-none bg-white dark:bg-gray-800 p-6  border border-gray-200 dark:border-gray-700 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%]">
+          <AlertDialogContent className="fixed left-[50%] top-[50%] max-h-[85vh] w-[90vw] max-w-[500px] translate-x-[-50%] translate-y-[-50%] rounded-none bg-white p-6  border border-gray-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%]">
             <AlertDialogHeader>
-              <AlertDialogTitle className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+              <AlertDialogTitle className="text-lg font-semibold text-gray-900 mb-2">
                 Mark as No-Show
               </AlertDialogTitle>
-              <AlertDialogDescription className="text-sm text-gray-600 dark:text-gray-400 mb-1">
+              <AlertDialogDescription className="text-sm text-gray-600 mb-1">
                 Mark {appointmentForNoShow?.customerName} as no-show?
               </AlertDialogDescription>
             </AlertDialogHeader>
-            <p className="text-xs text-gray-500 dark:text-gray-500 mb-4">
+            <p className="text-xs text-gray-500 mb-4">
               This will reverse their visit stats and exclude them from retention campaigns.
             </p>
             <AlertDialogFooter>
@@ -1979,12 +1948,12 @@ const AdminDashboard: React.FC = () => {
 
         {/* Bulk Cancel Dialog */}
         <AlertDialog open={bulkCancelDialogOpen} onOpenChange={setBulkCancelDialogOpen}>
-          <AlertDialogContent className="fixed left-[50%] top-[50%] max-h-[85vh] w-[90vw] max-w-[500px] translate-x-[-50%] translate-y-[-50%] rounded-none bg-white dark:bg-gray-800 p-6  border border-gray-200 dark:border-gray-700 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%]">
+          <AlertDialogContent className="fixed left-[50%] top-[50%] max-h-[85vh] w-[90vw] max-w-[500px] translate-x-[-50%] translate-y-[-50%] rounded-none bg-white p-6  border border-gray-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%]">
             <AlertDialogHeader>
-              <AlertDialogTitle className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+              <AlertDialogTitle className="text-lg font-semibold text-gray-900 mb-2">
                 Cancel Multiple Appointments
               </AlertDialogTitle>
-              <AlertDialogDescription className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+              <AlertDialogDescription className="text-sm text-gray-600 mb-4">
                 Are you sure you want to cancel {selectedAppointments.size} appointment
                 {selectedAppointments.size > 1 ? 's' : ''}?
               </AlertDialogDescription>

@@ -15,7 +15,7 @@ export function BookingProgress({ currentStep, totalSteps = 4, className }: Book
     <div className={cn('w-full flex flex-col items-center', className)}>
       <div className="relative w-full max-w-md">
         {/* Progress Bar */}
-        <Progress value={progress} className="h-1 bg-gray-200 dark:bg-gray-700" />
+        <Progress value={progress} className="h-1 bg-gray-200" />
 
         {/* Step Circles */}
         <div className="absolute top-1/2 left-0 w-full -translate-y-1/2 flex justify-between px-0.5">
@@ -29,17 +29,13 @@ export function BookingProgress({ currentStep, totalSteps = 4, className }: Book
                 key={stepNumber}
                 className={cn(
                   'relative flex h-4 w-4 items-center justify-center rounded-full border-2 transition-all duration-300',
-                  isActive
-                    ? 'border-stone-900 bg-white dark:border-white dark:bg-stone-900'
-                    : 'border-gray-300 bg-white dark:border-gray-600 dark:bg-gray-800',
-                  isCompleted && 'bg-stone-900 border-stone-900 dark:bg-white dark:border-white',
+                  isActive ? 'border-stone-900 bg-white' : 'border-gray-300 bg-white',
+                  isCompleted && 'bg-stone-900 border-stone-900',
                 )}
               >
-                {isCompleted && (
-                  <Check className="h-2.5 w-2.5 text-white dark:text-stone-900" strokeWidth={3} />
-                )}
+                {isCompleted && <Check className="h-2.5 w-2.5 text-white" strokeWidth={3} />}
                 {isActive && !isCompleted && (
-                  <div className="h-1.5 w-1.5 rounded-full bg-stone-900 dark:bg-white" />
+                  <div className="h-1.5 w-1.5 rounded-full bg-stone-900" />
                 )}
               </div>
             );

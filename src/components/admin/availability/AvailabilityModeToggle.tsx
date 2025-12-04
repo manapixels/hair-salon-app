@@ -1,4 +1,4 @@
-﻿export type AvailabilityMode = 'salon-wide' | 'per-stylist';
+export type AvailabilityMode = 'salon-wide' | 'per-stylist';
 
 interface AvailabilityModeToggleProps {
   mode: AvailabilityMode;

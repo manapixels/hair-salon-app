@@ -30,9 +30,9 @@ export const SimpleCategorySelector: React.FC<SimpleCategorySelectorProps> = ({
 
   return (
     <div id="service-selector" className="space-y-4">
-      <h2 className="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">{t('step1')}</h2>
+      <h2 className="text-xl font-semibold mb-4 text-gray-800">{t('step1')}</h2>
 
-      <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">{t('chooseCategoryDesc')}</p>
+      <p className="text-sm text-gray-600 mb-6">{t('chooseCategoryDesc')}</p>
 
       <div
         ref={containerRef}

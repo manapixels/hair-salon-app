@@ -26,8 +26,8 @@ export const TimeSlotCard: React.FC<{
           isSelected
             ? 'bg-accent ring-2 ring-accent shadow-lg scale-105'
             : isAvailable
-              ? 'bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 hover:border-accent hover:shadow-md'
-              : 'bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 opacity-50 cursor-not-allowed'
+              ? 'bg-white border-2 border-gray-200 hover:border-accent hover:shadow-md'
+              : 'bg-gray-50 border border-gray-200 opacity-50 cursor-not-allowed'
         }
       `}
       aria-label={`${time} to ${endTime}, ${durationText}`}
@@ -40,7 +40,7 @@ export const TimeSlotCard: React.FC<{
         {/* Duration bar */}
         <div
           className={`mb-1 rounded-full h-1.5 overflow-hidden ${
-            isSelected ? 'bg-accent/10' : 'bg-gray-200 dark:bg-gray-700'
+            isSelected ? 'bg-accent/10' : 'bg-gray-200'
           }`}
         >
           <div
@@ -52,16 +52,14 @@ export const TimeSlotCard: React.FC<{
         </div>
 
         {/* End time */}
-        <span
-          className={`text-xs ${isSelected ? 'text-white/90' : 'text-gray-600 dark:text-gray-400'}`}
-        >
+        <span className={`text-xs ${isSelected ? 'text-white/90' : 'text-gray-600'}`}>
           to {endTime}
         </span>
 
         {/* Duration label */}
         <div
           className={`flex items-center gap-1 text-xs ${
-            isSelected ? 'text-white/80' : 'text-gray-500 dark:text-gray-500'
+            isSelected ? 'text-white/80' : 'text-gray-500'
           }`}
         >
           <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">

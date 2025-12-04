@@ -1,4 +1,4 @@
-﻿type ColorScheme = 'primary' | 'amber' | 'teal' | 'rose';
+type ColorScheme = 'primary' | 'amber' | 'teal' | 'rose';
 
 interface ProcessStepProps {
   number: string;

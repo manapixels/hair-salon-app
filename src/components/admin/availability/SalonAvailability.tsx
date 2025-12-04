@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import type { TimeSlot, Appointment, AdminSettings } from '@/types';
 import { LoadingSpinner } from '@/components/feedback/loaders/LoadingSpinner';
@@ -109,11 +109,11 @@ export default function SalonAvailability({
       {/* Color Legend */}
       <div className="flex items-center space-x-6 text-sm">
         <div className="flex items-center space-x-[2]">
-          <div className="w-4 h-4 rounded-sm bg-green-100 dark:bg-green-800 border border-green-300 dark:border-green-700"></div>
+          <div className="w-4 h-4 rounded-sm bg-green-100 border border-green-300"></div>
           <span className="text-muted-foreground">Available</span>
         </div>
         <div className="flex items-center space-x-[2]">
-          <div className="w-4 h-4 rounded-sm bg-gray-300 dark:bg-gray-600 border border-gray-400 dark:border-gray-500"></div>
+          <div className="w-4 h-4 rounded-sm bg-gray-300 border border-gray-400"></div>
           <span className="text-muted-foreground">Blocked</span>
         </div>
         <div className="flex items-center space-x-[2]">
@@ -129,7 +129,7 @@ export default function SalonAvailability({
           type="date"
           value={selectedDate.toISOString().split('T')[0]}
           onChange={e => setSelectedDate(new Date(e.target.value))}
-          className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-background text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:border-accent hover:border-gray-400 dark:hover:border-gray-500 transition-colors"
+          className="px-3 py-2 border border-gray-300 rounded-md text-sm bg-background text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:border-accent hover:border-gray-400 transition-colors"
           aria-label="Select date to manage availability"
         />
       </div>
@@ -176,11 +176,9 @@ export default function SalonAvailability({
             if (isBooked) {
               buttonClass = 'bg-red-500 text-white cursor-not-allowed';
             } else if (available) {
-              buttonClass =
-                'bg-green-100 dark:bg-green-800 text-green-800 dark:text-green-100 hover:bg-green-200 dark:hover:bg-green-700';
+              buttonClass = 'bg-green-100 text-green-800 hover:bg-green-200';
             } else {
-              buttonClass =
-                'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 hover:bg-gray-400 dark:hover:bg-gray-500';
+              buttonClass = 'bg-gray-300 text-gray-500 hover:bg-gray-400';
             }
 
             return (

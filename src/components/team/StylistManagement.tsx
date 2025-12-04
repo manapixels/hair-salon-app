@@ -119,7 +119,7 @@ export default function StylistManagement({ onClose }: StylistManagementProps) {
     <>
       <div>
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Stylist Management</h2>
+          <h2 className="text-2xl font-bold text-gray-900">Stylist Management</h2>
           <div className="flex space-x-3">
             <button
               onClick={() => setShowAddModal(true)}
@@ -131,7 +131,7 @@ export default function StylistManagement({ onClose }: StylistManagementProps) {
             {onClose && (
               <button
                 onClick={onClose}
-                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+                className="text-gray-500 hover:text-gray-700"
                 aria-label="Close stylist management"
               >
                 <X className="h-5 w-5" aria-hidden="true" />
@@ -141,12 +141,10 @@ export default function StylistManagement({ onClose }: StylistManagementProps) {
         </div>
 
         {stylists.length === 0 ? (
-          <div className="bg-gray-50 dark:bg-gray-700 p-8 rounded-lg text-center">
+          <div className="bg-gray-50 p-8 rounded-lg text-center">
             <Users className="h-16 w-16 text-gray-400 mx-auto mb-4" aria-hidden="true" />
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-              No stylists yet
-            </h3>
-            <p className="text-gray-600 dark:text-gray-400 mb-4">
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No stylists yet</h3>
+            <p className="text-gray-600 mb-4">
               Add your first stylist to start managing appointments by staff.
             </p>
             <button
@@ -159,10 +157,7 @@ export default function StylistManagement({ onClose }: StylistManagementProps) {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {stylists.map(stylist => (
-              <div
-                key={stylist.id}
-                className="bg-white dark:bg-gray-700 p-4 rounded-lg border border-gray-200 dark:border-gray-600"
-              >
+              <div key={stylist.id} className="bg-white p-4 rounded-lg border border-gray-200">
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center">
                     {stylist.avatar ? (
@@ -174,18 +169,13 @@ export default function StylistManagement({ onClose }: StylistManagementProps) {
                         className="w-12 h-12 rounded-full mr-3"
                       />
                     ) : (
-                      <div className="w-12 h-12 bg-gray-300 dark:bg-gray-600 rounded-full flex items-center justify-center mr-3">
-                        <User
-                          className="h-6 w-6 text-gray-600 dark:text-gray-400"
-                          aria-hidden="true"
-                        />
+                      <div className="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center mr-3">
+                        <User className="h-6 w-6 text-gray-600" aria-hidden="true" />
                       </div>
                     )}
                     <div>
-                      <h3 className="font-semibold text-gray-900 dark:text-white">
-                        {stylist.name}
-                      </h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">{stylist.email}</p>
+                      <h3 className="font-semibold text-gray-900">{stylist.name}</h3>
+                      <p className="text-sm text-gray-600">{stylist.email}</p>
                     </div>
                   </div>
                   <div className="flex space-x-2">
@@ -208,19 +198,15 @@ export default function StylistManagement({ onClose }: StylistManagementProps) {
                   </div>
                 </div>
 
-                {stylist.bio && (
-                  <p className="text-sm text-gray-700 dark:text-gray-300 mb-3">{stylist.bio}</p>
-                )}
+                {stylist.bio && <p className="text-sm text-gray-700 mb-3">{stylist.bio}</p>}
 
                 <div className="mb-3">
-                  <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-1">
-                    Specialties:
-                  </h4>
+                  <h4 className="text-sm font-medium text-gray-900 mb-1">Specialties:</h4>
                   <div className="flex flex-wrap gap-1">
                     {stylist.specialties.map(service => (
                       <span
                         key={service.id}
-                        className="inline-block bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 text-xs px-2 py-1 rounded"
+                        className="inline-block bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded"
                       >
                         {service.name}
                       </span>
@@ -228,7 +214,7 @@ export default function StylistManagement({ onClose }: StylistManagementProps) {
                   </div>
                 </div>
 
-                <div className="text-xs text-gray-600 dark:text-gray-400">
+                <div className="text-xs text-gray-600">
                   <div className="grid grid-cols-2 gap-1">
                     {Object.entries(stylist.workingHours).map(([day, hours]) => (
                       <div key={day} className="flex justify-between">
@@ -430,10 +416,7 @@ function StylistModal({ isOpen, onClose, stylist, availableServices, onSave }: S
           </div>
 
           <div>
-            <label
-              htmlFor="stylist-bio"
-              className="block text-sm font-medium text-gray-900 dark:text-white mb-2"
-            >
+            <label htmlFor="stylist-bio" className="block text-sm font-medium text-gray-900 mb-2">
               Bio
             </label>
             <Textarea
@@ -448,19 +431,15 @@ function StylistModal({ isOpen, onClose, stylist, availableServices, onSave }: S
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
-              Specialties *
-            </label>
-            <div className="grid grid-cols-1 gap-3 max-h-60 overflow-y-auto border border-gray-200 dark:border-gray-600 rounded-md p-3">
+            <label className="block text-sm font-medium text-gray-900 mb-2">Specialties *</label>
+            <div className="grid grid-cols-1 gap-3 max-h-60 overflow-y-auto border border-gray-200 rounded-md p-3">
               {availableServices.map(service => {
                 const isSelected = formData.specialtyIds.includes(service.id);
                 return (
                   <label
                     key={service.id}
                     className={`flex items-center p-3 rounded-md border cursor-pointer transition-colors ${
-                      isSelected
-                        ? 'border-accent bg-accent/10 dark:bg-accent/10'
-                        : 'border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
+                      isSelected ? 'border-accent bg-accent/10' : 'border-gray-200 hover:bg-gray-50'
                     }`}
                   >
                     <Checkbox
@@ -471,20 +450,12 @@ function StylistModal({ isOpen, onClose, stylist, availableServices, onSave }: S
                     <div className="flex-1">
                       <div className="flex justify-between items-start">
                         <div>
-                          <h4 className="font-medium text-gray-900 dark:text-white">
-                            {service.name}
-                          </h4>
-                          <p className="text-sm text-gray-600 dark:text-gray-400">
-                            {service.description}
-                          </p>
+                          <h4 className="font-medium text-gray-900">{service.name}</h4>
+                          <p className="text-sm text-gray-600">{service.description}</p>
                         </div>
                         <div className="text-right">
-                          <div className="font-semibold text-gray-900 dark:text-white">
-                            ${service.price}
-                          </div>
-                          <div className="text-sm text-gray-600 dark:text-gray-400">
-                            {service.duration} min
-                          </div>
+                          <div className="font-semibold text-gray-900">${service.price}</div>
+                          <div className="text-sm text-gray-600">{service.duration} min</div>
                         </div>
                       </div>
                     </div>
@@ -496,22 +467,22 @@ function StylistModal({ isOpen, onClose, stylist, availableServices, onSave }: S
 
           {/* Blocked Dates Section */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               Blocked Dates (Holidays/Days Off)
             </label>
-            <div className="border border-gray-200 dark:border-gray-600 rounded-md p-3">
+            <div className="border border-gray-200 rounded-md p-3">
               <div className="space-y-2 mb-3">
                 {formData.blockedDates.length === 0 ? (
-                  <p className="text-sm text-gray-500 dark:text-gray-400 italic">
+                  <p className="text-sm text-gray-500 italic">
                     No blocked dates. Stylist is available according to their schedule.
                   </p>
                 ) : (
                   formData.blockedDates.map(date => (
                     <div
                       key={date}
-                      className="flex items-center justify-between bg-gray-50 dark:bg-gray-700 p-2 rounded"
+                      className="flex items-center justify-between bg-gray-50 p-2 rounded"
                     >
-                      <span className="text-sm text-gray-900 dark:text-white">{date}</span>
+                      <span className="text-sm text-gray-900">{date}</span>
                       <button
                         type="button"
                         onClick={() =>
@@ -533,7 +504,7 @@ function StylistModal({ isOpen, onClose, stylist, availableServices, onSave }: S
                   type="date"
                   value={newBlockedDate}
                   onChange={e => setNewBlockedDate(e.target.value)}
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm"
                   min={new Date().toISOString().split('T')[0]}
                 />
                 <button

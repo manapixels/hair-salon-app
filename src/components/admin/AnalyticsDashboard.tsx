@@ -60,11 +60,11 @@ export default function AnalyticsDashboard() {
     <div className="space-y-6">
       {/* Time Range Selector */}
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">AI Agent Analytics</h2>
+        <h2 className="text-2xl font-bold text-gray-900">AI Agent Analytics</h2>
         <select
           value={timeRange}
           onChange={e => setTimeRange(e.target.value as any)}
-          className="px-4 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700"
+          className="px-4 py-2 border rounded-lg"
         >
           <option value="7d">Last 7 days</option>
           <option value="30d">Last 30 days</option>
@@ -76,10 +76,10 @@ export default function AnalyticsDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardContent className="p-6">
-            <div className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
+            <div className="text-sm font-medium text-gray-600 mb-1">
               Total Flagged Conversations
             </div>
-            <div className="text-3xl font-bold text-gray-900 dark:text-white">
+            <div className="text-3xl font-bold text-gray-900">
               {data.flaggedConversations.total}
             </div>
             <div className="text-sm text-green-600 mt-1">
@@ -90,10 +90,8 @@ export default function AnalyticsDashboard() {
 
         <Card>
           <CardContent className="p-6">
-            <div className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
-              Avg Resolution Time
-            </div>
-            <div className="text-3xl font-bold text-gray-900 dark:text-white">
+            <div className="text-sm font-medium text-gray-600 mb-1">Avg Resolution Time</div>
+            <div className="text-3xl font-bold text-gray-900">
               {data.flaggedConversations.avgResolutionTime.toFixed(1)}h
             </div>
             <div className="text-sm text-gray-500 mt-1">Time to resolve flags</div>
@@ -102,10 +100,8 @@ export default function AnalyticsDashboard() {
 
         <Card>
           <CardContent className="p-6">
-            <div className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
-              KB Success Rate
-            </div>
-            <div className="text-3xl font-bold text-gray-900 dark:text-white">
+            <div className="text-sm font-medium text-gray-600 mb-1">KB Success Rate</div>
+            <div className="text-3xl font-bold text-gray-900">
               {data.knowledgeBase.successRate}%
             </div>
             <div className="text-sm text-gray-500 mt-1">Questions answered</div>
@@ -114,12 +110,8 @@ export default function AnalyticsDashboard() {
 
         <Card>
           <CardContent className="p-6">
-            <div className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
-              Positive Sentiment
-            </div>
-            <div className="text-3xl font-bold text-gray-900 dark:text-white">
-              {data.userSentiment.positive}
-            </div>
+            <div className="text-sm font-medium text-gray-600 mb-1">Positive Sentiment</div>
+            <div className="text-3xl font-bold text-gray-900">{data.userSentiment.positive}</div>
             <div className="text-sm text-gray-500 mt-1">Happy customers</div>
           </CardContent>
         </Card>
@@ -134,8 +126,8 @@ export default function AnalyticsDashboard() {
           <div className="space-y-3">
             {data.flaggedConversations.topReasons.map((reason, index) => (
               <div key={index} className="flex justify-between items-center">
-                <span className="text-gray-700 dark:text-gray-300">{reason.reason}</span>
-                <span className="px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded-full text-sm font-medium">
+                <span className="text-gray-700">{reason.reason}</span>
+                <span className="px-3 py-1 bg-gray-100 rounded-full text-sm font-medium">
                   {reason.count}
                 </span>
               </div>
@@ -152,11 +144,8 @@ export default function AnalyticsDashboard() {
         <CardContent>
           <div className="space-y-2">
             {data.knowledgeBase.topMissingQueries.map((query, index) => (
-              <div
-                key={index}
-                className="p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg"
-              >
-                <p className="text-sm text-gray-800 dark:text-gray-200">&quot;{query}&quot;</p>
+              <div key={index} className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <p className="text-sm text-gray-800">&quot;{query}&quot;</p>
               </div>
             ))}
           </div>
@@ -171,8 +160,8 @@ export default function AnalyticsDashboard() {
         <CardContent>
           <div className="space-y-3">
             <div className="flex items-center">
-              <div className="w-24 text-sm text-gray-600 dark:text-gray-400">Positive</div>
-              <div className="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-4">
+              <div className="w-24 text-sm text-gray-600">Positive</div>
+              <div className="flex-1 bg-gray-200 rounded-full h-4">
                 <div
                   className="bg-green-500 h-4 rounded-full"
                   style={{
@@ -185,8 +174,8 @@ export default function AnalyticsDashboard() {
               </div>
             </div>
             <div className="flex items-center">
-              <div className="w-24 text-sm text-gray-600 dark:text-gray-400">Neutral</div>
-              <div className="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-4">
+              <div className="w-24 text-sm text-gray-600">Neutral</div>
+              <div className="flex-1 bg-gray-200 rounded-full h-4">
                 <div
                   className="bg-gray-400 h-4 rounded-full"
                   style={{
@@ -199,8 +188,8 @@ export default function AnalyticsDashboard() {
               </div>
             </div>
             <div className="flex items-center">
-              <div className="w-24 text-sm text-gray-600 dark:text-gray-400">Negative</div>
-              <div className="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-4">
+              <div className="w-24 text-sm text-gray-600">Negative</div>
+              <div className="flex-1 bg-gray-200 rounded-full h-4">
                 <div
                   className="bg-red-500 h-4 rounded-full"
                   style={{

@@ -56,10 +56,10 @@ const TimeSlotGroup: React.FC<TimeSlotGroupProps> = ({
 
   return (
     <div className="space-y-2">
-      <div className="flex items-center gap-2 text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-3">
+      <div className="flex items-center gap-2 text-xs font-semibold text-gray-600 uppercase tracking-wide mb-3">
         {icon}
         <span>{title}</span>
-        <span className="text-gray-400 dark:text-gray-500">({slots.length})</span>
+        <span className="text-gray-400">({slots.length})</span>
       </div>
 
       <div className="space-y-2">
@@ -81,9 +81,9 @@ const TimeSlotGroup: React.FC<TimeSlotGroupProps> = ({
                 ${
                   isSelected
                     ? 'border-accent bg-accent shadow-md'
-                    : 'border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 hover:border-accent hover:bg-accent/10 dark:hover:bg-accent/10 hover:shadow-sm'
+                    : 'border-gray-200 text-gray-900 hover:border-accent hover:bg-accent/10 hover:shadow-sm'
                 }
-                ${!available ? 'opacity-50 cursor-not-allowed hover:border-gray-200 dark:hover:border-gray-700 hover:bg-transparent hover:shadow-none' : 'cursor-pointer'}
+                ${!available ? 'opacity-50 cursor-not-allowed hover:border-gray-200 hover:bg-transparent hover:shadow-none' : 'cursor-pointer'}
               `}
             >
               <div className="flex items-center justify-between">
@@ -118,7 +118,7 @@ export const TimeSlotList: React.FC<TimeSlotListProps> = ({
     return (
       <div className="space-y-2 animate-pulse">
         {Array.from({ length: 8 }).map((_, i) => (
-          <div key={i} className="h-12 bg-gray-100 dark:bg-gray-700 rounded-lg" />
+          <div key={i} className="h-12 bg-gray-100 rounded-lg" />
         ))}
       </div>
     );
@@ -128,7 +128,7 @@ export const TimeSlotList: React.FC<TimeSlotListProps> = ({
     return (
       <div className="text-center py-12">
         <svg
-          className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500"
+          className="mx-auto h-12 w-12 text-gray-400"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -140,10 +140,8 @@ export const TimeSlotList: React.FC<TimeSlotListProps> = ({
             d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
           />
         </svg>
-        <p className="mt-4 text-gray-600 dark:text-gray-400 font-medium">No available time slots</p>
-        <p className="text-sm text-gray-500 dark:text-gray-500 mt-1">
-          Try selecting a different date
-        </p>
+        <p className="mt-4 text-gray-600 font-medium">No available time slots</p>
+        <p className="text-sm text-gray-500 mt-1">Try selecting a different date</p>
       </div>
     );
   }

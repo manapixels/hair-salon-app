@@ -74,12 +74,10 @@ export function MobileDateTimePicker({
       {/* Date Selection Section */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-            {format(selectedDate, 'MMMM')}
-          </h3>
+          <h3 className="text-lg font-semibold text-gray-900">{format(selectedDate, 'MMMM')}</h3>
           <button
             onClick={() => setIsCalendarExpanded(!isCalendarExpanded)}
-            className="flex items-center gap-1 text-sm font-medium text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors"
+            className="flex items-center gap-1 text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors"
           >
             {isCalendarExpanded ? 'Less dates' : 'More dates'}
             {isCalendarExpanded ? (
@@ -91,7 +89,7 @@ export function MobileDateTimePicker({
         </div>
 
         {isCalendarExpanded ? (
-          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 animate-in slide-in-from-top-2">
+          <div className="bg-white rounded-xl border border-gray-200 p-4 animate-in slide-in-from-top-2">
             <CalendarView
               selectedDate={selectedDate}
               onDateChange={handleDateClick}
@@ -122,17 +120,17 @@ export function MobileDateTimePicker({
                     ${
                       isSelected
                         ? 'bg-primary border-primary text-white shadow-md scale-105'
-                        : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600'
+                        : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300'
                     }
                   `}
                 >
                   <span
-                    className={`text-xs font-medium mb-1 ${isSelected ? 'text-white/70' : 'text-gray-500 dark:text-gray-400'}`}
+                    className={`text-xs font-medium mb-1 ${isSelected ? 'text-white/70' : 'text-gray-500'}`}
                   >
                     {format(date, 'EEE')}
                   </span>
                   <span
-                    className={`text-xl font-bold ${isSelected ? 'text-white' : 'text-gray-900 dark:text-white'}`}
+                    className={`text-xl font-bold ${isSelected ? 'text-white' : 'text-gray-900'}`}
                   >
                     {format(date, 'dd')}
                   </span>
@@ -146,29 +144,26 @@ export function MobileDateTimePicker({
       {/* Time Selection Section */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Available Times</h3>
+          <h3 className="text-lg font-semibold text-gray-900">Available Times</h3>
           {loading && <span className="text-xs text-gray-500">Loading...</span>}
         </div>
 
         {loading ? (
           <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4">
             {[1, 2, 3, 4].map(i => (
-              <div
-                key={i}
-                className="min-w-[100px] h-12 bg-gray-100 dark:bg-gray-800 rounded-full animate-pulse"
-              />
+              <div key={i} className="min-w-[100px] h-12 bg-gray-100 rounded-full animate-pulse" />
             ))}
           </div>
         ) : timeSlots.length === 0 ? (
-          <div className="text-center py-8 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-dashed border-gray-200 dark:border-gray-700">
-            <p className="text-gray-500 dark:text-gray-400">No slots available for this date</p>
+          <div className="text-center py-8 bg-gray-50 rounded-xl border border-dashed border-gray-200">
+            <p className="text-gray-500">No slots available for this date</p>
           </div>
         ) : (
           <div className="space-y-6">
             {/* Morning */}
             {groupedSlots.morning.length > 0 && (
               <div className="space-y-3">
-                <h4 className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                <h4 className="text-sm font-medium text-gray-500 uppercase tracking-wider">
                   Morning
                 </h4>
                 <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide">
@@ -187,7 +182,7 @@ export function MobileDateTimePicker({
             {/* Afternoon */}
             {groupedSlots.afternoon.length > 0 && (
               <div className="space-y-3">
-                <h4 className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                <h4 className="text-sm font-medium text-gray-500 uppercase tracking-wider">
                   Afternoon
                 </h4>
                 <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide">
@@ -206,7 +201,7 @@ export function MobileDateTimePicker({
             {/* Evening */}
             {groupedSlots.evening.length > 0 && (
               <div className="space-y-3">
-                <h4 className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                <h4 className="text-sm font-medium text-gray-500 uppercase tracking-wider">
                   Evening
                 </h4>
                 <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide">
@@ -247,10 +242,10 @@ function TimeChip({
         flex-shrink-0 px-5 py-2.5 rounded-full text-sm font-medium transition-all
         ${
           isSelected
-            ? 'bg-primary text-black shadow-md scale-105 ring-2 ring-primary ring-offset-2 dark:ring-offset-gray-900'
-            : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+            ? 'bg-primary text-black shadow-md scale-105 ring-2 ring-primary ring-offset-2'
+            : 'bg-white text-gray-700 border border-gray-200 hover:border-gray-300'
         }
-        ${!slot.available && 'opacity-50 cursor-not-allowed bg-gray-50 dark:bg-gray-900 text-gray-400'}
+        ${!slot.available && 'opacity-50 cursor-not-allowed bg-gray-50 text-gray-400'}
       `}
     >
       {slot.time}

@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState, useMemo, useEffect } from 'react';
 import dynamic from 'next/dynamic';
@@ -39,11 +39,11 @@ const StylistSelectorLoading = () => {
   const t = useTranslations('BookingForm');
   return (
     <div className="scroll-mt-24">
-      <h2 className="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-200">{t('step2')}</h2>
+      <h2 className="text-lg font-semibold mb-4 text-gray-800">{t('step2')}</h2>
       <div className="space-y-4">
         <div className="flex items-center gap-2 mb-4">
           <LoadingSpinner size="sm" />
-          <p className="text-sm text-gray-600 dark:text-gray-400">{t('loadingStylists')}</p>
+          <p className="text-sm text-gray-600">{t('loadingStylists')}</p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           <StylistCardSkeleton count={3} />
@@ -65,7 +65,7 @@ const DateTimePickerLoading = () => {
   const t = useTranslations('BookingForm');
   return (
     <div>
-      <h2 className="text-lg font-semibold mb-6 text-gray-800 dark:text-gray-200">{t('step3')}</h2>
+      <h2 className="text-lg font-semibold mb-6 text-gray-800">{t('step3')}</h2>
       <div className="flex items-center justify-center p-8">
         <LoadingSpinner message={t('loadingCalendar')} />
       </div>
@@ -99,7 +99,7 @@ const CollapsedStepSummary: React.FC<{
   const t = useTranslations('BookingForm');
   return (
     <div
-      className="border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 rounded-lg mb-4 transition-all duration-200"
+      className="border border-gray-300 bg-gray-50 rounded-lg mb-4 transition-all duration-200"
       role="region"
       aria-label={`Completed: ${selection}`}
     >
@@ -107,26 +107,26 @@ const CollapsedStepSummary: React.FC<{
         <div className="flex items-start gap-2 flex-1 min-w-0 p-3">
           {/* Checkmark */}
           <div className="flex items-center justify-center w-6 h-6 shrink-0">
-            <Check strokeWidth={4} className="h-3.5 w-3.5 text-gray-600 dark:text-gray-400" />
+            <Check strokeWidth={4} className="h-3.5 w-3.5 text-gray-600" />
           </div>
 
           <div className="flex-1 min-w-0">
             {/* Title */}
             <h3 id={id} className="text-sm mb-1">
               <span className="text-gray-600">{selectionType}</span>:{' '}
-              <b className="text-primary dark:text-gray-300 font-medium">{selection}</b>
+              <b className="text-primary font-medium">{selection}</b>
             </h3>
 
             {/* Optional badges */}
             {(price || duration) && (
               <div className="flex items-center gap-2 flex-wrap">
                 {price && (
-                  <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300">
+                  <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-200 text-gray-700">
                     {price}
                   </span>
                 )}
                 {duration && (
-                  <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300">
+                  <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-200 text-gray-700">
                     {duration}
                   </span>
                 )}
@@ -138,7 +138,7 @@ const CollapsedStepSummary: React.FC<{
         {/* Single Edit button */}
         <Button
           variant="secondary"
-          className="bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 h-auto self-stretch"
+          className="bg-gray-100 hover:bg-gray-200 h-auto self-stretch"
           onClick={e => {
             e.stopPropagation();
             e.preventDefault();
@@ -175,8 +175,8 @@ const TimeSlotCard: React.FC<{
           isSelected
             ? 'bg-accent ring-2 ring-accent shadow-lg scale-105'
             : isAvailable
-              ? 'bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 hover:border-accent hover:shadow-md'
-              : 'bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 opacity-50 cursor-not-allowed'
+              ? 'bg-white border-2 border-gray-200 hover:border-accent hover:shadow-md'
+              : 'bg-gray-50 border border-gray-200 opacity-50 cursor-not-allowed'
         }
       `}
       aria-label={`${time} to ${endTime}, ${durationText}`}
@@ -189,7 +189,7 @@ const TimeSlotCard: React.FC<{
         {/* Duration bar */}
         <div
           className={`mb-1 rounded-full h-1.5 overflow-hidden ${
-            isSelected ? 'bg-accent/10' : 'bg-gray-200 dark:bg-gray-700'
+            isSelected ? 'bg-accent/10' : 'bg-gray-200'
           }`}
         >
           <div
@@ -201,16 +201,14 @@ const TimeSlotCard: React.FC<{
         </div>
 
         {/* End time */}
-        <span
-          className={`text-xs ${isSelected ? 'text-white/90' : 'text-gray-600 dark:text-gray-400'}`}
-        >
+        <span className={`text-xs ${isSelected ? 'text-white/90' : 'text-gray-600'}`}>
           {t('to')} {endTime}
         </span>
 
         {/* Duration label */}
         <div
           className={`flex items-center gap-1 text-xs ${
-            isSelected ? 'text-white/80' : 'text-gray-500 dark:text-gray-500'
+            isSelected ? 'text-white/80' : 'text-gray-500'
           }`}
         >
           <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -269,9 +267,7 @@ const DateTimePicker: React.FC<{
 
   return (
     <div>
-      <h2 className="text-lg font-semibold mb-6 text-gray-800 dark:text-gray-200">
-        3. Select Date & Time
-      </h2>
+      <h2 className="text-lg font-semibold mb-6 text-gray-800">3. Select Date & Time</h2>
 
       {/* Time Slots */}
       {showLoader ? (
@@ -281,13 +277,11 @@ const DateTimePicker: React.FC<{
       ) : (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">
+            <h3 className="text-lg font-medium text-gray-900">
               Available Times for{' '}
-              <span className="text-accent dark:text-accent font-bold">
-                {format(selectedDate, 'EEEE, MMMM d')}
-              </span>
+              <span className="text-accent font-bold">{format(selectedDate, 'EEEE, MMMM d')}</span>
             </h3>
-            <span className="text-sm text-gray-500 dark:text-gray-400">
+            <span className="text-sm text-gray-500">
               {timeSlots.length} {timeSlots.length !== 1 ? t('slotsAvailable') : t('slot')}
             </span>
           </div>
@@ -305,9 +299,9 @@ const DateTimePicker: React.FC<{
                 />
               ))
             ) : (
-              <div className="col-span-full text-center p-8 bg-gray-50 dark:bg-gray-800/50 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-700">
+              <div className="col-span-full text-center p-8 bg-gray-50 rounded-xl border-2 border-dashed border-gray-300">
                 <svg
-                  className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500"
+                  className="mx-auto h-12 w-12 text-gray-400"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -319,10 +313,10 @@ const DateTimePicker: React.FC<{
                     d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
                   />
                 </svg>
-                <p className="mt-2 text-gray-600 dark:text-gray-400 font-medium">
+                <p className="mt-2 text-gray-600 font-medium">
                   {t('noSlots')} {format(selectedDate, 'MMMM d, yyyy')}
                 </p>
-                <p className="text-sm text-gray-500 dark:text-gray-500 mt-1">{t('tryDifferent')}</p>
+                <p className="text-sm text-gray-500 mt-1">{t('tryDifferent')}</p>
               </div>
             )}
           </div>
@@ -379,10 +373,7 @@ const ConfirmationForm: React.FC<{
   };
   return (
     <div>
-      <h2
-        id="step-4-heading"
-        className="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-200"
-      >
+      <h2 id="step-4-heading" className="text-lg font-semibold mb-4 text-gray-800">
         {t('step4')}
       </h2>
 
@@ -395,17 +386,13 @@ const ConfirmationForm: React.FC<{
         totalDuration={totalDuration}
       />
 
-      <form onSubmit={handleSubmit} className="max-w-lg bg-gray-50/50 dark:bg-gray-800 rounded-xl">
+      <form onSubmit={handleSubmit} className="max-w-lg bg-gray-50/50 rounded-xl">
         <div className="px-6 py-4 space-y-2 mb-2">
           <div className="flex items-center justify-between">
-            <div className="text-md font-semibold text-gray-800 dark:text-gray-200">
-              {t('bookingUsing')}
-            </div>
-            <div className="text-sm text-gray-500 dark:text-gray-400">
-              {user ? t('loggedIn') : t('notLoggedIn')}
-            </div>
+            <div className="text-md font-semibold text-gray-800">{t('bookingUsing')}</div>
+            <div className="text-sm text-gray-500">{user ? t('loggedIn') : t('notLoggedIn')}</div>
           </div>
-          <InputGroup className="bg-white dark:bg-gray-800">
+          <InputGroup className="bg-white">
             <InputGroupInput
               id="name"
               type="text"
@@ -422,7 +409,7 @@ const ConfirmationForm: React.FC<{
             </InputGroupAddon>
           </InputGroup>
 
-          <InputGroup className="bg-white dark:bg-gray-800">
+          <InputGroup className="bg-white">
             <InputGroupInput
               id="email"
               type="email"
@@ -486,22 +473,22 @@ const BookingSummary: React.FC<{
 }) => {
   const t = useTranslations('BookingForm');
   return (
-    <div className="p-6 bg-white dark:bg-gray-800 rounded-2xl shadow-lg sticky top-8">
-      <div className="flex justify-between items-center mb-5 border-b pb-4 dark:border-gray-700">
+    <div className="p-6 bg-white rounded-2xl shadow-lg sticky top-8">
+      <div className="flex justify-between items-center mb-5 border-b pb-4">
         <h3 className="text-xl font-bold">{t('bookingSummary')}</h3>
         <button onClick={onClear} className="text-sm text-red-500 hover:underline font-semibold">
           {t('clearAll')}
         </button>
       </div>
       {selectedServices.length === 0 ? (
-        <p className="text-gray-500 dark:text-gray-400">{t('selectServices')}</p>
+        <p className="text-gray-500">{t('selectServices')}</p>
       ) : (
         <>
           <div className="space-y-3 mb-4">
             {selectedServices.map(s => (
               <div key={s.id}>
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-700 dark:text-gray-300">{s.name}</span>
+                  <span className="text-gray-700">{s.name}</span>
                   <span className="font-semibold">${s.basePrice}</span>
                 </div>
                 {s.addons &&
@@ -522,27 +509,27 @@ const BookingSummary: React.FC<{
               </div>
             ))}
           </div>
-          <div className="border-t pt-4 dark:border-gray-700 space-y-2">
+          <div className="border-t pt-4 space-y-2">
             <div className="flex justify-between font-bold text-lg">
               <span>{t('total')}</span>
               <span>${totalPrice}</span>
             </div>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
+            <p className="text-sm text-gray-500">
               {t('totalDuration')}: {totalDuration} {t('mins')}
             </p>
             {selectedStylist && (
-              <p className="text-sm text-gray-700 dark:text-gray-300">
+              <p className="text-sm text-gray-700">
                 {t('stylist')}: <span className="font-semibold">{selectedStylist.name}</span>
               </p>
             )}
             {selectedDate && (
-              <p className="text-sm text-gray-700 dark:text-gray-300">
+              <p className="text-sm text-gray-700">
                 {t('date')}:{' '}
                 <span className="font-semibold">{formatDisplayDate(selectedDate)}</span>
               </p>
             )}
             {selectedTime && (
-              <p className="text-sm font-bold text-accent dark:text-accent">
+              <p className="text-sm font-bold text-accent">
                 {t('time')}: {selectedTime}
               </p>
             )}
@@ -843,17 +830,13 @@ Please confirm availability. Thank you!`;
 
   if (bookingConfirmed) {
     return (
-      <div className="text-center p-8 bg-white dark:bg-gray-800 rounded-lg max-w-lg mx-auto">
-        <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-green-100 dark:bg-green-800">
-          <Check className="h-10 w-10 text-green-600 dark:text-green-300" aria-hidden="true" />
+      <div className="text-center p-8 bg-white rounded-lg max-w-lg mx-auto">
+        <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-green-100">
+          <Check className="h-10 w-10 text-green-600" aria-hidden="true" />
         </div>
-        <h2 className="mt-4 text-3xl font-bold text-gray-900 dark:text-white">
-          Booking Confirmed!
-        </h2>
-        <p className="mt-2 text-gray-600 dark:text-gray-300">
-          Thank you, {bookingConfirmed.customerName}.
-        </p>
-        <div className="mt-6 text-left bg-gray-50 dark:bg-gray-700 p-4 rounded-md space-y-2">
+        <h2 className="mt-4 text-3xl font-bold text-gray-900">Booking Confirmed!</h2>
+        <p className="mt-2 text-gray-600">Thank you, {bookingConfirmed.customerName}.</p>
+        <div className="mt-6 text-left bg-gray-50 p-4 rounded-md space-y-2">
           <p>
             <strong>Service Category:</strong> {bookingConfirmed.category?.title || 'N/A'}
           </p>

@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React, { useState, useEffect, memo } from 'react';
 import { Button } from '@/components/ui/button';
@@ -78,8 +78,8 @@ export const MobileBookingSummary = memo<MobileBookingSummaryProps>(
       <div
         className={`
         fixed bottom-0 left-0 right-0 z-50
-        bg-white dark:bg-gray-900
-        border-t border-gray-200 dark:border-gray-800
+        bg-white
+        border-t border-gray-200
         shadow-lg transition-all duration-300 ease-in-out
         pb-safe-bottom
         ${isCompact ? 'py-2' : 'py-4'}
@@ -96,17 +96,17 @@ export const MobileBookingSummary = memo<MobileBookingSummaryProps>(
           <div className="flex items-center justify-between gap-4">
             <div className="flex-1">
               {!isCompact && (
-                <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-0.5">
+                <p className="text-xs font-medium text-gray-500 mb-0.5">
                   {t('stepOf', { current: currentStep, total: totalSteps })}
                 </p>
               )}
               <div className="flex items-baseline gap-2">
-                <span className="text-base font-semibold text-gray-900 dark:text-white">
+                <span className="text-base font-semibold text-gray-900">
                   {t('categorySelected')}
                 </span>
                 {!isCompact && (
-                  <span className="text-sm text-gray-500 dark:text-gray-400">
-                    • {formatDuration(totalDuration)} {t('est')}
+                  <span className="text-sm text-gray-500">
+                    � {formatDuration(totalDuration)} {t('est')}
                   </span>
                 )}
               </div>

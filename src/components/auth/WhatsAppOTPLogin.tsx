@@ -154,15 +154,11 @@ export default function WhatsAppOTPLogin({ onSuccess, onBack }: WhatsAppOTPLogin
   if (step === 'phone') {
     return (
       <div>
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-          Sign in with WhatsApp
-        </h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Sign in with WhatsApp</h3>
 
         <form onSubmit={handlePhoneSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Phone Number
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
             <PhoneInput
               international
               defaultCountry="SG"
@@ -189,8 +185,8 @@ export default function WhatsAppOTPLogin({ onSuccess, onBack }: WhatsAppOTPLogin
           </div>
 
           {isReturningUser && !checkingUser && (
-            <div className="p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
-              <p className="text-sm text-green-700 dark:text-green-300 flex items-center gap-2">
+            <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+              <p className="text-sm text-green-700 flex items-center gap-2">
                 <span>👋</span>
                 <span>Welcome back, {existingName}!</span>
               </p>
@@ -199,10 +195,7 @@ export default function WhatsAppOTPLogin({ onSuccess, onBack }: WhatsAppOTPLogin
 
           {!isReturningUser && phoneNumber && phoneNumber.length >= 10 && (
             <div>
-              <label
-                htmlFor="name"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-              >
+              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
                 Your Name
               </label>
               <input
@@ -211,14 +204,14 @@ export default function WhatsAppOTPLogin({ onSuccess, onBack }: WhatsAppOTPLogin
                 value={name}
                 onChange={e => setName(e.target.value)}
                 placeholder="Enter your name"
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent dark:bg-gray-800 dark:text-white"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 disabled={loading}
                 required
               />
             </div>
           )}
 
-          {error && <div className="text-red-600 dark:text-red-400 text-sm">{error}</div>}
+          {error && <div className="text-red-600 text-sm">{error}</div>}
 
           <LoadingButton
             type="submit"
@@ -233,7 +226,7 @@ export default function WhatsAppOTPLogin({ onSuccess, onBack }: WhatsAppOTPLogin
           <button
             type="button"
             onClick={onBack}
-            className="w-full text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 text-sm"
+            className="w-full text-gray-600 hover:text-gray-800 text-sm"
           >
             ← Back to login options
           </button>
@@ -244,20 +237,15 @@ export default function WhatsAppOTPLogin({ onSuccess, onBack }: WhatsAppOTPLogin
 
   return (
     <div>
-      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-        Enter Verification Code
-      </h3>
+      <h3 className="text-lg font-semibold text-gray-900 mb-4">Enter Verification Code</h3>
 
-      <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+      <p className="text-sm text-gray-600 mb-4">
         We sent a 6-digit code to <strong>{phoneNumber}</strong> via WhatsApp.
       </p>
 
       <form onSubmit={handleOTPSubmit} className="space-y-4">
         <div>
-          <label
-            htmlFor="otp"
-            className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-          >
+          <label htmlFor="otp" className="block text-sm font-medium text-gray-700 mb-2">
             Verification Code
           </label>
           <input
@@ -266,7 +254,7 @@ export default function WhatsAppOTPLogin({ onSuccess, onBack }: WhatsAppOTPLogin
             value={otp}
             onChange={e => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
             placeholder="123456"
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent dark:bg-gray-800 dark:text-white text-center text-lg tracking-wider"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-center text-lg tracking-wider"
             maxLength={6}
             required
             disabled={loading}
@@ -275,14 +263,14 @@ export default function WhatsAppOTPLogin({ onSuccess, onBack }: WhatsAppOTPLogin
 
           {/* Countdown timer */}
           {timeLeft > 0 && (
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 text-center">
+            <p className="text-xs text-gray-500 mt-2 text-center">
               Code expires in {Math.floor(timeLeft / 60)}:
               {(timeLeft % 60).toString().padStart(2, '0')}
             </p>
           )}
         </div>
 
-        {error && <div className="text-red-600 dark:text-red-400 text-sm">{error}</div>}
+        {error && <div className="text-red-600 text-sm">{error}</div>}
 
         <LoadingButton
           type="submit"
@@ -298,7 +286,7 @@ export default function WhatsAppOTPLogin({ onSuccess, onBack }: WhatsAppOTPLogin
           <button
             type="button"
             onClick={() => setStep('phone')}
-            className="w-full text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 text-sm"
+            className="w-full text-gray-600 hover:text-gray-800 text-sm"
           >
             ← Change phone number
           </button>
@@ -312,7 +300,7 @@ export default function WhatsAppOTPLogin({ onSuccess, onBack }: WhatsAppOTPLogin
               toast.info('New verification code sent');
             }}
             disabled={loading}
-            className="w-full text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300 text-sm"
+            className="w-full text-green-600 hover:text-green-700 text-sm"
           >
             Resend code
           </button>

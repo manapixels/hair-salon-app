@@ -3,7 +3,6 @@ import { AuthProvider } from '@/context/AuthContext';
 import { BookingProvider } from '@/context/BookingContext';
 import { BookingModalProvider } from '@/context/BookingModalContext';
 import { Toaster } from 'sonner';
-import { ThemeProvider } from '@/components/providers/ThemeProvider';
 import { autoConfigureTelegramBotMenu } from '@/lib/telegramBotSetup';
 import { getAdminSettings } from '@/lib/database';
 import { getNavigationLinks, getAllCategories } from '@/lib/categories';
@@ -54,27 +53,20 @@ export default async function RootLayout({
         <link rel="icon" type="image/svg+xml" href="/logo.svg" />
       </head>
       <body>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="light"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <NextIntlClientProvider messages={messages}>
-            <AuthProvider>
-              <BookingProvider>
-                <BookingModalProvider bookingCategories={bookingCategories}>
-                  <AppHeader serviceLinks={navigationLinks} />
-                  <main className="min-h-screen pb-16 md:pb-0">{children}</main>
-                  <BottomNavigation serviceLinks={navigationLinks} />
-                  <AppFooter adminSettings={adminSettings} />
-                  <BookingModal />
-                </BookingModalProvider>
-              </BookingProvider>
-            </AuthProvider>
-          </NextIntlClientProvider>
-          <Toaster position="top-right" richColors closeButton />
-        </ThemeProvider>
+        <NextIntlClientProvider messages={messages}>
+          <AuthProvider>
+            <BookingProvider>
+              <BookingModalProvider bookingCategories={bookingCategories}>
+                <AppHeader serviceLinks={navigationLinks} />
+                <main className="min-h-screen pb-16 md:pb-0">{children}</main>
+                <BottomNavigation serviceLinks={navigationLinks} />
+                <AppFooter adminSettings={adminSettings} />
+                <BookingModal />
+              </BookingModalProvider>
+            </BookingProvider>
+          </AuthProvider>
+        </NextIntlClientProvider>
+        <Toaster position="top-right" richColors closeButton />
       </body>
     </html>
   );
