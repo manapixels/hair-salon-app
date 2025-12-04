@@ -21,7 +21,7 @@ import {
   combineDateTimeToUTC,
 } from '@/lib/timeUtils';
 import { cn } from '@/lib/utils';
-import { LoadingSpinner } from '../feedback/loaders/LoadingSpinner';
+import { LoadingSpinner } from '@/components/feedback/loaders/LoadingSpinner';
 import { useIsMobile } from '@/hooks/useMediaQuery';
 import {
   Drawer,

@@ -3,7 +3,7 @@
 import { useEffect, useRef } from 'react';
 import type { ServiceCategory } from '@/types';
 import { CategoryCard } from './CategoryCard';
-import { LoadingSpinner } from '../feedback/loaders/LoadingSpinner';
+import { LoadingSpinner } from '@/components/feedback/loaders/LoadingSpinner';
 import { useBookingModal } from '@/context/BookingModalContext';
 import { useTranslations } from 'next-intl';
 

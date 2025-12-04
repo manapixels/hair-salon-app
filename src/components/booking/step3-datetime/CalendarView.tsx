@@ -15,7 +15,7 @@ import {
   startOfWeek,
   endOfWeek,
 } from 'date-fns';
-import { LoadingSpinner } from '../feedback/loaders/LoadingSpinner';
+import { LoadingSpinner } from '@/components/feedback/loaders/LoadingSpinner';
 
 interface CalendarViewProps {
   selectedDate: Date;

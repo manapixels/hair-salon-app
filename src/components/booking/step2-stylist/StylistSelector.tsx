@@ -5,10 +5,10 @@ import Image from 'next/image';
 import { Check } from 'lucide-react';
 
 import { Card, CardContent } from '@/components/ui/card';
-import { LoadingSpinner } from '../feedback/loaders/LoadingSpinner';
-import { StylistCardSkeleton } from '../feedback/loaders/StylistCardSkeleton';
-import { ErrorState } from '../feedback/ErrorState';
-import { EmptyState } from '../feedback/EmptyState';
+import { LoadingSpinner } from '@/components/feedback/loaders/LoadingSpinner';
+import { StylistCardSkeleton } from '@/components/feedback/loaders/StylistCardSkeleton';
+import { ErrorState } from '@/components/feedback/ErrorState';
+import { EmptyState } from '@/components/feedback/EmptyState';
 import { useDelayedLoading } from '@/hooks/useDelayedLoading';
 import { useStylists } from '@/hooks/queries';
 import type { Service, Stylist, ServiceCategory } from '@/types';

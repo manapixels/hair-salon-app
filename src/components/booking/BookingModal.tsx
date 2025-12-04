@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useBookingModal } from '@/context/BookingModalContext';
 import BookingForm from './BookingForm';
-import { BookingProgress } from './BookingProgress';
+import { BookingProgress } from './shared';
 import { useIsMobile } from '@/hooks/useMediaQuery';
 import { useTranslations } from 'next-intl';
 import {
