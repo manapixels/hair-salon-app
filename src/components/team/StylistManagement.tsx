@@ -118,29 +118,35 @@ export default function StylistManagement({ onClose }: StylistManagementProps) {
   return (
     <>
       <div>
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-gray-900">Stylist Management</h2>
+        <div className="flex justify-end items-center mb-6">
           <div className="flex space-x-3">
             <button
               onClick={() => setShowAddModal(true)}
-              className="bg-primary-600 text-white px-4 py-2 rounded-md hover:bg-primary-700 transition-colors flex items-center"
+              className="bg-primary text-white px-4 py-2 rounded-md hover:bg-primary-700 transition-colors flex items-center"
             >
               <Plus className="h-4 w-4 sm:mr-2" aria-hidden="true" />
-              <span className="hidden sm:block">Add Stylist</span>
+              <span>Add Stylist</span>
             </button>
           </div>
         </div>
 
         {stylists.length === 0 ? (
-          <div className="bg-gray-50 p-8 rounded-lg text-center">
-            <Users className="h-16 w-16 text-gray-400 mx-auto mb-4" aria-hidden="true" />
+          <div className="bg-white p-8 rounded-lg text-center">
+            <div className="relative w-48 h-48 mx-auto mb-4">
+              <Image
+                src="/images/illustrations/stylist-team-empty.png"
+                alt="No stylists"
+                fill
+                className="object-contain"
+              />
+            </div>
             <h3 className="text-lg font-medium text-gray-900 mb-2">No stylists yet</h3>
             <p className="text-gray-600 mb-4">
               Add your first stylist to start managing appointments by staff.
             </p>
             <button
               onClick={() => setShowAddModal(true)}
-              className="bg-primary-600 text-white px-4 py-2 rounded-md hover:bg-primary-700 transition-colors"
+              className="bg-primary text-white px-4 py-2 rounded-md hover:bg-primary-700 transition-colors"
             >
               Add First Stylist
             </button>
@@ -422,7 +428,26 @@ function StylistModal({ isOpen, onClose, stylist, availableServices, onSave }: S
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-900 mb-2">Specialties *</label>
+            <div className="flex items-center justify-between mb-2">
+              <label className="block text-sm font-medium text-gray-900">Specialties *</label>
+              <button
+                type="button"
+                onClick={() => {
+                  const allIds = availableServices.map(s => s.id);
+                  const allSelected = allIds.every(id => formData.specialtyIds.includes(id));
+                  setFormData(prev => ({
+                    ...prev,
+                    specialtyIds: allSelected ? [] : allIds,
+                  }));
+                }}
+                className="text-sm text-primary hover:text-primary-700 font-medium"
+              >
+                {availableServices.length > 0 &&
+                availableServices.every(s => formData.specialtyIds.includes(s.id))
+                  ? 'Deselect All'
+                  : 'Select All'}
+              </button>
+            </div>
             <div className="grid grid-cols-1 gap-3 max-h-60 overflow-y-auto border border-gray-200 rounded-md p-3">
               {availableServices.map(service => {
                 const isSelected = formData.specialtyIds.includes(service.id);
@@ -444,10 +469,8 @@ function StylistModal({ isOpen, onClose, stylist, availableServices, onSave }: S
                       <div className="flex justify-between items-start">
                         <div>
                           <h4 className="font-medium text-gray-900">{service.name}</h4>
-                          <p className="text-sm text-gray-600">{service.description}</p>
                         </div>
                         <div className="text-right">
-                          <div className="font-semibold text-gray-900">${service.price}</div>
                           <div className="text-sm text-gray-600">{service.duration} min</div>
                         </div>
                       </div>
