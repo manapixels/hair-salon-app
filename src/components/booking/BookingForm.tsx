@@ -4,8 +4,7 @@ import { useState, useMemo, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import { toast } from 'sonner';
 
-import type { Service, TimeSlot, Appointment, Stylist } from '@/types';
-import type { ServiceCategory } from '@/lib/categories';
+import type { Service, TimeSlot, Appointment, Stylist, ServiceCategory } from '@/types';
 import { useBooking } from '@/context/BookingContext';
 import { useAuth } from '@/context/AuthContext';
 import { useBookingModal } from '@/context/BookingModalContext';

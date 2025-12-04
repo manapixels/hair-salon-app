@@ -11,8 +11,7 @@ import { ErrorState } from '../feedback/ErrorState';
 import { EmptyState } from '../feedback/EmptyState';
 import { useDelayedLoading } from '@/hooks/useDelayedLoading';
 import { useStylists } from '@/hooks/queries';
-import type { Service, Stylist } from '@/types';
-import type { ServiceCategory } from '@/lib/categories';
+import type { Service, Stylist, ServiceCategory } from '@/types';
 import { useTranslations } from 'next-intl';
 
 interface StylistSelectorProps {

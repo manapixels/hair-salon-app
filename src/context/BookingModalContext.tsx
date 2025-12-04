@@ -2,7 +2,7 @@
 
 import { createContext, useState, useContext, ReactNode, useCallback, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
-import type { ServiceCategory } from '@/lib/categories';
+import type { ServiceCategory } from '@/types';
 
 interface BookingModalOptions {
   preSelectedServiceId?: string;

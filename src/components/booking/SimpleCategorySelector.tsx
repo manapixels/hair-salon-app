@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import type { ServiceCategory } from '@/lib/categories';
+import type { ServiceCategory } from '@/types';
 import { CategoryCard } from './CategoryCard';
 import { LoadingSpinner } from '../feedback/loaders/LoadingSpinner';
 import { useBookingModal } from '@/context/BookingModalContext';

@@ -1,7 +1,7 @@
 'use client';
 
 import { Check } from '@/lib/icons';
-import type { ServiceCategory } from '@/lib/categories';
+import type { ServiceCategory } from '@/types';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
 import { useTranslations } from 'next-intl';

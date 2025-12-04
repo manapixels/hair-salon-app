@@ -1,7 +1,6 @@
 import React from 'react';
 import { User, Calendar, Clock, X, Scissors } from 'lucide-react';
-import { Service, Stylist } from '@/types';
-import type { ServiceCategory } from '@/lib/categories';
+import { Service, Stylist, ServiceCategory } from '@/types';
 import { formatShortDate, formatTimeDisplay } from '@/lib/timeUtils';
 import { useTranslations } from 'next-intl';
 

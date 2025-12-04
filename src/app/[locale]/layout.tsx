@@ -5,8 +5,8 @@ import { BookingModalProvider } from '@/context/BookingModalContext';
 import { QueryProvider } from '@/components/providers/QueryProvider';
 import { Toaster } from 'sonner';
 import { autoConfigureTelegramBotMenu } from '@/lib/telegramBotSetup';
-import { getAdminSettings } from '@/lib/database';
-import { getNavigationLinks, getAllCategories } from '@/lib/categories';
+import { getAdminSettings, getServiceCategories } from '@/lib/database';
+import { getNavigationLinks } from '@/lib/categories';
 import '@/styles/globals.css';
 import 'dotenv/config';
 import { AppFooter, AppHeader } from '@/components/layout';
@@ -44,7 +44,7 @@ export default async function RootLayout({
   const [adminSettings, navigationLinks, bookingCategories, messages] = await Promise.all([
     getAdminSettings(),
     getNavigationLinks(),
-    getAllCategories(),
+    getServiceCategories(),
     getMessages(),
   ]);
 
