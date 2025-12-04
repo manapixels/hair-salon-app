@@ -106,7 +106,7 @@ export const MobileBookingSummary = memo<MobileBookingSummaryProps>(
                 </span>
                 {!isCompact && (
                   <span className="text-sm text-gray-500">
-                    • {formatDuration(totalDuration)} {t('est')}
+                    Â• {formatDuration(totalDuration)} {t('est')}
                   </span>
                 )}
               </div>

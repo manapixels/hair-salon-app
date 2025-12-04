@@ -63,7 +63,7 @@ export default function AppFooter({ adminSettings }: AppFooterProps) {
           <div>
             <p>
               &copy; {new Date().getFullYear()} {businessName}
-              <br /> {t('copyright').replace('© 2024 Signature Trims. ', '')}
+              <br /> {t('copyright').replace('Â© 2024 Signature Trims. ', '')}
             </p>
           </div>
           <div>
