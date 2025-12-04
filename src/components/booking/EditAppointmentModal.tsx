@@ -235,7 +235,7 @@ export default function EditAppointmentModal({
                 <div
                   key={service.id}
                   className={`flex items-center gap-3 rounded-lg border p-3 transition-colors ${
-                    isSelected ? 'border-accent bg-accent/10' : 'border-gray-200 hover:bg-gray-50'
+                    isSelected ? 'border-primary bg-primary/10' : 'border-gray-200 hover:bg-gray-50'
                   }`}
                 >
                   <Checkbox

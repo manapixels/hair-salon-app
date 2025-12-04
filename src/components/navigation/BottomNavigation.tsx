@@ -91,7 +91,7 @@ export default function BottomNavigation({ serviceLinks }: BottomNavigationProps
         className="
           md:hidden fixed bottom-0 left-0 right-0 z-50
           bg-white/80 backdrop-blur-xl
-          border-t border-accent/20
+          border-t border-primary/20
           pb-safe-bottom
         "
         role="navigation"

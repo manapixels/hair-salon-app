@@ -113,7 +113,7 @@ export default function SettingsLayout({ adminSettings, onSave }: SettingsLayout
                 loading={isSaving}
                 loadingText="Saving..."
                 onClick={handleSave}
-                className="px-[5] py-[3] bg-accent text-white rounded-md text-[length:var(--font-size-3)] font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
+                className="px-[5] py-[3] bg-primary text-white rounded-md text-[length:var(--font-size-3)] font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
               >
                 Save Changes
               </LoadingButton>

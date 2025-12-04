@@ -123,20 +123,11 @@ export default function StylistManagement({ onClose }: StylistManagementProps) {
           <div className="flex space-x-3">
             <button
               onClick={() => setShowAddModal(true)}
-              className="bg-yellow-600 text-white px-4 py-2 rounded-md hover:bg-yellow-700 transition-colors flex items-center"
+              className="bg-primary-600 text-white px-4 py-2 rounded-md hover:bg-primary-700 transition-colors flex items-center"
             >
-              <Plus className="h-4 w-4 mr-2" aria-hidden="true" />
-              Add Stylist
+              <Plus className="h-4 w-4 sm:mr-2" aria-hidden="true" />
+              <span className="hidden sm:block">Add Stylist</span>
             </button>
-            {onClose && (
-              <button
-                onClick={onClose}
-                className="text-gray-500 hover:text-gray-700"
-                aria-label="Close stylist management"
-              >
-                <X className="h-5 w-5" aria-hidden="true" />
-              </button>
-            )}
           </div>
         </div>
 
@@ -149,7 +140,7 @@ export default function StylistManagement({ onClose }: StylistManagementProps) {
             </p>
             <button
               onClick={() => setShowAddModal(true)}
-              className="bg-yellow-600 text-white px-4 py-2 rounded-md hover:bg-yellow-700 transition-colors"
+              className="bg-primary-600 text-white px-4 py-2 rounded-md hover:bg-primary-700 transition-colors"
             >
               Add First Stylist
             </button>
@@ -206,7 +197,7 @@ export default function StylistManagement({ onClose }: StylistManagementProps) {
                     {stylist.specialties.map(service => (
                       <span
                         key={service.id}
-                        className="inline-block bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded"
+                        className="inline-block bg-primary-100 text-yellow-800 text-xs px-2 py-1 rounded"
                       >
                         {service.name}
                       </span>
@@ -439,7 +430,9 @@ function StylistModal({ isOpen, onClose, stylist, availableServices, onSave }: S
                   <label
                     key={service.id}
                     className={`flex items-center p-3 rounded-md border cursor-pointer transition-colors ${
-                      isSelected ? 'border-accent bg-accent/10' : 'border-gray-200 hover:bg-gray-50'
+                      isSelected
+                        ? 'border-primary bg-primary/10'
+                        : 'border-gray-200 hover:bg-gray-50'
                     }`}
                   >
                     <Checkbox
@@ -519,7 +512,7 @@ function StylistModal({ isOpen, onClose, stylist, availableServices, onSave }: S
                     }
                   }}
                   disabled={!newBlockedDate}
-                  className="px-4 py-2 bg-yellow-600 text-white rounded text-sm hover:bg-yellow-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-4 py-2 bg-primary-600 text-white rounded text-sm hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Add
                 </button>

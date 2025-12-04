@@ -129,7 +129,7 @@ export default function SalonAvailability({
           type="date"
           value={selectedDate.toISOString().split('T')[0]}
           onChange={e => setSelectedDate(new Date(e.target.value))}
-          className="px-3 py-2 border border-gray-300 rounded-md text-sm bg-background text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:border-accent hover:border-gray-400 transition-colors"
+          className="px-3 py-2 border border-gray-300 rounded-md text-sm bg-background text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-primary hover:border-gray-400 transition-colors"
           aria-label="Select date to manage availability"
         />
       </div>

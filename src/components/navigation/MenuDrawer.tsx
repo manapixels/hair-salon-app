@@ -127,7 +127,7 @@ export default function MenuDrawer({ isOpen, onClose }: MenuDrawerProps) {
               {settings?.businessAddress && (
                 <section>
                   <div className="flex items-start gap-3">
-                    <div className="p-2 bg-accent/10 rounded-lg">
+                    <div className="p-2 bg-primary/10 rounded-lg">
                       <MapPin className="w-5 h-5 text-primary" />
                     </div>
                     <div>
@@ -142,7 +142,7 @@ export default function MenuDrawer({ isOpen, onClose }: MenuDrawerProps) {
               {settings?.weeklySchedule && (
                 <section>
                   <div className="flex items-start gap-3">
-                    <div className="p-2 bg-accent/10 rounded-lg">
+                    <div className="p-2 bg-primary/10 rounded-lg">
                       <Clock className="w-5 h-5 text-primary" />
                     </div>
                     <div className="flex-1">

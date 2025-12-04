@@ -8,7 +8,7 @@ interface ServiceTypeCardProps {
 
 export function ServiceTypeCard({ title, description, image }: ServiceTypeCardProps) {
   return (
-    <div className="bg-white rounded-xl overflow-hidden border border-accent/40 active-scale transition-all duration-300 hover:-translate-y-1">
+    <div className="bg-white rounded-xl overflow-hidden border border-primary/40 active-scale transition-all duration-300 hover:-translate-y-1">
       <div className="relative h-48 md:h-64">
         <Image
           src={image}

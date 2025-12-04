@@ -93,7 +93,7 @@ export default function AccountPopup({ isOpen, onClose }: AccountPopupProps) {
                           alt={user.name}
                           className="h-full w-full rounded-full object-cover"
                         />
-                        <AvatarFallback className="flex h-full w-full items-center justify-center rounded-full bg-accent text-lg font-semibold text-white">
+                        <AvatarFallback className="flex h-full w-full items-center justify-center rounded-full bg-primary text-lg font-semibold text-white">
                           {user.name
                             .split(' ')
                             .map(n => n[0])
@@ -105,7 +105,7 @@ export default function AccountPopup({ isOpen, onClose }: AccountPopupProps) {
                       <div>
                         <p className="font-semibold text-gray-900 text-lg">{user.name}</p>
                         <p className="text-sm text-gray-500">{user.email}</p>
-                        <span className="mt-1 inline-block rounded-full bg-accent/10 px-2 py-0.5 text-[10px] font-medium text-accent">
+                        <span className="mt-1 inline-block rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">
                           {user.role === 'ADMIN' ? 'Admin' : 'Customer'}
                         </span>
                       </div>

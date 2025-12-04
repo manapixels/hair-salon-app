@@ -112,7 +112,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
         <button
           onClick={onPreviousMonth}
           disabled={loading}
-          className="min-w-touch min-h-touch w-12 h-12 md:w-10 md:h-10 rounded-full hover:bg-gray-100 flex items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-accent disabled:opacity-50 disabled:cursor-not-allowed active-scale"
+          className="min-w-touch min-h-touch w-12 h-12 md:w-10 md:h-10 rounded-full hover:bg-gray-100 flex items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed active-scale"
           aria-label="Previous month"
         >
           <svg
@@ -134,13 +134,13 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
           <h2 className="text-lg font-semibold text-gray-900">
             {format(currentMonth, 'MMMM yyyy')}
           </h2>
-          {loading && <LoadingSpinner size="sm" className="text-accent" />}
+          {loading && <LoadingSpinner size="sm" className="text-primary" />}
         </div>
 
         <button
           onClick={onNextMonth}
           disabled={loading}
-          className="min-w-touch min-h-touch w-12 h-12 md:w-10 md:h-10 rounded-full hover:bg-gray-100 flex items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-accent disabled:opacity-50 disabled:cursor-not-allowed active-scale"
+          className="min-w-touch min-h-touch w-12 h-12 md:w-10 md:h-10 rounded-full hover:bg-gray-100 flex items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed active-scale"
           aria-label="Next month"
         >
           <svg
@@ -191,17 +191,17 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
               tabIndex={isSelected ? 0 : -1}
               className={`
                 h-12 md:h-10 w-full rounded-lg flex items-center justify-center text-sm md:text-sm font-medium relative transition-all
-                focus:outline-none focus:ring-2 focus:ring-accent active-scale
-                ${isSelected ? 'bg-accent font-semibold' : ''}
-                ${!isSelected && isTodayDate ? 'ring-2 ring-accent ring-offset-2' : ''}
-                ${!isSelected && !isDisabled && isCurrentMonth ? 'hover:bg-accent/10 cursor-pointer' : ''}
+                focus:outline-none focus:ring-2 focus:ring-primary active-scale
+                ${isSelected ? 'bg-primary font-semibold' : ''}
+                ${!isSelected && isTodayDate ? 'ring-2 ring-primary ring-offset-2' : ''}
+                ${!isSelected && !isDisabled && isCurrentMonth ? 'hover:bg-primary/10 cursor-pointer' : ''}
                 ${isDisabled || !isCurrentMonth ? 'text-gray-300 cursor-not-allowed' : ''}
                 ${!isDisabled && !isSelected && isCurrentMonth ? 'text-gray-900' : ''}
               `}
             >
               {format(date, 'd')}
               {isAvailable && !isSelected && isCurrentMonth && !isDisabled && (
-                <span className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-accent" />
+                <span className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-primary" />
               )}
             </button>
           );

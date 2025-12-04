@@ -16,17 +16,9 @@
     --primary: 48 100% 24%;
     --primary-foreground: 0 0% 98%;
 
-    /* Secondary - Light gold tint */
-    --secondary: 48 100% 96%;
-    --secondary-foreground: 48 100% 24%;
-
     /* Muted - Subtle gold tint */
     --muted: 48 20% 96%;
     --muted-foreground: 0 0% 45.1%;
-
-    /* Accent - Gold (#7A6400) */
-    --accent: 48 100% 24%;
-    --accent-foreground: 48 100% 98%;
 
     /* Destructive - Keep red */
     --destructive: 0 84.2% 60.2%;
@@ -54,7 +46,7 @@
 
 /* React Phone Number Input Styling */
 .phone-input-wrapper .PhoneInputInput {
-  @apply w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-accent focus:border-transparent bg-background text-foreground;
+  @apply w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent bg-background text-foreground;
 }
 
 .phone-input-wrapper .PhoneInputCountry {

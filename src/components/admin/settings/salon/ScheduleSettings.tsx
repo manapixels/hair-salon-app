@@ -76,7 +76,7 @@ export default function ScheduleSettings({ weeklySchedule, onChange }: ScheduleS
                   <Checkbox.Root
                     checked={schedule.isOpen}
                     onCheckedChange={checked => handleDayToggle(day, checked === true)}
-                    className="flex items-center justify-center w-5 h-5 rounded-sm border border-gray-300 bg-background hover:border-gray-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent data-[state=checked]:bg-accent data-[state=checked]:border-[hsl(var(--accent))]"
+                    className="flex items-center justify-center w-5 h-5 rounded-sm border border-gray-300 bg-background hover:border-gray-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary data-[state=checked]:bg-primary data-[state=checked]:border-[hsl(var(--primary))]"
                   >
                     <Checkbox.Indicator>
                       <svg
@@ -105,14 +105,14 @@ export default function ScheduleSettings({ weeklySchedule, onChange }: ScheduleS
                       type="time"
                       value={schedule.openingTime || '09:00'}
                       onChange={e => handleTimeChange(day, 'openingTime', e.target.value)}
-                      className="px-3 py-2 border border-gray-300 rounded-md text-sm bg-background text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:border-accent hover:border-gray-400 transition-colors"
+                      className="px-3 py-2 border border-gray-300 rounded-md text-sm bg-background text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-primary hover:border-gray-400 transition-colors"
                     />
                     <span className="text-muted-foreground">to</span>
                     <input
                       type="time"
                       value={schedule.closingTime || '17:00'}
                       onChange={e => handleTimeChange(day, 'closingTime', e.target.value)}
-                      className="px-3 py-2 border border-gray-300 rounded-md text-sm bg-background text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:border-accent hover:border-gray-400 transition-colors"
+                      className="px-3 py-2 border border-gray-300 rounded-md text-sm bg-background text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-primary hover:border-gray-400 transition-colors"
                     />
                   </div>
                 ) : (

@@ -65,7 +65,7 @@ export default function HomePage() {
     <div className="bg-[#FDFCF8] min-h-screen text-stone-900 font-serif">
       {/* Hero Section */}
       <section className="relative flex flex-col lg:flex-row lg:min-h-screen overflow-hidden">
-        <div className="w-full lg:w-1/2 flex items-center justify-center p-6 pt-8 pb-2 sm:py-12 md:p-8 lg:p-24 relative z-10 bg-accent/10">
+        <div className="w-full lg:w-1/2 flex items-center justify-center p-6 pt-8 pb-2 sm:py-12 md:p-8 lg:p-24 relative z-10 bg-primary/10">
           <div className="max-w-xl fade-in-up w-full">
             <div className="relative w-16 h-16 sm:w-28 sm:h-28 mb-6">
               <Image
@@ -90,7 +90,7 @@ export default function HomePage() {
             <div className="hidden sm:flex flex-col sm:flex-row gap-3 md:gap-4 mb-8 md:mb-12">
               <button
                 onClick={() => openModal()}
-                className="min-h-touch-lg bg-gray-900 text-white px-8 py-4 rounded-full hover:bg-accent active-scale transition-all duration-300 shadow-lg shadow-primary/20 text-sm font-medium uppercase tracking-wide"
+                className="min-h-touch-lg bg-gray-900 text-white px-8 py-4 rounded-full hover:bg-primary active-scale transition-all duration-300 shadow-lg shadow-primary/20 text-sm font-medium uppercase tracking-wide"
               >
                 {t('bookVisit')}
               </button>
@@ -115,7 +115,7 @@ export default function HomePage() {
                 target="_blank"
                 className="flex items-center gap-2 min-h-touch active-scale"
               >
-                <Star className="w-5 h-5 fill-[hsl(var(--accent))] text-transparent flex-shrink-0" />
+                <Star className="w-5 h-5 fill-[hsl(var(--primary))] text-transparent flex-shrink-0" />
                 <span>5.0 (100+ Reviews)</span>
               </a>
             </div>
@@ -143,7 +143,7 @@ export default function HomePage() {
         {/* Find by Concern Button */}
         <button
           onClick={() => setIsConcernModalOpen(true)}
-          className="group/item flex flex-col items-center justify-between gap-1 border-2 border-accent bg-accent/5 hover:bg-accent/10 transition-colors rounded-lg p-2"
+          className="group/item flex flex-col items-center justify-between gap-1 border-2 border-primary bg-primary/5 hover:bg-primary/10 transition-colors rounded-lg p-2"
         >
           <div className="flex items-center justify-center w-16 h-16 rounded-lg">
             <Search className="w-8 h-8 text-primary" />
@@ -160,7 +160,7 @@ export default function HomePage() {
           return (
             <DropdownMenu key={service.href}>
               <DropdownMenuTrigger asChild>
-                <button className="group/item flex flex-col items-center justify-between gap-1 border border-accent/50 hover:border-accent transition-colors rounded-lg p-2 w-full outline-none focus:ring-2 focus:ring-accent/20 bg-transparent cursor-pointer">
+                <button className="group/item flex flex-col items-center justify-between gap-1 border border-primary/50 hover:border-primary transition-colors rounded-lg p-2 w-full outline-none focus:ring-2 focus:ring-primary/20 bg-transparent cursor-pointer">
                   <div className="relative w-16 h-16 rounded-lg">
                     <Image
                       src={service.illustration || ''}
@@ -181,7 +181,7 @@ export default function HomePage() {
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onSelect={() => openModal({ preSelectedServiceId: serviceId })}
-                  className="bg-gray-900 text-white hover:bg-accent hover:text-white mt-1 justify-center"
+                  className="bg-gray-900 text-white hover:bg-primary hover:text-white mt-1 justify-center"
                 >
                   {t('bookNow')}
                 </DropdownMenuItem>
@@ -205,7 +205,7 @@ export default function HomePage() {
           {/* Find by Concern Button */}
           <button
             onClick={() => setIsConcernModalOpen(true)}
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-accent text-white hover:bg-accent/90 transition-colors font-medium text-sm"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-primary text-white hover:bg-primary/90 transition-colors font-medium text-sm"
           >
             <Search className="w-4 h-4" />
             {t('findByHairConcern')}
@@ -233,7 +233,7 @@ export default function HomePage() {
                     <h3 className="font-serif text-xl md:text-2xl text-primary mb-2">
                       {service.name}
                     </h3>
-                    <div className="h-px w-full bg-accent/10 my-3 md:my-4"></div>
+                    <div className="h-px w-full bg-primary/10 my-3 md:my-4"></div>
                     <div className="text-sm text-gray-400 uppercase tracking-wider mb-3 md:mb-4">
                       <span></span>
                       <span className="text-gold-light">{service.price}</span>
@@ -249,7 +249,7 @@ export default function HomePage() {
                             {serviceUrl && (
                               <Link
                                 href={serviceUrl}
-                                className="min-h-touch-lg flex-1 py-3 bg-white text-primary/60 border-2 border-accent/60 rounded-lg hover:bg-stone-50 active-scale transition-colors duration-200 font-medium text-center"
+                                className="min-h-touch-lg flex-1 py-3 bg-white text-primary/60 border-2 border-primary/60 rounded-lg hover:bg-stone-50 active-scale transition-colors duration-200 font-medium text-center"
                               >
                                 {t('learnMore')}
                               </Link>
@@ -278,12 +278,12 @@ export default function HomePage() {
                 </div>
               );
             })}
-            <div className="group p-6 md:p-8 rounded-3xl bg-accent/30 text-black border border-transparent hover:scale-[1.02] active-scale transition-all duration-300 flex flex-col justify-center items-center text-center min-h-touch-lg">
+            <div className="group p-6 md:p-8 rounded-3xl bg-primary/30 text-black border border-transparent hover:scale-[1.02] active-scale transition-all duration-300 flex flex-col justify-center items-center text-center min-h-touch-lg">
               <h3 className="text-xl md:text-2xl font-serif mb-2">{t('needAdvice')}</h3>
               <p className="text-sm mb-6">{t('consultationDescription')}</p>
               <button
                 onClick={() => openModal()}
-                className="min-h-touch-lg bg-white text-primary px-6 py-3 rounded-lg text-sm font-medium hover:bg-accent hover:text-white active-scale transition-colors"
+                className="min-h-touch-lg bg-white text-primary px-6 py-3 rounded-lg text-sm font-medium hover:bg-primary hover:text-white active-scale transition-colors"
               >
                 {t('bookConsult')}
               </button>

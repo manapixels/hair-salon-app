@@ -635,7 +635,7 @@ const AdminDashboard: React.FC = () => {
         <span>{children}</span>
         <div className="flex flex-col" aria-hidden="true">
           <svg
-            className={`w-3 h-3 ${sortField === field && sortDirection === 'asc' ? 'text-accent' : 'text-gray-400'}`}
+            className={`w-3 h-3 ${sortField === field && sortDirection === 'asc' ? 'text-primary' : 'text-gray-400'}`}
             fill="currentColor"
             viewBox="0 0 20 20"
           >
@@ -646,7 +646,7 @@ const AdminDashboard: React.FC = () => {
             />
           </svg>
           <svg
-            className={`w-3 h-3 -mt-1 ${sortField === field && sortDirection === 'desc' ? 'text-accent' : 'text-gray-400'}`}
+            className={`w-3 h-3 -mt-1 ${sortField === field && sortDirection === 'desc' ? 'text-primary' : 'text-gray-400'}`}
             fill="currentColor"
             viewBox="0 0 20 20"
           >
@@ -734,7 +734,7 @@ const AdminDashboard: React.FC = () => {
                 <div className="bg-white p-5 border border-border transition-colors">
                   <div className="flex items-center justify-between mb-3">
                     <h3 className="text-sm font-medium text-gray-600">Upcoming</h3>
-                    <div className="w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center">
+                    <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center">
                       <svg
                         className="w-5 h-5 text-yellow-600"
                         fill="none"
@@ -758,8 +758,8 @@ const AdminDashboard: React.FC = () => {
                 <div className="bg-white p-5 border border-border transition-colors">
                   <div className="flex items-center justify-between mb-3">
                     <h3 className="text-sm font-medium text-gray-600">Week Revenue</h3>
-                    <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center">
-                      <ChevronsUp className="w-5 h-5 text-accent" />
+                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                      <ChevronsUp className="w-5 h-5 text-primary" />
                     </div>
                   </div>
                   <p className="text-3xl font-bold text-gray-900">${kpis.weekRevenue}</p>
@@ -813,7 +813,7 @@ const AdminDashboard: React.FC = () => {
                         setCurrentPage(1);
                       }}
                     >
-                      <SelectTrigger className="inline-flex items-center justify-between gap-[2] px-3 py-2 rounded-md border border-gray-300 bg-background text-sm text-foreground hover:border-gray-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent min-w-[70px]">
+                      <SelectTrigger className="inline-flex items-center justify-between gap-[2] px-3 py-2 rounded-md border border-gray-300 bg-background text-sm text-foreground hover:border-gray-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary min-w-[70px]">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent className="overflow-hidden bg-card rounded-md border border-border ">
@@ -840,7 +840,7 @@ const AdminDashboard: React.FC = () => {
                     <Select value={dateFilter} onValueChange={value => setDateFilter(value as any)}>
                       <SelectTrigger
                         id="date-filter"
-                        className="flex-1 md:flex-none inline-flex items-center justify-between gap-2 px-3 py-2 rounded-none border border-gray-300 bg-white text-sm text-gray-900 hover:border-gray-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:border-accent min-w-[140px]"
+                        className="flex-1 md:flex-none inline-flex items-center justify-between gap-2 px-3 py-2 rounded-none border border-gray-300 bg-white text-sm text-gray-900 hover:border-gray-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-primary min-w-[140px]"
                         aria-label="Filter appointments by date range"
                       >
                         <SelectValue />
@@ -870,7 +870,7 @@ const AdminDashboard: React.FC = () => {
                     >
                       <SelectTrigger
                         id="status-filter"
-                        className="flex-1 md:flex-none inline-flex items-center justify-between gap-2 px-3 py-2 rounded-none border border-gray-300 bg-white text-sm text-gray-900 hover:border-gray-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:border-accent min-w-[120px]"
+                        className="flex-1 md:flex-none inline-flex items-center justify-between gap-2 px-3 py-2 rounded-none border border-gray-300 bg-white text-sm text-gray-900 hover:border-gray-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-primary min-w-[120px]"
                         aria-label="Filter appointments by status"
                       >
                         <SelectValue />
@@ -894,7 +894,7 @@ const AdminDashboard: React.FC = () => {
                         type="date"
                         value={customFromDate}
                         onChange={e => setCustomFromDate(e.target.value)}
-                        className="px-3 py-2 border border-gray-300 rounded-none text-sm bg-white text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:border-accent hover:border-gray-400 transition-colors"
+                        className="px-3 py-2 border border-gray-300 rounded-none text-sm bg-white text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-primary hover:border-gray-400 transition-colors"
                         placeholder="From date"
                         aria-label="Custom date range start"
                       />
@@ -907,7 +907,7 @@ const AdminDashboard: React.FC = () => {
                         type="date"
                         value={customToDate}
                         onChange={e => setCustomToDate(e.target.value)}
-                        className="px-3 py-2 border border-gray-300 rounded-none text-sm bg-white text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:border-accent hover:border-gray-400 transition-colors"
+                        className="px-3 py-2 border border-gray-300 rounded-none text-sm bg-white text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-primary hover:border-gray-400 transition-colors"
                         placeholder="To date"
                         aria-label="Custom date range end"
                       />
@@ -925,7 +925,7 @@ const AdminDashboard: React.FC = () => {
                         placeholder="Search appointments..."
                         value={searchTerm}
                         onChange={e => setSearchTerm(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-none bg-white text-gray-900 placeholder:text-gray-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:border-accent hover:border-gray-400 transition-colors text-sm"
+                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-none bg-white text-gray-900 placeholder:text-gray-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-primary hover:border-gray-400 transition-colors text-sm"
                         aria-label="Search appointments by customer, service, or stylist"
                       />
                       <svg
@@ -971,10 +971,10 @@ const AdminDashboard: React.FC = () => {
 
               {/* Bulk Actions Toolbar */}
               {selectedAppointments.size > 0 && (
-                <div className="mb-6 p-5 bg-accent/10 border-2 border-[hsl(var(--accent))] animate-in slide-in-from-top-2 fade-in duration-300">
+                <div className="mb-6 p-5 bg-primary/10 border-2 border-[hsl(var(--primary))] animate-in slide-in-from-top-2 fade-in duration-300">
                   <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                     <div className="flex items-center gap-4">
-                      <div className="flex items-center justify-center w-10 h-10 bg-accent rounded-full ">
+                      <div className="flex items-center justify-center w-10 h-10 bg-primary rounded-full ">
                         <svg
                           className="w-5 h-5 text-white"
                           fill="none"
@@ -1089,7 +1089,7 @@ const AdminDashboard: React.FC = () => {
                           setCustomFromDate('');
                           setCustomToDate('');
                         }}
-                        className="mt-4 px-4 py-2 text-sm font-medium bg-accent text-white rounded-none hover:bg-accent/90 transition-colors"
+                        className="mt-4 px-4 py-2 text-sm font-medium bg-primary text-white rounded-none hover:bg-primary/90 transition-colors"
                       >
                         Clear All Filters
                       </button>
@@ -1261,7 +1261,7 @@ const AdminDashboard: React.FC = () => {
                             aspect-square p-1 rounded-none text-sm transition-all relative
                             ${
                               isSelected
-                                ? 'bg-accent text-white font-semibold  ring-2 ring-accent/50 ring-offset-2'
+                                ? 'bg-primary text-white font-semibold  ring-2 ring-primary/50 ring-offset-2'
                                 : isToday
                                   ? 'bg-blue-100 text-blue-900 font-semibold ring-2 ring-blue-300'
                                   : hasAppointments
@@ -1297,7 +1297,7 @@ const AdminDashboard: React.FC = () => {
                           <span className="text-gray-600">Has appointments</span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <div className="w-3 h-3 rounded bg-accent" />
+                          <div className="w-3 h-3 rounded bg-primary" />
                           <span className="text-gray-600">Selected</span>
                         </div>
                       </div>
@@ -1353,7 +1353,7 @@ const AdminDashboard: React.FC = () => {
                                 setCustomToDate('');
                                 setSelectedCalendarDate(null);
                               }}
-                              className="mt-4 px-4 py-2 text-sm font-medium bg-accent text-white rounded-none hover:bg-accent/90 transition-colors"
+                              className="mt-4 px-4 py-2 text-sm font-medium bg-primary text-white rounded-none hover:bg-primary/90 transition-colors"
                             >
                               Clear All Filters
                             </button>
@@ -1367,14 +1367,14 @@ const AdminDashboard: React.FC = () => {
                           {paginatedAppointments.map(appointment => (
                             <div
                               key={appointment.id}
-                              className={`p-4 ${selectedAppointments.has(appointment.id) ? 'bg-accent/10' : ''}`}
+                              className={`p-4 ${selectedAppointments.has(appointment.id) ? 'bg-primary/10' : ''}`}
                             >
                               <div className="flex items-start justify-between mb-3">
                                 <div className="flex items-center gap-3">
                                   <Checkbox
                                     checked={selectedAppointments.has(appointment.id)}
                                     onCheckedChange={() => handleSelectAppointment(appointment.id)}
-                                    className="flex items-center justify-center w-5 h-5 rounded-sm border border-gray-300 bg-background hover:border-gray-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent data-[state=checked]:bg-accent data-[state=checked]:border-[hsl(var(--accent))]"
+                                    className="flex items-center justify-center w-5 h-5 rounded-sm border border-gray-300 bg-background hover:border-gray-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary data-[state=checked]:bg-primary data-[state=checked]:border-[hsl(var(--primary))]"
                                   />
                                   <div>
                                     <div className="text-sm font-medium text-gray-900">
@@ -1461,7 +1461,7 @@ const AdminDashboard: React.FC = () => {
                               <div className="flex justify-end gap-3 pt-3 border-t border-gray-100">
                                 <button
                                   onClick={() => handleEditAppointment(appointment)}
-                                  className="flex items-center gap-1 text-sm text-accent hover:text-accent transition-colors"
+                                  className="flex items-center gap-1 text-sm text-primary hover:text-primary transition-colors"
                                 >
                                   <svg
                                     className="h-4 w-4"
@@ -1547,7 +1547,7 @@ const AdminDashboard: React.FC = () => {
                                       paginatedAppointments.length > 0
                                     }
                                     onCheckedChange={handleSelectAll}
-                                    className="flex items-center justify-center w-5 h-5 rounded-sm border border-gray-300 bg-background hover:border-gray-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent data-[state=checked]:bg-accent data-[state=checked]:border-[hsl(var(--accent))]"
+                                    className="flex items-center justify-center w-5 h-5 rounded-sm border border-gray-300 bg-background hover:border-gray-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary data-[state=checked]:bg-primary data-[state=checked]:border-[hsl(var(--primary))]"
                                   />
                                 </th>
                                 <SortableHeader field="date">Date & Time</SortableHeader>
@@ -1566,7 +1566,7 @@ const AdminDashboard: React.FC = () => {
                               {paginatedAppointments.map(appointment => (
                                 <tr
                                   key={appointment.id}
-                                  className={`hover:bg-muted ${selectedAppointments.has(appointment.id) ? 'bg-accent/10' : ''}`}
+                                  className={`hover:bg-muted ${selectedAppointments.has(appointment.id) ? 'bg-primary/10' : ''}`}
                                 >
                                   <td className="px-4 py-4 whitespace-nowrap">
                                     <Checkbox
@@ -1574,7 +1574,7 @@ const AdminDashboard: React.FC = () => {
                                       onCheckedChange={() =>
                                         handleSelectAppointment(appointment.id)
                                       }
-                                      className="flex items-center justify-center w-5 h-5 rounded-sm border border-gray-300 bg-background hover:border-gray-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent data-[state=checked]:bg-accent data-[state=checked]:border-[hsl(var(--accent))]"
+                                      className="flex items-center justify-center w-5 h-5 rounded-sm border border-gray-300 bg-background hover:border-gray-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary data-[state=checked]:bg-primary data-[state=checked]:border-[hsl(var(--primary))]"
                                     />
                                   </td>
                                   <td className="px-4 py-4 whitespace-nowrap">
@@ -1655,7 +1655,7 @@ const AdminDashboard: React.FC = () => {
                                     <div className="flex space-x-4">
                                       <button
                                         onClick={() => handleEditAppointment(appointment)}
-                                        className="text-accent hover:text-accent transition-colors"
+                                        className="text-primary hover:text-primary transition-colors"
                                         title="Edit appointment"
                                       >
                                         <svg
@@ -1773,7 +1773,7 @@ const AdminDashboard: React.FC = () => {
                                       onClick={() => setCurrentPage(pageNum)}
                                       className={`px-3 py-1 text-sm border rounded-none transition-colors ${
                                         currentPage === pageNum
-                                          ? 'bg-accent border-accent text-white font-semibold'
+                                          ? 'bg-primary border-primary text-white font-semibold'
                                           : 'hover:bg-muted'
                                       }`}
                                       aria-label={`Go to page ${pageNum}`}

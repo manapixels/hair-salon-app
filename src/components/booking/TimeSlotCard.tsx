@@ -24,9 +24,9 @@ export const TimeSlotCard: React.FC<{
         relative p-4 rounded-lg text-left transition-all duration-200 h-auto w-full
         ${
           isSelected
-            ? 'bg-accent ring-2 ring-accent shadow-lg scale-105'
+            ? 'bg-primary ring-2 ring-primary shadow-lg scale-105'
             : isAvailable
-              ? 'bg-white border-2 border-gray-200 hover:border-accent hover:shadow-md'
+              ? 'bg-white border-2 border-gray-200 hover:border-primary hover:shadow-md'
               : 'bg-gray-50 border border-gray-200 opacity-50 cursor-not-allowed'
         }
       `}
@@ -40,7 +40,7 @@ export const TimeSlotCard: React.FC<{
         {/* Duration bar */}
         <div
           className={`mb-1 rounded-full h-1.5 overflow-hidden ${
-            isSelected ? 'bg-accent/10' : 'bg-gray-200'
+            isSelected ? 'bg-primary/10' : 'bg-gray-200'
           }`}
         >
           <div

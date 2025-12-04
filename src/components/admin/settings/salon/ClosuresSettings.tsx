@@ -46,12 +46,12 @@ export default function ClosuresSettings({ closedDates, onChange }: ClosuresSett
             value={newClosedDate}
             onChange={e => setNewClosedDate(e.target.value)}
             min={today}
-            className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm bg-background text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:border-accent hover:border-gray-400 transition-colors"
+            className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm bg-background text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-primary hover:border-gray-400 transition-colors"
           />
           <button
             onClick={handleAddClosedDate}
             disabled={!newClosedDate}
-            className="px-[4] py-2 bg-accent text-white rounded-md text-sm font-medium hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
+            className="px-[4] py-2 bg-primary text-white rounded-md text-sm font-medium hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
           >
             Add Date
           </button>

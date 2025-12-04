@@ -120,8 +120,8 @@ export const StylistSelector: React.FC<StylistSelectorProps> = ({
                 <Card
                   key={stylist.id}
                   onClick={() => onStylistSelect(stylist)}
-                  className={`cursor-pointer min-h-[44px] transition-all hover:border-accent ${
-                    isSelected ? 'border-accent bg-accent/10' : 'hover:shadow-md'
+                  className={`cursor-pointer min-h-[44px] transition-all hover:border-primary ${
+                    isSelected ? 'border-primary bg-primary/10' : 'hover:shadow-md'
                   }`}
                 >
                   <CardContent className="p-4">
@@ -143,7 +143,7 @@ export const StylistSelector: React.FC<StylistSelectorProps> = ({
                             {stylist.name}
                           </h3>
                           {isSelected && (
-                            <div className="flex items-center justify-center w-5 h-5 rounded-full bg-accent text-white shrink-0 ml-2">
+                            <div className="flex items-center justify-center w-5 h-5 rounded-full bg-primary text-white shrink-0 ml-2">
                               <Check className="w-3 h-3" />
                             </div>
                           )}

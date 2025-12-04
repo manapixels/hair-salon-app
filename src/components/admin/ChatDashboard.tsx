@@ -112,7 +112,7 @@ export default function ChatDashboard() {
                 onClick={() => setSelectedUser(conv.userId)}
                 className={`p-3 rounded-lg cursor-pointer transition-colors ${
                   selectedUser === conv.userId
-                    ? 'bg-accent/10 border-accent border'
+                    ? 'bg-primary/10 border-primary border'
                     : 'bg-white hover:bg-gray-50'
                 }`}
               >
@@ -158,7 +158,7 @@ export default function ChatDashboard() {
 
             <div className="space-y-3">
               <textarea
-                className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-accent outline-none resize-none"
+                className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-primary outline-none resize-none"
                 rows={3}
                 placeholder="Type your reply..."
                 value={replyMessage}

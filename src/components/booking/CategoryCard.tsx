@@ -26,8 +26,8 @@ export const CategoryCard: React.FC<CategoryCardProps> = ({ category, isSelected
       aria-label={`${categoryName}: ${category.description || ''}`}
       onClick={onClick}
       className={`
-        relative h-auto text-left px-5 py-2 flex flex-col items-center justify-between gap-1 border hover:border-accent focus:ring-2 focus:ring-accent/20 whitespace-normal
-        ${isSelected ? 'border-accent bg-accent/5' : 'bg-white hover:bg-gray-50'}
+        relative h-auto text-left px-5 py-2 flex flex-col items-center justify-between gap-1 border hover:border-primary focus:ring-2 focus:ring-primary/20 whitespace-normal
+        ${isSelected ? 'border-primary bg-primary/5' : 'bg-white hover:bg-gray-50'}
       `}
     >
       <div className="relative w-16 h-16 rounded-lg">
@@ -40,7 +40,7 @@ export const CategoryCard: React.FC<CategoryCardProps> = ({ category, isSelected
         />
       </div>
       <span
-        className={`text-md text-center leading-none flex-1 flex items-center justify-center w-full ${isSelected ? 'text-accent' : 'text-gray-900'}`}
+        className={`text-md text-center leading-none flex-1 flex items-center justify-center w-full ${isSelected ? 'text-primary' : 'text-gray-900'}`}
       >
         {categoryName}
       </span>
@@ -48,7 +48,7 @@ export const CategoryCard: React.FC<CategoryCardProps> = ({ category, isSelected
       {/* Checkmark (Selected State) */}
       {isSelected && (
         <div
-          className="flex items-center justify-center w-6 h-6 rounded-full bg-accent shrink-0 absolute right-2 top-2"
+          className="flex items-center justify-center w-6 h-6 rounded-full bg-primary shrink-0 absolute right-2 top-2"
           aria-hidden="true"
         >
           <Check className="h-4 w-4 text-white" />

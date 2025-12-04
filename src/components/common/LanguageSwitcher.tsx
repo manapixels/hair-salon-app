@@ -30,7 +30,7 @@ export function LanguageSwitcher() {
         onClick={() => onSelectChange('en')}
         disabled={isPending}
         className={`font-medium transition-colors ${
-          activeLocale === 'en' ? 'text-accent' : 'text-gray-500 hover:text-gray-900'
+          activeLocale === 'en' ? 'text-primary' : 'text-gray-500 hover:text-gray-900'
         }`}
       >
         EN
@@ -40,7 +40,7 @@ export function LanguageSwitcher() {
         onClick={() => onSelectChange('zh')}
         disabled={isPending}
         className={`font-medium transition-colors ${
-          activeLocale === 'zh' ? 'text-accent' : 'text-gray-500 hover:text-gray-900'
+          activeLocale === 'zh' ? 'text-primary' : 'text-gray-500 hover:text-gray-900'
         }`}
       >
         ZH

@@ -20,7 +20,7 @@ export default async function PricesPage() {
   return (
     <div className="min-h-screen bg-white">
       {/* Hero Section */}
-      <div className="bg-gradient-to-b from-accent/5 to-white py-16 px-4">
+      <div className="bg-gradient-to-b from-primary/5 to-white py-16 px-4">
         <div className="container mx-auto max-w-6xl text-center">
           <h1 className="text-4xl md:text-5xl font-serif font-light text-gray-900 mb-4">
             Our Services & Pricing
@@ -96,10 +96,10 @@ export default async function PricesPage() {
                           service.addons.map(addon => (
                             <TableRow
                               key={addon.id}
-                              className="bg-muted/30 hover:bg-muted/40 border-l-2 border-l-accent/30"
+                              className="bg-muted/30 hover:bg-muted/40 border-l-2 border-l-primary/30"
                             >
                               <TableCell className="pl-8 text-sm text-gray-700">
-                                <span className="text-accent mr-1">+</span>
+                                <span className="text-primary mr-1">+</span>
                                 {addon.name}
                               </TableCell>
                               <TableCell className="text-xs text-gray-500">
@@ -125,7 +125,7 @@ export default async function PricesPage() {
       </div>
 
       {/* Footer CTA */}
-      <div className="bg-accent/5 py-12 px-4 mt-16">
+      <div className="bg-primary/5 py-12 px-4 mt-16">
         <div className="container mx-auto max-w-4xl text-center">
           <h3 className="text-2xl font-serif font-light text-gray-900 mb-3">
             Ready to Book Your Appointment?

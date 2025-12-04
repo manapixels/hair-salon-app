@@ -172,9 +172,9 @@ const TimeSlotCard: React.FC<{
         relative p-4 rounded-lg text-left transition-all duration-200
         ${
           isSelected
-            ? 'bg-accent ring-2 ring-accent shadow-lg scale-105'
+            ? 'bg-primary ring-2 ring-primary shadow-lg scale-105'
             : isAvailable
-              ? 'bg-white border-2 border-gray-200 hover:border-accent hover:shadow-md'
+              ? 'bg-white border-2 border-gray-200 hover:border-primary hover:shadow-md'
               : 'bg-gray-50 border border-gray-200 opacity-50 cursor-not-allowed'
         }
       `}
@@ -188,7 +188,7 @@ const TimeSlotCard: React.FC<{
         {/* Duration bar */}
         <div
           className={`mb-1 rounded-full h-1.5 overflow-hidden ${
-            isSelected ? 'bg-accent/10' : 'bg-gray-200'
+            isSelected ? 'bg-primary/10' : 'bg-gray-200'
           }`}
         >
           <div
@@ -278,7 +278,7 @@ const DateTimePicker: React.FC<{
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-medium text-gray-900">
               {t('availableTimesFor')}{' '}
-              <span className="text-accent font-bold">{format(selectedDate, 'EEEE, MMMM d')}</span>
+              <span className="text-primary font-bold">{format(selectedDate, 'EEEE, MMMM d')}</span>
             </h3>
             <span className="text-sm text-gray-500">
               {timeSlots.length} {timeSlots.length !== 1 ? t('slotsAvailable') : t('slot')}
@@ -528,7 +528,7 @@ const BookingSummary: React.FC<{
               </p>
             )}
             {selectedTime && (
-              <p className="text-sm font-bold text-accent">
+              <p className="text-sm font-bold text-primary">
                 {t('time')}: {selectedTime}
               </p>
             )}

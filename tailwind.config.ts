@@ -27,6 +27,17 @@ const config: Config = {
         primary: {
           DEFAULT: 'hsl(var(--primary))',
           foreground: 'hsl(var(--primary-foreground))',
+          50: 'hsl(48 100% 97%)',
+          100: 'hsl(48 100% 92%)',
+          200: 'hsl(48 100% 82%)',
+          300: 'hsl(48 100% 68%)',
+          400: 'hsl(48 100% 50%)',
+          500: 'hsl(48 100% 40%)',
+          600: 'hsl(48 100% 32%)',
+          700: 'hsl(48 100% 24%)' /* Brand color */,
+          800: 'hsl(48 100% 18%)',
+          900: 'hsl(48 100% 14%)',
+          950: 'hsl(48 100% 8%)',
         },
         secondary: {
           DEFAULT: 'hsl(var(--secondary))',
@@ -39,10 +50,6 @@ const config: Config = {
         muted: {
           DEFAULT: 'hsl(var(--muted))',
           foreground: 'hsl(var(--muted-foreground))',
-        },
-        accent: {
-          DEFAULT: 'hsl(var(--accent))',
-          foreground: 'hsl(var(--accent-foreground))',
         },
         popover: {
           DEFAULT: 'hsl(var(--popover))',

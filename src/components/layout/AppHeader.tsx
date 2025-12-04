@@ -165,7 +165,7 @@ export default function AppHeader({ view, onViewChange, serviceLinks }: AppHeade
   return (
     <>
       {/* Desktop Header - Hidden on Mobile */}
-      <header className="hidden md:block sticky top-0 z-50 border-b border-accent/10 bg-stone-50 bg-opacity-50 backdrop-blur-md transition-all duration-300">
+      <header className="hidden md:block sticky top-0 z-50 border-b border-primary/10 bg-stone-50 bg-opacity-50 backdrop-blur-md transition-all duration-300">
         <nav className="w-full flex items-center justify-between px-6 py-3 lg:px-12">
           <div className="flex items-center gap-6">
             <Link href="/" className="cursor-pointer">
@@ -187,7 +187,7 @@ export default function AppHeader({ view, onViewChange, serviceLinks }: AppHeade
 
                 {/* Full Width Mega Menu Overlay */}
                 <div
-                  className={`fixed left-0 top-[73px] w-screen bg-accent text-white transition-all duration-300 ease-in-out z-50 shadow-2xl border-t border-accent ${isMegaMenuOpen ? 'opacity-100 visible' : 'opacity-0 invisible'}`}
+                  className={`fixed left-0 top-[73px] w-screen bg-primary text-white transition-all duration-300 ease-in-out z-50 shadow-2xl border-t border-primary ${isMegaMenuOpen ? 'opacity-100 visible' : 'opacity-0 invisible'}`}
                   onMouseLeave={() => setIsMegaMenuOpen(false)}
                 >
                   <div className="mx-auto">
@@ -212,12 +212,12 @@ export default function AppHeader({ view, onViewChange, serviceLinks }: AppHeade
                             key={service.href}
                             href={service.href}
                             onClick={() => setIsMegaMenuOpen(false)}
-                            className="group/item flex items-center justify-between py-4 border-b border-accent hover:border-white transition-colors"
+                            className="group/item flex items-center justify-between py-4 border-b border-primary hover:border-white transition-colors"
                           >
                             <span className="text-2xl font-light tracking-wide group-hover/item:text-white text-white/90 transition-colors">
                               {service.title}
                             </span>
-                            <div className="w-10 h-10 rounded-full border border-accent flex items-center justify-center group-hover/item:border-white group-hover/item:bg-white group-hover/item:text-primary transition-all">
+                            <div className="w-10 h-10 rounded-full border border-primary flex items-center justify-center group-hover/item:border-white group-hover/item:bg-white group-hover/item:text-primary transition-all">
                               <ChevronDown className="w-5 h-5 -rotate-90" />
                             </div>
                           </Link>
@@ -244,7 +244,7 @@ export default function AppHeader({ view, onViewChange, serviceLinks }: AppHeade
               <Button
                 variant="outline"
                 size="default"
-                className="border-accent/50 bg-white/80 backdrop-blur-xs text-primary"
+                className="border-primary/50 bg-white/80 backdrop-blur-xs text-primary"
                 onClick={() => handleNavigation('booking', '/')}
               >
                 <Calendar className="h-4 w-4" aria-hidden="true" />
@@ -278,7 +278,7 @@ export default function AppHeader({ view, onViewChange, serviceLinks }: AppHeade
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button
-                    className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full bg-accent text-white transition-opacity hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2"
+                    className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full bg-primary text-white transition-opacity hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
                     aria-label="User menu"
                   >
                     <Avatar className="h-10 w-10">
@@ -287,7 +287,7 @@ export default function AppHeader({ view, onViewChange, serviceLinks }: AppHeade
                         alt={user.name}
                         className="h-full w-full rounded-full object-cover"
                       />
-                      <AvatarFallback className="flex h-full w-full items-center justify-center rounded-full bg-accent text-sm font-semibold text-white">
+                      <AvatarFallback className="flex h-full w-full items-center justify-center rounded-full bg-primary text-sm font-semibold text-white">
                         {user.name
                           .split(' ')
                           .map(n => n[0])
@@ -307,7 +307,7 @@ export default function AppHeader({ view, onViewChange, serviceLinks }: AppHeade
                   <div className="px-3 py-2.5 border-b border-gray-100">
                     <p className="text-sm font-semibold text-gray-900">{user.name}</p>
                     <p className="text-xs text-gray-500">{user.email}</p>
-                    <span className="mt-1.5 inline-block rounded-full bg-accent/10 px-2 py-0.5 text-[10px] font-medium text-accent">
+                    <span className="mt-1.5 inline-block rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">
                       {user.role === 'ADMIN' ? 'Admin' : 'Customer'}
                     </span>
                   </div>

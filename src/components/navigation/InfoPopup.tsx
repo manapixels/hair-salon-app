@@ -106,7 +106,7 @@ export default function InfoPopup({ isOpen, onClose }: InfoPopupProps) {
                 settings.businessAddress && (
                   <section>
                     <div className="flex items-start gap-3">
-                      <div className="p-2 bg-accent/10 rounded-lg shrink-0">
+                      <div className="p-2 bg-primary/10 rounded-lg shrink-0">
                         <MapPin className="w-5 h-5 text-primary" />
                       </div>
                       <div>
@@ -137,7 +137,7 @@ export default function InfoPopup({ isOpen, onClose }: InfoPopupProps) {
                 settings.weeklySchedule && (
                   <section>
                     <div className="flex items-start gap-3">
-                      <div className="p-2 bg-accent/10 rounded-lg shrink-0">
+                      <div className="p-2 bg-primary/10 rounded-lg shrink-0">
                         <Clock className="w-5 h-5 text-primary" />
                       </div>
                       <div className="flex-1">

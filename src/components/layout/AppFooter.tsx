@@ -57,7 +57,7 @@ export default function AppFooter({ adminSettings }: AppFooterProps) {
   });
 
   return (
-    <footer className="bg-accent text-white/70 py-10 sm:py-20 hidden sm:block">
+    <footer className="bg-primary text-white/70 py-10 sm:py-20 hidden sm:block">
       <div className="max-w-7xl mx-auto px-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
           <div>

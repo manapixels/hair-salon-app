@@ -103,7 +103,7 @@ export default function StylistAvailability({ onNavigateToStylists }: StylistAva
         {onNavigateToStylists && (
           <button
             onClick={onNavigateToStylists}
-            className="px-[4] py-2 bg-accent text-white rounded-md text-sm font-medium hover:opacity-90 transition-opacity"
+            className="px-[4] py-2 bg-primary text-white rounded-md text-sm font-medium hover:opacity-90 transition-opacity"
           >
             Go to Stylists Tab
           </button>
@@ -126,7 +126,7 @@ export default function StylistAvailability({ onNavigateToStylists }: StylistAva
       <div>
         <label className="block text-sm font-medium text-foreground mb-[2]">Select Stylist</label>
         <Select.Root value={selectedStylistId} onValueChange={setSelectedStylistId}>
-          <Select.Trigger className="inline-flex items-center justify-between gap-[2] px-3 py-2 rounded-md border border-gray-300 bg-background text-sm text-foreground hover:border-gray-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent min-w-[250px]">
+          <Select.Trigger className="inline-flex items-center justify-between gap-[2] px-3 py-2 rounded-md border border-gray-300 bg-background text-sm text-foreground hover:border-gray-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary min-w-[250px]">
             <Select.Value />
             <Select.Icon>
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -146,7 +146,7 @@ export default function StylistAvailability({ onNavigateToStylists }: StylistAva
                   <Select.Item
                     key={stylist.id}
                     value={stylist.id}
-                    className="relative flex items-center px-3 py-2 rounded-sm text-sm text-foreground hover:bg-accent/20 focus:bg-accent/20 outline-none cursor-pointer data-[highlighted]:bg-accent/20"
+                    className="relative flex items-center px-3 py-2 rounded-sm text-sm text-foreground hover:bg-primary/20 focus:bg-primary/20 outline-none cursor-pointer data-[highlighted]:bg-primary/20"
                   >
                     <Select.ItemText>{stylist.name}</Select.ItemText>
                   </Select.Item>
@@ -277,7 +277,7 @@ export default function StylistAvailability({ onNavigateToStylists }: StylistAva
                         : !isWorking
                           ? 'bg-gray-100 border-border text-gray-400'
                           : 'bg-muted border-gray-300 text-foreground'
-                    } ${isToday ? 'ring-2 ring-accent' : ''}`}
+                    } ${isToday ? 'ring-2 ring-primary' : ''}`}
                   >
                     <div className="font-medium">{date.getDate()}</div>
                     {isBlocked && <div className="text-xs mt-0.5">Blocked</div>}

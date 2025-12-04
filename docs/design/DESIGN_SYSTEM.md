@@ -72,7 +72,7 @@ import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/componen
 <Card
   className={cn(
     "cursor-pointer transition-all hover:shadow-md",
-    selected && "ring-2 ring-accent border-accent"
+    selected && "ring-2 ring-primary border-primary"
   )}
   onClick={() => setSelectedService('haircut')}
 >
@@ -230,8 +230,8 @@ The app uses HSL-based CSS variables defined in `globals.css`:
 - `--secondary` - Secondary UI elements
 - `--muted` - Muted backgrounds
 - `--muted-foreground` - Secondary text
-- `--accent` - Accent/highlight color
-- `--accent-foreground` - Text on accent
+- `--primary` - Accent/highlight color
+- `--primary-foreground` - Text on accent
 - `--destructive` - Error/danger color
 - `--border` - Border color
 - `--input` - Input border color
@@ -249,7 +249,7 @@ The app uses HSL-based CSS variables defined in `globals.css`:
 <div className="bg-background">Page background</div>
 <div className="bg-card">Card background</div>
 <div className="bg-muted">Muted background</div>
-<div className="bg-accent">Accent background</div>
+<div className="bg-primary">Accent background</div>
 <div className="bg-destructive">Error background</div>
 
 // Text colors
@@ -260,11 +260,11 @@ The app uses HSL-based CSS variables defined in `globals.css`:
 
 // Borders
 <div className="border border-border">Default border</div>
-<div className="border border-accent">Accent border</div>
+<div className="border border-primary">Accent border</div>
 
 // Opacity modifiers
-<div className="bg-accent/10">10% opacity accent</div>
-<div className="bg-accent/20">20% opacity accent</div>
+<div className="bg-primary/10">10% opacity accent</div>
+<div className="bg-primary/20">20% opacity accent</div>
 ```
 
 ---
@@ -413,7 +413,7 @@ import { motion } from 'framer-motion';
 All components must include:
 
 1. **ARIA Labels** on icon-only buttons
-2. **Focus States** - `focus-visible:ring-2 focus-visible:ring-accent`
+2. **Focus States** - `focus-visible:ring-2 focus-visible:ring-primary`
 3. **Keyboard Navigation** - Tab, Enter, Escape support
 4. **Screen Reader Announcements** - `aria-live`, `role="status"`
 5. **Color Contrast** - Min 4.5:1 for text
@@ -434,12 +434,12 @@ import { cn } from '@/lib/utils';
 <Card
   className={cn(
     'cursor-pointer transition-all hover:shadow-md',
-    selected && 'ring-2 ring-accent border-accent',
+    selected && 'ring-2 ring-primary border-primary',
   )}
   onClick={handleSelect}
 >
   <div className="flex items-start gap-3">
-    <div className="p-2 bg-accent/10 rounded-md">
+    <div className="p-2 bg-primary/10 rounded-md">
       <Scissors className="w-5 h-5 text-primary" />
     </div>
     <div className="flex-1">

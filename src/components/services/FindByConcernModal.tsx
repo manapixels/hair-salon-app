@@ -257,7 +257,12 @@ export function FindByConcernModal({ isOpen, onClose, serviceLinks }: FindByConc
         <>
           {/* Service Results View */}
           <div className="flex items-center gap-3 mb-6">
-            <Button variant="ghost" size="icon" onClick={handleBack} className="hover:bg-accent/10">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleBack}
+              className="hover:bg-primary/10"
+            >
               <ArrowLeft className="w-5 h-5" />
             </Button>
             <div>
@@ -302,7 +307,7 @@ export function FindByConcernModal({ isOpen, onClose, serviceLinks }: FindByConc
                 return (
                   <div
                     key={category.id}
-                    className="bg-card border rounded-lg overflow-hidden hover:border-accent transition-all hover:shadow-lg"
+                    className="bg-card border rounded-lg overflow-hidden hover:border-primary transition-all hover:shadow-lg"
                   >
                     {/* Category Header */}
                     <div className="p-4 border-b bg-muted/30">
@@ -351,7 +356,7 @@ export function FindByConcernModal({ isOpen, onClose, serviceLinks }: FindByConc
                           {relevantServices
                             .filter(service => service.isActive)
                             .map(service => (
-                              <TableRow key={service.id} className="hover:bg-muted/30 bg-accent/5">
+                              <TableRow key={service.id} className="hover:bg-muted/30 bg-primary/5">
                                 <TableCell className="text-sm font-bold text-primary">
                                   {service.name}
                                 </TableCell>
@@ -433,9 +438,9 @@ export function FindByConcernModal({ isOpen, onClose, serviceLinks }: FindByConc
               'absolute right-4 top-4',
               'rounded-full p-2',
               'text-muted-foreground hover:text-foreground',
-              'hover:bg-accent/10',
+              'hover:bg-primary/10',
               'transition-colors',
-              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent',
+              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
             )}
             aria-label={t('accessibility.closeModal')}
           >

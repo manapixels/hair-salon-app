@@ -144,7 +144,7 @@ export default function AnalyticsDashboard() {
         <CardContent>
           <div className="space-y-2">
             {data.knowledgeBase.topMissingQueries.map((query, index) => (
-              <div key={index} className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <div key={index} className="p-3 bg-primary-50 border border-yellow-200 rounded-lg">
                 <p className="text-sm text-gray-800">&quot;{query}&quot;</p>
               </div>
             ))}

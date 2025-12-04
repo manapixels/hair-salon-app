@@ -13,7 +13,7 @@ export default function LocationCard({ address }: LocationCardProps) {
     <div className="absolute bottom-6 right-6 max-w-[320px] bg-white/80 backdrop-blur-md border border-stone-200 rounded-xl shadow-lg p-5 z-20 hidden md:block">
       <div className="flex items-start gap-3">
         <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gold-50 flex items-center justify-center">
-          <MapPin className="w-5 h-5 text-[hsl(var(--accent))]" aria-hidden="true" />
+          <MapPin className="w-5 h-5 text-[hsl(var(--primary))]" aria-hidden="true" />
         </div>
         <div className="flex-1">
           <h3 className="text-sm font-semibold text-stone-900 mb-1.5 font-sans uppercase tracking-wide">
@@ -24,7 +24,7 @@ export default function LocationCard({ address }: LocationCardProps) {
             href={googleMapsUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center text-xs font-medium text-primary hover:text-[hsl(var(--accent))] transition-colors font-sans uppercase tracking-wider"
+            className="inline-flex items-center text-xs font-medium text-primary hover:text-[hsl(var(--primary))] transition-colors font-sans uppercase tracking-wider"
           >
             Get Directions
             <svg

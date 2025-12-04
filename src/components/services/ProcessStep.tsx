@@ -8,7 +8,7 @@ interface ProcessStepProps {
 }
 
 const colorClasses: Record<ColorScheme, string> = {
-  primary: 'bg-accent',
+  primary: 'bg-primary',
   amber: 'bg-amber-500',
   teal: 'bg-teal-500',
   rose: 'bg-rose-500',

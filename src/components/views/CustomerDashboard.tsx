@@ -114,7 +114,7 @@ export default function CustomerDashboard() {
               alt={user.name}
               width={80}
               height={80}
-              className="w-20 h-20 rounded-full object-cover ring-4 ring-accent/20"
+              className="w-20 h-20 rounded-full object-cover ring-4 ring-primary/20"
             />
           )}
           <div>
@@ -133,8 +133,8 @@ export default function CustomerDashboard() {
             <h2 className="text-xl font-bold text-gray-900 mb-6">Your Profile</h2>
 
             {/* User Pattern / "The Usual" */}
-            <div className="mb-8 p-4 bg-accent/5 rounded-xl border border-accent/10">
-              <h3 className="text-sm font-semibold text-accent mb-3 uppercase tracking-wider">
+            <div className="mb-8 p-4 bg-primary/5 rounded-xl border border-primary/10">
+              <h3 className="text-sm font-semibold text-primary mb-3 uppercase tracking-wider">
                 Your Usual
               </h3>
               <div className="space-y-2">

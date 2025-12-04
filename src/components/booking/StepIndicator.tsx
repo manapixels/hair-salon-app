@@ -40,7 +40,7 @@ export const StepIndicator = memo(function StepIndicator({
                     transition-all duration-300
                     ${
                       step.isActive
-                        ? 'bg-accent text-white shadow-lg scale-110'
+                        ? 'bg-primary text-white shadow-lg scale-110'
                         : step.isCompleted
                           ? 'bg-green-500 text-white'
                           : 'bg-gray-200 text-gray-600'
@@ -57,7 +57,7 @@ export const StepIndicator = memo(function StepIndicator({
                     transition-colors duration-300
                     ${
                       step.isActive
-                        ? 'text-accent'
+                        ? 'text-primary'
                         : step.isCompleted
                           ? 'text-green-600'
                           : 'text-gray-500'
@@ -86,7 +86,7 @@ export const StepIndicator = memo(function StepIndicator({
 
       {/* Mobile-only current step label */}
       <div className="sm:hidden mt-4 text-center">
-        <p className="text-sm font-medium text-accent">{steps.find(s => s.isActive)?.label}</p>
+        <p className="text-sm font-medium text-primary">{steps.find(s => s.isActive)?.label}</p>
         <p className="text-xs text-gray-500 mt-1">
           Step {steps.find(s => s.isActive)?.number} of {steps.length}
         </p>

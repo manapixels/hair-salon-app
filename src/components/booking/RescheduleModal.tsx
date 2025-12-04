@@ -182,7 +182,7 @@ export default function RescheduleModal({
               const [year, month, day] = e.target.value.split('-').map(Number);
               setSelectedDate(new Date(year, month - 1, day));
             }}
-            className="w-full min-h-touch-lg rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-accent"
+            className="w-full min-h-touch-lg rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-primary"
             disabled={isRescheduling}
           />
         </div>
@@ -213,7 +213,7 @@ export default function RescheduleModal({
                       isSelected
                         ? 'shadow-md'
                         : isAvailable
-                          ? 'border-gray-300 bg-white text-gray-700 hover:border-accent hover:text-accent hover:shadow-sm'
+                          ? 'border-gray-300 bg-white text-gray-700 hover:border-primary hover:text-primary hover:shadow-sm'
                           : 'border-gray-200 bg-gray-100 text-gray-400',
                     )}
                     onClick={() => setSelectedTime(slot.time)}

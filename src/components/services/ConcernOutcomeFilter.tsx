@@ -66,7 +66,7 @@ export function ConcernOutcomeFilter({
         <div className="flex items-center gap-3">
           <span className="font-serif text-lg text-foreground">Find by hair concern or goal</span>
           {hasSelections && (
-            <span className="px-2 py-1 rounded-full bg-accent/10 text-primary text-xs font-medium">
+            <span className="px-2 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium">
               {selectedTags.length} selected
             </span>
           )}

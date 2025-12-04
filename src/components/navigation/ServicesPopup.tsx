@@ -65,7 +65,7 @@ export default function ServicesPopup({ isOpen, onClose, serviceLinks }: Service
                     onClick={onClose}
                     className={`
                       flex items-center justify-between px-5 py-3 mx-3 rounded-full transition-all duration-200 group
-                      ${isActive ? 'bg-accent/10' : 'hover:bg-gray-100'}
+                      ${isActive ? 'bg-primary/10' : 'hover:bg-gray-100'}
                     `}
                   >
                     <span
@@ -80,7 +80,7 @@ export default function ServicesPopup({ isOpen, onClose, serviceLinks }: Service
                     >
                       {tNav(`serviceNames.${service.slug}`)}
                     </span>
-                    {isActive && <div className="w-1.5 h-1.5 rounded-full bg-accent" />}
+                    {isActive && <div className="w-1.5 h-1.5 rounded-full bg-primary" />}
                     {!isActive && (
                       <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-gray-600 transition-colors" />
                     )}
