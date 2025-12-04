@@ -910,5 +910,39 @@
     "experienceValue": "20+ 年",
     "specialtyLabel": "专长",
     "specialtyValue": "亚洲发质"
+  },
+  "FindByConcernModal": {
+    "concernsView": {
+      "title": "按头发问题查找",
+      "description": "搜索您的问题或从热门选项中选择",
+      "searchPlaceholder": "您的头发问题是什么？（例如：毛躁、分叉）",
+      "loadingConcerns": "正在加载问题...",
+      "errorLoadingConcerns": "无法加载问题。请重试。",
+      "tryAgain": "重试",
+      "noConcernsFound": "未找到相关问题。请尝试不同的关键词。",
+      "popularConcerns": "热门问题",
+      "allConcerns": "所有问题"
+    },
+    "resultsView": {
+      "servicesFor": "服务项目",
+      "serviceCategory": "个服务类别",
+      "serviceCategories": "个服务类别",
+      "findingServices": "正在查找服务...",
+      "errorLoadingServices": "无法加载服务。请重试。",
+      "backToSearch": "返回搜索",
+      "noServicesFound": "未找到针对此问题的服务。",
+      "tryAnotherSearch": "尝试其他搜索",
+      "matchingService": "个匹配服务",
+      "matchingServices": "个匹配服务",
+      "learnMore": "了解更多",
+      "bookNow": "立即预约"
+    },
+    "accessibility": {
+      "concernsTitle": "按头发问题查找",
+      "resultsTitle": "{concernLabel} 的服务",
+      "concernsDescription": "搜索您的头发问题以查找匹配的服务",
+      "resultsDescription": "显示 {count} 个匹配类别",
+      "closeModal": "关闭弹窗"
+    }
   }
 }

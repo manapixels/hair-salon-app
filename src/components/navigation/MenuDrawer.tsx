@@ -128,7 +128,7 @@ export default function MenuDrawer({ isOpen, onClose }: MenuDrawerProps) {
                 <section>
                   <div className="flex items-start gap-3">
                     <div className="p-2 bg-accent/10 rounded-lg">
-                      <MapPin className="w-5 h-5 text-accent-foreground" />
+                      <MapPin className="w-5 h-5 text-primary" />
                     </div>
                     <div>
                       <h3 className="text-sm font-semibold text-foreground mb-1">Location</h3>
@@ -143,7 +143,7 @@ export default function MenuDrawer({ isOpen, onClose }: MenuDrawerProps) {
                 <section>
                   <div className="flex items-start gap-3">
                     <div className="p-2 bg-accent/10 rounded-lg">
-                      <Clock className="w-5 h-5 text-accent-foreground" />
+                      <Clock className="w-5 h-5 text-primary" />
                     </div>
                     <div className="flex-1">
                       <h3 className="text-sm font-semibold text-foreground mb-3">

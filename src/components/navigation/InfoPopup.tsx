@@ -107,7 +107,7 @@ export default function InfoPopup({ isOpen, onClose }: InfoPopupProps) {
                   <section>
                     <div className="flex items-start gap-3">
                       <div className="p-2 bg-accent/10 rounded-lg shrink-0">
-                        <MapPin className="w-5 h-5 text-accent-foreground" />
+                        <MapPin className="w-5 h-5 text-primary" />
                       </div>
                       <div>
                         <h3 className="text-sm font-semibold text-gray-900 mb-1">
@@ -138,7 +138,7 @@ export default function InfoPopup({ isOpen, onClose }: InfoPopupProps) {
                   <section>
                     <div className="flex items-start gap-3">
                       <div className="p-2 bg-accent/10 rounded-lg shrink-0">
-                        <Clock className="w-5 h-5 text-accent-foreground" />
+                        <Clock className="w-5 h-5 text-primary" />
                       </div>
                       <div className="flex-1">
                         <h3 className="text-sm font-semibold text-gray-900 mb-3">

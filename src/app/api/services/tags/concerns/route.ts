@@ -3,11 +3,11 @@ import { prisma } from '@/lib/prisma';
 import { unstable_cache } from 'next/cache';
 
 /**
- * GET /api/services/tags/concerns
+ * GET /api/services/tags
  * Returns all service tags grouped by category
  */
 
-const getConcernTags = unstable_cache(
+const getServiceTags = unstable_cache(
   async () => {
     const tags = await prisma.serviceTag.findMany({
       orderBy: [{ category: 'asc' }, { sortOrder: 'asc' }],
@@ -15,6 +15,8 @@ const getConcernTags = unstable_cache(
 
     return {
       concerns: tags.filter(tag => tag.category === 'CONCERN'),
+      outcomes: tags.filter(tag => tag.category === 'OUTCOME'),
+      hairTypes: tags.filter(tag => tag.category === 'HAIR_TYPE'),
     };
   },
   ['service-tags'],
@@ -26,7 +28,7 @@ const getConcernTags = unstable_cache(
 
 export async function GET() {
   try {
-    const grouped = await getConcernTags();
+    const grouped = await getServiceTags();
     return NextResponse.json(grouped);
   } catch (error) {
     console.error('Error fetching service tags:', error);

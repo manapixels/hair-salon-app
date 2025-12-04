@@ -59,7 +59,7 @@ export default function BusinessSettings({
       <div className="p-4 bg-accent/10 border border-accent rounded-lg">
         <div className="flex items-start space-x-3">
           <svg
-            className="w-5 h-5 text-accent-foreground flex-shrink-0 mt-0.5"
+            className="w-5 h-5 text-primary flex-shrink-0 mt-0.5"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"

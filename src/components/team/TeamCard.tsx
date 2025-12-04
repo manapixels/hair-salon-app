@@ -10,13 +10,13 @@ export default function TeamCard() {
     <section className="bg-stone-50 py-16">
       <div className="container mx-auto px-4">
         <div className="text-center mb-6 sm:mb-12">
-          <span className="uppercase tracking-[0.2em] text-accent-foreground font-sans mb-2 sm:mb-4 block text-sm">
+          <span className="uppercase tracking-[0.2em] text-primary/50 font-sans mb-2 sm:mb-4 block text-sm">
             {t('meetTheExpert')}
           </span>
-          <h2 className="text-4xl font-light text-stone-900">{t('ourStylist')}</h2>
+          <h2 className="text-3xl text-primary">{t('ourStylist')}</h2>
         </div>
 
-        <div className="max-w-4xl mx-auto sm:bg-white rounded-2xl overflow-hidden sm:shadow-sm border border-stone-100 flex flex-col md:flex-row">
+        <div className="max-w-4xl mx-auto sm:bg-white rounded-2xl overflow-hidden sm:shadow-sm border border-none sm:border-primary/20 flex flex-col md:flex-row">
           {/* Image Section */}
           <div className="relative w-4/5 md:w-2/5 min-h-[300px] sm:min-h-[400px] mx-auto">
             <Image
@@ -30,7 +30,7 @@ export default function TeamCard() {
 
           {/* Content Section */}
           <div className="p-8 md:p-12 flex flex-col justify-center w-full md:w-3/5">
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
               <div>
                 <h3 className="text-2xl font-normal text-stone-900 mb-1">{t('name')}</h3>
                 <p className="text-sm text-stone-500 uppercase tracking-wider">{t('role')}</p>

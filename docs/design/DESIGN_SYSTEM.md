@@ -255,7 +255,7 @@ The app uses HSL-based CSS variables defined in `globals.css`:
 // Text colors
 <p className="text-foreground">Primary text</p>
 <p className="text-muted-foreground">Secondary text</p>
-<p className="text-accent-foreground">Accent text</p>
+<p className="text-primary">Accent text</p>
 <p className="text-destructive">Error text</p>
 
 // Borders
@@ -440,7 +440,7 @@ import { cn } from '@/lib/utils';
 >
   <div className="flex items-start gap-3">
     <div className="p-2 bg-accent/10 rounded-md">
-      <Scissors className="w-5 h-5 text-accent-foreground" />
+      <Scissors className="w-5 h-5 text-primary" />
     </div>
     <div className="flex-1">
       <CardTitle>Haircut & Style</CardTitle>

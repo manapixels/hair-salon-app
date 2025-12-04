@@ -12,7 +12,7 @@ export default function AvailabilityModeToggle({ mode, onChange }: AvailabilityM
         onClick={() => onChange('salon-wide')}
         className={`px-[4] py-2 rounded-md text-sm font-medium transition-all ${
           mode === 'salon-wide'
-            ? 'bg-background text-accent-foreground shadow-sm border border-border'
+            ? 'bg-background text-primary shadow-sm border border-border'
             : 'text-muted-foreground hover:text-foreground'
         }`}
       >
@@ -32,7 +32,7 @@ export default function AvailabilityModeToggle({ mode, onChange }: AvailabilityM
         onClick={() => onChange('per-stylist')}
         className={`px-[4] py-2 rounded-md text-sm font-medium transition-all ${
           mode === 'per-stylist'
-            ? 'bg-background text-accent-foreground shadow-sm border border-border'
+            ? 'bg-background text-primary shadow-sm border border-border'
             : 'text-muted-foreground hover:text-foreground'
         }`}
       >

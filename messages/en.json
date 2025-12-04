@@ -898,5 +898,39 @@
     "experienceValue": "20+ Years",
     "specialtyLabel": "Specialty",
     "specialtyValue": "Asian Hair"
+  },
+  "FindByConcernModal": {
+    "concernsView": {
+      "title": "Find by Hair Concern",
+      "description": "Search for your concern or choose from popular options",
+      "searchPlaceholder": "What's your hair concern? (e.g., frizzy hair, split ends)",
+      "loadingConcerns": "Loading concerns...",
+      "errorLoadingConcerns": "Unable to load concerns. Please try again.",
+      "tryAgain": "Try Again",
+      "noConcernsFound": "No concerns found. Try different keywords.",
+      "popularConcerns": "Popular Concerns",
+      "allConcerns": "All Concerns"
+    },
+    "resultsView": {
+      "servicesFor": "Services for",
+      "serviceCategory": "service category",
+      "serviceCategories": "service categories",
+      "findingServices": "Finding services...",
+      "errorLoadingServices": "Unable to load services. Please try again.",
+      "backToSearch": "Back to Search",
+      "noServicesFound": "No services found for this concern.",
+      "tryAnotherSearch": "Try Another Search",
+      "matchingService": "matching service",
+      "matchingServices": "matching services",
+      "learnMore": "Learn More",
+      "bookNow": "Book Now"
+    },
+    "accessibility": {
+      "concernsTitle": "Find by Hair Concern",
+      "resultsTitle": "Services for {concernLabel}",
+      "concernsDescription": "Search for your hair concern to find matching services",
+      "resultsDescription": "Showing {count} matching categories",
+      "closeModal": "Close modal"
+    }
   }
 }

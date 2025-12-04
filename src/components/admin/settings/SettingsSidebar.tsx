@@ -95,15 +95,11 @@ export default function SettingsSidebar({ activeSection, onSectionChange }: Sett
               onClick={() => onSectionChange(section.id)}
               className={`w-full flex items-center space-x-[3] px-3 py-2 rounded-md text-left transition-all ${
                 activeSection === section.id
-                  ? 'bg-accent/10 text-accent-foreground font-medium border-l-4 border-[hsl(var(--accent))]'
+                  ? 'bg-accent/10 text-primary font-medium border-l-4 border-[hsl(var(--accent))]'
                   : 'text-muted-foreground hover:bg-gray-100 hover:text-foreground'
               }`}
             >
-              <span
-                className={
-                  activeSection === section.id ? 'text-accent-foreground' : 'text-gray-500'
-                }
-              >
+              <span className={activeSection === section.id ? 'text-primary' : 'text-gray-500'}>
                 {section.icon}
               </span>
               <span className="text-sm">{section.label}</span>
@@ -125,15 +121,11 @@ export default function SettingsSidebar({ activeSection, onSectionChange }: Sett
                 onClick={() => onSectionChange(section.id)}
                 className={`w-full flex items-center space-x-[3] px-3 py-2 rounded-md text-left transition-all ${
                   activeSection === section.id
-                    ? 'bg-accent/10 text-accent-foreground font-medium border-l-4 border-[hsl(var(--accent))]'
+                    ? 'bg-accent/10 text-primary font-medium border-l-4 border-[hsl(var(--accent))]'
                     : 'text-muted-foreground hover:bg-gray-100 hover:text-foreground'
                 }`}
               >
-                <span
-                  className={
-                    activeSection === section.id ? 'text-accent-foreground' : 'text-gray-500'
-                  }
-                >
+                <span className={activeSection === section.id ? 'text-primary' : 'text-gray-500'}>
                   {section.icon}
                 </span>
                 <span className="text-sm">{section.label}</span>

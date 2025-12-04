@@ -39,7 +39,7 @@ export default function BottomNavItem({
         ${isPrimary ? 'w-14 h-14 rounded-full bg-accent text-white -mt-8 border-4 border-white' : 'min-w-[56px] min-h-[56px] px-3 py-2 text-gray-500 hover:text-foreground'}
         relative
         transition-all duration-300 ease-out
-        ${!isPrimary && (active || isOpen) ? 'text-accent-foreground' : ''}
+        ${!isPrimary && (active || isOpen) ? 'text-primary' : ''}
         ${className}
       `}
       onClick={onClick}

@@ -24,7 +24,7 @@ export default function LocationCard({ address }: LocationCardProps) {
             href={googleMapsUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center text-xs font-medium text-accent-foreground hover:text-[hsl(var(--accent))] transition-colors font-sans uppercase tracking-wider"
+            className="inline-flex items-center text-xs font-medium text-primary hover:text-[hsl(var(--accent))] transition-colors font-sans uppercase tracking-wider"
           >
             Get Directions
             <svg

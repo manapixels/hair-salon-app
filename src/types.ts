@@ -64,6 +64,7 @@ export interface ServiceCategory {
   imageUrl?: string;
   illustrationUrl?: string;
   items: Service[];
+  matchingServiceCount?: number; // For concern search results
 }
 
 export interface TimeSlot {

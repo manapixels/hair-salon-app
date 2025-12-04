@@ -217,7 +217,7 @@ export default function AppHeader({ view, onViewChange, serviceLinks }: AppHeade
                             <span className="text-2xl font-light tracking-wide group-hover/item:text-white text-white/90 transition-colors">
                               {service.title}
                             </span>
-                            <div className="w-10 h-10 rounded-full border border-accent flex items-center justify-center group-hover/item:border-white group-hover/item:bg-white group-hover/item:text-accent-foreground transition-all">
+                            <div className="w-10 h-10 rounded-full border border-accent flex items-center justify-center group-hover/item:border-white group-hover/item:bg-white group-hover/item:text-primary transition-all">
                               <ChevronDown className="w-5 h-5 -rotate-90" />
                             </div>
                           </Link>
@@ -244,7 +244,7 @@ export default function AppHeader({ view, onViewChange, serviceLinks }: AppHeade
               <Button
                 variant="outline"
                 size="default"
-                className="border-accent/50 bg-white/80 backdrop-blur-xs text-accent-foreground"
+                className="border-accent/50 bg-white/80 backdrop-blur-xs text-primary"
                 onClick={() => handleNavigation('booking', '/')}
               >
                 <Calendar className="h-4 w-4" aria-hidden="true" />

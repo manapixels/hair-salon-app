@@ -172,7 +172,7 @@ export default function StylistAvailability({ onNavigateToStylists }: StylistAva
               {onNavigateToStylists && (
                 <button
                   onClick={onNavigateToStylists}
-                  className="px-3 py-2 text-sm text-accent-foreground hover:text-accent-foreground font-medium transition-colors"
+                  className="px-3 py-2 text-sm text-primary hover:text-primary font-medium transition-colors"
                 >
                   Edit Full Profile ?
                 </button>

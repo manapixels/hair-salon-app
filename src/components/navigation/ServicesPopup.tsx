@@ -73,7 +73,7 @@ export default function ServicesPopup({ isOpen, onClose, serviceLinks }: Service
                         text-sm font-medium transition-colors
                         ${
                           isActive
-                            ? 'text-accent-foreground font-semibold'
+                            ? 'text-primary font-semibold'
                             : 'text-gray-700 group-hover:text-gray-900'
                         }
                       `}
@@ -98,7 +98,7 @@ export default function ServicesPopup({ isOpen, onClose, serviceLinks }: Service
                 className="flex items-center justify-between px-5 py-3 mx-3 rounded-full transition-all duration-200"
               >
                 <span className="text-sm font-semibold text-primary">{t('viewPriceList')}</span>
-                <ChevronRight className="w-4 h-4 text-accent-foreground" />
+                <ChevronRight className="w-4 h-4 text-primary" />
               </Link>
             </div>
           </motion.div>

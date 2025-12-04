@@ -66,7 +66,7 @@ export function ConcernOutcomeFilter({
         <div className="flex items-center gap-3">
           <span className="font-serif text-lg text-foreground">Find by hair concern or goal</span>
           {hasSelections && (
-            <span className="px-2 py-1 rounded-full bg-accent/10 text-accent-foreground text-xs font-medium">
+            <span className="px-2 py-1 rounded-full bg-accent/10 text-primary text-xs font-medium">
               {selectedTags.length} selected
             </span>
           )}
@@ -126,7 +126,7 @@ export function ConcernOutcomeFilter({
             <div className="flex justify-end pt-2">
               <button
                 onClick={handleClear}
-                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-accent-foreground hover:text-accent-foreground transition-colors"
+                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-primary hover:text-primary transition-colors"
               >
                 <X className="w-4 h-4" />
                 Clear all filters

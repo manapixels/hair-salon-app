@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import Image from 'next/image';
 import * as Dialog from '@radix-ui/react-dialog';
 import {
@@ -11,13 +12,29 @@ import {
   DrawerTitle,
   DrawerDescription,
 } from '@/components/ui/drawer';
+import {
+  Command,
+  CommandInput,
+  CommandList,
+  CommandEmpty,
+  CommandGroup,
+  CommandItem,
+} from '@/components/ui/command';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { ArrowLeft, Clock, X } from 'lucide-react';
 import { useBookingModal } from '@/context/BookingModalContext';
 import { useIsMobile } from '@/hooks/useMediaQuery';
 import { FilterPill } from './FilterPill';
 import { Button } from '@/components/ui/button';
 import { LoadingSpinner } from '../feedback/loaders/LoadingSpinner';
-import type { Service, ServiceTag } from '@/types';
+import type { Service, ServiceTag, ServiceCategory } from '@/types';
 import type { ServiceLink } from '@/lib/categories';
 import { cn } from '@/lib/utils';
 
@@ -29,13 +46,16 @@ interface FindByConcernModalProps {
 
 export function FindByConcernModal({ isOpen, onClose, serviceLinks }: FindByConcernModalProps) {
   const [view, setView] = useState<'concerns' | 'results'>('concerns');
+  const [searchQuery, setSearchQuery] = useState('');
   const [selectedConcern, setSelectedConcern] = useState<ServiceTag | null>(null);
   const [availableTags, setAvailableTags] = useState<ServiceTag[]>([]);
-  const [matchingServices, setMatchingServices] = useState<Service[]>([]);
+  const [popularConcerns, setPopularConcerns] = useState<ServiceTag[]>([]);
+  const [matchingCategories, setMatchingCategories] = useState<ServiceCategory[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadingTags, setLoadingTags] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const t = useTranslations('FindByConcernModal');
   const isMobile = useIsMobile();
   const { openModal: openBookingModal } = useBookingModal();
   const router = useRouter();
@@ -53,30 +73,36 @@ export function FindByConcernModal({ isOpen, onClose, serviceLinks }: FindByConc
         .then(data => {
           const tags = [...(data.concerns || []), ...(data.outcomes || [])];
           setAvailableTags(tags);
+          // Set popular concerns (first 6 by sortOrder)
+          setPopularConcerns(tags.slice(0, 6));
         })
         .catch(err => {
           console.error('Failed to fetch tags:', err);
-          setError('Unable to load concerns. Please try again.');
+          setError(t('concernsView.errorLoadingConcerns'));
         })
         .finally(() => {
           setLoadingTags(false);
         });
     }
-  }, [isOpen, availableTags.length]);
+  }, [isOpen, availableTags.length, t]);
 
   // Reset view when modal closes
   useEffect(() => {
     if (!isOpen) {
       setTimeout(() => {
         setView('concerns');
+        setSearchQuery('');
         setSelectedConcern(null);
-        setMatchingServices([]);
+        setMatchingCategories([]);
         setError(null);
       }, 300); // Wait for animation
     }
   }, [isOpen]);
 
-  const handleConcernSelect = async (concern: ServiceTag) => {
+  const handleConcernSelect = async (concernSlug: string) => {
+    const concern = availableTags.find(tag => tag.slug === concernSlug);
+    if (!concern) return;
+
     setSelectedConcern(concern);
     setLoading(true);
     setError(null);
@@ -86,16 +112,28 @@ export function FindByConcernModal({ isOpen, onClose, serviceLinks }: FindByConc
       if (!res.ok) throw new Error('Failed to fetch services');
 
       const categories = await res.json();
-      const services = categories
-        .flatMap((cat: any) => cat.items)
-        .filter((service: Service) => service.serviceTags?.some(st => st.tag.slug === concern.slug))
-        .sort((a: Service, b: Service) => (b.popularityScore || 0) - (a.popularityScore || 0));
 
-      setMatchingServices(services);
+      // Find categories that have services matching this concern
+      const relevantCategories = categories
+        .filter((cat: any) => {
+          const hasMatchingServices = cat.items.some((service: Service) =>
+            service.serviceTags?.some(st => st.tag.slug === concern.slug),
+          );
+          return hasMatchingServices;
+        })
+        .map((cat: any) => ({
+          ...cat,
+          // Count how many services in this category match
+          matchingServiceCount: cat.items.filter((service: Service) =>
+            service.serviceTags?.some(st => st.tag.slug === concern.slug),
+          ).length,
+        }));
+
+      setMatchingCategories(relevantCategories);
       setView('results');
     } catch (err) {
       console.error('Failed to load services:', err);
-      setError('Unable to load services. Please try again.');
+      setError(t('resultsView.errorLoadingServices'));
     } finally {
       setLoading(false);
     }
@@ -103,47 +141,37 @@ export function FindByConcernModal({ isOpen, onClose, serviceLinks }: FindByConc
 
   const handleBack = () => {
     setView('concerns');
+    setSearchQuery('');
     setSelectedConcern(null);
-    setMatchingServices([]);
+    setMatchingCategories([]);
     setError(null);
   };
 
-  const handleLearnMore = (service: Service) => {
-    const serviceLink = serviceLinks.find((link: ServiceLink) => link.title === service.name);
-    if (serviceLink) {
-      router.push(serviceLink.href);
-      onClose();
-    }
-  };
-
-  const handleBookNow = (service: Service) => {
+  const handleCategoryClick = (category: ServiceCategory) => {
+    // Navigate to service category page
+    router.push(`/services/${category.slug}`);
     onClose();
-    setTimeout(() => {
-      openBookingModal({ preSelectedServiceId: service.id });
-    }, 300);
   };
 
   const content = (
     <div className="space-y-6">
       {view === 'concerns' && (
         <>
-          {/* Concern Selection View */}
+          {/* Search Interface */}
           <div className="text-center mb-6">
-            <h2 className="text-2xl font-semibold text-[var(--gray-12)] mb-2">
-              Find by Hair Concern
+            <h2 className="text-2xl font-semibold text-foreground mb-2">
+              {t('concernsView.title')}
             </h2>
-            <p className="text-[var(--gray-11)] text-sm">
-              Select a concern to discover matching services
-            </p>
+            <p className="text-muted-foreground text-sm">{t('concernsView.description')}</p>
           </div>
 
           {loadingTags ? (
             <div className="flex items-center justify-center py-12">
-              <LoadingSpinner message="Loading concerns..." />
+              <LoadingSpinner message={t('concernsView.loadingConcerns')} />
             </div>
           ) : error ? (
             <div className="text-center py-12">
-              <p className="text-[var(--red-11)] mb-4">{error}</p>
+              <p className="text-destructive mb-4">{error}</p>
               <Button
                 variant="outline"
                 onClick={() => {
@@ -154,25 +182,73 @@ export function FindByConcernModal({ isOpen, onClose, serviceLinks }: FindByConc
                     .then(data => {
                       const tags = [...(data.concerns || []), ...(data.outcomes || [])];
                       setAvailableTags(tags);
+                      setPopularConcerns(tags.slice(0, 6));
                     })
-                    .catch(() => setError('Unable to load concerns. Please try again.'))
+                    .catch(() => setError(t('concernsView.errorLoadingConcerns')))
                     .finally(() => setLoadingTags(false));
                 }}
               >
-                Try Again
+                {t('concernsView.tryAgain')}
               </Button>
             </div>
           ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-              {availableTags.map(tag => (
-                <FilterPill
-                  key={tag.id}
-                  label={tag.label}
-                  active={false}
-                  onClick={() => handleConcernSelect(tag)}
+            <>
+              {/* Command Search Component */}
+              <Command className="rounded-lg border">
+                <CommandInput
+                  placeholder={t('concernsView.searchPlaceholder')}
+                  value={searchQuery}
+                  onValueChange={setSearchQuery}
                 />
-              ))}
-            </div>
+                <CommandList>
+                  <CommandEmpty>{t('concernsView.noConcernsFound')}</CommandEmpty>
+
+                  {/* Popular Concerns - Always visible */}
+                  {!searchQuery && (
+                    <CommandGroup heading={t('concernsView.popularConcerns')}>
+                      {popularConcerns.map(concern => (
+                        <CommandItem
+                          key={concern.id}
+                          value={concern.slug}
+                          keywords={[concern.label, concern.slug, concern.description || '']}
+                          onSelect={handleConcernSelect}
+                          className="cursor-pointer"
+                        >
+                          <div>
+                            <div className="font-medium">{concern.label}</div>
+                            {concern.description && (
+                              <div className="text-xs">{concern.description}</div>
+                            )}
+                          </div>
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  )}
+
+                  {/* All Concerns - Show when searching */}
+                  {searchQuery && (
+                    <CommandGroup heading={t('concernsView.allConcerns')}>
+                      {availableTags.map(concern => (
+                        <CommandItem
+                          key={concern.id}
+                          value={concern.slug}
+                          keywords={[concern.label, concern.slug, concern.description || '']}
+                          onSelect={handleConcernSelect}
+                          className="cursor-pointer"
+                        >
+                          <div>
+                            <div className="font-medium">{concern.label}</div>
+                            {concern.description && (
+                              <div className="text-xs text-gray-600">{concern.description}</div>
+                            )}
+                          </div>
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  )}
+                </CommandList>
+              </Command>
+            </>
           )}
         </>
       )}
@@ -180,109 +256,115 @@ export function FindByConcernModal({ isOpen, onClose, serviceLinks }: FindByConc
       {view === 'results' && (
         <>
           {/* Service Results View */}
-          <div className="flex items-center gap-3 mb-4">
-            <button
-              onClick={handleBack}
-              className="p-2 hover:bg-[var(--gray-4)] rounded-full transition-colors"
-              aria-label="Back to concerns"
-            >
-              <ArrowLeft className="w-5 h-5 text-[var(--gray-11)]" />
-            </button>
+          <div className="flex items-center gap-3 mb-6">
+            <Button variant="ghost" size="icon" onClick={handleBack} className="hover:bg-accent/10">
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
             <div>
-              <h2 className="text-xl font-semibold text-[var(--gray-12)]">
-                Services for {selectedConcern?.label}
+              <h2 className="text-xl font-semibold text-foreground">
+                {t('resultsView.servicesFor')} {selectedConcern?.label}
               </h2>
-              <p className="text-sm text-[var(--gray-11)]">
-                {matchingServices.length} service{matchingServices.length !== 1 ? 's' : ''} found
+              <p className="text-sm text-muted-foreground">
+                {matchingCategories.length}{' '}
+                {matchingCategories.length !== 1
+                  ? t('resultsView.serviceCategories')
+                  : t('resultsView.serviceCategory')}
               </p>
             </div>
           </div>
 
           {loading ? (
             <div className="flex items-center justify-center py-12">
-              <LoadingSpinner message="Finding services..." />
+              <LoadingSpinner message={t('resultsView.findingServices')} />
             </div>
           ) : error ? (
             <div className="text-center py-12">
-              <p className="text-[var(--red-11)] mb-4">{error}</p>
+              <p className="text-destructive mb-4">{error}</p>
               <Button variant="outline" onClick={handleBack}>
-                Back to Concerns
+                {t('resultsView.backToSearch')}
               </Button>
             </div>
-          ) : matchingServices.length === 0 ? (
-            <div className="text-center py-12 bg-[var(--gray-2)] rounded-lg">
-              <p className="text-[var(--gray-11)] mb-4">No services found for this concern.</p>
+          ) : matchingCategories.length === 0 ? (
+            <div className="text-center py-12 bg-muted/30 rounded-lg">
+              <p className="text-muted-foreground mb-4">{t('resultsView.noServicesFound')}</p>
               <Button variant="outline" onClick={handleBack}>
-                Try Another Concern
+                {t('resultsView.tryAnotherSearch')}
               </Button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-[60vh] overflow-y-auto pr-2">
-              {matchingServices.map(service => {
-                const serviceLink = serviceLinks.find(
-                  (link: ServiceLink) => link.title === service.name,
+            <div className="space-y-6">
+              {matchingCategories.map(category => {
+                // Get services that match the concern
+                const relevantServices = category.items.filter(service =>
+                  service.serviceTags?.some(st => st.tag.slug === selectedConcern?.slug),
                 );
-                const imageUrl =
-                  serviceLink?.image || service.imageUrl || '/images/default-service.jpg';
 
                 return (
                   <div
-                    key={service.id}
-                    className="bg-white border border-[var(--gray-6)] rounded-lg overflow-hidden hover:border-[var(--accent-8)] transition-all hover:shadow-md"
+                    key={category.id}
+                    className="bg-card border rounded-lg overflow-hidden hover:border-accent transition-all hover:shadow-lg"
                   >
-                    <div className="relative h-48 w-full">
-                      <Image
-                        src={imageUrl}
-                        alt={service.name}
-                        fill
-                        className="object-cover"
-                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                      />
+                    {/* Category Header */}
+                    <div className="p-4 border-b bg-muted/30">
+                      <div className="flex items-start justify-between gap-4">
+                        <div>
+                          <h3 className="text-lg font-semibold text-foreground mb-1">
+                            {category.title}
+                          </h3>
+                          <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
+                            <span>
+                              {category.matchingServiceCount}{' '}
+                              {category.matchingServiceCount === 1
+                                ? t('resultsView.matchingService')
+                                : t('resultsView.matchingServices')}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleCategoryClick(category)}
+                          >
+                            {t('resultsView.learnMore')}
+                          </Button>
+                          <Button
+                            variant="default"
+                            size="sm"
+                            onClick={() => {
+                              onClose();
+                              setTimeout(() => {
+                                openBookingModal({});
+                              }, 300);
+                            }}
+                          >
+                            {t('resultsView.bookNow')}
+                          </Button>
+                        </div>
+                      </div>
                     </div>
 
-                    <div className="p-4 space-y-3">
-                      <div>
-                        <h3 className="font-semibold text-lg text-[var(--gray-12)] mb-1">
-                          {service.name}
-                        </h3>
-                        <p className="text-[var(--accent-11)] font-bold">{service.price}</p>
-                      </div>
-
-                      {service.subtitle && (
-                        <p className="text-sm text-[var(--gray-11)] line-clamp-2">
-                          {service.subtitle}
-                        </p>
-                      )}
-
-                      <div className="flex items-center gap-2 text-xs text-[var(--gray-10)]">
-                        <Clock className="w-3.5 h-3.5" />
-                        <span>{service.duration} mins</span>
-                        {(service.popularityScore || 0) >= 80 && (
-                          <>
-                            <span>•</span>
-                            <span className="text-[var(--accent-11)] font-medium">Popular</span>
-                          </>
-                        )}
-                      </div>
-
-                      <div className="flex gap-2 pt-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleLearnMore(service)}
-                          className="flex-1"
-                        >
-                          Learn More
-                        </Button>
-                        <Button
-                          variant="default"
-                          size="sm"
-                          onClick={() => handleBookNow(service)}
-                          className="flex-1"
-                        >
-                          Book Now
-                        </Button>
-                      </div>
+                    {/* Services Table */}
+                    <div className="overflow-x-auto">
+                      <Table>
+                        <TableBody>
+                          {relevantServices
+                            .filter(service => service.isActive)
+                            .map(service => (
+                              <TableRow key={service.id} className="hover:bg-muted/30 bg-accent/5">
+                                <TableCell className="text-sm font-bold text-primary">
+                                  {service.name}
+                                </TableCell>
+                                <TableCell className="text-xs text-muted-foreground">
+                                  {service.subtitle || service.description || '—'}
+                                </TableCell>
+                                <TableCell className="text-right text-sm font-semibold text-primary">
+                                  {service.price}
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                        </TableBody>
+                      </Table>
                     </div>
                   </div>
                 );
@@ -302,13 +384,13 @@ export function FindByConcernModal({ isOpen, onClose, serviceLinks }: FindByConc
           <DrawerHeader>
             <DrawerTitle className="sr-only">
               {view === 'concerns'
-                ? 'Find by Hair Concern'
-                : `Services for ${selectedConcern?.label}`}
+                ? t('accessibility.concernsTitle')
+                : t('accessibility.resultsTitle', { concernLabel: selectedConcern?.label || '' })}
             </DrawerTitle>
             <DrawerDescription className="sr-only">
               {view === 'concerns'
-                ? 'Select a hair concern to find matching services'
-                : `Showing ${matchingServices.length} matching services`}
+                ? t('accessibility.concernsDescription')
+                : t('accessibility.resultsDescription', { count: matchingCategories.length })}
             </DrawerDescription>
           </DrawerHeader>
           <div className="px-4 pb-8 max-h-[85vh] overflow-y-auto">{content}</div>
@@ -336,9 +418,8 @@ export function FindByConcernModal({ isOpen, onClose, serviceLinks }: FindByConc
             'w-full max-w-4xl',
             'max-h-[85vh] overflow-y-auto',
             'rounded-lg',
-            'bg-[var(--color-panel)]',
-            'border border-[var(--gray-6)]',
-            'shadow-xl',
+            'bg-card',
+            'border shadow-xl',
             'p-6',
             'data-[state=open]:animate-in data-[state=closed]:animate-out',
             'data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0',
@@ -351,12 +432,12 @@ export function FindByConcernModal({ isOpen, onClose, serviceLinks }: FindByConc
             className={cn(
               'absolute right-4 top-4',
               'rounded-full p-2',
-              'text-[var(--gray-11)] hover:text-[var(--gray-12)]',
-              'hover:bg-[var(--gray-4)]',
+              'text-muted-foreground hover:text-foreground',
+              'hover:bg-accent/10',
               'transition-colors',
-              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-8)]',
+              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent',
             )}
-            aria-label="Close modal"
+            aria-label={t('accessibility.closeModal')}
           >
             <X className="h-4 w-4" />
           </Dialog.Close>

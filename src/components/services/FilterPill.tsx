@@ -29,7 +29,7 @@ export function FilterPill({
         ${
           active
             ? 'bg-accent text-white border-accent shadow-md shadow-accent/20'
-            : 'bg-white text-muted-foreground border-border hover:border-accent hover:text-accent-foreground'
+            : 'bg-white text-muted-foreground border-border hover:border-accent hover:text-primary'
         }
         ${className}
       `}

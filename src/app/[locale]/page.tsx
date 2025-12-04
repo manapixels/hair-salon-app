@@ -65,7 +65,7 @@ export default function HomePage() {
     <div className="bg-[#FDFCF8] min-h-screen text-stone-900 font-serif">
       {/* Hero Section */}
       <section className="relative flex flex-col lg:flex-row lg:min-h-screen overflow-hidden">
-        <div className="w-full lg:w-1/2 flex items-center justify-center p-6 py-8 sm:py-12 md:p-8 lg:p-24 relative z-10 bg-accent/10">
+        <div className="w-full lg:w-1/2 flex items-center justify-center p-6 pt-8 pb-2 sm:py-12 md:p-8 lg:p-24 relative z-10 bg-accent/10">
           <div className="max-w-xl fade-in-up w-full">
             <div className="relative w-16 h-16 sm:w-28 sm:h-28 mb-6">
               <Image
@@ -79,9 +79,9 @@ export default function HomePage() {
             <span className="text-primary/80 sm:text-primary font-medium tracking-widest text-xs md:text-sm mb-3 md:mb-4 block">
               {t('est')}
             </span>
-            <h1 className="font-serif text-2xl font-semibold sm:font-normal sm:text-4xl md:text-5xl lg:text-7xl text-primary sm:text-primary-foreground leading-tight mb-0 sm:mb-6">
+            <h1 className="font-serif text-2xl font-semibold sm:font-normal sm:text-4xl md:text-5xl lg:text-7xl text-primary leading-tight mb-0 sm:mb-6">
               {t.rich('heroTitle', {
-                italic: chunks => <span className="italic text-primary">{chunks}</span>,
+                italic: chunks => <span className="italic text-primary/70">{chunks}</span>,
               })}
             </h1>
             <p className="hidden sm:block text-gray-500 text-base md:text-lg mb-6 md:mb-8 leading-relaxed max-w-md">
@@ -96,7 +96,7 @@ export default function HomePage() {
               </button>
               <a
                 href="#services"
-                className="min-h-touch-lg px-8 py-4 rounded-full border border-primary text-primary-foreground hover:bg-primary hover:text-white active-scale transition-all duration-300 text-sm font-medium uppercase tracking-wide flex items-center justify-center"
+                className="min-h-touch-lg px-8 py-4 rounded-full border border-primary text-primary hover:bg-primary hover:text-white active-scale transition-all duration-300 text-sm font-medium uppercase tracking-wide flex items-center justify-center"
               >
                 {t('viewMenu')}
               </a>
@@ -133,7 +133,7 @@ export default function HomePage() {
             sizes="(max-width: 1024px) 100vw, 50vw"
           />
           <LocationCard address={adminSettings.businessAddress} />
-          <div className="sm:hidden absolute inset-0 bg-gradient-to-b from-transparent to-[#F1EEE3]"></div>
+          <div className="sm:hidden absolute inset-0 bg-gradient-to-b from-transparent via-[#FFFFFFB5] to-[#FFFFFF]"></div>
         </div>
       </section>
 
@@ -145,7 +145,7 @@ export default function HomePage() {
           onClick={() => setIsConcernModalOpen(true)}
           className="group/item flex flex-col items-center justify-between gap-1 border-2 border-accent bg-accent/5 hover:bg-accent/10 transition-colors rounded-lg p-2"
         >
-          <div className="flex items-center justify-center w-16 h-16 rounded-lg bg-accent/10">
+          <div className="flex items-center justify-center w-16 h-16 rounded-lg">
             <Search className="w-8 h-8 text-primary" />
           </div>
           <span className="text-md text-center leading-none text-primary font-semibold">

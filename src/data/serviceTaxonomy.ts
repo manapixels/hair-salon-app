@@ -82,7 +82,7 @@ export const HAIR_CONCERNS: TagDefinition[] = [
   },
   {
     slug: 'unruly-hair',
-    label: 'Unruly/Hard to Style',
+    label: 'Unruly',
     category: 'CONCERN',
     description: 'Makes hair more manageable and easier to style',
     iconName: 'Wind',
@@ -98,7 +98,7 @@ export const HAIR_CONCERNS: TagDefinition[] = [
   },
   {
     slug: 'naturally-curly',
-    label: 'Naturally Curly (want straight)',
+    label: 'Want Straight Hair',
     category: 'CONCERN',
     description: 'For those with natural curls wanting straight hair',
     iconName: 'Waves',
