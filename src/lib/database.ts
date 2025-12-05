@@ -923,7 +923,10 @@ export const getStylists = async (): Promise<Stylist[]> => {
     orderBy: { name: 'asc' },
   });
 
-  const allServices = await getServices();
+  // Fetch all categories for specialty mapping
+  const allCategories = await prisma.serviceCategory.findMany({
+    orderBy: { sortOrder: 'asc' },
+  });
 
   return stylists.map(stylist => {
     // Ensure workingHours is valid, otherwise use default
@@ -941,15 +944,22 @@ export const getStylists = async (): Promise<Stylist[]> => {
       );
     }
 
+    // Map specialty category IDs to full ServiceCategory objects
+    const specialtyCategoryIds = Array.isArray(stylist.specialties)
+      ? (stylist.specialties as string[])
+      : [];
+
     return {
       ...stylist,
       bio: stylist.bio ?? undefined,
       avatar: stylist.avatar ?? undefined,
-      specialties: Array.isArray(stylist.specialties)
-        ? ((stylist.specialties as number[])
-            .map(id => allServices.find(s => s.id === normalizeServiceId(id)))
-            .filter(Boolean) as Service[])
-        : [],
+      specialties: specialtyCategoryIds
+        .map(categoryId => allCategories.find(c => c.id === categoryId))
+        .filter(Boolean)
+        .map(cat => ({
+          ...cat!,
+          items: [], // Categories don't need items for specialty display
+        })) as ServiceCategory[],
       workingHours,
       blockedDates:
         stylist.blockedDates && Array.isArray(stylist.blockedDates)
@@ -966,7 +976,10 @@ export const getStylistById = async (id: string): Promise<Stylist | null> => {
 
   if (!stylist) return null;
 
-  const allServices = await getServices();
+  // Fetch all categories for specialty mapping
+  const allCategories = await prisma.serviceCategory.findMany({
+    orderBy: { sortOrder: 'asc' },
+  });
 
   // Ensure workingHours is valid, otherwise use default
   let workingHours = getDefaultWorkingHours();
@@ -983,15 +996,22 @@ export const getStylistById = async (id: string): Promise<Stylist | null> => {
     );
   }
 
+  // Map specialty category IDs to full ServiceCategory objects
+  const specialtyCategoryIds = Array.isArray(stylist.specialties)
+    ? (stylist.specialties as string[])
+    : [];
+
   return {
     ...stylist,
     bio: stylist.bio ?? undefined,
     avatar: stylist.avatar ?? undefined,
-    specialties: Array.isArray(stylist.specialties)
-      ? ((stylist.specialties as number[])
-          .map(id => allServices.find(s => s.id === normalizeServiceId(id)))
-          .filter(Boolean) as Service[])
-      : [],
+    specialties: specialtyCategoryIds
+      .map(categoryId => allCategories.find(c => c.id === categoryId))
+      .filter(Boolean)
+      .map(cat => ({
+        ...cat!,
+        items: [], // Categories don't need items for specialty display
+      })) as ServiceCategory[],
     workingHours,
     blockedDates:
       stylist.blockedDates && Array.isArray(stylist.blockedDates)
@@ -1005,7 +1025,7 @@ export const createStylist = async (stylistData: {
   email: string;
   bio?: string;
   avatar?: string;
-  specialtyIds: number[];
+  specialtyCategoryIds: string[]; // Category IDs instead of service IDs
   workingHours?: Stylist['workingHours'];
   blockedDates?: string[];
 }): Promise<Stylist> => {
@@ -1017,21 +1037,28 @@ export const createStylist = async (stylistData: {
       email: stylistData.email,
       bio: stylistData.bio,
       avatar: stylistData.avatar,
-      specialties: stylistData.specialtyIds,
+      specialties: stylistData.specialtyCategoryIds,
       workingHours: stylistData.workingHours || defaultHours,
       blockedDates: stylistData.blockedDates || [],
     },
   });
 
-  const allServices = await getServices();
+  // Fetch all categories for specialty mapping
+  const allCategories = await prisma.serviceCategory.findMany({
+    orderBy: { sortOrder: 'asc' },
+  });
 
   return {
     ...newStylist,
     bio: newStylist.bio ?? undefined,
     avatar: newStylist.avatar ?? undefined,
-    specialties: stylistData.specialtyIds
-      .map(id => allServices.find(s => s.id === normalizeServiceId(id)))
-      .filter(Boolean) as Service[],
+    specialties: stylistData.specialtyCategoryIds
+      .map(categoryId => allCategories.find(c => c.id === categoryId))
+      .filter(Boolean)
+      .map(cat => ({
+        ...cat!,
+        items: [], // Categories don't need items for specialty display
+      })) as ServiceCategory[],
     workingHours: (newStylist.workingHours as any) || defaultHours,
     blockedDates:
       newStylist.blockedDates && Array.isArray(newStylist.blockedDates)
@@ -1047,7 +1074,7 @@ export const updateStylist = async (
     email?: string;
     bio?: string;
     avatar?: string;
-    specialtyIds?: number[];
+    specialtyCategoryIds?: string[]; // Category IDs instead of service IDs
     workingHours?: Stylist['workingHours'];
     blockedDates?: string[];
     isActive?: boolean;
@@ -1059,7 +1086,8 @@ export const updateStylist = async (
   if (updateData.email !== undefined) updatePayload.email = updateData.email;
   if (updateData.bio !== undefined) updatePayload.bio = updateData.bio;
   if (updateData.avatar !== undefined) updatePayload.avatar = updateData.avatar;
-  if (updateData.specialtyIds !== undefined) updatePayload.specialties = updateData.specialtyIds;
+  if (updateData.specialtyCategoryIds !== undefined)
+    updatePayload.specialties = updateData.specialtyCategoryIds;
   if (updateData.workingHours !== undefined) updatePayload.workingHours = updateData.workingHours;
   if (updateData.blockedDates !== undefined) updatePayload.blockedDates = updateData.blockedDates;
   if (updateData.isActive !== undefined) updatePayload.isActive = updateData.isActive;
@@ -1069,17 +1097,27 @@ export const updateStylist = async (
     data: updatePayload,
   });
 
-  const allServices = await getServices();
+  // Fetch all categories for specialty mapping
+  const allCategories = await prisma.serviceCategory.findMany({
+    orderBy: { sortOrder: 'asc' },
+  });
+
+  // Map specialty category IDs to full ServiceCategory objects
+  const specialtyCategoryIds = Array.isArray(updatedStylist.specialties)
+    ? (updatedStylist.specialties as string[])
+    : [];
 
   return {
     ...updatedStylist,
     bio: updatedStylist.bio ?? undefined,
     avatar: updatedStylist.avatar ?? undefined,
-    specialties: Array.isArray(updatedStylist.specialties)
-      ? ((updatedStylist.specialties as number[])
-          .map(id => allServices.find(s => s.id === normalizeServiceId(id)))
-          .filter(Boolean) as Service[])
-      : [],
+    specialties: specialtyCategoryIds
+      .map(categoryId => allCategories.find(c => c.id === categoryId))
+      .filter(Boolean)
+      .map(cat => ({
+        ...cat!,
+        items: [], // Categories don't need items for specialty display
+      })) as ServiceCategory[],
     workingHours: (updatedStylist.workingHours as any) || getDefaultWorkingHours(),
     blockedDates:
       updatedStylist.blockedDates && Array.isArray(updatedStylist.blockedDates)
@@ -1095,15 +1133,15 @@ export const deleteStylist = async (id: string): Promise<void> => {
   });
 };
 
-export const getStylistsForServices = async (serviceIds: number[]): Promise<Stylist[]> => {
+/**
+ * Get stylists that specialize in a specific category
+ * Used in category-based booking flow
+ */
+export const getStylistsForCategory = async (categoryId: string): Promise<Stylist[]> => {
   const stylists = await getStylists();
 
   return stylists.filter(stylist =>
-    serviceIds.every(serviceId =>
-      stylist.specialties.some(
-        specialty => normalizeServiceId(specialty.id) === normalizeServiceId(serviceId),
-      ),
-    ),
+    stylist.specialties.some(specialty => specialty.id === categoryId),
   );
 };
 

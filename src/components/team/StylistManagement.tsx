@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { toast } from 'sonner';
-import type { Stylist, Service, AdminSettings } from '@/types';
+import type { Stylist, ServiceCategory, AdminSettings } from '@/types';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
@@ -28,7 +28,7 @@ interface StylistManagementProps {
 
 export default function StylistManagement({ onClose }: StylistManagementProps) {
   const [stylists, setStylists] = useState<Stylist[]>([]);
-  const [availableServices, setAvailableServices] = useState<Service[]>([]);
+  const [availableCategories, setAvailableCategories] = useState<ServiceCategory[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingStylist, setEditingStylist] = useState<Stylist | null>(null);
@@ -39,17 +39,27 @@ export default function StylistManagement({ onClose }: StylistManagementProps) {
 
   useEffect(() => {
     fetchStylists();
-    fetchServices();
+    fetchCategories();
   }, []);
 
-  const fetchServices = async () => {
+  const fetchCategories = async () => {
     try {
       const response = await fetch('/api/services');
       const data = await response.json();
-      const allServices = data.flatMap((category: any) => category.items);
-      setAvailableServices(allServices);
+      // Get just the category info (without items) for specialty selection
+      const categories = data.map((cat: ServiceCategory) => ({
+        id: cat.id,
+        slug: cat.slug,
+        title: cat.title,
+        shortTitle: cat.shortTitle,
+        description: cat.description,
+        icon: cat.icon,
+        sortOrder: cat.sortOrder,
+        items: [], // Don't need items for specialty selection
+      }));
+      setAvailableCategories(categories);
     } catch (err) {
-      console.error('Failed to fetch services:', err);
+      console.error('Failed to fetch categories:', err);
     }
   };
 
@@ -200,12 +210,12 @@ export default function StylistManagement({ onClose }: StylistManagementProps) {
                 <div className="mb-3">
                   <h4 className="text-sm font-medium text-gray-900 mb-1">Specialties:</h4>
                   <div className="flex flex-wrap gap-1">
-                    {stylist.specialties.map(service => (
+                    {stylist.specialties.map(category => (
                       <span
-                        key={service.id}
+                        key={category.id}
                         className="inline-block bg-primary-100 text-yellow-800 text-xs px-2 py-1 rounded"
                       >
-                        {service.name}
+                        {category.title}
                       </span>
                     ))}
                   </div>
@@ -234,7 +244,7 @@ export default function StylistManagement({ onClose }: StylistManagementProps) {
             setEditingStylist(null);
           }}
           stylist={editingStylist}
-          availableServices={availableServices}
+          availableCategories={availableCategories}
           onSave={async () => {
             await fetchStylists();
             setShowAddModal(false);
@@ -268,17 +278,23 @@ interface StylistModalProps {
   isOpen: boolean;
   onClose: () => void;
   stylist: Stylist | null;
-  availableServices: Service[];
+  availableCategories: ServiceCategory[];
   onSave: () => void;
 }
 
-function StylistModal({ isOpen, onClose, stylist, availableServices, onSave }: StylistModalProps) {
+function StylistModal({
+  isOpen,
+  onClose,
+  stylist,
+  availableCategories,
+  onSave,
+}: StylistModalProps) {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     bio: '',
     avatar: '',
-    specialtyIds: [] as string[],
+    specialtyCategoryIds: [] as string[],
     workingHours: getDefaultWorkingHours(),
     blockedDates: [] as string[], // Keep for API compatibility, but not editable here
   });
@@ -351,7 +367,7 @@ function StylistModal({ isOpen, onClose, stylist, availableServices, onSave }: S
         email: stylist.email,
         bio: stylist.bio || '',
         avatar: stylist.avatar || '',
-        specialtyIds: stylist.specialties.map(s => s.id),
+        specialtyCategoryIds: stylist.specialties.map(cat => cat.id),
         workingHours: stylist.workingHours,
         blockedDates: [], // Don't edit blocked dates here
       });
@@ -362,7 +378,7 @@ function StylistModal({ isOpen, onClose, stylist, availableServices, onSave }: S
         email: '',
         bio: '',
         avatar: '',
-        specialtyIds: [],
+        specialtyCategoryIds: [],
         workingHours: getWorkingHoursFromSalonSettings(),
         blockedDates: [],
       });
@@ -374,7 +390,7 @@ function StylistModal({ isOpen, onClose, stylist, availableServices, onSave }: S
     e.preventDefault();
     setError('');
 
-    if (!formData.name || !formData.email || formData.specialtyIds.length === 0) {
+    if (!formData.name || !formData.email || formData.specialtyCategoryIds.length === 0) {
       const errorMsg = 'Please fill in all required fields and select at least one specialty';
       setError(errorMsg);
       toast.error(errorMsg);
@@ -414,12 +430,12 @@ function StylistModal({ isOpen, onClose, stylist, availableServices, onSave }: S
     }
   };
 
-  const handleSpecialtyToggle = (serviceId: string) => {
+  const handleCategoryToggle = (categoryId: string) => {
     setFormData(prev => ({
       ...prev,
-      specialtyIds: prev.specialtyIds.includes(serviceId)
-        ? prev.specialtyIds.filter(id => id !== serviceId)
-        : [...prev.specialtyIds, serviceId],
+      specialtyCategoryIds: prev.specialtyCategoryIds.includes(categoryId)
+        ? prev.specialtyCategoryIds.filter(id => id !== categoryId)
+        : [...prev.specialtyCategoryIds, categoryId],
     }));
   };
 
@@ -504,31 +520,35 @@ function StylistModal({ isOpen, onClose, stylist, availableServices, onSave }: S
 
           <div>
             <div className="flex items-center justify-between mb-2">
-              <label className="block text-sm font-medium text-gray-900">Specialties *</label>
+              <label className="block text-sm font-medium text-gray-900">
+                Specialties (Service Categories) *
+              </label>
               <button
                 type="button"
                 onClick={() => {
-                  const allIds = availableServices.map(s => s.id);
-                  const allSelected = allIds.every(id => formData.specialtyIds.includes(id));
+                  const allIds = availableCategories.map(cat => cat.id);
+                  const allSelected = allIds.every(id =>
+                    formData.specialtyCategoryIds.includes(id),
+                  );
                   setFormData(prev => ({
                     ...prev,
-                    specialtyIds: allSelected ? [] : allIds,
+                    specialtyCategoryIds: allSelected ? [] : allIds,
                   }));
                 }}
                 className="text-sm text-primary hover:text-primary-700 font-medium"
               >
-                {availableServices.length > 0 &&
-                availableServices.every(s => formData.specialtyIds.includes(s.id))
+                {availableCategories.length > 0 &&
+                availableCategories.every(cat => formData.specialtyCategoryIds.includes(cat.id))
                   ? 'Deselect All'
                   : 'Select All'}
               </button>
             </div>
-            <div className="grid grid-cols-1 gap-3 max-h-60 overflow-y-auto border border-gray-200 rounded-md p-3">
-              {availableServices.map(service => {
-                const isSelected = formData.specialtyIds.includes(service.id);
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 border border-gray-200 rounded-md p-3">
+              {availableCategories.map(category => {
+                const isSelected = formData.specialtyCategoryIds.includes(category.id);
                 return (
                   <label
-                    key={service.id}
+                    key={category.id}
                     className={`flex items-center p-3 rounded-md border cursor-pointer transition-colors ${
                       isSelected
                         ? 'border-primary bg-primary/10'
@@ -537,18 +557,16 @@ function StylistModal({ isOpen, onClose, stylist, availableServices, onSave }: S
                   >
                     <Checkbox
                       checked={isSelected}
-                      onCheckedChange={() => handleSpecialtyToggle(service.id)}
+                      onCheckedChange={() => handleCategoryToggle(category.id)}
                       className="mr-3"
                     />
                     <div className="flex-1">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <h4 className="font-medium text-gray-900">{service.name}</h4>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-sm text-gray-600">{service.duration} min</div>
-                        </div>
-                      </div>
+                      <h4 className="font-medium text-gray-900">{category.title}</h4>
+                      {category.description && (
+                        <p className="text-xs text-gray-500 mt-0.5 line-clamp-1">
+                          {category.description}
+                        </p>
+                      )}
                     </div>
                   </label>
                 );
@@ -626,7 +644,7 @@ function StylistModal({ isOpen, onClose, stylist, availableServices, onSave }: S
             </Button>
             <Button
               type="submit"
-              disabled={isLoading || formData.specialtyIds.length === 0}
+              disabled={isLoading || formData.specialtyCategoryIds.length === 0}
               className="flex-1"
             >
               {isLoading ? (

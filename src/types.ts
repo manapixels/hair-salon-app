@@ -90,7 +90,7 @@ export interface Stylist {
   email: string;
   bio?: string;
   avatar?: string;
-  specialties: Service[]; // Services this stylist can perform
+  specialties: ServiceCategory[]; // Service categories this stylist specializes in
   workingHours: {
     [day: string]: {
       // e.g., 'monday', 'tuesday'

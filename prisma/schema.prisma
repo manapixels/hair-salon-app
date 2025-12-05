@@ -131,7 +131,7 @@ model Stylist {
   email        String       @unique
   bio          String?
   avatar       String?
-  specialties  Json         // Array of service IDs this stylist can perform
+  specialties  Json         // Array of service category IDs this stylist specializes in
   workingHours Json         // Working hours for each day of week
   blockedDates Json         @default("[]") // Array of date strings in YY-YY-MM-DD format for breaks/holidays
   isActive     Boolean      @default(true)

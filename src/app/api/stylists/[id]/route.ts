@@ -4,12 +4,8 @@
  * Handles individual stylist operations
  */
 import { NextRequest, NextResponse } from 'next/server';
-import {
-  getStylistById,
-  updateStylist,
-  deleteStylist,
-  getServices,
-} from '../../../../lib/database';
+import { getStylistById, updateStylist, deleteStylist } from '../../../../lib/database';
+import { getAllCategories } from '../../../../lib/categories';
 
 interface RouteParams {
   params: {
@@ -38,17 +34,17 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 export async function PUT(request: NextRequest, { params }: RouteParams) {
   try {
     const body = await request.json();
-    const { name, email, bio, avatar, specialtyIds, workingHours, isActive } = body;
+    const { name, email, bio, avatar, specialtyCategoryIds, workingHours, isActive } = body;
 
-    // Validate specialty IDs if provided
-    if (specialtyIds && Array.isArray(specialtyIds)) {
-      const allServices = await getServices();
-      const validSpecialtyIds = specialtyIds.filter(id =>
-        allServices.some(service => service.id === id),
+    // Validate category IDs if provided
+    if (specialtyCategoryIds && Array.isArray(specialtyCategoryIds)) {
+      const allCategories = await getAllCategories();
+      const validCategoryIds = specialtyCategoryIds.filter((id: string) =>
+        allCategories.some(category => category.id === id),
       );
 
-      if (validSpecialtyIds.length !== specialtyIds.length) {
-        return NextResponse.json({ message: 'Some specialty IDs are invalid.' }, { status: 400 });
+      if (validCategoryIds.length !== specialtyCategoryIds.length) {
+        return NextResponse.json({ message: 'Some category IDs are invalid.' }, { status: 400 });
       }
     }
 
@@ -57,7 +53,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       email,
       bio,
       avatar,
-      specialtyIds,
+      specialtyCategoryIds,
       workingHours,
       isActive,
     });

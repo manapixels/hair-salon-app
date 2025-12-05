@@ -192,7 +192,7 @@ export default function StylistAvailability({ onNavigateToStylists }: StylistAva
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...selectedStylist,
-          specialtyIds: selectedStylist.specialties.map(s => s.id),
+          specialtyCategoryIds: selectedStylist.specialties.map(cat => cat.id),
           blockedDates: blockedDates,
         }),
       });

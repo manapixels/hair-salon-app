@@ -36,14 +36,14 @@ export const StylistSelector: React.FC<StylistSelectorProps> = ({
     selectedServices.length === 0 && selectedCategory !== null && selectedCategory !== undefined;
 
   // Use React Query hook for stylists (must be called before any early returns)
-  const serviceIds = isCategoryBased ? undefined : selectedServices.map(s => String(s.id));
+  // Filter by category specialty when in category-based mode
   const {
     data: stylists = [],
     isLoading,
     error,
     refetch,
   } = useStylists({
-    serviceIds,
+    categoryId: isCategoryBased ? selectedCategory?.id : undefined,
     enabled: isCategoryBased || selectedServices.length > 0,
   });
 
