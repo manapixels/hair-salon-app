@@ -164,7 +164,7 @@ export interface WeeklySchedule {
 
 export interface AdminSettings {
   weeklySchedule: WeeklySchedule;
-  closedDates: string[]; // Array of "YYYY-MM-DD" strings
+  specialClosures: BlockedPeriod[]; // Full or partial day closures
   blockedSlots: { [date: string]: string[] }; // e.g., { "2024-07-28": ["10:00", "10:30"] }
   businessName: string;
   businessAddress: string;

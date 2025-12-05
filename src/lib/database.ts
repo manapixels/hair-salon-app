@@ -7,6 +7,7 @@ import type {
   Stylist,
   CreateAppointmentInput,
   StylistSummary,
+  BlockedPeriod,
 } from '../types';
 import { prisma } from './prisma';
 import { unstable_cache } from 'next/cache';
@@ -415,7 +416,7 @@ export const getAdminSettings = async (): Promise<AdminSettings> => {
     // Return default settings if none exist
     return {
       weeklySchedule: getDefaultWeeklySchedule(),
-      closedDates: [],
+      specialClosures: [],
       blockedSlots: {},
       businessName: 'Signature Trims Hair Salon',
       businessAddress: '930 Yishun Avenue 1 #01-127, Singapore 760930',
@@ -423,15 +424,35 @@ export const getAdminSettings = async (): Promise<AdminSettings> => {
     };
   }
 
+  // Migrate legacy closedDates (string[]) to specialClosures (BlockedPeriod[])
+  let specialClosures: BlockedPeriod[] = [];
+  if (settings.closedDates && Array.isArray(settings.closedDates)) {
+    const rawClosures = settings.closedDates as any[];
+    specialClosures = rawClosures
+      .map(item => {
+        // If it's already a BlockedPeriod object, use it
+        if (typeof item === 'object' && item !== null && 'date' in item) {
+          return item as BlockedPeriod;
+        }
+        // If it's a legacy string date, convert to full-day closure
+        if (typeof item === 'string') {
+          return {
+            date: item,
+            isFullDay: true,
+            reason: undefined,
+          };
+        }
+        return null;
+      })
+      .filter((item): item is BlockedPeriod => item !== null);
+  }
+
   return {
     weeklySchedule:
       settings.weeklySchedule && typeof settings.weeklySchedule === 'object'
         ? (settings.weeklySchedule as any)
         : getDefaultWeeklySchedule(),
-    closedDates:
-      settings.closedDates && Array.isArray(settings.closedDates)
-        ? (settings.closedDates as string[])
-        : [],
+    specialClosures,
     blockedSlots:
       settings.blockedSlots &&
       typeof settings.blockedSlots === 'object' &&
@@ -455,7 +476,7 @@ export const updateAdminSettings = async (
       where: { id: existingSettings.id },
       data: {
         weeklySchedule: (newSettings.weeklySchedule ?? currentSettings.weeklySchedule) as any,
-        closedDates: (newSettings.closedDates ?? currentSettings.closedDates) as any,
+        closedDates: (newSettings.specialClosures ?? currentSettings.specialClosures) as any,
         businessName: newSettings.businessName ?? existingSettings.businessName,
         businessAddress: newSettings.businessAddress ?? existingSettings.businessAddress,
         businessPhone: newSettings.businessPhone ?? existingSettings.businessPhone,
@@ -468,7 +489,7 @@ export const updateAdminSettings = async (
     await prisma.adminSettings.create({
       data: {
         weeklySchedule: (newSettings.weeklySchedule ?? getDefaultWeeklySchedule()) as any,
-        closedDates: (newSettings.closedDates ?? []) as any,
+        closedDates: (newSettings.specialClosures ?? []) as any,
         blockedSlots: (newSettings.blockedSlots ?? {}) as any,
         businessName: newSettings.businessName ?? 'Signature Trims Hair Salon',
         businessAddress:
@@ -485,8 +506,11 @@ export const getAvailability = async (date: Date): Promise<string[]> => {
   const settings = await getAdminSettings();
   const dateKey = dateToKey(date);
 
-  // Check if date is in closed dates
-  if (settings.closedDates.includes(dateKey)) {
+  // Check if date has a full-day closure
+  const fullDayClosure = settings.specialClosures.find(
+    closure => closure.date === dateKey && closure.isFullDay,
+  );
+  if (fullDayClosure) {
     return []; // Store is closed on this date
   }
 
@@ -1188,8 +1212,11 @@ export const rescheduleAppointment = async (
   const settings = await getAdminSettings();
   const dateKey = dateToKey(newDate);
 
-  // Check if store is closed on this date
-  if (settings.closedDates.includes(dateKey)) {
+  // Check if store is closed on this date (full-day closure)
+  const fullDayClosure = settings.specialClosures.find(
+    closure => closure.date === dateKey && closure.isFullDay,
+  );
+  if (fullDayClosure) {
     throw new Error('The store is closed on this date');
   }
 

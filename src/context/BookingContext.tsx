@@ -40,7 +40,7 @@ export const BookingProvider: React.FC<{ children: ReactNode }> = ({ children })
       saturday: { isOpen: true, openingTime: '11:00', closingTime: '19:00' },
       sunday: { isOpen: true, openingTime: '11:00', closingTime: '19:00' },
     },
-    closedDates: [],
+    specialClosures: [],
     blockedSlots: {},
     businessName: 'Signature Trims Hair Salon',
     businessAddress: '930 Yishun Avenue 1 #01-127, Singapore 760930',

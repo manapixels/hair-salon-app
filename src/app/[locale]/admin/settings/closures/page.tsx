@@ -9,6 +9,7 @@ import { LoadingSpinner } from '@/components/feedback/loaders/LoadingSpinner';
 import ClosuresSettings from '@/components/admin/settings/salon/ClosuresSettings';
 import { LoadingButton } from '@/components/feedback/loaders/LoadingButton';
 import { toast } from 'sonner';
+import type { BlockedPeriod } from '@/types';
 
 export default function SettingsClosuresPage() {
   const { user, isLoading: authLoading } = useAuth();
@@ -17,7 +18,7 @@ export default function SettingsClosuresPage() {
 
   const [loading, setLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [closedDates, setClosedDates] = useState<string[]>([]);
+  const [specialClosures, setSpecialClosures] = useState<BlockedPeriod[]>([]);
 
   useEffect(() => {
     if (!authLoading && (!user || user.role !== 'ADMIN')) {
@@ -35,7 +36,7 @@ export default function SettingsClosuresPage() {
   }, [fetchAndSetAdminSettings]);
 
   useEffect(() => {
-    setClosedDates(adminSettings.closedDates || []);
+    setSpecialClosures(adminSettings.specialClosures || []);
   }, [adminSettings]);
 
   const handleSave = async () => {
@@ -44,7 +45,7 @@ export default function SettingsClosuresPage() {
     try {
       await saveAdminSettings({
         ...adminSettings,
-        closedDates,
+        specialClosures,
       });
       toast.success('Settings saved!', { id: toastId });
       router.refresh();
@@ -68,7 +69,7 @@ export default function SettingsClosuresPage() {
   return (
     <AdminLayout title="Closures">
       <div className="max-w-2xl">
-        <ClosuresSettings closedDates={closedDates} onChange={setClosedDates} />
+        <ClosuresSettings closures={specialClosures} onChange={setSpecialClosures} />
         <div className="mt-8 pt-6 border-t border-border flex justify-end">
           <LoadingButton
             loading={isSaving}

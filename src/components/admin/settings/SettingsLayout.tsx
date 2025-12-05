@@ -7,7 +7,7 @@ import ScheduleSettings from './salon/ScheduleSettings';
 import ClosuresSettings from './salon/ClosuresSettings';
 import ServicesSettings from './salon/ServicesSettings';
 import { LoadingButton } from '@/components/feedback/loaders/LoadingButton';
-import type { AdminSettings } from '@/types';
+import type { AdminSettings, BlockedPeriod } from '@/types';
 
 interface SettingsLayoutProps {
   adminSettings: AdminSettings;
@@ -39,7 +39,9 @@ export default function SettingsLayout({ adminSettings, onSave }: SettingsLayout
   const [weeklySchedule, setWeeklySchedule] = useState(
     getCompleteSchedule(adminSettings.weeklySchedule),
   );
-  const [closedDates, setClosedDates] = useState<string[]>(adminSettings.closedDates || []);
+  const [specialClosures, setSpecialClosures] = useState<BlockedPeriod[]>(
+    adminSettings.specialClosures || [],
+  );
 
   // Sync with prop changes
   useEffect(() => {
@@ -47,7 +49,7 @@ export default function SettingsLayout({ adminSettings, onSave }: SettingsLayout
     setBusinessAddress(adminSettings.businessAddress || '');
     setBusinessPhone(adminSettings.businessPhone || '');
     setWeeklySchedule(getCompleteSchedule(adminSettings.weeklySchedule));
-    setClosedDates(adminSettings.closedDates || []);
+    setSpecialClosures(adminSettings.specialClosures || []);
   }, [adminSettings]);
 
   const handleBusinessFieldChange = (
@@ -69,7 +71,7 @@ export default function SettingsLayout({ adminSettings, onSave }: SettingsLayout
         businessAddress,
         businessPhone,
         weeklySchedule,
-        closedDates,
+        specialClosures,
       });
       toast.success('Settings saved successfully!', { id: toastId });
       // Refresh server components (including footer in layout)
@@ -102,7 +104,7 @@ export default function SettingsLayout({ adminSettings, onSave }: SettingsLayout
             <ScheduleSettings weeklySchedule={weeklySchedule} onChange={setWeeklySchedule} />
           )}
           {activeSection === 'salon-closures' && (
-            <ClosuresSettings closedDates={closedDates} onChange={setClosedDates} />
+            <ClosuresSettings closures={specialClosures} onChange={setSpecialClosures} />
           )}
           {activeSection === 'salon-services' && <ServicesSettings />}
 
