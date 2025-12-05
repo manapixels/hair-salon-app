@@ -14,7 +14,7 @@ export interface SessionData {
   userId: string;
   email: string;
   name: string;
-  role: 'ADMIN' | 'CUSTOMER';
+  role: 'ADMIN' | 'STYLIST' | 'CUSTOMER';
   authProvider: 'whatsapp' | 'telegram' | 'email';
   sessionId: string;
   iat: number;

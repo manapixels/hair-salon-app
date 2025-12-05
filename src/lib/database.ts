@@ -361,6 +361,7 @@ export const getAppointments = async (): Promise<Appointment[]> => {
     stylist: apt.stylist
       ? {
           ...apt.stylist,
+          email: apt.stylist.email ?? undefined,
           bio: apt.stylist.bio ?? undefined,
           avatar: apt.stylist.avatar ?? undefined,
           specialties: Array.isArray(apt.stylist.specialties)
@@ -679,7 +680,7 @@ export const bookNewAppointment = async (
       ? {
           id: newAppointment.stylist.id,
           name: newAppointment.stylist.name,
-          email: newAppointment.stylist.email,
+          email: newAppointment.stylist.email ?? undefined,
         }
       : undefined,
     calendarEventId: newAppointment.calendarEventId ?? undefined,
@@ -951,6 +952,7 @@ export const getStylists = async (): Promise<Stylist[]> => {
 
     return {
       ...stylist,
+      email: stylist.email ?? undefined,
       bio: stylist.bio ?? undefined,
       avatar: stylist.avatar ?? undefined,
       specialties: specialtyCategoryIds
@@ -1003,6 +1005,7 @@ export const getStylistById = async (id: string): Promise<Stylist | null> => {
 
   return {
     ...stylist,
+    email: stylist.email ?? undefined,
     bio: stylist.bio ?? undefined,
     avatar: stylist.avatar ?? undefined,
     specialties: specialtyCategoryIds
@@ -1022,24 +1025,34 @@ export const getStylistById = async (id: string): Promise<Stylist | null> => {
 
 export const createStylist = async (stylistData: {
   name: string;
-  email: string;
+  email?: string;
   bio?: string;
   avatar?: string;
   specialtyCategoryIds: string[]; // Category IDs instead of service IDs
   workingHours?: Stylist['workingHours'];
   blockedDates?: string[];
+  userId?: string; // Link to User account (for promoted users)
 }): Promise<Stylist> => {
   const defaultHours = getDefaultWorkingHours();
+
+  // If userId provided, update user's role to STYLIST
+  if (stylistData.userId) {
+    await prisma.user.update({
+      where: { id: stylistData.userId },
+      data: { role: 'STYLIST' as any }, // Type assertion until Prisma client regenerated
+    });
+  }
 
   const newStylist = await prisma.stylist.create({
     data: {
       name: stylistData.name,
-      email: stylistData.email,
+      email: stylistData.email || null, // null is accepted by Prisma for optional fields
       bio: stylistData.bio,
       avatar: stylistData.avatar,
       specialties: stylistData.specialtyCategoryIds,
       workingHours: stylistData.workingHours || defaultHours,
       blockedDates: stylistData.blockedDates || [],
+      userId: stylistData.userId,
     },
   });
 
@@ -1050,6 +1063,7 @@ export const createStylist = async (stylistData: {
 
   return {
     ...newStylist,
+    email: newStylist.email ?? undefined,
     bio: newStylist.bio ?? undefined,
     avatar: newStylist.avatar ?? undefined,
     specialties: stylistData.specialtyCategoryIds
@@ -1109,6 +1123,7 @@ export const updateStylist = async (
 
   return {
     ...updatedStylist,
+    email: updatedStylist.email ?? undefined,
     bio: updatedStylist.bio ?? undefined,
     avatar: updatedStylist.avatar ?? undefined,
     specialties: specialtyCategoryIds
@@ -1326,7 +1341,7 @@ export const getUserAppointments = async (userId: string): Promise<Appointment[]
             ? {
                 id: appointment.stylist.id,
                 name: appointment.stylist.name,
-                email: appointment.stylist.email,
+                email: appointment.stylist.email ?? undefined,
               }
             : undefined,
           customerName: appointment.customerName,
@@ -1355,7 +1370,7 @@ export const getUserAppointments = async (userId: string): Promise<Appointment[]
             ? {
                 id: appointment.stylist.id,
                 name: appointment.stylist.name,
-                email: appointment.stylist.email,
+                email: appointment.stylist.email ?? undefined,
               }
             : undefined,
           customerName: appointment.customerName,
@@ -1414,7 +1429,7 @@ export const getUserAppointmentById = async (
       ? {
           id: appointment.stylist.id,
           name: appointment.stylist.name,
-          email: appointment.stylist.email,
+          email: appointment.stylist.email ?? undefined,
         }
       : undefined,
     customerName: appointment.customerName,
@@ -1491,7 +1506,7 @@ export const getUpcomingAppointmentsForReminders = async (
       ? {
           id: appointment.stylist.id,
           name: appointment.stylist.name,
-          email: appointment.stylist.email,
+          email: appointment.stylist.email ?? undefined,
         }
       : undefined,
     customerName: appointment.customerName,
@@ -1554,6 +1569,7 @@ export const getUnsyncedAppointments = async (): Promise<Appointment[]> => {
     stylist: apt.stylist
       ? {
           ...apt.stylist,
+          email: apt.stylist.email ?? undefined,
           bio: apt.stylist.bio ?? undefined,
           avatar: apt.stylist.avatar ?? undefined,
           specialties: Array.isArray(apt.stylist.specialties)

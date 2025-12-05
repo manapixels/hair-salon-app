@@ -228,7 +228,7 @@ const AdminDashboard: React.FC = () => {
           appointment.time.includes(term) ||
           // Stylist information
           (appointment.stylist && appointment.stylist.name.toLowerCase().includes(term)) ||
-          (appointment.stylist && appointment.stylist.email.toLowerCase().includes(term)) ||
+          (appointment.stylist && appointment.stylist.email?.toLowerCase().includes(term)) ||
           // Price and duration
           appointment.totalPrice.toString().includes(term) ||
           appointment.totalDuration.toString().includes(term);

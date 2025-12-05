@@ -12,6 +12,7 @@ datasource db {
 
 enum Role {
   CUSTOMER
+  STYLIST
   ADMIN
 }
 
@@ -54,6 +55,7 @@ model User {
   feedback          Feedback[]
   retentionMessages RetentionMessage[]
   loginTokens       LoginToken[]
+  stylistProfile    Stylist?          // Link to stylist profile if user is a stylist
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
@@ -128,13 +130,18 @@ model ServiceAddon {
 model Stylist {
   id           String       @id @default(cuid())
   name         String
-  email        String       @unique
+  email        String?      // Optional - inherited from User if linked
   bio          String?
   avatar       String?
   specialties  Json         // Array of service category IDs this stylist specializes in
   workingHours Json         // Working hours for each day of week
   blockedDates Json         @default("[]") // Array of date strings in YY-YY-MM-DD format for breaks/holidays
   isActive     Boolean      @default(true)
+  
+  // Link to User account (for stylists promoted from users)
+  userId       String?      @unique
+  user         User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
+  
   appointments Appointment[]
   createdAt    DateTime     @default(now())
   updatedAt    DateTime     @updatedAt

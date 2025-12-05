@@ -297,7 +297,14 @@ function StylistModal({
     specialtyCategoryIds: [] as string[],
     workingHours: getDefaultWorkingHours(),
     blockedDates: [] as string[], // Keep for API compatibility, but not editable here
+    userId: '' as string, // Link to User account for promoted users
   });
+
+  // User search state (for promoting existing users)
+  const [userSearchQuery, setUserSearchQuery] = useState('');
+  const [userSearchResults, setUserSearchResults] = useState<any[]>([]);
+  const [isSearchingUsers, setIsSearchingUsers] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<any | null>(null);
   const [salonSettings, setSalonSettings] = useState<AdminSettings | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
@@ -366,13 +373,17 @@ function StylistModal({
       // Editing existing stylist - use their stored hours
       setFormData({
         name: stylist.name,
-        email: stylist.email,
+        email: stylist.email || '',
         bio: stylist.bio || '',
         avatar: stylist.avatar || '',
         specialtyCategoryIds: stylist.specialties.map(cat => cat.id),
         workingHours: stylist.workingHours,
         blockedDates: [], // Don't edit blocked dates here
+        userId: '',
       });
+      setSelectedUser(null);
+      setUserSearchQuery('');
+      setUserSearchResults([]);
     } else {
       // Creating new stylist - use salon hours as default
       setFormData({
@@ -383,7 +394,11 @@ function StylistModal({
         specialtyCategoryIds: [],
         workingHours: getWorkingHoursFromSalonSettings(),
         blockedDates: [],
+        userId: '',
       });
+      setSelectedUser(null);
+      setUserSearchQuery('');
+      setUserSearchResults([]);
     }
     setError('');
   }, [stylist, salonSettings, getWorkingHoursFromSalonSettings]);
@@ -392,8 +407,9 @@ function StylistModal({
     e.preventDefault();
     setError('');
 
-    if (!formData.name || !formData.email || formData.specialtyCategoryIds.length === 0) {
-      const errorMsg = 'Please fill in all required fields and select at least one specialty';
+    // Name and specialties are required; email only required if not linked to user
+    if (!formData.name || formData.specialtyCategoryIds.length === 0) {
+      const errorMsg = 'Please fill in the name and select at least one specialty';
       setError(errorMsg);
       toast.error(errorMsg);
       return;
@@ -438,6 +454,55 @@ function StylistModal({
       specialtyCategoryIds: prev.specialtyCategoryIds.includes(categoryId)
         ? prev.specialtyCategoryIds.filter(id => id !== categoryId)
         : [...prev.specialtyCategoryIds, categoryId],
+    }));
+  };
+
+  // Search for users to promote
+  const handleUserSearch = async (query: string) => {
+    setUserSearchQuery(query);
+    if (query.length < 2) {
+      setUserSearchResults([]);
+      return;
+    }
+
+    setIsSearchingUsers(true);
+    try {
+      const response = await fetch(
+        `/api/admin/users/search?q=${encodeURIComponent(query)}&excludeStylists=true`,
+      );
+      if (response.ok) {
+        const users = await response.json();
+        setUserSearchResults(users);
+      }
+    } catch (err) {
+      console.error('Error searching users:', err);
+    } finally {
+      setIsSearchingUsers(false);
+    }
+  };
+
+  // Select a user to promote to stylist
+  const handleSelectUser = (user: any) => {
+    setSelectedUser(user);
+    setFormData(prev => ({
+      ...prev,
+      name: user.name,
+      email: user.email || '',
+      avatar: user.avatar || prev.avatar,
+      userId: user.id,
+    }));
+    setUserSearchQuery('');
+    setUserSearchResults([]);
+  };
+
+  // Clear selected user
+  const handleClearSelectedUser = () => {
+    setSelectedUser(null);
+    setFormData(prev => ({
+      ...prev,
+      name: '',
+      email: '',
+      userId: '',
     }));
   };
 
@@ -533,23 +598,136 @@ function StylistModal({
         )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Label>Name</Label>
+          {/* User Selection (only for new stylists) */}
+          {!stylist && (
+            <div>
+              <label className="block text-sm font-medium text-gray-900 mb-2">
+                Select User to Promote *
+              </label>
+              <p className="text-xs text-gray-500 mb-3">
+                Search for an existing user (registered via WhatsApp or Telegram) to promote to
+                stylist role.
+              </p>
+
+              {selectedUser ? (
+                // Show selected user
+                <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
+                      {selectedUser.avatar ? (
+                        <Image
+                          src={selectedUser.avatar}
+                          alt={selectedUser.name}
+                          width={40}
+                          height={40}
+                          className="object-cover"
+                        />
+                      ) : (
+                        <User className="w-5 h-5 text-gray-500" />
+                      )}
+                    </div>
+                    <div>
+                      <p className="font-medium text-gray-900">{selectedUser.name}</p>
+                      <p className="text-xs text-gray-500">
+                        {selectedUser.whatsappPhone || selectedUser.email || 'Telegram User'}
+                      </p>
+                    </div>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleClearSelectedUser}
+                    className="text-red-600 hover:text-red-700"
+                  >
+                    Change
+                  </Button>
+                </div>
+              ) : (
+                // Show search input
+                <div className="relative">
+                  <Input
+                    type="text"
+                    value={userSearchQuery}
+                    onChange={e => handleUserSearch(e.target.value)}
+                    placeholder="Search by name, email, or phone..."
+                    className="w-full"
+                  />
+                  {isSearchingUsers && (
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                      <svg
+                        className="animate-spin h-4 w-4 text-gray-400"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        />
+                      </svg>
+                    </div>
+                  )}
+
+                  {/* Search Results Dropdown */}
+                  {userSearchResults.length > 0 && (
+                    <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-auto">
+                      {userSearchResults.map(user => (
+                        <button
+                          key={user.id}
+                          type="button"
+                          onClick={() => handleSelectUser(user)}
+                          className="w-full flex items-center gap-3 p-3 hover:bg-gray-50 text-left"
+                        >
+                          <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden flex-shrink-0">
+                            {user.avatar ? (
+                              <Image
+                                src={user.avatar}
+                                alt={user.name}
+                                width={32}
+                                height={32}
+                                className="object-cover"
+                              />
+                            ) : (
+                              <User className="w-4 h-4 text-gray-500" />
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium text-gray-900 truncate">{user.name}</p>
+                            <p className="text-xs text-gray-500 truncate">
+                              {user.whatsappPhone || user.email || 'Telegram User'}
+                            </p>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  {userSearchQuery.length >= 2 &&
+                    !isSearchingUsers &&
+                    userSearchResults.length === 0 && (
+                      <p className="text-sm text-gray-500 mt-2">
+                        No users found matching &quot;{userSearchQuery}&quot;
+                      </p>
+                    )}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Stylist Name (editable, auto-filled from selected user) */}
+          <div>
+            <Label>Stylist Display Name *</Label>
             <Input
               type="text"
               value={formData.name}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                 setFormData(prev => ({ ...prev, name: e.target.value }))
               }
-              required
-            />
-            <Label>Email</Label>
-            <Input
-              type="email"
-              value={formData.email}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                setFormData(prev => ({ ...prev, email: e.target.value }))
-              }
+              placeholder={selectedUser ? 'Auto-filled from user' : 'Enter stylist name'}
               required
             />
           </div>

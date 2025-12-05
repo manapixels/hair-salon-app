@@ -33,12 +33,12 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { name, email, bio, avatar, specialtyCategoryIds, workingHours } = body;
+    const { name, email, bio, avatar, specialtyCategoryIds, workingHours, userId } = body;
 
-    if (!name || !email || !Array.isArray(specialtyCategoryIds)) {
+    if (!name || !Array.isArray(specialtyCategoryIds)) {
       return NextResponse.json(
         {
-          message: 'Missing required fields: name, email, and specialtyCategoryIds are required.',
+          message: 'Missing required fields: name and specialtyCategoryIds are required.',
         },
         { status: 400 },
       );
@@ -61,6 +61,7 @@ export async function POST(request: NextRequest) {
       avatar,
       specialtyCategoryIds: validCategoryIds,
       workingHours,
+      userId, // Link to user account if promoting existing user
     });
 
     return NextResponse.json(newStylist, { status: 201 });

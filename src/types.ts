@@ -87,7 +87,7 @@ export interface BlockedPeriod {
 export interface Stylist {
   id: string;
   name: string;
-  email: string;
+  email?: string; // Optional - may be inherited from linked User
   bio?: string;
   avatar?: string;
   specialties: ServiceCategory[]; // Service categories this stylist specializes in
@@ -143,7 +143,7 @@ export type CreateAppointmentInput = Omit<
 export type StylistSummary = {
   id: string;
   name: string;
-  email: string;
+  email?: string;
 };
 
 export interface DaySchedule {
@@ -183,7 +183,7 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  role: 'CUSTOMER' | 'ADMIN';
+  role: 'CUSTOMER' | 'STYLIST' | 'ADMIN';
   authProvider?: 'email' | 'whatsapp' | 'telegram';
   telegramId?: number;
   whatsappPhone?: string;
