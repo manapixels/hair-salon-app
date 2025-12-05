@@ -20,7 +20,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { LoadingSpinner } from '../feedback/loaders/LoadingSpinner';
-import { Plus, Users, User, Edit, Delete, Check, Clock } from '@/lib/icons';
+import { Plus, User, Edit, Delete, Clock } from '@/lib/icons';
 
 interface StylistManagementProps {
   onClose?: () => void;
@@ -173,16 +173,13 @@ export default function StylistManagement({ onClose }: StylistManagementProps) {
                         alt={stylist.name}
                         width={48}
                         height={48}
-                        className="w-12 h-12 rounded-full mr-3"
+                        className="w-12 h-12 rounded-full mr-3 object-cover"
                       />
                     ) : (
-                      <div className="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center mr-3">
-                        <User className="h-6 w-6 text-gray-600" aria-hidden="true" />
-                      </div>
+                      <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mr-3"></div>
                     )}
                     <div>
                       <h3 className="font-semibold text-gray-900">{stylist.name}</h3>
-                      <p className="text-sm text-gray-600">{stylist.email}</p>
                     </div>
                   </div>
                   <div className="flex space-x-2">
@@ -263,6 +260,15 @@ export default function StylistManagement({ onClose }: StylistManagementProps) {
             setShowAddModal(false);
             setEditingStylist(null);
           }}
+          onAvatarChange={avatarUrl => {
+            // Update the stylist card immediately when avatar is uploaded
+            if (editingStylist) {
+              setStylists(prev =>
+                prev.map(s => (s.id === editingStylist.id ? { ...s, avatar: avatarUrl } : s)),
+              );
+              setEditingStylist(prev => (prev ? { ...prev, avatar: avatarUrl } : null));
+            }
+          }}
         />
       </div>
 
@@ -293,6 +299,7 @@ interface StylistModalProps {
   stylist: Stylist | null;
   availableCategories: ServiceCategory[];
   onSave: () => void;
+  onAvatarChange?: (avatarUrl: string) => void;
 }
 
 function StylistModal({
@@ -301,6 +308,7 @@ function StylistModal({
   stylist,
   availableCategories,
   onSave,
+  onAvatarChange,
 }: StylistModalProps) {
   const [formData, setFormData] = useState({
     name: '',
@@ -381,6 +389,10 @@ function StylistModal({
     return workingHours;
   }, [salonSettings, daysOfWeek]);
 
+  // Track if we've initialized the form for the current stylist
+  const [formInitialized, setFormInitialized] = useState(false);
+
+  // Reset form when stylist changes (opening modal for different stylist)
   useEffect(() => {
     if (stylist) {
       // Editing existing stylist - use their stored hours
@@ -397,8 +409,17 @@ function StylistModal({
       setSelectedUser(null);
       setUserSearchQuery('');
       setUserSearchResults([]);
+      setFormInitialized(true);
     } else {
-      // Creating new stylist - use salon hours as default
+      // Creating new stylist - reset initialization flag
+      setFormInitialized(false);
+    }
+    setError('');
+  }, [stylist]);
+
+  // For new stylists, update working hours when salon settings load
+  useEffect(() => {
+    if (!stylist && !formInitialized) {
       setFormData({
         name: '',
         email: '',
@@ -413,8 +434,7 @@ function StylistModal({
       setUserSearchQuery('');
       setUserSearchResults([]);
     }
-    setError('');
-  }, [stylist, salonSettings, getWorkingHoursFromSalonSettings]);
+  }, [stylist, formInitialized, getWorkingHoursFromSalonSettings]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -555,6 +575,23 @@ function StylistModal({
 
       const data = await response.json();
       setFormData(prev => ({ ...prev, avatar: data.url }));
+      // Notify parent to update the stylist card immediately
+      if (onAvatarChange) {
+        onAvatarChange(data.url);
+      }
+
+      // If editing an existing stylist, save avatar to database immediately
+      if (stylist) {
+        const saveResponse = await fetch(`/api/stylists/${stylist.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ avatar: data.url }),
+        });
+        if (!saveResponse.ok) {
+          console.error('Failed to save avatar to database');
+        }
+      }
+
       toast.success('Avatar uploaded successfully!', { id: uploadToast });
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'Failed to upload avatar';
@@ -754,9 +791,7 @@ function StylistModal({
                 {formData.avatar ? (
                   <Image src={formData.avatar} alt="Avatar preview" fill className="object-cover" />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-gray-400">
-                    <User className="w-8 h-8" />
-                  </div>
+                  <div className="w-full h-full flex items-center justify-center text-gray-400"></div>
                 )}
               </div>
 
