@@ -1,7 +1,8 @@
 /**
  * API Route: /api/appointments/edit
  *
- * Handles appointment modifications with calendar and notification updates
+ * Handles appointment modifications with calendar and notification updates.
+ * Supports both service-based and category-based appointments.
  */
 import { NextRequest, NextResponse } from 'next/server';
 import { updateAppointment, findAppointmentById, findUserByEmail } from '../../../../lib/database';
@@ -11,21 +12,38 @@ import { sendAppointmentConfirmation } from '../../../../services/messagingServi
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
-    const { id, customerName, customerEmail, date, time, services } = body;
+    const {
+      id,
+      customerName,
+      customerEmail,
+      date,
+      time,
+      services,
+      stylistId,
+      categoryId,
+      estimatedDuration,
+      totalPrice: providedTotalPrice,
+      totalDuration: providedTotalDuration,
+    } = body;
 
-    if (!id || !customerName || !customerEmail || !date || !time || !services) {
+    // Validate required fields
+    if (!id || !customerName || !customerEmail || !date || !time) {
       return NextResponse.json(
         {
           message:
-            'Missing required appointment data: id, customerName, customerEmail, date, time, and services are required.',
+            'Missing required appointment data: id, customerName, customerEmail, date, and time are required.',
         },
         { status: 400 },
       );
     }
 
-    if (!Array.isArray(services) || services.length === 0) {
+    // Determine booking mode and validate accordingly
+    const isCategoryBased = !!categoryId;
+    const isServiceBased = Array.isArray(services) && services.length > 0;
+
+    if (!isCategoryBased && !isServiceBased) {
       return NextResponse.json(
-        { message: 'At least one service must be selected.' },
+        { message: 'Either a service category or at least one service must be selected.' },
         { status: 400 },
       );
     }
@@ -36,24 +54,45 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ message: 'Appointment not found.' }, { status: 404 });
     }
 
-    // Calculate totals
-    const totalPrice = services.reduce((sum: number, service: any) => sum + service.price, 0);
-    const totalDuration = services.reduce((sum: number, service: any) => sum + service.duration, 0);
+    // Calculate totals based on booking mode
+    let totalPrice: number;
+    let totalDuration: number;
+
+    if (isCategoryBased) {
+      // Category-based: use provided duration or estimated duration
+      totalPrice = providedTotalPrice ?? 0; // Price TBD at appointment
+      totalDuration = providedTotalDuration ?? estimatedDuration ?? 60;
+    } else {
+      // Service-based: calculate from services
+      // Support both 'price' and 'basePrice' field names for backwards compatibility
+      totalPrice =
+        providedTotalPrice ??
+        services.reduce(
+          (sum: number, service: any) => sum + (service.price ?? service.basePrice ?? 0),
+          0,
+        );
+      totalDuration =
+        providedTotalDuration ??
+        services.reduce((sum: number, service: any) => sum + (service.duration ?? 0), 0);
+    }
 
     const appointmentData = {
       customerName,
       customerEmail,
       date: new Date(date),
       time,
-      services,
+      services: isServiceBased ? services : [],
       totalPrice,
       totalDuration,
+      stylistId: stylistId ?? null,
+      categoryId: isCategoryBased ? categoryId : null,
+      estimatedDuration: isCategoryBased ? (estimatedDuration ?? totalDuration) : null,
     };
 
     // Update the appointment in the database
     const updatedAppointment = await updateAppointment(id, appointmentData);
 
-    // Update the calendar event if it exists and the date/time changed
+    // Detect changes for calendar/notification updates
     const dateChanged =
       new Date(currentAppointment.date).toISOString() !== new Date(date).toISOString() ||
       currentAppointment.time !== time;
@@ -61,7 +100,14 @@ export async function PUT(request: NextRequest) {
     const servicesChanged =
       JSON.stringify(currentAppointment.services) !== JSON.stringify(services);
 
-    if (updatedAppointment.calendarEventId && (dateChanged || servicesChanged)) {
+    const stylistChanged = currentAppointment.stylistId !== stylistId;
+
+    const categoryChanged = currentAppointment.categoryId !== categoryId;
+
+    const significantChange = dateChanged || servicesChanged || stylistChanged || categoryChanged;
+
+    // Update the calendar event if it exists and significant changes were made
+    if (updatedAppointment.calendarEventId && significantChange) {
       try {
         await updateCalendarEvent(updatedAppointment.calendarEventId, updatedAppointment);
         console.log(`📅 Calendar event updated for appointment ${id}`);
@@ -71,8 +117,8 @@ export async function PUT(request: NextRequest) {
       }
     }
 
-    // Send notification if significant changes were made (date, time, or services)
-    if (dateChanged || servicesChanged) {
+    // Send notification if significant changes were made
+    if (significantChange) {
       try {
         const dbUser = await findUserByEmail(updatedAppointment.customerEmail);
         let user = null;

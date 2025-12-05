@@ -841,6 +841,9 @@ export const updateAppointment = async (
     services: Service[];
     totalPrice: number;
     totalDuration: number;
+    stylistId?: string | null;
+    categoryId?: string | null;
+    estimatedDuration?: number | null;
   },
 ): Promise<Appointment> => {
   // Check if the updated time slot is available (excluding the current appointment)
@@ -891,6 +894,12 @@ export const updateAppointment = async (
       services: appointmentData.services as any,
       totalPrice: appointmentData.totalPrice,
       totalDuration: appointmentData.totalDuration,
+      // Optional fields - only update if explicitly provided
+      ...(appointmentData.stylistId !== undefined && { stylistId: appointmentData.stylistId }),
+      ...(appointmentData.categoryId !== undefined && { categoryId: appointmentData.categoryId }),
+      ...(appointmentData.estimatedDuration !== undefined && {
+        estimatedDuration: appointmentData.estimatedDuration,
+      }),
     },
   });
 
