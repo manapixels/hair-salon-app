@@ -536,7 +536,12 @@ export const getStylistAvailability = async (date: Date, stylistId: string): Pro
   }
 
   // Check if stylist has blocked this date (holidays/breaks)
-  if (stylist.blockedDates && stylist.blockedDates.includes(dateKey)) {
+  // Handle both string[] and BlockedPeriod[] formats
+  const isDateBlocked = stylist.blockedDates?.some(d => {
+    const dateStr = typeof d === 'string' ? d : d.date;
+    return dateStr === dateKey;
+  });
+  if (isDateBlocked) {
     return []; // Stylist is not available on this date
   }
 

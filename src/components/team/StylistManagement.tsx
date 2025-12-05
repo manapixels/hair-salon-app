@@ -1,9 +1,9 @@
 'use client';
 
 import Image from 'next/image';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { toast } from 'sonner';
-import type { Stylist, Service } from '@/types';
+import type { Stylist, Service, AdminSettings } from '@/types';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
@@ -20,7 +20,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { LoadingSpinner } from '../feedback/loaders/LoadingSpinner';
-import { Plus, X, Users, User, Edit, Delete, Check } from '@/lib/icons';
+import { Plus, Users, User, Edit, Delete, Check, Clock } from '@/lib/icons';
 
 interface StylistManagementProps {
   onClose?: () => void;
@@ -280,14 +280,72 @@ function StylistModal({ isOpen, onClose, stylist, availableServices, onSave }: S
     avatar: '',
     specialtyIds: [] as string[],
     workingHours: getDefaultWorkingHours(),
-    blockedDates: [] as string[],
+    blockedDates: [] as string[], // Keep for API compatibility, but not editable here
   });
-  const [newBlockedDate, setNewBlockedDate] = useState('');
+  const [salonSettings, setSalonSettings] = useState<AdminSettings | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
+  // Time options for dropdowns
+  const timeOptions = useMemo(() => {
+    const times: string[] = [];
+    for (let h = 6; h <= 22; h++) {
+      times.push(`${h.toString().padStart(2, '0')}:00`);
+      times.push(`${h.toString().padStart(2, '0')}:30`);
+    }
+    return times;
+  }, []);
+
+  // Days of week for working hours - stable reference
+  const daysOfWeek = useMemo(
+    () => ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'] as const,
+    [],
+  );
+
+  // Fetch salon settings to use as default working hours
+  const fetchSalonSettings = useCallback(async () => {
+    try {
+      const response = await fetch('/api/admin/settings');
+      if (response.ok) {
+        const data = await response.json();
+        setSalonSettings(data);
+      }
+    } catch (err) {
+      console.error('Failed to fetch salon settings:', err);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (isOpen && !salonSettings) {
+      fetchSalonSettings();
+    }
+  }, [isOpen, salonSettings, fetchSalonSettings]);
+
+  // Convert salon schedule to stylist working hours format
+  const getWorkingHoursFromSalonSettings = useCallback((): Stylist['workingHours'] => {
+    if (!salonSettings?.weeklySchedule) {
+      return getDefaultWorkingHours();
+    }
+
+    const workingHours: Stylist['workingHours'] = {};
+    for (const day of daysOfWeek) {
+      const salonDay = salonSettings.weeklySchedule[day];
+      if (salonDay) {
+        workingHours[day] = {
+          start: salonDay.openingTime || '09:00',
+          end: salonDay.closingTime || '17:00',
+          isWorking: salonDay.isOpen ?? true,
+        };
+      } else {
+        workingHours[day] = { start: '09:00', end: '17:00', isWorking: true };
+      }
+    }
+    return workingHours;
+  }, [salonSettings, daysOfWeek]);
+
   useEffect(() => {
     if (stylist) {
+      // Editing existing stylist - use their stored hours
       setFormData({
         name: stylist.name,
         email: stylist.email,
@@ -295,22 +353,22 @@ function StylistModal({ isOpen, onClose, stylist, availableServices, onSave }: S
         avatar: stylist.avatar || '',
         specialtyIds: stylist.specialties.map(s => s.id),
         workingHours: stylist.workingHours,
-        blockedDates: stylist.blockedDates || [],
+        blockedDates: [], // Don't edit blocked dates here
       });
     } else {
+      // Creating new stylist - use salon hours as default
       setFormData({
         name: '',
         email: '',
         bio: '',
         avatar: '',
         specialtyIds: [],
-        workingHours: getDefaultWorkingHours(),
+        workingHours: getWorkingHoursFromSalonSettings(),
         blockedDates: [],
       });
     }
     setError('');
-    setNewBlockedDate('');
-  }, [stylist]);
+  }, [stylist, salonSettings, getWorkingHoursFromSalonSettings]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -365,15 +423,32 @@ function StylistModal({ isOpen, onClose, stylist, availableServices, onSave }: S
     }));
   };
 
+  const updateWorkingHours = (
+    day: string,
+    field: 'start' | 'end' | 'isWorking',
+    value: string | boolean,
+  ) => {
+    setFormData(prev => ({
+      ...prev,
+      workingHours: {
+        ...prev.workingHours,
+        [day]: {
+          ...prev.workingHours[day],
+          [field]: value,
+        },
+      },
+    }));
+  };
+
   function getDefaultWorkingHours(): Stylist['workingHours'] {
     return {
-      monday: { start: '09:00', end: '17:00', isWorking: true },
-      tuesday: { start: '09:00', end: '17:00', isWorking: true },
-      wednesday: { start: '09:00', end: '17:00', isWorking: true },
-      thursday: { start: '09:00', end: '17:00', isWorking: true },
-      friday: { start: '09:00', end: '17:00', isWorking: true },
-      saturday: { start: '09:00', end: '15:00', isWorking: true },
-      sunday: { start: '10:00', end: '14:00', isWorking: false },
+      monday: { start: '11:00', end: '19:00', isWorking: true },
+      tuesday: { start: '11:00', end: '19:00', isWorking: false },
+      wednesday: { start: '11:00', end: '19:00', isWorking: true },
+      thursday: { start: '11:00', end: '19:00', isWorking: true },
+      friday: { start: '11:00', end: '19:00', isWorking: true },
+      saturday: { start: '11:00', end: '19:00', isWorking: true },
+      sunday: { start: '11:00', end: '19:00', isWorking: true },
     };
   }
 
@@ -481,65 +556,67 @@ function StylistModal({ isOpen, onClose, stylist, availableServices, onSave }: S
             </div>
           </div>
 
-          {/* Blocked Dates Section */}
+          {/* Working Hours Section */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Blocked Dates (Holidays/Days Off)
+            <label className="block text-sm font-medium text-gray-900 mb-2">
+              <Clock className="inline-block w-4 h-4 mr-1" />
+              Working Hours
             </label>
-            <div className="border border-gray-200 rounded-md p-3">
-              <div className="space-y-2 mb-3">
-                {formData.blockedDates.length === 0 ? (
-                  <p className="text-sm text-gray-500 italic">
-                    No blocked dates. Stylist is available according to their schedule.
-                  </p>
-                ) : (
-                  formData.blockedDates.map(date => (
-                    <div
-                      key={date}
-                      className="flex items-center justify-between bg-gray-50 p-2 rounded"
-                    >
-                      <span className="text-sm text-gray-900">{date}</span>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setFormData(prev => ({
-                            ...prev,
-                            blockedDates: prev.blockedDates.filter(d => d !== date),
-                          }))
-                        }
-                        className="text-red-600 hover:text-red-800 text-sm"
-                      >
-                        Remove
-                      </button>
+            <p className="text-xs text-gray-500 mb-2">
+              Default hours match salon schedule. Adjust as needed for this stylist.
+            </p>
+            <div className="border border-gray-200 rounded-md p-3 space-y-2">
+              {daysOfWeek.map(day => {
+                const hours = formData.workingHours[day];
+                return (
+                  <div
+                    key={day}
+                    className="flex items-center gap-3 py-2 border-b border-gray-100 last:border-0"
+                  >
+                    <div className="w-24">
+                      <label className="flex items-center cursor-pointer">
+                        <Checkbox
+                          checked={hours.isWorking}
+                          onCheckedChange={checked =>
+                            updateWorkingHours(day, 'isWorking', !!checked)
+                          }
+                          className="mr-2"
+                        />
+                        <span className="text-sm font-medium capitalize">{day.slice(0, 3)}</span>
+                      </label>
                     </div>
-                  ))
-                )}
-              </div>
-              <div className="flex gap-2">
-                <input
-                  type="date"
-                  value={newBlockedDate}
-                  onChange={e => setNewBlockedDate(e.target.value)}
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm"
-                  min={new Date().toISOString().split('T')[0]}
-                />
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (newBlockedDate && !formData.blockedDates.includes(newBlockedDate)) {
-                      setFormData(prev => ({
-                        ...prev,
-                        blockedDates: [...prev.blockedDates, newBlockedDate].sort(),
-                      }));
-                      setNewBlockedDate('');
-                    }
-                  }}
-                  disabled={!newBlockedDate}
-                  className="px-4 py-2 bg-primary-600 text-white rounded text-sm hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Add
-                </button>
-              </div>
+                    {hours.isWorking ? (
+                      <div className="flex items-center gap-2 flex-1">
+                        <select
+                          value={hours.start}
+                          onChange={e => updateWorkingHours(day, 'start', e.target.value)}
+                          className="px-2 py-1.5 border border-gray-300 rounded-md text-sm bg-white"
+                        >
+                          {timeOptions.map(t => (
+                            <option key={t} value={t}>
+                              {t}
+                            </option>
+                          ))}
+                        </select>
+                        <span className="text-gray-500">to</span>
+                        <select
+                          value={hours.end}
+                          onChange={e => updateWorkingHours(day, 'end', e.target.value)}
+                          className="px-2 py-1.5 border border-gray-300 rounded-md text-sm bg-white"
+                        >
+                          {timeOptions.map(t => (
+                            <option key={t} value={t}>
+                              {t}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    ) : (
+                      <span className="text-sm text-gray-400 italic">Day off</span>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
 

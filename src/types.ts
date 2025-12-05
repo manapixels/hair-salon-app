@@ -72,6 +72,18 @@ export interface TimeSlot {
   available: boolean;
 }
 
+/**
+ * Represents a blocked period for a stylist.
+ * Can be a full-day block or a partial-day block with specific times.
+ */
+export interface BlockedPeriod {
+  date: string; // "YYYY-MM-DD"
+  isFullDay: boolean; // true = entire day blocked
+  startTime?: string; // "HH:mm" - blocked FROM this time (when isFullDay=false)
+  endTime?: string; // "HH:mm" - blocked UNTIL this time (when isFullDay=false)
+  reason?: string; // Optional reason (e.g., "Doctor appointment")
+}
+
 export interface Stylist {
   id: string;
   name: string;
@@ -87,7 +99,8 @@ export interface Stylist {
       isWorking: boolean;
     };
   };
-  blockedDates: string[]; // Array of "YYYY-MM-DD" strings for breaks/holidays
+  // Supports both legacy string[] and enhanced BlockedPeriod[] format
+  blockedDates: string[] | BlockedPeriod[];
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;

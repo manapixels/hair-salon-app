@@ -1,18 +1,63 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
+import { toast } from 'sonner';
+import type { DateRange } from 'react-day-picker';
 import { formatDisplayDate } from '@/lib/timeUtils';
 import * as Select from '@radix-ui/react-select';
 import { LoadingSpinner } from '@/components/feedback/loaders/LoadingSpinner';
-import type { Stylist } from '@/types';
+import { Calendar } from '@/components/ui/calendar';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import type { Stylist, BlockedPeriod } from '@/types';
+import { Plus, X, ChevronDown } from '@/lib/icons';
 
 interface StylistAvailabilityProps {
   onNavigateToStylists?: () => void;
 }
 
+// Helper to get date string from either string or BlockedPeriod
+const getBlockedDateString = (d: string | BlockedPeriod): string => {
+  return typeof d === 'string' ? d : d.date;
+};
+
+// Helper to normalize blocked dates to BlockedPeriod format
+const normalizeBlockedDates = (dates: (string | BlockedPeriod)[] | undefined): BlockedPeriod[] => {
+  if (!dates || !Array.isArray(dates)) return [];
+  return dates.map(d => {
+    if (typeof d === 'string') {
+      return { date: d, isFullDay: true };
+    }
+    return d;
+  });
+};
+
 export default function StylistAvailability({ onNavigateToStylists }: StylistAvailabilityProps) {
   const [stylists, setStylists] = useState<Stylist[]>([]);
   const [selectedStylistId, setSelectedStylistId] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
   const [currentMonth, setCurrentMonth] = useState(new Date());
+
+  // Blocked dates editing state
+  const [blockedDates, setBlockedDates] = useState<BlockedPeriod[]>([]);
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
+  const [showTimeOptions, setShowTimeOptions] = useState(false);
+  const [blockStartTime, setBlockStartTime] = useState('09:00');
+  const [blockEndTime, setBlockEndTime] = useState('18:00');
+  const [isFullDayBlock, setIsFullDayBlock] = useState(true);
+  const [blockReason, setBlockReason] = useState('');
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+
+  // Time options for dropdowns
+  const timeOptions = useMemo(() => {
+    const times: string[] = [];
+    for (let h = 6; h <= 22; h++) {
+      times.push(`${h.toString().padStart(2, '0')}:00`);
+      times.push(`${h.toString().padStart(2, '0')}:30`);
+    }
+    return times;
+  }, []);
 
   useEffect(() => {
     fetchStylists();
@@ -38,6 +83,14 @@ export default function StylistAvailability({ onNavigateToStylists }: StylistAva
 
   const selectedStylist = stylists.find(s => s.id === selectedStylistId);
 
+  // Sync blocked dates when stylist changes
+  useEffect(() => {
+    if (selectedStylist) {
+      setBlockedDates(normalizeBlockedDates(selectedStylist.blockedDates));
+      setHasUnsavedChanges(false);
+    }
+  }, [selectedStylist]);
+
   const getDaysInMonth = (date: Date) => {
     const year = date.getFullYear();
     const month = date.getMonth();
@@ -57,9 +110,8 @@ export default function StylistAvailability({ onNavigateToStylists }: StylistAva
   };
 
   const isDateBlocked = (date: Date) => {
-    if (!selectedStylist) return false;
     const dateStr = date.toISOString().split('T')[0];
-    return selectedStylist.blockedDates.includes(dateStr);
+    return blockedDates.some(d => d.date === dateStr);
   };
 
   const isDayWorking = (date: Date) => {
@@ -68,6 +120,97 @@ export default function StylistAvailability({ onNavigateToStylists }: StylistAva
     const hours =
       selectedStylist.workingHours[dayName as keyof typeof selectedStylist.workingHours];
     return hours?.isWorking ?? false;
+  };
+
+  const addBlockedPeriod = () => {
+    if (!dateRange?.from) return;
+
+    const newPeriods: BlockedPeriod[] = [];
+    const startDate = dateRange.from;
+    const endDate = dateRange.to || dateRange.from;
+
+    // Generate all dates in range
+    const currentDate = new Date(startDate);
+    while (currentDate <= endDate) {
+      const dateStr = currentDate.toISOString().split('T')[0];
+
+      // Check if this date is already blocked
+      const existingIndex = blockedDates.findIndex(bp => bp.date === dateStr);
+      if (existingIndex === -1) {
+        newPeriods.push({
+          date: dateStr,
+          isFullDay: isFullDayBlock,
+          startTime: isFullDayBlock ? undefined : blockStartTime,
+          endTime: isFullDayBlock ? undefined : blockEndTime,
+          reason: blockReason || undefined,
+        });
+      }
+
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+
+    if (newPeriods.length > 0) {
+      setBlockedDates(prev =>
+        [...prev, ...newPeriods].sort((a, b) => a.date.localeCompare(b.date)),
+      );
+      setHasUnsavedChanges(true);
+    }
+
+    // Reset
+    setDateRange(undefined);
+    setBlockReason('');
+    setShowTimeOptions(false);
+    setIsFullDayBlock(true);
+  };
+
+  const removeBlockedDate = (date: string) => {
+    setBlockedDates(prev => prev.filter(bp => bp.date !== date));
+    setHasUnsavedChanges(true);
+  };
+
+  const formatBlockedPeriod = (bp: BlockedPeriod) => {
+    const dateFormatted = new Date(bp.date + 'T00:00:00').toLocaleDateString('en-US', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+    });
+    if (bp.isFullDay) {
+      return `${dateFormatted} (All day)`;
+    }
+    return `${dateFormatted} (${bp.startTime} - ${bp.endTime})`;
+  };
+
+  const saveBlockedDates = async () => {
+    if (!selectedStylist) return;
+
+    setIsSaving(true);
+    const toastId = toast.loading('Saving blocked dates...');
+
+    try {
+      const response = await fetch(`/api/stylists/${selectedStylist.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...selectedStylist,
+          specialtyIds: selectedStylist.specialties.map(s => s.id),
+          blockedDates: blockedDates,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save blocked dates');
+      }
+
+      // Refresh stylists to get updated data
+      await fetchStylists();
+      setHasUnsavedChanges(false);
+      toast.success('Blocked dates saved!', { id: toastId });
+    } catch (error) {
+      console.error('Failed to save blocked dates:', error);
+      toast.error('Failed to save blocked dates', { id: toastId });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   if (isLoading) {
@@ -117,8 +260,8 @@ export default function StylistAvailability({ onNavigateToStylists }: StylistAva
       <div>
         <h3 className="text-lg font-bold text-foreground mb-[2]">Per-Stylist Availability</h3>
         <p className="text-sm text-muted-foreground">
-          View each stylist&apos;s working schedule and blocked dates. To edit, use the Stylists
-          tab.
+          Manage individual stylist schedules and blocked dates. Use this page to block specific
+          days off for vacations, appointments, etc.
         </p>
       </div>
 
@@ -174,7 +317,7 @@ export default function StylistAvailability({ onNavigateToStylists }: StylistAva
                   onClick={onNavigateToStylists}
                   className="px-3 py-2 text-sm text-primary hover:text-primary font-medium transition-colors"
                 >
-                  Edit Full Profile ?
+                  Edit Full Profile →
                 </button>
               )}
             </div>
@@ -200,11 +343,159 @@ export default function StylistAvailability({ onNavigateToStylists }: StylistAva
             </div>
           </div>
 
+          {/* Blocked Dates Management Section */}
+          <div className="bg-card border border-border rounded-lg p-4">
+            <div className="flex items-center justify-between mb-4">
+              <h4 className="text-[length:var(--font-size-3)] font-semibold text-foreground">
+                Manage Blocked Dates
+              </h4>
+              {hasUnsavedChanges && (
+                <Button onClick={saveBlockedDates} disabled={isSaving} size="sm">
+                  {isSaving ? 'Saving...' : 'Save Changes'}
+                </Button>
+              )}
+            </div>
+
+            <p className="text-sm text-muted-foreground mb-4">
+              Block specific dates for vacations, appointments, or other time off.
+            </p>
+
+            {/* Current blocked dates as chips */}
+            <div className="mb-4">
+              {blockedDates.length === 0 ? (
+                <p className="text-sm text-gray-500 italic py-2">
+                  No blocked dates. This stylist is available according to their regular schedule.
+                </p>
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  {blockedDates.map(bp => (
+                    <div
+                      key={bp.date}
+                      className="inline-flex items-center gap-1 bg-red-50 text-red-700 px-2 py-1 rounded-md text-sm"
+                    >
+                      <span>{formatBlockedPeriod(bp)}</span>
+                      {bp.reason && <span className="text-red-500 text-xs">({bp.reason})</span>}
+                      <button
+                        type="button"
+                        onClick={() => removeBlockedDate(bp.date)}
+                        className="ml-1 text-red-500 hover:text-red-700"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Calendar for selecting dates to block */}
+            <div className="flex flex-col items-center">
+              <Calendar
+                mode="range"
+                selected={dateRange}
+                onSelect={setDateRange}
+                disabled={{ before: new Date() }}
+                className="rounded-md border"
+                numberOfMonths={1}
+              />
+
+              {dateRange?.from && (
+                <div className="mt-3 w-full max-w-md space-y-3">
+                  <div className="text-sm text-gray-600 text-center">
+                    Selected: {dateRange.from.toLocaleDateString()}
+                    {dateRange.to && dateRange.to.getTime() !== dateRange.from.getTime() && (
+                      <> to {dateRange.to.toLocaleDateString()}</>
+                    )}
+                  </div>
+
+                  {/* Collapsible time options */}
+                  <Collapsible open={showTimeOptions} onOpenChange={setShowTimeOptions}>
+                    <CollapsibleTrigger asChild>
+                      <button
+                        type="button"
+                        className="flex items-center justify-center w-full text-sm text-gray-600 hover:text-gray-900"
+                      >
+                        <ChevronDown
+                          className={`w-4 h-4 mr-1 transition-transform ${showTimeOptions ? 'rotate-180' : ''}`}
+                        />
+                        Advanced: Time Options
+                      </button>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="mt-2 p-3 bg-gray-50 rounded-md space-y-3">
+                      <div className="flex items-center gap-2">
+                        <Checkbox
+                          id="full-day-block"
+                          checked={isFullDayBlock}
+                          onCheckedChange={checked => setIsFullDayBlock(!!checked)}
+                        />
+                        <label htmlFor="full-day-block" className="text-sm text-gray-700">
+                          Block entire day
+                        </label>
+                      </div>
+
+                      {!isFullDayBlock && (
+                        <div className="flex items-center gap-2 ml-6">
+                          <span className="text-sm text-gray-600">Block from</span>
+                          <select
+                            value={blockStartTime}
+                            onChange={e => setBlockStartTime(e.target.value)}
+                            className="px-2 py-1 border border-gray-300 rounded text-sm"
+                          >
+                            {timeOptions.map(t => (
+                              <option key={t} value={t}>
+                                {t}
+                              </option>
+                            ))}
+                          </select>
+                          <span className="text-sm text-gray-600">to</span>
+                          <select
+                            value={blockEndTime}
+                            onChange={e => setBlockEndTime(e.target.value)}
+                            className="px-2 py-1 border border-gray-300 rounded text-sm"
+                          >
+                            {timeOptions.map(t => (
+                              <option key={t} value={t}>
+                                {t}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
+
+                      <div className="ml-0">
+                        <label className="text-sm text-gray-600 block mb-1">
+                          Reason (optional)
+                        </label>
+                        <Input
+                          type="text"
+                          value={blockReason}
+                          onChange={e => setBlockReason(e.target.value)}
+                          placeholder="e.g., Doctor appointment, Vacation"
+                          className="text-sm"
+                        />
+                      </div>
+                    </CollapsibleContent>
+                  </Collapsible>
+
+                  <Button
+                    type="button"
+                    onClick={addBlockedPeriod}
+                    className="w-full"
+                    variant="outline"
+                  >
+                    <Plus className="w-4 h-4 mr-1" />
+                    Add Blocked Period
+                  </Button>
+                </div>
+              )}
+            </div>
+          </div>
+
           {/* Calendar View */}
           <div>
             <div className="flex items-center justify-between mb-[4]">
               <h4 className="text-[length:var(--font-size-3)] font-semibold text-foreground">
-                Blocked Dates Calendar
+                Monthly Calendar View
               </h4>
               <div className="flex items-center space-x-[3]">
                 <button
@@ -302,45 +593,6 @@ export default function StylistAvailability({ onNavigateToStylists }: StylistAva
               </div>
             </div>
           </div>
-
-          {/* Blocked Dates List */}
-          {selectedStylist.blockedDates.length > 0 && (
-            <div>
-              <h4 className="text-[length:var(--font-size-3)] font-semibold text-foreground mb-[3]">
-                Upcoming Blocked Dates
-              </h4>
-              <div className="space-y-[2]">
-                {selectedStylist.blockedDates
-                  .filter(date => date >= new Date().toISOString().split('T')[0])
-                  .sort()
-                  .slice(0, 5)
-                  .map(date => (
-                    <div
-                      key={date}
-                      className="flex items-center space-x-[3] p-[3] bg-destructive/10 border border-destructive rounded-md"
-                    >
-                      <svg
-                        className="w-5 h-5 text-destructive"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M6 18L18 6M6 6l12 12"
-                        />
-                      </svg>
-                      <span className="text-sm font-medium text-foreground">
-                        {formatDisplayDate(new Date(date))}
-                      </span>
-                      <span className="text-xs text-muted-foreground">({date})</span>
-                    </div>
-                  ))}
-              </div>
-            </div>
-          )}
         </>
       )}
     </div>
