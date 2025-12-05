@@ -1,4 +1,4 @@
-import * as Checkbox from '@radix-ui/react-checkbox';
+import { Checkbox } from '@/components/ui/checkbox';
 import type { AdminSettings } from '@/types';
 
 interface ScheduleSettingsProps {
@@ -15,6 +15,19 @@ const DAYS = [
   'saturday',
   'sunday',
 ] as const;
+
+// Generate time options from 6:00 to 23:00 in 30-minute increments
+const generateTimeOptions = () => {
+  const times: string[] = [];
+  for (let hour = 6; hour <= 23; hour++) {
+    for (const min of ['00', '30']) {
+      times.push(`${hour.toString().padStart(2, '0')}:${min}`);
+    }
+  }
+  return times;
+};
+
+const timeOptions = generateTimeOptions();
 
 export default function ScheduleSettings({ weeklySchedule, onChange }: ScheduleSettingsProps) {
   // Helper to ensure all days exist in schedule
@@ -52,14 +65,14 @@ export default function ScheduleSettings({ weeklySchedule, onChange }: ScheduleS
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-lg font-bold text-foreground mb-[2]">Default Business Hours</h3>
+        <h3 className="text-lg font-bold text-foreground mb-2">Default Business Hours</h3>
         <p className="text-sm text-muted-foreground">
           Set your salon&apos;s standard operating hours. These apply salon-wide unless overridden
           by stylist-specific schedules.
         </p>
       </div>
 
-      <div className="space-y-[3]">
+      <div className="border border-gray-200 rounded-md p-3 space-y-2 bg-muted/30">
         {DAYS.map(day => {
           const schedule = weeklySchedule?.[day] || {
             isOpen: true,
@@ -69,65 +82,56 @@ export default function ScheduleSettings({ weeklySchedule, onChange }: ScheduleS
           return (
             <div
               key={day}
-              className="flex items-center justify-between p-4 bg-muted border border-border rounded-lg hover:border-gray-300 transition-colors"
+              className="flex items-center gap-3 py-2 border-b border-gray-100 last:border-0"
             >
-              <div className="flex items-center space-x-[3] flex-1">
-                <label className="flex items-center space-x-[3] cursor-pointer min-w-[140px]">
-                  <Checkbox.Root
+              <div className="w-24 shrink-0">
+                <label className="flex items-center cursor-pointer">
+                  <Checkbox
                     checked={schedule.isOpen}
                     onCheckedChange={checked => handleDayToggle(day, checked === true)}
-                    className="flex items-center justify-center w-5 h-5 rounded-sm border border-gray-300 bg-background hover:border-gray-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary data-[state=checked]:bg-primary data-[state=checked]:border-[hsl(var(--primary))]"
-                  >
-                    <Checkbox.Indicator>
-                      <svg
-                        className="w-4 h-4 text-white"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={3}
-                          d="M5 13l4 4L19 7"
-                        />
-                      </svg>
-                    </Checkbox.Indicator>
-                  </Checkbox.Root>
-                  <span className="text-[length:var(--font-size-3)] font-medium text-foreground capitalize">
-                    {day}
-                  </span>
+                    className="mr-2"
+                  />
+                  <span className="text-sm font-medium capitalize">{day.slice(0, 3)}</span>
                 </label>
-
-                {schedule.isOpen ? (
-                  <div className="flex items-center space-x-[2] flex-1">
-                    <input
-                      type="time"
-                      value={schedule.openingTime || '09:00'}
-                      onChange={e => handleTimeChange(day, 'openingTime', e.target.value)}
-                      className="px-3 py-2 border border-gray-300 rounded-md text-sm bg-background text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-primary hover:border-gray-400 transition-colors"
-                    />
-                    <span className="text-muted-foreground">to</span>
-                    <input
-                      type="time"
-                      value={schedule.closingTime || '17:00'}
-                      onChange={e => handleTimeChange(day, 'closingTime', e.target.value)}
-                      className="px-3 py-2 border border-gray-300 rounded-md text-sm bg-background text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-primary hover:border-gray-400 transition-colors"
-                    />
-                  </div>
-                ) : (
-                  <span className="text-sm text-muted-foreground italic">Closed</span>
-                )}
               </div>
+              {schedule.isOpen ? (
+                <div className="flex items-center gap-2 flex-1">
+                  <select
+                    value={schedule.openingTime || '09:00'}
+                    onChange={e => handleTimeChange(day, 'openingTime', e.target.value)}
+                    className="px-2 py-1.5 border border-gray-300 rounded-md text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+                  >
+                    {timeOptions.map(t => (
+                      <option key={t} value={t}>
+                        {t}
+                      </option>
+                    ))}
+                  </select>
+                  <span className="text-gray-500">to</span>
+                  <select
+                    value={schedule.closingTime || '17:00'}
+                    onChange={e => handleTimeChange(day, 'closingTime', e.target.value)}
+                    className="px-2 py-1.5 border border-gray-300 rounded-md text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+                  >
+                    {timeOptions.map(t => (
+                      <option key={t} value={t}>
+                        {t}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              ) : (
+                <span className="text-sm text-gray-400 italic">Closed</span>
+              )}
             </div>
           );
         })}
       </div>
 
-      <div className="p-4 bg-blue-50 border border-blue-500 rounded-lg">
-        <div className="flex items-start space-x-[3]">
+      <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+        <div className="flex items-start gap-3">
           <svg
-            className="w-5 h-5 text-blue-700 flex-shrink-0 mt-0.5"
+            className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"

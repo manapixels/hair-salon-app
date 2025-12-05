@@ -223,12 +223,25 @@ export default function StylistManagement({ onClose }: StylistManagementProps) {
 
                 <div className="text-xs text-gray-600">
                   <div className="grid grid-cols-2 gap-1">
-                    {Object.entries(stylist.workingHours).map(([day, hours]) => (
-                      <div key={day} className="flex justify-between">
-                        <span className="capitalize">{day.slice(0, 3)}:</span>
-                        <span>{hours.isWorking ? `${hours.start}-${hours.end}` : 'Off'}</span>
-                      </div>
-                    ))}
+                    {(
+                      [
+                        'monday',
+                        'tuesday',
+                        'wednesday',
+                        'thursday',
+                        'friday',
+                        'saturday',
+                        'sunday',
+                      ] as const
+                    ).map(day => {
+                      const hours = stylist.workingHours[day];
+                      return (
+                        <div key={day} className="flex justify-between">
+                          <span className="capitalize">{day.slice(0, 3)}:</span>
+                          <span>{hours.isWorking ? `${hours.start}-${hours.end}` : 'Off'}</span>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               </div>
