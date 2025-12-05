@@ -222,7 +222,7 @@ export default function StylistManagement({ onClose }: StylistManagementProps) {
                 </div>
 
                 <div className="text-xs text-gray-600">
-                  <div className="grid grid-cols-2 gap-1">
+                  <div className="grid grid-cols-2 grid-rows-4 grid-flow-col gap-1">
                     {(
                       [
                         'monday',
