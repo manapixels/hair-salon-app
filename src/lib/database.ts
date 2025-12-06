@@ -840,6 +840,10 @@ export const findAppointmentsByEmail = async (customerEmail: string): Promise<Ap
       customerEmail: { equals: customerEmail, mode: 'insensitive' },
       date: { gte: new Date() }, // Only future appointments
     },
+    include: {
+      category: true,
+      stylist: true,
+    },
     orderBy: { date: 'asc' },
   });
 
@@ -853,6 +857,9 @@ export const findAppointmentsByEmail = async (customerEmail: string): Promise<Ap
     // Category-based booking fields
     categoryId: appointment.categoryId ?? undefined,
     estimatedDuration: appointment.estimatedDuration ?? undefined,
+    // Convert null to undefined and cast for type compatibility
+    category: (appointment.category ?? undefined) as ServiceCategory | undefined,
+    stylist: (appointment.stylist ?? undefined) as Stylist | undefined,
   }));
 };
 

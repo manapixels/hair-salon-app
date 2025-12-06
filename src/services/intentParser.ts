@@ -1020,9 +1020,14 @@ Just chat naturally! For example:
               month: 'short',
               day: 'numeric',
             });
+            // Format time as 12-hour (e.g., "2:00 PM")
+            const [hours, minutes] = apt.time.split(':').map(Number);
+            const period = hours >= 12 ? 'PM' : 'AM';
+            const displayHours = hours > 12 ? hours - 12 : hours === 0 ? 12 : hours;
+            const formattedTime = `${displayHours}:${minutes.toString().padStart(2, '0')} ${period}`;
             const service = apt.category?.title || 'Appointment';
             const stylist = apt.stylist?.name ? ` with ${apt.stylist.name}` : '';
-            return `${i + 1}. ${service}${stylist}\n   📅 ${date} at ${apt.time}`;
+            return `${i + 1}. ${service}${stylist}\n   ${date} at ${formattedTime}`;
           })
           .join('\n\n');
 
