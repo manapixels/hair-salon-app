@@ -6,10 +6,13 @@ import { useEffect } from 'react';
 import AdminLayout from '@/components/admin/AdminLayout';
 import StylistManagement from '@/components/team/StylistManagement';
 import { LoadingSpinner } from '@/components/feedback/loaders/LoadingSpinner';
+import { useTranslations } from 'next-intl';
 
 export default function StylistsPage() {
   const { user, isLoading: authLoading } = useAuth();
   const router = useRouter();
+  const t = useTranslations('Admin.Stylists');
+  const tCommon = useTranslations('Admin.Common');
 
   useEffect(() => {
     if (!authLoading && (!user || user.role !== 'ADMIN')) {
@@ -20,7 +23,7 @@ export default function StylistsPage() {
   if (authLoading) {
     return (
       <div className="min-h-screen bg-muted flex items-center justify-center">
-        <LoadingSpinner size="lg" message="Loading..." />
+        <LoadingSpinner size="lg" message={tCommon('loading')} />
       </div>
     );
   }
@@ -28,7 +31,7 @@ export default function StylistsPage() {
   if (!user || user.role !== 'ADMIN') return null;
 
   return (
-    <AdminLayout title="Stylists">
+    <AdminLayout title={t('title')}>
       <StylistManagement onClose={() => {}} />
     </AdminLayout>
   );

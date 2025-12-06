@@ -19,7 +19,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { LoadingSpinner } from '../feedback/loaders/LoadingSpinner';
+import { LoadingSpinner } from '@/components/feedback/loaders/LoadingSpinner';
+import { useTranslations } from 'next-intl';
 import { Plus, User, Edit, Delete, Clock } from '@/lib/icons';
 
 interface StylistManagementProps {
@@ -27,6 +28,7 @@ interface StylistManagementProps {
 }
 
 export default function StylistManagement({ onClose }: StylistManagementProps) {
+  const t = useTranslations('Admin.Stylists');
   const [stylists, setStylists] = useState<Stylist[]>([]);
   const [availableCategories, setAvailableCategories] = useState<ServiceCategory[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -37,12 +39,7 @@ export default function StylistManagement({ onClose }: StylistManagementProps) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [stylistToDeleteId, setStylistToDeleteId] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchStylists();
-    fetchCategories();
-  }, []);
-
-  const fetchCategories = async () => {
+  const fetchCategories = useCallback(async () => {
     try {
       const response = await fetch('/api/services');
       const data = await response.json();
@@ -61,13 +58,13 @@ export default function StylistManagement({ onClose }: StylistManagementProps) {
     } catch (err) {
       console.error('Failed to fetch categories:', err);
     }
-  };
+  }, []);
 
-  const fetchStylists = async () => {
+  const fetchStylists = useCallback(async () => {
     try {
       const response = await fetch('/api/stylists');
       if (!response.ok) {
-        throw new Error('Failed to load stylists');
+        throw new Error(t('loadFailed'));
       }
 
       const data = await response.json();
@@ -81,12 +78,17 @@ export default function StylistManagement({ onClose }: StylistManagementProps) {
       setStylists(data);
     } catch (error) {
       console.error('Failed to fetch stylists:', error);
-      toast.error('Failed to load stylists');
+      toast.error(t('loadFailed'));
       setStylists([]);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [t]);
+
+  useEffect(() => {
+    fetchStylists();
+    fetchCategories();
+  }, [fetchStylists, fetchCategories]);
 
   const handleDeleteStylist = (stylistId: string) => {
     setStylistToDeleteId(stylistId);
@@ -96,7 +98,7 @@ export default function StylistManagement({ onClose }: StylistManagementProps) {
   const confirmDeleteStylist = async () => {
     if (!stylistToDeleteId) return;
 
-    const toastId = toast.loading('Deleting stylist...');
+    const toastId = toast.loading(t('deleting'));
     try {
       const response = await fetch(`/api/stylists/${stylistToDeleteId}`, {
         method: 'DELETE',
@@ -104,12 +106,12 @@ export default function StylistManagement({ onClose }: StylistManagementProps) {
 
       if (response.ok) {
         await fetchStylists();
-        toast.success('Stylist deleted successfully', { id: toastId });
+        toast.success(t('deleteSuccess'), { id: toastId });
       } else {
-        toast.error('Failed to delete stylist', { id: toastId });
+        toast.error(t('deleteFailed'), { id: toastId });
       }
     } catch (error) {
-      toast.error('Failed to delete stylist', { id: toastId });
+      toast.error(t('deleteFailed'), { id: toastId });
       console.error('Error deleting stylist:', error);
     } finally {
       setDeleteDialogOpen(false);
@@ -120,7 +122,7 @@ export default function StylistManagement({ onClose }: StylistManagementProps) {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <LoadingSpinner size="md" message="Loading stylists..." />
+        <LoadingSpinner size="md" message={t('loading')} />
       </div>
     );
   }
@@ -135,7 +137,7 @@ export default function StylistManagement({ onClose }: StylistManagementProps) {
               className="bg-primary text-white px-4 py-2 rounded-md hover:bg-primary-700 transition-colors flex items-center"
             >
               <Plus className="h-4 w-4 sm:mr-2" aria-hidden="true" />
-              <span>Add Stylist</span>
+              <span>{t('addStylist')}</span>
             </button>
           </div>
         </div>
@@ -145,20 +147,18 @@ export default function StylistManagement({ onClose }: StylistManagementProps) {
             <div className="relative w-48 h-48 mx-auto mb-4">
               <Image
                 src="/images/illustrations/stylist-team-empty.png"
-                alt="No stylists"
+                alt={t('noStylistsYet')}
                 fill
                 className="object-contain"
               />
             </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No stylists yet</h3>
-            <p className="text-gray-600 mb-4">
-              Add your first stylist to start managing appointments by staff.
-            </p>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">{t('noStylistsYet')}</h3>
+            <p className="text-gray-600 mb-4">{t('noStylistsDesc')}</p>
             <button
               onClick={() => setShowAddModal(true)}
               className="bg-primary text-white px-4 py-2 rounded-md hover:bg-primary-700 transition-colors"
             >
-              Add First Stylist
+              {t('addFirstStylist')}
             </button>
           </div>
         ) : (
@@ -186,16 +186,16 @@ export default function StylistManagement({ onClose }: StylistManagementProps) {
                     <button
                       onClick={() => setEditingStylist(stylist)}
                       className="text-yellow-600 hover:text-yellow-700"
-                      title="Edit stylist"
-                      aria-label="Edit stylist"
+                      title={t('editStylist')}
+                      aria-label={t('editStylist')}
                     >
                       <Edit className="h-4 w-4" aria-hidden="true" />
                     </button>
                     <button
                       onClick={() => handleDeleteStylist(stylist.id)}
                       className="text-red-600 hover:text-red-700"
-                      title="Delete stylist"
-                      aria-label="Delete stylist"
+                      title={t('deleteStylist')}
+                      aria-label={t('deleteStylist')}
                     >
                       <Delete className="h-4 w-4" aria-hidden="true" />
                     </button>
@@ -205,7 +205,7 @@ export default function StylistManagement({ onClose }: StylistManagementProps) {
                 {stylist.bio && <p className="text-sm text-gray-700 mb-3">{stylist.bio}</p>}
 
                 <div className="mb-3">
-                  <h4 className="text-sm font-medium text-gray-900 mb-1">Specialties:</h4>
+                  <h4 className="text-sm font-medium text-gray-900 mb-1">{t('specialties')}</h4>
                   <div className="flex flex-wrap gap-1">
                     {stylist.specialties.map(category => (
                       <span
@@ -235,7 +235,7 @@ export default function StylistManagement({ onClose }: StylistManagementProps) {
                       return (
                         <div key={day} className="flex justify-between">
                           <span className="capitalize font-medium">{day.slice(0, 3)}:</span>
-                          <span>{hours.isWorking ? `${hours.start}-${hours.end}` : 'Off'}</span>
+                          <span>{hours.isWorking ? `${hours.start}-${hours.end}` : t('off')}</span>
                         </div>
                       );
                     })}
@@ -274,17 +274,15 @@ export default function StylistManagement({ onClose }: StylistManagementProps) {
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
-          <AlertDialogTitle>Delete Stylist</AlertDialogTitle>
-          <AlertDialogDescription>
-            Are you sure you want to delete this stylist? This action cannot be undone.
-          </AlertDialogDescription>
+          <AlertDialogTitle>{t('deleteDialogTitle')}</AlertDialogTitle>
+          <AlertDialogDescription>{t('deleteDialogDesc')}</AlertDialogDescription>
           <AlertDialogFooter>
-            <AlertDialogCancel>No</AlertDialogCancel>
+            <AlertDialogCancel>{t('no')}</AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmDeleteStylist}
               className="bg-red-600 hover:bg-red-700"
             >
-              Yes, Delete
+              {t('yesDelete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -310,6 +308,7 @@ function StylistModal({
   onSave,
   onAvatarChange,
 }: StylistModalProps) {
+  const t = useTranslations('Admin.Stylists');
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -442,15 +441,15 @@ function StylistModal({
 
     // Name and specialties are required; email only required if not linked to user
     if (!formData.name || formData.specialtyCategoryIds.length === 0) {
-      const errorMsg = 'Please fill in the name and select at least one specialty';
+      const errorMsg = t('requiredFields');
       setError(errorMsg);
       toast.error(errorMsg);
       return;
     }
 
     setIsLoading(true);
-    const action = stylist ? 'Updating' : 'Creating';
-    const toastId = toast.loading(`${action} stylist...`);
+    const action = stylist ? t('updating') : t('creating');
+    const toastId = toast.loading(action);
 
     try {
       const url = stylist ? `/api/stylists/${stylist.id}` : '/api/stylists';
@@ -464,16 +463,14 @@ function StylistModal({
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to save stylist');
+        throw new Error(errorData.message || t('saveFailed'));
       }
 
-      const successMsg = stylist
-        ? 'Stylist updated successfully!'
-        : 'Stylist created successfully!';
+      const successMsg = stylist ? t('updateSuccess') : t('createSuccess');
       toast.success(successMsg, { id: toastId });
       onSave();
     } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : 'Failed to save stylist';
+      const errorMsg = err instanceof Error ? err.message : t('saveFailed');
       setError(errorMsg);
       toast.error(errorMsg, { id: toastId });
     } finally {
@@ -546,18 +543,18 @@ function StylistModal({
     // Validate file type
     const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
     if (!validTypes.includes(file.type)) {
-      toast.error('Please select a valid image file (JPEG, PNG, WebP, or GIF)');
+      toast.error(t('invalidFileType'));
       return;
     }
 
     // Validate file size (5MB)
     if (file.size > 5 * 1024 * 1024) {
-      toast.error('Image must be less than 5MB');
+      toast.error(t('fileTooLarge'));
       return;
     }
 
     setIsUploadingAvatar(true);
-    const uploadToast = toast.loading('Uploading avatar...');
+    const uploadToast = toast.loading(t('uploadingAvatar'));
 
     try {
       const formDataUpload = new FormData();
@@ -570,7 +567,7 @@ function StylistModal({
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Upload failed');
+        throw new Error(errorData.message || t('avatarUploadFailed'));
       }
 
       const data = await response.json();
@@ -592,9 +589,9 @@ function StylistModal({
         }
       }
 
-      toast.success('Avatar uploaded successfully!', { id: uploadToast });
+      toast.success(t('avatarUploadSuccess'), { id: uploadToast });
     } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : 'Failed to upload avatar';
+      const errorMsg = err instanceof Error ? err.message : t('avatarUploadFailed');
       toast.error(errorMsg, { id: uploadToast });
     } finally {
       setIsUploadingAvatar(false);
@@ -638,7 +635,7 @@ function StylistModal({
     <Dialog open={isOpen} onOpenChange={open => !open && onClose()}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{stylist ? 'Edit Stylist' : 'Add New Stylist'}</DialogTitle>
+          <DialogTitle>{stylist ? t('edit') : t('addNew')}</DialogTitle>
         </DialogHeader>
 
         {error && (
@@ -652,12 +649,9 @@ function StylistModal({
           {!stylist && (
             <div>
               <label className="block text-sm font-medium text-gray-900 mb-2">
-                Select User to Promote *
+                {t('selectUserPromote')} *
               </label>
-              <p className="text-xs text-gray-500 mb-3">
-                Search for an existing user (registered via WhatsApp or Telegram) to promote to
-                stylist role.
-              </p>
+              <p className="text-xs text-gray-500 mb-3">{t('selectUserPromoteDesc')}</p>
 
               {selectedUser ? (
                 // Show selected user
@@ -679,7 +673,7 @@ function StylistModal({
                     <div>
                       <p className="font-medium text-gray-900">{selectedUser.name}</p>
                       <p className="text-xs text-gray-500">
-                        {selectedUser.whatsappPhone || selectedUser.email || 'Telegram User'}
+                        {selectedUser.whatsappPhone || selectedUser.email || t('telegramUser')}
                       </p>
                     </div>
                   </div>
@@ -690,7 +684,7 @@ function StylistModal({
                     onClick={handleClearSelectedUser}
                     className="text-red-600 hover:text-red-700"
                   >
-                    Change
+                    {t('change')}
                   </Button>
                 </div>
               ) : (
@@ -700,7 +694,7 @@ function StylistModal({
                     type="text"
                     value={userSearchQuery}
                     onChange={e => handleUserSearch(e.target.value)}
-                    placeholder="Search by name, email, or phone..."
+                    placeholder={t('searchPlaceholder')}
                     className="w-full"
                   />
                   {isSearchingUsers && (
@@ -748,7 +742,7 @@ function StylistModal({
                           <div className="flex-1 min-w-0">
                             <p className="font-medium text-gray-900 truncate">{user.name}</p>
                             <p className="text-xs text-gray-500 truncate">
-                              {user.whatsappPhone || user.email || 'Telegram User'}
+                              {user.whatsappPhone || user.email || t('telegramUser')}
                             </p>
                           </div>
                         </button>
@@ -760,7 +754,7 @@ function StylistModal({
                     !isSearchingUsers &&
                     userSearchResults.length === 0 && (
                       <p className="text-sm text-gray-500 mt-2">
-                        No users found matching &quot;{userSearchQuery}&quot;
+                        {t('noUsersFound', { query: userSearchQuery })}
                       </p>
                     )}
                 </div>
@@ -770,21 +764,23 @@ function StylistModal({
 
           {/* Stylist Name (editable, auto-filled from selected user) */}
           <div>
-            <Label>Stylist Display Name *</Label>
+            <Label>{t('displayName')} *</Label>
             <Input
               type="text"
               value={formData.name}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                 setFormData(prev => ({ ...prev, name: e.target.value }))
               }
-              placeholder={selectedUser ? 'Auto-filled from user' : 'Enter stylist name'}
+              placeholder={selectedUser ? t('autoFilled') : t('displayNamePlaceholder')}
               required
             />
           </div>
 
           {/* Avatar Upload */}
           <div>
-            <label className="block text-sm font-medium text-gray-900 mb-2">Avatar Photo</label>
+            <label className="block text-sm font-medium text-gray-900 mb-2">
+              {t('avatarPhoto')}
+            </label>
             <div className="flex items-center gap-4">
               {/* Avatar Preview */}
               <div className="relative w-16 h-16 rounded-full overflow-hidden bg-gray-100 border border-gray-200 flex-shrink-0">

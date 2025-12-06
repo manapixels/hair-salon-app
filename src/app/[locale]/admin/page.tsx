@@ -7,11 +7,13 @@ import AdminLayout from '@/components/admin/AdminLayout';
 import AdminDashboardHome from '@/components/admin/AdminDashboardHome';
 import { useBooking } from '@/context/BookingContext';
 import { LoadingSpinner } from '@/components/feedback/loaders/LoadingSpinner';
+import { useTranslations } from 'next-intl';
 
 export default function AdminPage() {
   const { user, isLoading: authLoading } = useAuth();
   const { appointments, fetchAndSetAppointments } = useBooking();
   const router = useRouter();
+  const t = useTranslations('Admin.Common');
 
   useEffect(() => {
     if (!authLoading && (!user || user.role !== 'ADMIN')) {
@@ -26,7 +28,7 @@ export default function AdminPage() {
   if (authLoading) {
     return (
       <div className="min-h-screen bg-muted flex items-center justify-center">
-        <LoadingSpinner size="lg" message="Verifying admin access..." />
+        <LoadingSpinner size="lg" message={t('verifyingAccess')} />
       </div>
     );
   }

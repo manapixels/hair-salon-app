@@ -2,10 +2,9 @@
 
 import { useState } from 'react';
 import { usePathname } from 'next/navigation';
-import { useLocale } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { Menu, X, ChevronLeft } from 'lucide-react';
 import AdminNavigation from './AdminNavigation';
-import { cn } from '@/lib/utils';
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -27,11 +26,13 @@ export default function AdminLayout({
   const pathname = usePathname();
   const locale = useLocale();
 
+  const t = useTranslations('Admin.Navigation');
+
   const basePath = `/${locale}/admin`;
   const isHomePage = pathname === basePath;
 
   // Derive title from pathname if not provided
-  const derivedTitle = title || getTitleFromPath(pathname, basePath);
+  const derivedTitle = title || getTitleFromPath(pathname, basePath, t);
 
   return (
     <div className="min-h-screen bg-muted flex flex-col">
@@ -44,7 +45,7 @@ export default function AdminLayout({
               className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
               <ChevronLeft className="w-5 h-5" />
-              <span>Back</span>
+              <span>{t('back')}</span>
             </button>
           ) : (
             <h1 className="text-lg font-semibold text-foreground">{derivedTitle}</h1>
@@ -69,7 +70,7 @@ export default function AdminLayout({
           {/* Slide-in Panel */}
           <div className="absolute right-0 top-0 bottom-0 w-[280px] bg-background shadow-xl animate-in slide-in-from-right duration-200">
             <div className="flex items-center justify-between px-4 h-14 border-b border-border">
-              <h2 className="font-semibold">Menu</h2>
+              <h2 className="font-semibold">{t('menu')}</h2>
               <button
                 onClick={() => setMobileMenuOpen(false)}
                 className="p-2 rounded-lg hover:bg-muted transition-colors"
@@ -90,7 +91,9 @@ export default function AdminLayout({
         {/* Desktop Sidebar */}
         <aside className="hidden lg:block w-64 border-r border-border bg-background shrink-0">
           <div className="sticky top-20 p-6">
-            <h1 className="text-xl font-serif font-light text-foreground mb-6">Admin Dashboard</h1>
+            <h1 className="text-xl font-serif font-light text-foreground mb-6">
+              {t('adminDashboard')}
+            </h1>
             <AdminNavigation badges={badges} />
           </div>
         </aside>
@@ -112,17 +115,17 @@ export default function AdminLayout({
   );
 }
 
-function getTitleFromPath(pathname: string, basePath: string): string {
+function getTitleFromPath(pathname: string, basePath: string, t: any): string {
   const segment = pathname.replace(basePath, '').split('/').filter(Boolean)[0];
 
   const titles: Record<string, string> = {
-    '': 'Dashboard',
-    appointments: 'Appointments',
-    availability: 'Availability',
-    stylists: 'Stylists',
-    chat: 'Chat Management',
-    'knowledge-base': 'Knowledge Base',
-    settings: 'Settings',
+    '': t('dashboard'),
+    appointments: t('appointments'),
+    availability: t('availability'),
+    stylists: t('stylists'),
+    chat: t('chat'),
+    'knowledge-base': t('knowledgeBase'),
+    settings: t('settings'),
   };
 
   return titles[segment || ''] || 'Admin';

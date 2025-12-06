@@ -30,11 +30,13 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Refresh } from '@/lib/icons';
+import { useTranslations } from 'next-intl';
 
 export default function AppointmentsPage() {
   const { user, isLoading: authLoading } = useAuth();
   const { appointments, fetchAndSetAppointments } = useBooking();
   const router = useRouter();
+  const t = useTranslations('Admin.Appointments');
 
   const [appointmentsLoading, setAppointmentsLoading] = useState(true);
   const [editModalOpen, setEditModalOpen] = useState(false);
@@ -134,7 +136,7 @@ export default function AppointmentsPage() {
     setIsRefreshing(true);
     await fetchAndSetAppointments();
     setIsRefreshing(false);
-    toast.success('Appointments refreshed');
+    toast.success(t('refreshed'));
   };
 
   const handleEditAppointment = (appointment: Appointment) => {
@@ -149,7 +151,7 @@ export default function AppointmentsPage() {
 
   const confirmCancelAppointment = async () => {
     if (!appointmentToCancel) return;
-    const toastId = toast.loading('Cancelling appointment...');
+    const toastId = toast.loading(t('cancelling'));
     try {
       const response = await fetch('/api/appointments/cancel', {
         method: 'POST',
@@ -162,9 +164,9 @@ export default function AppointmentsPage() {
       });
       if (!response.ok) throw new Error('Failed to cancel');
       await fetchAndSetAppointments();
-      toast.success('Appointment cancelled', { id: toastId });
+      toast.success(t('cancelled'), { id: toastId });
     } catch {
-      toast.error('Failed to cancel appointment', { id: toastId });
+      toast.error(t('cancelFailed'), { id: toastId });
     } finally {
       setCancelDialogOpen(false);
       setAppointmentToCancel(null);
@@ -190,7 +192,7 @@ export default function AppointmentsPage() {
   if (authLoading) {
     return (
       <div className="min-h-screen bg-muted flex items-center justify-center">
-        <LoadingSpinner size="lg" message="Loading..." />
+        <LoadingSpinner size="lg" message={t('loading')} />
       </div>
     );
   }
@@ -198,20 +200,22 @@ export default function AppointmentsPage() {
   if (!user || user.role !== 'ADMIN') return null;
 
   return (
-    <AdminLayout title="Appointments">
+    <AdminLayout title={t('title')}>
       <div className="space-y-6">
         {/* Header Row */}
         <div className="flex flex-wrap justify-between items-center gap-4">
           <div>
             <p className="text-sm text-muted-foreground">
-              Showing {startIndex + 1}-
-              {Math.min(startIndex + itemsPerPage, sortedAppointments.length)} of{' '}
-              {sortedAppointments.length} appointments
+              {t('showing', {
+                start: startIndex + 1,
+                end: Math.min(startIndex + itemsPerPage, sortedAppointments.length),
+                total: sortedAppointments.length,
+              })}
             </p>
           </div>
           <Button variant="outline" size="sm" onClick={handleRefresh} disabled={isRefreshing}>
             <Refresh className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-            Refresh
+            {t('refresh')}
           </Button>
         </div>
 
@@ -221,7 +225,7 @@ export default function AppointmentsPage() {
             <div className="flex-1">
               <input
                 type="text"
-                placeholder="Search by name, email, or service..."
+                placeholder={t('searchPlaceholder')}
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
                 className="w-full px-3 py-2 border border-border rounded-md text-sm"
@@ -229,24 +233,24 @@ export default function AppointmentsPage() {
             </div>
             <Select value={dateFilter} onValueChange={v => setDateFilter(v as any)}>
               <SelectTrigger className="w-full sm:w-[140px]">
-                <SelectValue placeholder="Date" />
+                <SelectValue placeholder={t('datePlaceholder')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Dates</SelectItem>
-                <SelectItem value="today">Today</SelectItem>
-                <SelectItem value="week">This Week</SelectItem>
-                <SelectItem value="month">This Month</SelectItem>
+                <SelectItem value="all">{t('allDates')}</SelectItem>
+                <SelectItem value="today">{t('today')}</SelectItem>
+                <SelectItem value="week">{t('thisWeek')}</SelectItem>
+                <SelectItem value="month">{t('thisMonth')}</SelectItem>
               </SelectContent>
             </Select>
             <Select value={statusFilter} onValueChange={v => setStatusFilter(v as any)}>
               <SelectTrigger className="w-full sm:w-[140px]">
-                <SelectValue placeholder="Status" />
+                <SelectValue placeholder={t('statusPlaceholder')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All</SelectItem>
-                <SelectItem value="today">Today</SelectItem>
-                <SelectItem value="upcoming">Upcoming</SelectItem>
-                <SelectItem value="past">Past</SelectItem>
+                <SelectItem value="all">{t('allStatus')}</SelectItem>
+                <SelectItem value="today">{t('today')}</SelectItem>
+                <SelectItem value="upcoming">{t('upcoming')}</SelectItem>
+                <SelectItem value="past">{t('past')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -255,11 +259,11 @@ export default function AppointmentsPage() {
         {/* Appointments List */}
         {appointmentsLoading ? (
           <div className="p-8 text-center">
-            <LoadingSpinner size="md" message="Loading appointments..." />
+            <LoadingSpinner size="md" message={t('loading')} />
           </div>
         ) : paginatedAppointments.length === 0 ? (
           <div className="bg-white border border-border rounded-lg p-12 text-center">
-            <p className="text-muted-foreground">No appointments found</p>
+            <p className="text-muted-foreground">{t('noAppointmentsFound')}</p>
           </div>
         ) : (
           <div className="bg-white border border-border rounded-lg divide-y divide-border">
@@ -288,14 +292,14 @@ export default function AppointmentsPage() {
                       size="sm"
                       onClick={() => handleEditAppointment(appointment)}
                     >
-                      Edit
+                      {t('edit')}
                     </Button>
                     <Button
                       variant="destructive"
                       size="sm"
                       onClick={() => handleCancelAppointment(appointment)}
                     >
-                      Cancel
+                      {t('cancel')}
                     </Button>
                   </div>
                 </div>
@@ -308,7 +312,7 @@ export default function AppointmentsPage() {
         {totalPages > 1 && (
           <div className="flex items-center justify-between">
             <p className="text-sm text-muted-foreground">
-              Page {currentPage} of {totalPages}
+              {t('pageIndicator', { current: currentPage, total: totalPages })}
             </p>
             <div className="flex gap-2">
               <Button
@@ -317,7 +321,7 @@ export default function AppointmentsPage() {
                 disabled={currentPage === 1}
                 onClick={() => setCurrentPage(p => p - 1)}
               >
-                Previous
+                {t('previous')}
               </Button>
               <Button
                 variant="outline"
@@ -325,7 +329,7 @@ export default function AppointmentsPage() {
                 disabled={currentPage === totalPages}
                 onClick={() => setCurrentPage(p => p + 1)}
               >
-                Next
+                {t('next')}
               </Button>
             </div>
           </div>
@@ -346,15 +350,16 @@ export default function AppointmentsPage() {
       <AlertDialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Cancel Appointment</AlertDialogTitle>
+            <AlertDialogTitle>{t('cancelDialogTitle')}</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to cancel the appointment for{' '}
-              {appointmentToCancel?.customerName}?
+              {t('cancelDialogDesc', { name: appointmentToCancel?.customerName ?? '' })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>No</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmCancelAppointment}>Yes, Cancel</AlertDialogAction>
+            <AlertDialogCancel>{t('no')}</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmCancelAppointment}>
+              {t('yesCancel')}
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

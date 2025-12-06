@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import Link from 'next/link';
-import { useLocale } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { Calendar, TrendingUp, Clock, DollarSign, ChevronRight, MessageSquare } from 'lucide-react';
 import type { Appointment } from '@/types';
 import { formatDisplayDate, formatTime12Hour } from '@/lib/timeUtils';
@@ -16,6 +16,7 @@ export default function AdminDashboardHome({
   appointments,
   flaggedChatCount = 0,
 }: AdminDashboardHomeProps) {
+  const t = useTranslations('Admin.Dashboard');
   const locale = useLocale();
   const basePath = `/${locale}/admin`;
 
@@ -59,30 +60,30 @@ export default function AdminDashboardHome({
       <section>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <KPICard
-            title="Today"
+            title={t('today')}
             value={kpis.today}
-            subtitle="appointments"
+            subtitle={t('appointments')}
             icon={<Calendar className="w-5 h-5 text-blue-600" />}
             iconBg="bg-blue-100"
           />
           <KPICard
-            title="This Week"
+            title={t('thisWeek')}
             value={kpis.thisWeek}
-            subtitle="appointments"
+            subtitle={t('appointments')}
             icon={<TrendingUp className="w-5 h-5 text-green-600" />}
             iconBg="bg-green-100"
           />
           <KPICard
-            title="Upcoming"
+            title={t('upcoming')}
             value={kpis.upcoming}
-            subtitle="future bookings"
+            subtitle={t('futureBookings')}
             icon={<Clock className="w-5 h-5 text-amber-600" />}
             iconBg="bg-amber-100"
           />
           <KPICard
-            title="Week Revenue"
+            title={t('weekRevenue')}
             value={`$${kpis.weekRevenue}`}
-            subtitle="this week"
+            subtitle={t('thisWeek')}
             icon={<DollarSign className="w-5 h-5 text-primary" />}
             iconBg="bg-primary/10"
           />
@@ -101,9 +102,9 @@ export default function AdminDashboardHome({
             </div>
             <div>
               <p className="font-medium text-red-900">
-                {flaggedChatCount} flagged conversation{flaggedChatCount > 1 ? 's' : ''}
+                {t('flaggedConversations', { count: flaggedChatCount })}
               </p>
-              <p className="text-sm text-red-700">Requires attention</p>
+              <p className="text-sm text-red-700">{t('requiresAttention')}</p>
             </div>
           </div>
           <ChevronRight className="w-5 h-5 text-red-400" />
@@ -113,12 +114,12 @@ export default function AdminDashboardHome({
       {/* Today's Appointments Preview */}
       <section>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-foreground">Today&apos;s Appointments</h2>
+          <h2 className="text-lg font-semibold text-foreground">{t('todaysAppointments')}</h2>
           <Link
             href={`${basePath}/appointments`}
             className="text-sm text-primary hover:text-primary/80 transition-colors flex items-center gap-1"
           >
-            View all
+            {t('viewAll')}
             <ChevronRight className="w-4 h-4" />
           </Link>
         </div>
@@ -126,7 +127,7 @@ export default function AdminDashboardHome({
         {kpis.todayAppointments.length === 0 ? (
           <div className="bg-white border border-border rounded-lg p-8 text-center">
             <Calendar className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
-            <p className="text-muted-foreground">No appointments scheduled for today</p>
+            <p className="text-muted-foreground">{t('noAppointmentsToday')}</p>
           </div>
         ) : (
           <div className="bg-white border border-border rounded-lg divide-y divide-border">
@@ -165,30 +166,30 @@ export default function AdminDashboardHome({
 
       {/* Quick Actions */}
       <section>
-        <h2 className="text-lg font-semibold text-foreground mb-4">Quick Actions</h2>
+        <h2 className="text-lg font-semibold text-foreground mb-4">{t('quickActions')}</h2>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           <QuickActionCard
             href={`${basePath}/availability`}
-            title="Block Time"
-            description="Manage availability"
+            title={t('blockTime')}
+            description={t('manageAvailability')}
             icon={<Clock className="w-5 h-5" />}
           />
           <QuickActionCard
             href={`${basePath}/stylists`}
-            title="Add Stylist"
-            description="Manage team"
+            title={t('addStylist')}
+            description={t('manageTeam')}
             icon={<TrendingUp className="w-5 h-5" />}
           />
           <QuickActionCard
             href={`${basePath}/settings/services`}
-            title="Update Prices"
-            description="Services & pricing"
+            title={t('updatePrices')}
+            description={t('servicesPricing')}
             icon={<DollarSign className="w-5 h-5" />}
           />
           <QuickActionCard
             href={`${basePath}/settings/closures`}
-            title="Add Closure"
-            description="Holidays & closures"
+            title={t('addClosure')}
+            description={t('holidaysClosures')}
             icon={<Calendar className="w-5 h-5" />}
           />
         </div>
