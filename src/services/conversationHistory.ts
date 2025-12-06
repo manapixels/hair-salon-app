@@ -18,12 +18,19 @@ const history: Record<string, Pick<WhatsAppMessage, 'text' | 'sender'>[]> = {};
 interface BookingContext {
   customerName?: string;
   customerEmail?: string;
+  // Category-based booking (new)
+  categoryId?: string; // Category ID (e.g., 'haircut')
+  categoryName?: string; // Display name (e.g., 'Haircut')
+  priceNote?: string; // e.g., 'from $28'
+  // Legacy service-based (for compatibility)
   services?: string[]; // Service names
   stylistId?: string; // Stylist ID
+  stylistName?: string; // Stylist display name
   date?: string; // YYYY-MM-DD
   time?: string; // HH:MM
   confirmed?: boolean;
   awaitingCustomDate?: boolean; // True when user is entering custom date via text
+  awaitingInput?: 'category' | 'date' | 'time' | 'stylist' | 'confirmation'; // Current step for conversational flow
   // Favorite/last booking tracking for quick rebooking
   lastServiceBooked?: string; // Last service name
   lastStylistBooked?: string; // Last stylist ID
@@ -391,6 +398,71 @@ export function clearStepHistory(userId: string): void {
  * Export BookingContext type for use in other modules
  */
 export type { BookingContext };
+
+/**
+ * Format date for display (simple version)
+ */
+function formatDisplayDateSimple(dateStr: string): string {
+  const date = new Date(dateStr);
+  const options: Intl.DateTimeFormatOptions = {
+    weekday: 'long',
+    month: 'short',
+    day: 'numeric',
+  };
+  return date.toLocaleDateString('en-US', options);
+}
+
+/**
+ * Format time for display (12-hour)
+ */
+function formatTime12HourSimple(time: string): string {
+  const [hours, minutes] = time.split(':').map(Number);
+  const period = hours >= 12 ? 'PM' : 'AM';
+  const displayHours = hours > 12 ? hours - 12 : hours === 0 ? 12 : hours;
+  return `${displayHours}:${minutes.toString().padStart(2, '0')} ${period}`;
+}
+
+/**
+ * Generates the "Current Booking" summary to prepend to messages
+ * Used for progressive confirmation display in conversational flow
+ */
+export function generateBookingSummary(context: BookingContext | null): string {
+  if (!context) return '';
+
+  // Need at least a category/service to show summary
+  const hasCategory = context.categoryName || (context.services && context.services.length > 0);
+  if (!hasCategory) return '';
+
+  const lines: string[] = ['✅ *Your Booking:*'];
+
+  // Category/Service with price
+  if (context.categoryName) {
+    lines.push(`✂️ ${context.categoryName}${context.priceNote ? ` (${context.priceNote})` : ''}`);
+  } else if (context.services && context.services.length > 0) {
+    lines.push(`✂️ ${context.services.join(', ')}`);
+  }
+
+  // Date (if confirmed)
+  if (context.date) {
+    lines.push(`📅 ${formatDisplayDateSimple(context.date)}`);
+  }
+
+  // Time (if confirmed)
+  if (context.time) {
+    lines.push(`🕐 ${formatTime12HourSimple(context.time)}`);
+  }
+
+  // Stylist (if confirmed)
+  if (context.stylistId) {
+    const stylistDisplay =
+      context.stylistId === 'any'
+        ? 'Any available stylist'
+        : context.stylistName || context.stylistId;
+    lines.push(`👤 ${stylistDisplay}`);
+  }
+
+  return lines.join('\n') + '\n\n';
+}
 
 /**
  * Clean up old conversations (should be called periodically)

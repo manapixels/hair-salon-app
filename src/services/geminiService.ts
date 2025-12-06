@@ -14,10 +14,15 @@ import {
   getAdminSettings,
 } from '../lib/database';
 import { searchKnowledgeBase } from './knowledgeBaseService';
-import { flagConversation, isFlagged } from './conversationHistory';
+import { flagConversation, isFlagged, getBookingContext } from './conversationHistory';
 import { createCalendarEvent, updateCalendarEvent } from '../lib/google';
 import { sendAppointmentConfirmation } from './messagingService';
 import { formatDisplayDate, formatTime12Hour } from '@/lib/timeUtils';
+import { getAllCategories } from '@/lib/categories';
+import { generateFallbackResponse, type BookingContextUpdate } from './intentParser';
+
+// Timeout for Gemini API calls (8 seconds)
+const GEMINI_TIMEOUT_MS = 8000;
 
 // This function is now designed to be run on the server.
 // The API KEY should be set as an environment variable on the server.
@@ -278,67 +283,81 @@ When booking appointments, ALWAYS use this customer's name and email automatical
 If the user asks to "book the usual" or "same as always", use the information above to suggest a booking.`
       : '';
 
-  const systemInstruction = `You are a friendly and efficient AI assistant for 'Signature Trims' hair salon.
-Your goal is to help users inquire about services, book appointments, cancel them, view their appointments, and modify existing bookings.
-Today's date is ${formatDisplayDate(new Date())}.
-Do not ask for information you can derive, like the year if the user says "next Tuesday".
-Be conversational and helpful.${userContextString}${userPatternString}
+  // Fetch categories for the system instruction
+  const allCategories = await getAllCategories();
+  const categoriesListString = allCategories
+    .map(c => {
+      let catStr = `${c.title}`;
+      if (c.priceNote) {
+        catStr += ` - ${c.priceNote}`;
+      } else if (c.priceRangeMin) {
+        catStr += ` - from $${c.priceRangeMin}`;
+      }
+      if (c.estimatedDuration) {
+        catStr += ` (~${c.estimatedDuration} mins)`;
+      }
+      return catStr;
+    })
+    .join('\n');
+
+  const systemInstruction = `You are a friendly, warm assistant at Signature Trims hair salon.
+Chat naturally like a helpful receptionist would - be conversational, not robotic.
+Today's date is ${formatDisplayDate(new Date())}.${userContextString}${userPatternString}
+
+IMPORTANT - Conversational Tone:
+- Be warm and friendly: "Got it!", "Perfect!", "Sure thing!"
+- Ask ONE question at a time - don't overwhelm with options
+- Keep messages short and scannable
+- Use emojis sparingly for warmth (1-2 per message max)
+- For confirmations, say "Just say 'yes' to confirm" NOT "Click to confirm"
+
+BAD: "Please select your preferred service from the following options:"
+GOOD: "What service are you looking for today?"
+
+BAD: "Would you like to proceed with the booking? [Yes] [No]"
+GOOD: "Should I book this for you? Just say 'yes' to confirm!"
+
+IMPORTANT - Category-Based Booking:
+We book by SERVICE CATEGORY, not individual services. Categories have price ranges (final price at salon).
+When a user mentions a service type, match it to a category:
+- "haircut", "cut", "trim" → Haircut category
+- "color", "colour", "dye", "highlights" → Hair Colouring category
+- "keratin", "treatment", "straightening" → Keratin Treatment category
+- "perm", "curl", "wave" → Perm category
+- "scalp", "dandruff", "hair loss" → Scalp Therapy category
+
+IMPORTANT - Progressive Confirmation:
+As you collect booking details, ALWAYS show a running summary at the TOP of your response:
+Example:
+"✅ *Your Booking:*
+✂️ Haircut (from $28)
+📅 Tuesday, Dec 10
+🕐 2:00 PM
+
+Great! Do you have a stylist preference, or any stylist is fine?"
 
 IMPORTANT - Knowledge Base:
-For general questions about the salon (cancellation policy, parking, products, etc.), ALWAYS use the 'searchKnowledgeBase' tool to find the answer. Do not make up answers.
+For general questions (policies, parking, products), use 'searchKnowledgeBase'. Don't make up answers.
 
 IMPORTANT - Human Handoff:
-If you are unsure about how to answer a question, or if the user explicitly asks to speak to a human/admin, use the 'flagForAdmin' tool.
-- Do not try to guess if you don't know.
-- Do not say "I will contact the admin" without actually using the tool.
+If unsure or user asks for human, use 'flagForAdmin'. Don't guess.
 
 IMPORTANT - Conversation Context:
-If you see messages in the conversation history that start with "System Context:", these contain information the user already provided via button clicks:
-- "User has selected service: X" means the user ALREADY chose service X by clicking a button
-- "User has selected stylist ID: Y" means the user ALREADY chose a stylist by clicking a button
+If you see "System Context:" messages, use that information - don't ask again.
 
-ALWAYS use this information when building bookings. NEVER ask the user for information that is already present in System Context messages. If you see "System Context: User has selected service: Men's Haircut", treat it as if the user said "I want Men's Haircut" and proceed to the next step (asking for date/time).
+Booking Flow:
+1. Ask what service/category they want
+2. Ask when (date and time) - accept natural language like "tomorrow at 2pm"
+3. Ask stylist preference (or "any is fine")
+4. Show final summary and ask to confirm with "yes"
+5. ${userContext?.name && userContext?.email ? 'Use the customer name and email from user information.' : 'Collect customer name and email.'}
 
-Service Matching: When users refer to services informally (e.g., "men's haircut", "haircut", "color"), match them to the exact service names in the Available Services list below. For example:
-- "men's haircut" or "mens haircut" → "Men's Haircut"
-- "women's haircut" or "womens haircut" → "Women's Haircut"
-- "color" → Look at services with "Color" or "Colouring" in the name
-- "highlights" → "Highlight" or "Premium Highlighting"
+Canceling/Modifying: ${userContext?.email ? 'Use the customer email from user information.' : 'Ask for email.'} Show their appointments, then proceed.
 
-IMPORTANT - Concern-Based Recommendations:
-When users describe hair concerns or desired outcomes (e.g., "my hair is frizzy", "I want volume", "I want straight hair"), recommend services based on what they address/achieve:
-- Frizzy hair → Recommend "Hair Rebonding", "K-Gloss Keratin Treatment", or "Tiboli Keratin Treatment"
-- Flat/limp hair wanting volume → Recommend "Iron Root Perm", "Classic Perm", or "Digital Perm"
-- Damaged hair → Recommend "Mucota Treatment", "Shiseido Treatment", or "K-Gloss Keratin Treatment"
-- Wanting straight hair → Recommend "Hair Rebonding" or keratin treatments
-- Scalp issues (oily, dandruff, hair loss) → Recommend "Scalp Therapy" or "Scalp Treatment"
+Available Service Categories:
+${categoriesListString}
 
-Use the "Addresses" and "Achieves" information in the Available Services list to make intelligent recommendations.
-
-Booking: When a user provides a date/time for booking:
-1. If the user provides BOTH date AND time (e.g., "October 20th at 3pm"):
-   - Proceed directly to confirm the booking details with the user
-   - DO NOT call checkAvailability - we'll validate during booking
-   - Ask: "Does that sound correct?" and show confirmation buttons
-2. If the user only provides a DATE (e.g., "October 20th"):
-   - Call checkAvailability to show them available times for that day
-3. IMPORTANT: Keep the conversation context - if they say "2pm works" after seeing alternatives, you know which date they mean
-4. ${userContext?.name && userContext?.email ? 'Use the customer name and email from the user information above.' : " You must have the customer's name, email, desired services, date, and time."}
-
-Canceling: ${userContext?.email ? 'Use the customer email from the user information above.' : "You MUST ask for the customer's email address."} You also need the appointment date and time to uniquely identify the appointment to be cancelled.
-
-Viewing Appointments: ${userContext?.email ? 'Use the customer email from the user information above to look up appointments.' : "Use listMyAppointments with the customer's email to show their upcoming appointments."}
-
-Modifying Appointments: To modify an appointment:
-1. First use listMyAppointments to find the customer's appointments${userContext?.email ? ' (use the email from user information)' : ''}
-2. Show them their appointments with clear IDs/numbers
-3. Ask what they want to change (date, time, or services)
-4. Use modifyAppointment with the appointment ID and new details
-5. Confirm the changes were successful
-
-Always be helpful and guide users through the process step by step.
-
-Available Services:
+Available Services (for reference):
 ${servicesListString}
 `;
 
@@ -368,7 +387,13 @@ ${servicesListString}
       parts.push({ text: `\n[User sent an image with ID: ${media.id}]` });
     }
 
-    const response: GenerateContentResponse = await ai.models.generateContent({
+    // Create timeout promise
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      setTimeout(() => reject(new Error('GEMINI_TIMEOUT')), GEMINI_TIMEOUT_MS);
+    });
+
+    // Call Gemini with timeout
+    const geminiPromise = ai.models.generateContent({
       model: 'gemini-2.5-flash',
       contents: [{ role: 'user', parts }],
       config: {
@@ -389,6 +414,9 @@ ${servicesListString}
         ],
       },
     });
+
+    // Race between Gemini and timeout
+    const response: GenerateContentResponse = await Promise.race([geminiPromise, timeoutPromise]);
 
     // Log model response
     logEntry.modelResponse = response;
@@ -836,11 +864,45 @@ ${servicesListString}
     }
 
     return { text: "I'm not sure how to help with that. Can you try rephrasing?" };
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error calling Gemini API:', error);
-    return {
-      text: "Sorry, I'm having trouble understanding right now. Please try again in a moment.",
-    };
+
+    // Use deterministic fallback when Gemini fails or times out
+    const isTimeout = error?.message === 'GEMINI_TIMEOUT';
+    console.log(`[Fallback] Using intent parser fallback. Timeout: ${isTimeout}`);
+
+    try {
+      // Build current booking context for fallback
+      const currentBookingContext: BookingContextUpdate | undefined = bookingContext
+        ? {
+            categoryId: undefined, // We'll detect from message
+            categoryName: bookingContext.services?.[0],
+            date: bookingContext.date,
+            time: bookingContext.time,
+            stylistId: bookingContext.stylistId,
+          }
+        : undefined;
+
+      const fallbackResponse = await generateFallbackResponse(userInput, currentBookingContext);
+
+      return {
+        text: fallbackResponse.text,
+        bookingDetails: fallbackResponse.updatedContext
+          ? {
+              services: fallbackResponse.updatedContext.categoryName
+                ? [fallbackResponse.updatedContext.categoryName]
+                : undefined,
+              date: fallbackResponse.updatedContext.date,
+              time: fallbackResponse.updatedContext.time,
+            }
+          : undefined,
+      };
+    } catch (fallbackError) {
+      console.error('Fallback also failed:', fallbackError);
+      return {
+        text: "Sorry, I'm having trouble right now. You can try:\n\n• /book - Book an appointment\n• /services - See our services\n• /appointments - View your bookings\n\nOr try again in a moment!",
+      };
+    }
   } finally {
     // Log the full trajectory
     console.log(`[Trajectory] ${JSON.stringify(logEntry, null, 2)}`);

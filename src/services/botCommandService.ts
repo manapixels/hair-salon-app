@@ -11,6 +11,7 @@ import {
   getAvailability,
   bookNewAppointment,
 } from '@/lib/database';
+import { getAllCategories } from '@/lib/categories';
 import { formatDisplayDate, formatTime12Hour } from '@/lib/timeUtils';
 import type { User } from '@/types';
 import {
@@ -219,31 +220,34 @@ What would you like to do today?`;
 }
 
 /**
- * Handle /services command - List all services
+ * Handle /services command - List all services (text-based, conversational)
  */
 export async function handleServicesCommand(): Promise<CommandResponse> {
-  const services = await getServices();
+  const categories = await getAllCategories();
 
   let text = `✂️ *Our Services*\n\n`;
-  text += `Select a service to book:\n\n`;
 
-  services.forEach(service => {
-    text += `*${service.name}* - $${service.price}\n`;
-    text += `⏱️ ${service.duration} minutes\n`;
-    text += `${service.description}\n\n`;
+  categories.forEach(category => {
+    text += `*${category.title}*`;
+    if (category.priceNote) {
+      text += ` - ${category.priceNote}`;
+    } else if (category.priceRangeMin) {
+      text += ` - from $${category.priceRangeMin}`;
+    }
+    if (category.estimatedDuration) {
+      text += ` (~${category.estimatedDuration} mins)`;
+    }
+    text += `\n`;
+    if (category.description) {
+      text += `${category.description}\n`;
+    }
+    text += `\n`;
   });
 
-  // Create booking buttons for each service
-  const keyboard: InlineKeyboard = {
-    inline_keyboard: services.map(service => [
-      {
-        text: `📅 Book ${service.name} - $${service.price}`,
-        callback_data: `book_service_${service.id}`,
-      },
-    ]),
-  };
+  text += `\n💬 *To book, just tell me what you need!*\nFor example: "I'd like a haircut tomorrow at 2pm"`;
 
-  return { text, keyboard, parseMode: 'Markdown' };
+  // No buttons - conversational approach
+  return { text, parseMode: 'Markdown' };
 }
 
 /**
@@ -331,39 +335,35 @@ export async function handleAppointmentsCommand(user: User | null): Promise<Comm
 }
 
 /**
- * Handle /book command - Start booking flow
+ * Handle /book command - Start booking flow (conversational)
  */
 export async function handleBookCommand(): Promise<CommandResponse> {
-  const services = await getServices();
+  const categories = await getAllCategories();
+
+  let categoryList = categories
+    .map(c => {
+      let line = `• ${c.title}`;
+      if (c.priceNote) {
+        line += ` (${c.priceNote})`;
+      } else if (c.priceRangeMin) {
+        line += ` (from $${c.priceRangeMin})`;
+      }
+      return line;
+    })
+    .join('\n');
 
   const text = `📅 *Let's Book Your Appointment!*
 
-Which service would you like?
+I'd love to help you book. What type of service are you looking for?
 
-👇 *Choose from our services:*`;
+${categoryList}
 
-  // Service emoji mapping for better UX
-  const getServiceEmoji = (name: string): string => {
-    const nameLower = name.toLowerCase();
-    if (nameLower.includes("men's") || nameLower.includes('mens')) return '✂️';
-    if (nameLower.includes("women's") || nameLower.includes('womens')) return '✂️';
-    if (nameLower.includes('color') && !nameLower.includes('highlight')) return '🎨';
-    if (nameLower.includes('highlight')) return '✨';
-    if (nameLower.includes('keratin')) return '🌟';
-    return '💆';
-  };
+Just tell me what you need and when! For example:
+"I'd like a haircut tomorrow at 2pm"
+"Book a keratin treatment for next Saturday"`;
 
-  // Show all services in organized grid (2 per row for mobile readability)
-  const keyboard: InlineKeyboard = {
-    inline_keyboard: services.map(s => [
-      {
-        text: `${getServiceEmoji(s.name)} ${s.name} • $${s.price}`,
-        callback_data: `book_service_${s.id}`,
-      },
-    ]),
-  };
-
-  return { text, keyboard, parseMode: 'Markdown' };
+  // No buttons - conversational approach
+  return { text, parseMode: 'Markdown' };
 }
 
 /**
@@ -551,22 +551,40 @@ export async function handleHoursCommand(): Promise<CommandResponse> {
 }
 
 /**
- * Handle /help command - Show available commands
+ * Handle /help command - Show available commands (conversational)
  */
 export async function handleHelpCommand(): Promise<CommandResponse> {
-  const text = `❓ *How Can I Help?*\n\n*Quick Commands:*\n/start - Main menu\n/book - Book an appointment\n/appointments - View your bookings\n/services - Browse our services\n/cancel - Cancel a booking\n/reschedule - Reschedule a booking\n/hours - Business hours & location\n/help - Show this help message\n\n*Natural Language:*\nYou can also just talk to me naturally! Try:\n• "What services do you offer?"\n• "Book a haircut for tomorrow"\n• "Show my appointments"\n• "Cancel my booking on Jan 15th"\n\nI'm powered by AI and can understand your requests in plain English!`;
+  const text = `❓ *How Can I Help?*
 
-  const keyboard: InlineKeyboard = {
-    inline_keyboard: [
-      [
-        { text: '📅 Book Now', callback_data: 'cmd_book' },
-        { text: '📋 My Appointments', callback_data: 'cmd_appointments' },
-      ],
-      [{ text: '✂️ Services', callback_data: 'cmd_services' }],
-    ],
-  };
+Just chat with me naturally! Here are some things you can say:
 
-  return { text, keyboard, parseMode: 'Markdown' };
+📅 *Booking*
+• "I'd like a haircut tomorrow at 2pm"
+• "Book a keratin treatment for next Saturday"
+• "What times are available this Friday?"
+
+📋 *Appointments*
+• "Show my appointments"
+• "Cancel my booking"
+• "Reschedule to a different day"
+
+💇 *Services*
+• "What services do you offer?"
+• "How much is a haircut?"
+
+🏪 *Salon Info*
+• "What are your hours?"
+• "Where are you located?"
+
+*Quick Commands:*
+/start - Main menu
+/book - Start booking
+/appointments - View bookings
+/services - See our services
+/hours - Business hours`;
+
+  // No buttons - conversational approach
+  return { text, parseMode: 'Markdown' };
 }
 
 /**

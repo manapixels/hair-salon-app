@@ -446,58 +446,37 @@ export async function POST(request: Request) {
       // Show typing indicator for natural language processing
       await sendChatAction(chatId);
 
-      // Use enhanced messaging service with user context for natural language
+      // Use enhanced messaging service with user context for natural language (conversational)
       const { reply: replyText, buttons } = await handleMessagingWithUserContext(
         incomingMessage,
         'telegram',
         chatId,
       );
 
-      // Build inline keyboard if buttons are provided
+      // Build inline keyboard ONLY for specific button-based actions (reminders, confirmations)
+      // For conversational flow, we generally don't want buttons
       let keyboard = undefined;
       if (buttons && buttons.length > 0) {
-        keyboard = {
-          inline_keyboard: [buttons.map(btn => ({ text: btn.text, callback_data: btn.data }))],
-        };
-      }
-
-      // Check if we should edit existing message (during booking flow) or send new one
-      const { getBookingContext, setBookingContext } = await import(
-        '@/services/conversationHistory'
-      );
-      const context = getBookingContext(userId);
-
-      console.log('[NATURAL LANGUAGE] UserId:', userId);
-      console.log('[NATURAL LANGUAGE] Current message ID:', context?.currentStepMessageId);
-      console.log('[NATURAL LANGUAGE] Has booking context:', !!context);
-
-      if (context?.currentStepMessageId) {
-        // EDIT existing message during booking flow (keeps single message for entire booking)
-        console.log('[NATURAL LANGUAGE] Attempting to edit message:', context.currentStepMessageId);
-        const editSuccess = await editTelegramMessage(
-          chatId,
-          context.currentStepMessageId,
-          replyText,
-          keyboard || null,
-          'Markdown',
+        // Only include buttons for reminder/confirmation actions (time-sensitive)
+        const isReminderOrConfirmation = buttons.some(
+          btn =>
+            btn.data.includes('reminder') ||
+            btn.data.includes('confirm') ||
+            btn.data.includes('cancel_apt') ||
+            btn.data.includes('reschedule_apt'),
         );
 
-        if (!editSuccess) {
-          // Fallback: if edit fails, send new message and update the stored ID
-          console.log('[NATURAL LANGUAGE] Edit failed, sending new message');
-          const sentMessage = await sendTelegramReply(chatId, replyText, keyboard);
-          if (sentMessage?.message_id) {
-            setBookingContext(userId, { currentStepMessageId: sentMessage.message_id });
-            console.log('[NATURAL LANGUAGE] Stored new message ID:', sentMessage.message_id);
-          }
-        } else {
-          console.log('[NATURAL LANGUAGE] Successfully edited message');
+        if (isReminderOrConfirmation) {
+          keyboard = {
+            inline_keyboard: [buttons.map(btn => ({ text: btn.text, callback_data: btn.data }))],
+          };
         }
-      } else {
-        // No booking context - this is normal chat, send new message
-        console.log('[NATURAL LANGUAGE] No booking context, sending new message');
-        await sendTelegramReply(chatId, replyText, keyboard);
+        // For other buttons (like booking confirmation), we use text-based confirmation now
       }
+
+      // Conversational flow: Always send new messages (no message editing for conversations)
+      console.log('[CONVERSATIONAL] Sending reply to user');
+      await sendTelegramReply(chatId, replyText, keyboard);
 
       // Respond to the webhook request to acknowledge receipt
       return Response.json({ success: true }, { status: 200 });
