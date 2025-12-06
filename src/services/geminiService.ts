@@ -207,6 +207,20 @@ export interface MessageResponse {
     date?: string;
     time?: string;
     stylistId?: string;
+    // Additional context for intent parser flows
+    categoryId?: string;
+    categoryName?: string;
+    stylistName?: string;
+    awaitingInput?:
+      | 'category'
+      | 'date'
+      | 'time'
+      | 'stylist'
+      | 'confirmation'
+      | 'email'
+      | 'appointment_select';
+    pendingAction?: 'cancel' | 'reschedule' | 'view';
+    appointmentId?: string;
   };
 }
 
@@ -259,19 +273,26 @@ export const handleWhatsAppMessage = async (
 
     // Convert booking context to intent parser format
     // Include user context for booking creation
-    const intentParserContext = bookingContext
+    // Cast to access all stored fields including those from intent parser
+    const storedContext = bookingContext as Record<string, any> | undefined;
+    const intentParserContext = storedContext
       ? {
-          categoryId: bookingContext.services?.[0],
-          date: bookingContext.date,
-          time: bookingContext.time,
-          stylistId: bookingContext.stylistId,
-          customerName: userContext?.name,
-          customerEmail: userContext?.email,
-          // If we have all booking details, assume we're awaiting confirmation
+          categoryId: storedContext.categoryId || storedContext.services?.[0],
+          categoryName: storedContext.categoryName,
+          date: storedContext.date,
+          time: storedContext.time,
+          stylistId: storedContext.stylistId,
+          stylistName: storedContext.stylistName,
+          customerName: storedContext.customerName || userContext?.name,
+          customerEmail: storedContext.customerEmail || userContext?.email,
+          // Use stored awaitingInput if present, otherwise derive from booking state
           awaitingInput:
-            bookingContext.services?.[0] && bookingContext.date && bookingContext.time
-              ? ('confirmation' as const)
-              : undefined,
+            storedContext.awaitingInput ||
+            (storedContext.services?.[0] && storedContext.date && storedContext.time
+              ? 'confirmation'
+              : undefined),
+          pendingAction: storedContext.pendingAction,
+          appointmentId: storedContext.appointmentId,
         }
       : userContext
         ? {
@@ -295,12 +316,22 @@ export const handleWhatsAppMessage = async (
         text: response.text,
         bookingDetails: response.updatedContext
           ? {
+              // Map categoryId to services array for backwards compatibility
               services: response.updatedContext.categoryId
                 ? [response.updatedContext.categoryId]
                 : undefined,
               stylistId: response.updatedContext.stylistId,
               date: response.updatedContext.date,
               time: response.updatedContext.time,
+              // Pass through all other context for proper persistence
+              categoryId: response.updatedContext.categoryId,
+              categoryName: response.updatedContext.categoryName,
+              stylistName: response.updatedContext.stylistName,
+              customerName: response.updatedContext.customerName,
+              customerEmail: response.updatedContext.customerEmail,
+              awaitingInput: response.updatedContext.awaitingInput,
+              pendingAction: response.updatedContext.pendingAction,
+              appointmentId: response.updatedContext.appointmentId,
             }
           : undefined,
       };

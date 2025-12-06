@@ -30,7 +30,19 @@ interface BookingContext {
   time?: string; // HH:MM
   confirmed?: boolean;
   awaitingCustomDate?: boolean; // True when user is entering custom date via text
-  awaitingInput?: 'category' | 'date' | 'time' | 'stylist' | 'confirmation'; // Current step for conversational flow
+  awaitingInput?:
+    | 'category'
+    | 'date'
+    | 'time'
+    | 'stylist'
+    | 'confirmation'
+    | 'email'
+    | 'appointment_select'; // Current step for conversational flow
+  // For cancel/reschedule flows
+  pendingAction?: 'cancel' | 'reschedule' | 'view';
+  appointmentId?: string;
+  newDate?: string;
+  newTime?: string;
   // Favorite/last booking tracking for quick rebooking
   lastServiceBooked?: string; // Last service name
   lastStylistBooked?: string; // Last stylist ID
