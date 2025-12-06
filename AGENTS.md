@@ -73,11 +73,22 @@ Next.js 14 caching layer using `unstable_cache` with tag-based revalidation for 
 
 ### **Cache Invalidation Patterns**
 
-| Operation                    | Invalidated Tags                                 |
-| ---------------------------- | ------------------------------------------------ |
-| Create/Update/Delete Service | `services`, `service-{id}`, `service-categories` |
-| Update Category              | `service-categories`, `category-{id}`            |
-| Update Service Tags          | `services`, `service-{id}`, `service-categories` |
+| Operation                    | Invalidated Tags                                                         |
+| ---------------------------- | ------------------------------------------------------------------------ |
+| Create/Update/Delete Service | `services`, `service-{id}`, `service-categories`                         |
+| Update Category              | `service-categories`, `category-{id}`                                    |
+| Update Service Tags          | `services`, `service-{id}`, `service-categories`                         |
+| Book/Cancel Appointment      | `availability`, `availability-{date}`, `availability-{stylistId}-{date}` |
+
+### **Availability Caching**
+
+The `getAvailability` and `getStylistAvailability` functions use `unstable_cache` with:
+
+- **30-second TTL**: Short fallback TTL for safety
+- **Tag-based revalidation**: Instantly invalidated when bookings are created/cancelled
+- **Fine-grained keys**: Date and stylist-specific cache keys prevent over-invalidation
+
+Cache is automatically revalidated in `bookNewAppointment()` and `cancelAppointment()` via `revalidateAvailability()`.
 
 ### **Critical Notes for Developers**
 

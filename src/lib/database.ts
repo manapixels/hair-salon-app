@@ -10,7 +10,7 @@ import type {
   BlockedPeriod,
 } from '../types';
 import { prisma } from './prisma';
-import { unstable_cache } from 'next/cache';
+import { unstable_cache, revalidateTag } from 'next/cache';
 
 /**
  * DATABASE FUNCTIONS USING PRISMA + NEON
@@ -25,7 +25,23 @@ const CACHE_TAGS = {
   CATEGORY_BY_ID: (id: string) => `category-${id}`,
   STYLISTS: 'stylists',
   STYLIST_BY_ID: (id: string) => `stylist-${id}`,
+  // Availability cache tags (date-based for fine-grained invalidation)
+  AVAILABILITY: 'availability',
+  AVAILABILITY_BY_DATE: (date: string) => `availability-${date}`,
+  AVAILABILITY_BY_STYLIST: (stylistId: string, date: string) => `availability-${stylistId}-${date}`,
 } as const;
+
+/**
+ * Revalidate availability cache for a specific date
+ * Called after booking/canceling appointments
+ */
+export function revalidateAvailability(dateKey: string, stylistId?: string) {
+  revalidateTag(CACHE_TAGS.AVAILABILITY);
+  revalidateTag(CACHE_TAGS.AVAILABILITY_BY_DATE(dateKey));
+  if (stylistId) {
+    revalidateTag(CACHE_TAGS.AVAILABILITY_BY_STYLIST(stylistId, dateKey));
+  }
+}
 
 // Helper to normalize service ID for comparison (handles both string and number IDs)
 const normalizeServiceId = (id: any): string => String(id);
@@ -502,117 +518,160 @@ export const updateAdminSettings = async (
   }
 };
 
+/**
+ * Get general availability for a date (cached with 30s TTL)
+ * Uses unstable_cache for server-side caching with tag-based invalidation
+ */
 export const getAvailability = async (date: Date): Promise<string[]> => {
-  const settings = await getAdminSettings();
   const dateKey = dateToKey(date);
 
-  // Check if date has a full-day closure
-  const fullDayClosure = settings.specialClosures.find(
-    closure => closure.date === dateKey && closure.isFullDay,
-  );
-  if (fullDayClosure) {
-    return []; // Store is closed on this date
-  }
+  // Create a cached version using the date key
+  const getCachedAvailability = unstable_cache(
+    async (dateKeyParam: string) => {
+      const settings = await getAdminSettings();
 
-  // Get day of week and check if store is open
-  const dayOfWeek = date.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
-  const daySchedule = settings.weeklySchedule[dayOfWeek as keyof typeof settings.weeklySchedule];
+      // Check if date has a full-day closure
+      const fullDayClosure = settings.specialClosures.find(
+        closure => closure.date === dateKeyParam && closure.isFullDay,
+      );
+      if (fullDayClosure) {
+        return []; // Store is closed on this date
+      }
 
-  if (!daySchedule || !daySchedule.isOpen) {
-    return []; // Store is closed on this day of week
-  }
+      // Get day of week and check if store is open
+      const dateObj = new Date(dateKeyParam + 'T12:00:00.000Z');
+      const dayOfWeek = dateObj.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
+      const daySchedule =
+        settings.weeklySchedule[dayOfWeek as keyof typeof settings.weeklySchedule];
 
-  // Generate time slots based on day-specific hours
-  const allSlots = generateTimeSlots(daySchedule.openingTime, daySchedule.closingTime);
+      if (!daySchedule || !daySchedule.isOpen) {
+        return []; // Store is closed on this day of week
+      }
 
-  // Get booked appointments for this date
-  const appointments = await prisma.appointment.findMany({
-    where: {
-      date: {
-        gte: new Date(dateKey + 'T00:00:00.000Z'),
-        lt: new Date(dateKey + 'T23:59:59.999Z'),
-      },
+      // Generate time slots based on day-specific hours
+      const allSlots = generateTimeSlots(daySchedule.openingTime, daySchedule.closingTime);
+
+      // Get booked appointments for this date
+      const appointments = await prisma.appointment.findMany({
+        where: {
+          date: {
+            gte: new Date(dateKeyParam + 'T00:00:00.000Z'),
+            lt: new Date(dateKeyParam + 'T23:59:59.999Z'),
+          },
+        },
+      });
+
+      const bookedSlots = new Set<string>();
+      appointments.forEach(app => {
+        let appTime = new Date(`1970-01-01T${app.time}:00`);
+        const numSlots = Math.ceil(app.totalDuration / 30);
+        for (let i = 0; i < numSlots; i++) {
+          bookedSlots.add(appTime.toTimeString().substring(0, 5));
+          appTime.setMinutes(appTime.getMinutes() + 30);
+        }
+      });
+
+      const blockedByAdmin = new Set<string>(settings.blockedSlots[dateKeyParam] || []);
+
+      return allSlots.filter(slot => !bookedSlots.has(slot) && !blockedByAdmin.has(slot));
     },
-  });
+    ['availability', dateKey],
+    {
+      tags: [CACHE_TAGS.AVAILABILITY, CACHE_TAGS.AVAILABILITY_BY_DATE(dateKey)],
+      revalidate: 30, // 30 seconds TTL as fallback
+    },
+  );
 
-  const bookedSlots = new Set<string>();
-  appointments.forEach(app => {
-    let appTime = new Date(`1970-01-01T${app.time}:00`);
-    const numSlots = Math.ceil(app.totalDuration / 30);
-    for (let i = 0; i < numSlots; i++) {
-      bookedSlots.add(appTime.toTimeString().substring(0, 5));
-      appTime.setMinutes(appTime.getMinutes() + 30);
-    }
-  });
-
-  const blockedByAdmin = new Set<string>(settings.blockedSlots[dateKey] || []);
-
-  return allSlots.filter(slot => !bookedSlots.has(slot) && !blockedByAdmin.has(slot));
+  return getCachedAvailability(dateKey);
 };
 
+/**
+ * Get stylist-specific availability for a date (cached with 30s TTL)
+ * Uses unstable_cache for server-side caching with tag-based invalidation
+ */
 export const getStylistAvailability = async (date: Date, stylistId: string): Promise<string[]> => {
   const dateKey = dateToKey(date);
-  const dayOfWeek = date.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
 
-  // Get stylist information including working hours
-  const stylist = await getStylistById(stylistId);
-  if (!stylist || !stylist.isActive) {
-    return []; // Inactive stylist has no availability
-  }
+  // Create a cached version using date key and stylist ID
+  const getCachedStylistAvailability = unstable_cache(
+    async (dateKeyParam: string, stylistIdParam: string) => {
+      const dateObj = new Date(dateKeyParam + 'T12:00:00.000Z');
+      const dayOfWeek = dateObj.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
 
-  // Check if stylist has blocked this date (holidays/breaks)
-  // Handle both string[] and BlockedPeriod[] formats
-  const isDateBlocked = stylist.blockedDates?.some(d => {
-    const dateStr = typeof d === 'string' ? d : d.date;
-    return dateStr === dateKey;
-  });
-  if (isDateBlocked) {
-    return []; // Stylist is not available on this date
-  }
+      // Get stylist information including working hours
+      const stylist = await getStylistById(stylistIdParam);
+      if (!stylist || !stylist.isActive) {
+        return []; // Inactive stylist has no availability
+      }
 
-  // Check if stylist is working on this day
-  if (!stylist.workingHours || typeof stylist.workingHours !== 'object') {
-    console.warn(`Stylist ${stylistId} has invalid workingHours, falling back to salon hours`);
-    // Fall back to salon's general availability instead of returning empty
-    return await getAvailability(date);
-  }
+      // Check if stylist has blocked this date (holidays/breaks)
+      // Handle both string[] and BlockedPeriod[] formats
+      const isDateBlocked = stylist.blockedDates?.some(d => {
+        const dateStr = typeof d === 'string' ? d : d.date;
+        return dateStr === dateKeyParam;
+      });
+      if (isDateBlocked) {
+        return []; // Stylist is not available on this date
+      }
 
-  const workingHours = stylist.workingHours[dayOfWeek as keyof typeof stylist.workingHours];
-  if (!workingHours || !workingHours.isWorking) {
-    return []; // Stylist doesn't work on this day
-  }
+      // Check if stylist is working on this day
+      if (!stylist.workingHours || typeof stylist.workingHours !== 'object') {
+        console.warn(
+          `Stylist ${stylistIdParam} has invalid workingHours, falling back to salon hours`,
+        );
+        // Fall back to salon's general availability instead of returning empty
+        return await getAvailability(dateObj);
+      }
 
-  // Generate time slots based on stylist's working hours
-  const stylistSlots = generateTimeSlots(workingHours.start, workingHours.end);
+      const workingHours = stylist.workingHours[dayOfWeek as keyof typeof stylist.workingHours];
+      if (!workingHours || !workingHours.isWorking) {
+        return []; // Stylist doesn't work on this day
+      }
 
-  // Get appointments for this stylist on this date
-  const stylistAppointments = await prisma.appointment.findMany({
-    where: {
-      stylistId: stylistId,
-      date: {
-        gte: new Date(dateKey + 'T00:00:00.000Z'),
-        lt: new Date(dateKey + 'T23:59:59.999Z'),
-      },
+      // Generate time slots based on stylist's working hours
+      const stylistSlots = generateTimeSlots(workingHours.start, workingHours.end);
+
+      // Get appointments for this stylist on this date
+      const stylistAppointments = await prisma.appointment.findMany({
+        where: {
+          stylistId: stylistIdParam,
+          date: {
+            gte: new Date(dateKeyParam + 'T00:00:00.000Z'),
+            lt: new Date(dateKeyParam + 'T23:59:59.999Z'),
+          },
+        },
+      });
+
+      // Calculate booked slots for this stylist
+      const bookedSlots = new Set<string>();
+      stylistAppointments.forEach(app => {
+        let appTime = new Date(`1970-01-01T${app.time}:00`);
+        const numSlots = Math.ceil(app.totalDuration / 30);
+        for (let i = 0; i < numSlots; i++) {
+          bookedSlots.add(appTime.toTimeString().substring(0, 5));
+          appTime.setMinutes(appTime.getMinutes() + 30);
+        }
+      });
+
+      // Get admin blocked slots for this date
+      const settings = await getAdminSettings();
+      const blockedByAdmin = new Set<string>(settings.blockedSlots[dateKeyParam] || []);
+
+      // Return available slots for this stylist
+      return stylistSlots.filter(slot => !bookedSlots.has(slot) && !blockedByAdmin.has(slot));
     },
-  });
+    ['stylist-availability', dateKey, stylistId],
+    {
+      tags: [
+        CACHE_TAGS.AVAILABILITY,
+        CACHE_TAGS.AVAILABILITY_BY_DATE(dateKey),
+        CACHE_TAGS.AVAILABILITY_BY_STYLIST(stylistId, dateKey),
+      ],
+      revalidate: 30, // 30 seconds TTL as fallback
+    },
+  );
 
-  // Calculate booked slots for this stylist
-  const bookedSlots = new Set<string>();
-  stylistAppointments.forEach(app => {
-    let appTime = new Date(`1970-01-01T${app.time}:00`);
-    const numSlots = Math.ceil(app.totalDuration / 30);
-    for (let i = 0; i < numSlots; i++) {
-      bookedSlots.add(appTime.toTimeString().substring(0, 5));
-      appTime.setMinutes(appTime.getMinutes() + 30);
-    }
-  });
-
-  // Get admin blocked slots for this date
-  const settings = await getAdminSettings();
-  const blockedByAdmin = new Set<string>(settings.blockedSlots[dateKey] || []);
-
-  // Return available slots for this stylist
-  return stylistSlots.filter(slot => !bookedSlots.has(slot) && !blockedByAdmin.has(slot));
+  return getCachedStylistAvailability(dateKey, stylistId);
 };
 
 export const bookNewAppointment = async (
@@ -692,6 +751,10 @@ export const bookNewAppointment = async (
     },
   });
 
+  // Revalidate availability cache for this date (and stylist if applicable)
+  const dateKey = dateToKey(appointmentData.date);
+  revalidateAvailability(dateKey, appointmentData.stylistId);
+
   const allServices = await getServices();
 
   return {
@@ -755,6 +818,9 @@ export const cancelAppointment = async (details: {
   await prisma.appointment.delete({
     where: { id: appointment.id },
   });
+
+  // Revalidate availability cache for this date (and stylist if applicable)
+  revalidateAvailability(date, appointment.stylistId ?? undefined);
 
   return {
     ...appointment,
