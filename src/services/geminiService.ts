@@ -258,19 +258,27 @@ export const handleWhatsAppMessage = async (
     const parsed = await parseMessage(userInput);
 
     // Convert booking context to intent parser format
+    // Include user context for booking creation
     const intentParserContext = bookingContext
       ? {
           categoryId: bookingContext.services?.[0],
           date: bookingContext.date,
           time: bookingContext.time,
           stylistId: bookingContext.stylistId,
+          customerName: userContext?.name,
+          customerEmail: userContext?.email,
           // If we have all booking details, assume we're awaiting confirmation
           awaitingInput:
             bookingContext.services?.[0] && bookingContext.date && bookingContext.time
               ? ('confirmation' as const)
               : undefined,
         }
-      : undefined;
+      : userContext
+        ? {
+            customerName: userContext.name,
+            customerEmail: userContext.email,
+          }
+        : undefined;
 
     // Use intent parser for high-confidence booking flows
     const handledIntents = ['book', 'greeting', 'services', 'hours', 'help', 'confirmation'];

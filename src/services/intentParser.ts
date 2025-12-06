@@ -9,7 +9,13 @@
  */
 
 import { getAllCategories, type ServiceCategory } from '@/lib/categories';
-import { getStylists } from '@/lib/database';
+import {
+  getStylists,
+  bookNewAppointment,
+  findAppointmentsByEmail,
+  cancelAppointment,
+  rescheduleAppointment,
+} from '@/lib/database';
 
 // ============================================================================
 // Types
@@ -67,7 +73,22 @@ export interface BookingContextUpdate {
   date?: string;
   time?: string;
   stylistId?: string;
-  awaitingInput?: 'category' | 'date' | 'time' | 'stylist' | 'confirmation';
+  stylistName?: string;
+  customerName?: string;
+  customerEmail?: string;
+  // For cancel/reschedule flows
+  pendingAction?: 'cancel' | 'reschedule' | 'view';
+  appointmentId?: string;
+  newDate?: string;
+  newTime?: string;
+  awaitingInput?:
+    | 'category'
+    | 'date'
+    | 'time'
+    | 'stylist'
+    | 'confirmation'
+    | 'email'
+    | 'appointment_select';
 }
 
 // ============================================================================
@@ -752,18 +773,48 @@ export async function generateFallbackResponse(
 
   // Handle confirmation ('yes', 'confirm', etc.)
   if (parsed.type === 'confirmation') {
-    if (currentContext?.awaitingInput === 'confirmation') {
-      // We have booking context - proceed with confirmation
-      return {
-        text: "I'd love to confirm your booking, but I'm having some trouble with my booking system right now. Please try again in a moment, or use our web app at the link in your profile to complete your booking.",
-        updatedContext: currentContext,
-      };
-    } else if (currentContext?.categoryId && currentContext?.date && currentContext?.time) {
-      // We have partial context from previous messages
-      return {
-        text: "I'd love to confirm your booking, but I'm having some trouble with my booking system right now. Please try again in a moment, or use our web app at the link in your profile to complete your booking.",
-        updatedContext: currentContext,
-      };
+    // Check if we have all required booking info
+    const hasBookingInfo =
+      currentContext?.categoryId && currentContext?.date && currentContext?.time;
+
+    if (hasBookingInfo) {
+      try {
+        // Get category info for the booking
+        const category = allCategories.find(c => c.id === currentContext.categoryId);
+
+        // Create the booking
+        const appointment = await bookNewAppointment({
+          date: new Date(currentContext.date!),
+          time: currentContext.time!,
+          categoryId: currentContext.categoryId,
+          estimatedDuration: category?.estimatedDuration || 60,
+          services: [], // Category-based booking, no individual services
+          customerName: currentContext.customerName || 'Guest',
+          customerEmail: currentContext.customerEmail || '',
+          stylistId: currentContext.stylistId,
+        });
+
+        // Format success message
+        const stylistName = currentContext.stylistName || appointment.stylist?.name;
+        let successMsg = `✅ *Booking Confirmed!*\n\n`;
+        successMsg += `✂️ ${currentContext.categoryName || category?.title}`;
+        if (stylistName) {
+          successMsg += ` with ${stylistName}`;
+        }
+        successMsg += `\n📅 ${currentContext.date} at ${currentContext.time}`;
+        successMsg += `\n\n📍 We'll see you then! You'll receive a reminder before your appointment.`;
+
+        return {
+          text: successMsg,
+          updatedContext: undefined, // Clear context after successful booking
+        };
+      } catch (error: any) {
+        console.error('[IntentParser] Booking creation failed:', error);
+        return {
+          text: `Sorry, I couldn't complete your booking: ${error.message || 'Please try again or use our web app to book.'}`,
+          updatedContext: currentContext,
+        };
+      }
     } else {
       // No booking context - user said 'yes' but we don't know what they're confirming
       return {
@@ -832,11 +883,11 @@ Just chat naturally! For example:
 
       if (parsed.date?.parsed && parsed.time?.parsed) {
         // Full booking info provided - show confirmation summary
-        // Format: date at time on same line
-        let confirmText = `✅ *Your Booking:*\n${serviceLine}\n📅 ${parsed.date.formatted} at ${parsed.time.formatted}\n\nReply 'yes' to confirm your booking!`;
+        // Use 📋 (not ✅) to indicate pending, not confirmed
+        let confirmText = `📋 *Ready to Book:*\n${serviceLine}\n📅 ${parsed.date.formatted} at ${parsed.time.formatted}\n\n👉 *Reply 'yes' to confirm*`;
         if (!parsed.stylistName && parsed.stylist !== 'any') {
           // No stylist specified and not "any" - note this
-          confirmText += '\n(Stylist will be assigned based on availability)';
+          confirmText += '\n_(Stylist assigned based on availability)_';
         }
 
         return {
@@ -854,7 +905,7 @@ Just chat naturally! For example:
       } else if (parsed.date?.parsed) {
         // Has date but not time
         return {
-          text: `✅ *Your Booking:*\n${serviceLine}\n📅 ${parsed.date.formatted}\n\nWhat time works for you? You can say something like "2pm" or "afternoon".`,
+          text: `📋 *Almost there:*\n${serviceLine}\n📅 ${parsed.date.formatted}\n\nWhat time works for you? (e.g. "2pm" or "afternoon")`,
           updatedContext: {
             categoryId: parsed.category.id,
             categoryName: parsed.category.name,
@@ -866,7 +917,7 @@ Just chat naturally! For example:
       } else {
         // Has category but no date
         return {
-          text: `✅ *Your Booking:*\n${serviceLine}\n\nGreat choice! When would you like to come in?\nJust say something like "tomorrow at 2pm" or "next Saturday".`,
+          text: `📋 *Great choice:*\n${serviceLine}\n\nWhen would you like to come in? (e.g. "tomorrow at 2pm")`,
           updatedContext: {
             categoryId: parsed.category.id,
             categoryName: parsed.category.name,
@@ -900,7 +951,7 @@ Just chat naturally! For example:
     if (parsed.date?.parsed || parsed.time?.parsed) {
       const updatedContext = { ...currentContext };
 
-      let summary = '✅ *Your Booking:*';
+      let summary = '📋 *Almost there:*';
       if (currentContext.categoryName) {
         summary += `\n✂️ ${currentContext.categoryName} ${currentContext.priceNote ? `(${currentContext.priceNote})` : ''}`;
       }
@@ -943,17 +994,235 @@ Just chat naturally! For example:
 
   // Handle view appointments
   if (parsed.type === 'view_appointments') {
-    return {
-      text: "To view your appointments, I'll need to look that up for you. Could you please provide your email address, or try again in a moment?",
-    };
+    const email = currentContext?.customerEmail;
+
+    if (email) {
+      try {
+        const appointments = await findAppointmentsByEmail(email);
+        if (appointments.length === 0) {
+          return {
+            text: `📅 You don't have any upcoming appointments.\n\nWould you like to book one?`,
+          };
+        }
+
+        // Format appointments list
+        const appointmentList = appointments
+          .slice(0, 5) // Show max 5
+          .map((apt, i) => {
+            const date = new Date(apt.date).toLocaleDateString('en-US', {
+              weekday: 'short',
+              month: 'short',
+              day: 'numeric',
+            });
+            const service = apt.category?.title || 'Appointment';
+            const stylist = apt.stylist?.name ? ` with ${apt.stylist.name}` : '';
+            return `${i + 1}. ${service}${stylist}\n   📅 ${date} at ${apt.time}`;
+          })
+          .join('\n\n');
+
+        return {
+          text: `📅 *Your Upcoming Appointments:*\n\n${appointmentList}\n\nTo cancel or reschedule, just let me know which one.`,
+          updatedContext: { ...currentContext, pendingAction: 'view' },
+        };
+      } catch (error) {
+        console.error('[IntentParser] Error fetching appointments:', error);
+        return {
+          text: `Sorry, I couldn't fetch your appointments right now. Please try again.`,
+        };
+      }
+    } else {
+      return {
+        text: `To view your appointments, please provide your email address.`,
+        updatedContext: { pendingAction: 'view', awaitingInput: 'email' },
+      };
+    }
   }
 
-  // Handle cancel/reschedule
-  if (parsed.type === 'cancel' || parsed.type === 'reschedule') {
-    const action = parsed.type === 'cancel' ? 'cancel' : 'reschedule';
-    return {
-      text: `I'd be happy to help you ${action} your appointment. Could you provide your email address, or tell me which appointment you'd like to ${action}?`,
-    };
+  // Handle cancel
+  if (parsed.type === 'cancel') {
+    const email = currentContext?.customerEmail;
+
+    // If we have an appointment ID to cancel
+    if (currentContext?.appointmentId && email) {
+      try {
+        await cancelAppointment({
+          customerEmail: email,
+          date: currentContext.date!,
+          time: currentContext.time!,
+        });
+        return {
+          text: `✅ *Appointment Cancelled*\n\nYour appointment has been cancelled successfully.\n\nWould you like to book a new appointment?`,
+          updatedContext: undefined, // Clear context
+        };
+      } catch (error: any) {
+        console.error('[IntentParser] Cancel failed:', error);
+        return {
+          text: `Sorry, I couldn't cancel that appointment: ${error.message || 'Please try again.'}`,
+          updatedContext: currentContext,
+        };
+      }
+    }
+
+    // If we have email, show appointments to select from
+    if (email) {
+      try {
+        const appointments = await findAppointmentsByEmail(email);
+        if (appointments.length === 0) {
+          return {
+            text: `You don't have any upcoming appointments to cancel.`,
+          };
+        }
+
+        if (appointments.length === 1) {
+          // Only one appointment - confirm cancellation
+          const apt = appointments[0];
+          const date = new Date(apt.date).toLocaleDateString('en-US', {
+            weekday: 'short',
+            month: 'short',
+            day: 'numeric',
+          });
+          return {
+            text: `🗑️ *Cancel Appointment?*\n\n${apt.category?.title || 'Appointment'}\n📅 ${date} at ${apt.time}\n\n👉 Reply 'yes' to confirm cancellation`,
+            updatedContext: {
+              ...currentContext,
+              pendingAction: 'cancel',
+              appointmentId: apt.id,
+              date: apt.date.toString().split('T')[0],
+              time: apt.time,
+              awaitingInput: 'confirmation',
+            },
+          };
+        }
+
+        // Multiple appointments - ask which one
+        const list = appointments
+          .slice(0, 5)
+          .map((apt, i) => {
+            const date = new Date(apt.date).toLocaleDateString('en-US', {
+              weekday: 'short',
+              month: 'short',
+              day: 'numeric',
+            });
+            return `${i + 1}. ${apt.category?.title || 'Appointment'} - ${date} at ${apt.time}`;
+          })
+          .join('\n');
+
+        return {
+          text: `Which appointment would you like to cancel?\n\n${list}\n\nReply with the number.`,
+          updatedContext: {
+            ...currentContext,
+            pendingAction: 'cancel',
+            awaitingInput: 'appointment_select',
+          },
+        };
+      } catch (error) {
+        console.error('[IntentParser] Error fetching appointments for cancel:', error);
+        return {
+          text: `Sorry, I couldn't fetch your appointments. Please try again.`,
+        };
+      }
+    } else {
+      return {
+        text: `To cancel an appointment, please provide your email address.`,
+        updatedContext: { pendingAction: 'cancel', awaitingInput: 'email' },
+      };
+    }
+  }
+
+  // Handle reschedule
+  if (parsed.type === 'reschedule') {
+    const email = currentContext?.customerEmail;
+
+    // If we have appointment and new date/time - execute reschedule
+    if (
+      currentContext?.appointmentId &&
+      currentContext?.newDate &&
+      currentContext?.newTime &&
+      email
+    ) {
+      try {
+        await rescheduleAppointment(
+          currentContext.appointmentId,
+          new Date(currentContext.newDate),
+          currentContext.newTime,
+        );
+        return {
+          text: `✅ *Appointment Rescheduled*\n\n📅 New time: ${currentContext.newDate} at ${currentContext.newTime}\n\nSee you then!`,
+          updatedContext: undefined, // Clear context
+        };
+      } catch (error: any) {
+        console.error('[IntentParser] Reschedule failed:', error);
+        return {
+          text: `Sorry, I couldn't reschedule: ${error.message || 'Please try again.'}`,
+          updatedContext: currentContext,
+        };
+      }
+    }
+
+    // If we have email, show appointments to select from
+    if (email) {
+      try {
+        const appointments = await findAppointmentsByEmail(email);
+        if (appointments.length === 0) {
+          return {
+            text: `You don't have any upcoming appointments to reschedule.`,
+          };
+        }
+
+        if (appointments.length === 1) {
+          // Only one appointment - ask for new date/time
+          const apt = appointments[0];
+          const date = new Date(apt.date).toLocaleDateString('en-US', {
+            weekday: 'short',
+            month: 'short',
+            day: 'numeric',
+          });
+          return {
+            text: `📅 *Reschedule Appointment*\n\n${apt.category?.title || 'Appointment'}\nCurrently: ${date} at ${apt.time}\n\nWhen would you like to reschedule to? (e.g. "next Tuesday at 3pm")`,
+            updatedContext: {
+              ...currentContext,
+              pendingAction: 'reschedule',
+              appointmentId: apt.id,
+              date: apt.date.toString().split('T')[0],
+              time: apt.time,
+              awaitingInput: 'date',
+            },
+          };
+        }
+
+        // Multiple appointments - ask which one
+        const list = appointments
+          .slice(0, 5)
+          .map((apt, i) => {
+            const date = new Date(apt.date).toLocaleDateString('en-US', {
+              weekday: 'short',
+              month: 'short',
+              day: 'numeric',
+            });
+            return `${i + 1}. ${apt.category?.title || 'Appointment'} - ${date} at ${apt.time}`;
+          })
+          .join('\n');
+
+        return {
+          text: `Which appointment would you like to reschedule?\n\n${list}\n\nReply with the number.`,
+          updatedContext: {
+            ...currentContext,
+            pendingAction: 'reschedule',
+            awaitingInput: 'appointment_select',
+          },
+        };
+      } catch (error) {
+        console.error('[IntentParser] Error fetching appointments for reschedule:', error);
+        return {
+          text: `Sorry, I couldn't fetch your appointments. Please try again.`,
+        };
+      }
+    } else {
+      return {
+        text: `To reschedule an appointment, please provide your email address.`,
+        updatedContext: { pendingAction: 'reschedule', awaitingInput: 'email' },
+      };
+    }
   }
 
   // Unknown intent - provide helpful guidance
