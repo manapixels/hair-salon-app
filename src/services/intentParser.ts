@@ -1144,6 +1144,16 @@ Just chat naturally! For example:
   if (parsed.type === 'reschedule') {
     const email = currentContext?.customerEmail;
 
+    // Detect complex inline reschedule requests like "reschedule my haircut on 12 dec to 14 dec"
+    // These contain date info and should fall through to Gemini for NLP processing
+    const hasInlineDates =
+      /\d{1,2}\s*(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)/i.test(message) ||
+      /to\s+(next|this|tomorrow|mon|tue|wed|thu|fri|sat|sun|\d{1,2})/i.test(message);
+    if (hasInlineDates && !currentContext?.appointmentId) {
+      // Complex request - fall through to Gemini
+      return null as any; // Signal to geminiService to use AI
+    }
+
     // If we have appointment and new date/time - execute reschedule
     if (
       currentContext?.appointmentId &&

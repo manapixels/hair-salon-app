@@ -319,32 +319,38 @@ export const handleWhatsAppMessage = async (
       );
       const response = await generateFallbackResponse(userInput, intentParserContext);
 
-      // Log for analytics
-      console.log(`[IntentParser] Response generated deterministically`);
+      // If intent parser returns null, it's signaling to fall through to Gemini
+      if (response === null) {
+        console.log(`[IntentParser] Complex request, falling through to Gemini`);
+        // Fall through to Gemini below
+      } else {
+        // Log for analytics
+        console.log(`[IntentParser] Response generated deterministically`);
 
-      return {
-        text: response.text,
-        bookingDetails: response.updatedContext
-          ? {
-              // Map categoryId to services array for backwards compatibility
-              services: response.updatedContext.categoryId
-                ? [response.updatedContext.categoryId]
-                : undefined,
-              stylistId: response.updatedContext.stylistId,
-              date: response.updatedContext.date,
-              time: response.updatedContext.time,
-              // Pass through all other context for proper persistence
-              categoryId: response.updatedContext.categoryId,
-              categoryName: response.updatedContext.categoryName,
-              stylistName: response.updatedContext.stylistName,
-              customerName: response.updatedContext.customerName,
-              customerEmail: response.updatedContext.customerEmail,
-              awaitingInput: response.updatedContext.awaitingInput,
-              pendingAction: response.updatedContext.pendingAction,
-              appointmentId: response.updatedContext.appointmentId,
-            }
-          : undefined,
-      };
+        return {
+          text: response.text,
+          bookingDetails: response.updatedContext
+            ? {
+                // Map categoryId to services array for backwards compatibility
+                services: response.updatedContext.categoryId
+                  ? [response.updatedContext.categoryId]
+                  : undefined,
+                stylistId: response.updatedContext.stylistId,
+                date: response.updatedContext.date,
+                time: response.updatedContext.time,
+                // Pass through all other context for proper persistence
+                categoryId: response.updatedContext.categoryId,
+                categoryName: response.updatedContext.categoryName,
+                stylistName: response.updatedContext.stylistName,
+                customerName: response.updatedContext.customerName,
+                customerEmail: response.updatedContext.customerEmail,
+                awaitingInput: response.updatedContext.awaitingInput,
+                pendingAction: response.updatedContext.pendingAction,
+                appointmentId: response.updatedContext.appointmentId,
+              }
+            : undefined,
+        };
+      }
     }
 
     // Low confidence or unhandled intent - fall through to Gemini AI
