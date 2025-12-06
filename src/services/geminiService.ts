@@ -264,6 +264,11 @@ export const handleWhatsAppMessage = async (
           date: bookingContext.date,
           time: bookingContext.time,
           stylistId: bookingContext.stylistId,
+          // If we have all booking details, assume we're awaiting confirmation
+          awaitingInput:
+            bookingContext.services?.[0] && bookingContext.date && bookingContext.time
+              ? ('confirmation' as const)
+              : undefined,
         }
       : undefined;
 

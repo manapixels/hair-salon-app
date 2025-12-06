@@ -750,12 +750,27 @@ export async function generateFallbackResponse(
   const parsed = await parseMessage(message);
   const allCategories = await getAllCategories();
 
-  // Handle confirmation
-  if (parsed.type === 'confirmation' && currentContext?.awaitingInput === 'confirmation') {
-    return {
-      text: "I'd love to confirm your booking, but I'm having some trouble with my booking system right now. Please try again in a moment, or use our web app at the link in your profile to complete your booking.",
-      updatedContext: currentContext,
-    };
+  // Handle confirmation ('yes', 'confirm', etc.)
+  if (parsed.type === 'confirmation') {
+    if (currentContext?.awaitingInput === 'confirmation') {
+      // We have booking context - proceed with confirmation
+      return {
+        text: "I'd love to confirm your booking, but I'm having some trouble with my booking system right now. Please try again in a moment, or use our web app at the link in your profile to complete your booking.",
+        updatedContext: currentContext,
+      };
+    } else if (currentContext?.categoryId && currentContext?.date && currentContext?.time) {
+      // We have partial context from previous messages
+      return {
+        text: "I'd love to confirm your booking, but I'm having some trouble with my booking system right now. Please try again in a moment, or use our web app at the link in your profile to complete your booking.",
+        updatedContext: currentContext,
+      };
+    } else {
+      // No booking context - user said 'yes' but we don't know what they're confirming
+      return {
+        text: `Great! What would you like to book?\n\nJust tell me the service, date, and time. For example:\n"Book a haircut for tomorrow at 2pm"`,
+        updatedContext: { awaitingInput: 'category' },
+      };
+    }
   }
 
   // Handle greeting
@@ -806,15 +821,19 @@ Just chat naturally! For example:
   if (parsed.type === 'book' || currentContext?.awaitingInput === 'category') {
     // If category was detected
     if (parsed.category) {
-      // Build summary with stylist if available
-      let summary = `✅ *Your Booking:*\n✂️ ${parsed.category.name} ${parsed.category.priceNote ? `(${parsed.category.priceNote})` : ''}`;
+      // Build service line with stylist if available
+      let serviceLine = `✂️ ${parsed.category.name}`;
+      if (parsed.category.priceNote) {
+        serviceLine += ` (${parsed.category.priceNote})`;
+      }
       if (parsed.stylistName) {
-        summary += `\n💇 ${parsed.stylistName}`;
+        serviceLine += ` with ${parsed.stylistName}`;
       }
 
       if (parsed.date?.parsed && parsed.time?.parsed) {
         // Full booking info provided - show confirmation summary
-        let confirmText = `${summary}\n📅 ${parsed.date.formatted}\n🕐 ${parsed.time.formatted}\n\nReply 'yes' to confirm your booking!`;
+        // Format: date at time on same line
+        let confirmText = `✅ *Your Booking:*\n${serviceLine}\n📅 ${parsed.date.formatted} at ${parsed.time.formatted}\n\nReply 'yes' to confirm your booking!`;
         if (!parsed.stylistName && parsed.stylist !== 'any') {
           // No stylist specified and not "any" - note this
           confirmText += '\n(Stylist will be assigned based on availability)';
@@ -835,7 +854,7 @@ Just chat naturally! For example:
       } else if (parsed.date?.parsed) {
         // Has date but not time
         return {
-          text: `${summary}\n📅 ${parsed.date.formatted}\n\nWhat time works for you? You can say something like "2pm" or "afternoon".`,
+          text: `✅ *Your Booking:*\n${serviceLine}\n📅 ${parsed.date.formatted}\n\nWhat time works for you? You can say something like "2pm" or "afternoon".`,
           updatedContext: {
             categoryId: parsed.category.id,
             categoryName: parsed.category.name,
@@ -847,7 +866,7 @@ Just chat naturally! For example:
       } else {
         // Has category but no date
         return {
-          text: `${summary}\n\nGreat choice! When would you like to come in?\nJust say something like "tomorrow at 2pm" or "next Saturday".`,
+          text: `✅ *Your Booking:*\n${serviceLine}\n\nGreat choice! When would you like to come in?\nJust say something like "tomorrow at 2pm" or "next Saturday".`,
           updatedContext: {
             categoryId: parsed.category.id,
             categoryName: parsed.category.name,
