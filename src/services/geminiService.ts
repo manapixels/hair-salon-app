@@ -2,7 +2,9 @@ import { GoogleGenAI, FunctionDeclaration, Type, GenerateContentResponse } from 
 import type { WhatsAppMessage } from '../types';
 import {
   getServices,
+  getStylists,
   getAvailability,
+  getStylistAvailability,
   bookNewAppointment,
   cancelAppointment as dbCancelAppointment,
   rescheduleAppointment,
@@ -87,6 +89,10 @@ const checkAvailability: FunctionDeclaration = {
         type: Type.STRING,
         description: 'The date to check for availability, in YYYY-MM-DD format.',
       },
+      stylistId: {
+        type: Type.STRING,
+        description: 'Optional: The ID of a specific stylist the user wants to book with.',
+      },
     },
     required: ['date'],
   },
@@ -97,6 +103,7 @@ const bookAppointment: FunctionDeclaration = {
   description: 'Book a new appointment for one or more services.',
   parameters: {
     type: Type.OBJECT,
+    required: ['customerName', 'customerEmail', 'services', 'date', 'time'],
     properties: {
       customerName: { type: Type.STRING, description: "The customer's full name." },
       customerEmail: { type: Type.STRING, description: "The customer's email address." },
@@ -110,8 +117,11 @@ const bookAppointment: FunctionDeclaration = {
         type: Type.STRING,
         description: 'The start time of the appointment in HH:MM format.',
       },
+      stylistId: {
+        type: Type.STRING,
+        description: 'Optional: The ID of the specific stylist to book with.',
+      },
     },
-    required: ['customerName', 'customerEmail', 'services', 'date', 'time'],
   },
 };
 
@@ -300,6 +310,10 @@ If the user asks to "book the usual" or "same as always", use the information ab
     })
     .join('\n');
 
+  // Fetch stylists for system instruction
+  const allStylists = await getStylists();
+  const stylistsListString = allStylists.map(s => `- ${s.name} (ID: ${s.id})`).join('\n');
+
   const systemInstruction = `You are a friendly, warm assistant at Signature Trims hair salon.
 Chat naturally like a helpful receptionist would - be conversational, not robotic.
 Today's date is ${formatDisplayDate(new Date())}.${userContextString}${userPatternString}
@@ -325,6 +339,11 @@ When a user mentions a service type, match it to a category:
 - "keratin", "treatment", "straightening" → Keratin Treatment category
 - "perm", "curl", "wave" → Perm category
 - "scalp", "dandruff", "hair loss" → Scalp Therapy category
+
+IMPORTANT - Stylist Selection:
+If a user requests a specific stylist (e.g., "with May"), match their name to the list below and use their ID.
+Available Stylists:
+${stylistsListString}
 
 IMPORTANT - Progressive Confirmation:
 As you collect booking details, ALWAYS show a running summary at the TOP of your response:
@@ -486,12 +505,23 @@ ${servicesListString}
 
       if (name === 'checkAvailability') {
         const date = new Date(args?.date as string);
+        const stylistId = args?.stylistId as string | undefined;
         const utcDate = new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
-        const slots = await getAvailability(utcDate);
+
+        let slots: string[] = [];
+        let availabilityMsgPrefix = '';
+
+        if (stylistId) {
+          slots = await getStylistAvailability(utcDate, stylistId);
+          const stylist = allStylists.find(s => s.id === stylistId);
+          availabilityMsgPrefix = stylist ? ` with ${stylist.name}` : '';
+        } else {
+          slots = await getAvailability(utcDate);
+        }
 
         if (slots.length > 0) {
           return {
-            text: `On ${formatDisplayDate(utcDate)}, the following time slots are available:\n${slots.join(', ')}`,
+            text: `On ${formatDisplayDate(utcDate)}${availabilityMsgPrefix}, the following time slots are available:\n${slots.join(', ')}`,
           };
         } else {
           // No slots available - suggest nearest alternatives
@@ -542,6 +572,7 @@ ${servicesListString}
             services: servicesToBook,
             customerName: args?.customerName as string,
             customerEmail: args?.customerEmail as string,
+            stylistId: args?.stylistId as string | undefined, // Pass stylist ID
           });
 
           // Sync to Google Calendar

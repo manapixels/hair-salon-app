@@ -91,14 +91,14 @@ Natural language understanding for booking flows. Converts user messages into st
 
 ### **Function Declarations**
 
-| Function                | Description                     | Parameters                                          |
-| ----------------------- | ------------------------------- | --------------------------------------------------- |
-| `getServicesList`       | Fetch available services/prices | None                                                |
-| `checkAvailability`     | Check slots for date            | `date` (YYYY-MM-DD)                                 |
-| `bookAppointment`       | Create new booking              | `name`, `email`, `services[]`, `date`, `time`       |
-| `cancelAppointment`     | Cancel existing appointment     | `email`, `date`, `time`                             |
-| `listMyAppointments`    | Get user's appointments         | `email`                                             |
-| `rescheduleAppointment` | Change appointment datetime     | `email`, `oldDate`, `oldTime`, `newDate`, `newTime` |
+| Function                | Description                     | Parameters                                                 |
+| ----------------------- | ------------------------------- | ---------------------------------------------------------- |
+| `getServicesList`       | Fetch available services/prices | None                                                       |
+| `checkAvailability`     | Check slots for date            | `date` (YYYY-MM-DD)                                        |
+| `bookAppointment`       | Create new booking              | `name`, `email`, `services[]`, `date`, `time`, `stylistId` |
+| `cancelAppointment`     | Cancel existing appointment     | `email`, `date`, `time`                                    |
+| `listMyAppointments`    | Get user's appointments         | `email`                                                    |
+| `rescheduleAppointment` | Change appointment datetime     | `email`, `oldDate`, `oldTime`, `newDate`, `newTime`        |
 
 ### **Usage Pattern**
 
