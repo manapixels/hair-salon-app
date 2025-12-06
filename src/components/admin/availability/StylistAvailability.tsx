@@ -328,7 +328,7 @@ export default function StylistAvailability({ onNavigateToStylists }: StylistAva
             <h4 className="text-[length:var(--font-size-3)] font-semibold text-foreground mb-[3]">
               Working Hours
             </h4>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-[3]">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1">
               {Object.entries(selectedStylist.workingHours).map(([day, hours]) => (
                 <div
                   key={day}

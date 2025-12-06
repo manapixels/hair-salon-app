@@ -219,7 +219,7 @@ export default function StylistManagement({ onClose }: StylistManagementProps) {
                 </div>
 
                 <div className="text-xs text-gray-600">
-                  <div className="grid grid-cols-2 grid-rows-4 grid-flow-col gap-1">
+                  <div className="grid grid-cols-2 grid-rows-4 grid-flow-col gap-x-4 gap-y-1">
                     {(
                       [
                         'monday',
@@ -234,7 +234,7 @@ export default function StylistManagement({ onClose }: StylistManagementProps) {
                       const hours = stylist.workingHours[day];
                       return (
                         <div key={day} className="flex justify-between">
-                          <span className="capitalize">{day.slice(0, 3)}:</span>
+                          <span className="capitalize font-medium">{day.slice(0, 3)}:</span>
                           <span>{hours.isWorking ? `${hours.start}-${hours.end}` : 'Off'}</span>
                         </div>
                       );
