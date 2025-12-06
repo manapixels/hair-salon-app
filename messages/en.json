@@ -110,7 +110,24 @@
     "failedToLoadStylists": "Failed to Load Stylists",
     "tryAgain": "Try Again",
     "noStylistsTitle": "No Stylists Available",
-    "noStylistsDesc": "No stylists can perform the selected services. Try selecting different services or contact us for assistance."
+    "noStylistsDesc": "No stylists can perform the selected services. Try selecting different services or contact us for assistance.",
+    "bookingConfirmed": "Booking Confirmed",
+    "thankYou": "Thank you",
+    "serviceCategoryLabel": "Service Category",
+    "stylistLabel": "Stylist",
+    "dateLabel": "Date",
+    "timeLabel": "Time",
+    "estimatedDuration": "Estimated Duration",
+    "confirmationSent": "Confirmation sent to",
+    "makeAnotherBooking": "Make Another Booking",
+    "chooseStylist": "Choose Stylist",
+    "selectTime": "Select Time",
+    "confirm": "Confirm",
+    "bookNow": "Book Now",
+    "service": "Service",
+    "dateAndTime": "Date and Time",
+    "bookingInProgress": "Booking in Progress",
+    "confirmYourAppointment": "Confirm Your Appointment"
   },
   "Layout": {
     "header": {
