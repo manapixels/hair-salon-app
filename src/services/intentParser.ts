@@ -153,8 +153,13 @@ const TIME_PERIODS: Record<string, { start: string; end: string }> = {
 /**
  * Detect intent from message using keyword matching
  */
+/**
+ * Detect intent from message using keyword matching
+ * Prioritizes longer keyword matches for specificity
+ */
 function detectIntent(message: string): { type: IntentType; confidence: number } {
   const lower = message.toLowerCase().trim();
+  let bestMatch: { type: IntentType; confidence: number; matchLength: number } | null = null;
 
   // Check each intent type
   for (const [intent, keywords] of Object.entries(INTENT_KEYWORDS)) {
@@ -162,11 +167,19 @@ function detectIntent(message: string): { type: IntentType; confidence: number }
 
     for (const keyword of keywords) {
       if (lower.includes(keyword)) {
-        // Higher confidence for exact matches or longer keywords
-        const confidence = keyword.length > 6 ? 0.9 : 0.7;
-        return { type: intent as IntentType, confidence };
+        // Found a match. Is it better (longer) than previous?
+        // E.g. "make an appointment" (length 19) > "appointment" (length 11)
+        if (!bestMatch || keyword.length > bestMatch.matchLength) {
+          // Higher confidence for longer keywords
+          const confidence = keyword.length > 6 ? 0.9 : 0.7;
+          bestMatch = { type: intent as IntentType, confidence, matchLength: keyword.length };
+        }
       }
     }
+  }
+
+  if (bestMatch) {
+    return { type: bestMatch.type, confidence: bestMatch.confidence };
   }
 
   return { type: 'unknown', confidence: 0.3 };

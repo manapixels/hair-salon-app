@@ -93,6 +93,11 @@ const checkAvailability: FunctionDeclaration = {
         type: Type.STRING,
         description: 'Optional: The ID of a specific stylist the user wants to book with.',
       },
+      time: {
+        type: Type.STRING,
+        description:
+          'Optional: A specific time (HH:MM) to check availability for. Use this to confirm a specific slot.',
+      },
     },
     required: ['date'],
   },
@@ -345,6 +350,11 @@ If a user requests a specific stylist (e.g., "with May"), match their name to th
 Available Stylists:
 ${stylistsListString}
 
+IMPORTANT - Checking Availability:
+- If the user asks for a specific time (e.g., "2pm"), call only checkAvailability with the 'time' parameter to confirm it.
+- If the user asks generally ("what time?", "available slots?"), call checkAvailability WITHOUT the 'time' parameter to get a list.
+- If a slot is confirmed available, immediately ask to book it.
+
 IMPORTANT - Progressive Confirmation:
 As you collect booking details, ALWAYS show a running summary at the TOP of your response:
 Example:
@@ -353,7 +363,8 @@ Example:
 📅 Tuesday, Dec 10
 🕐 2:00 PM
 
-Great! Do you have a stylist preference, or any stylist is fine?"
+Great! Do you have a stylist preference, or any stylist is fine?" 
+
 
 IMPORTANT - Knowledge Base:
 For general questions (policies, parking, products), use 'searchKnowledgeBase'. Don't make up answers.
@@ -506,6 +517,7 @@ ${servicesListString}
       if (name === 'checkAvailability') {
         const date = new Date(args?.date as string);
         const stylistId = args?.stylistId as string | undefined;
+        const timeToCheck = args?.time as string | undefined;
         const utcDate = new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
 
         let slots: string[] = [];
@@ -517,6 +529,26 @@ ${servicesListString}
           availabilityMsgPrefix = stylist ? ` with ${stylist.name}` : '';
         } else {
           slots = await getAvailability(utcDate);
+        }
+
+        if (timeToCheck) {
+          // Normalise timeToCheck to HH:MM format if needed (simple check)
+          // The API returns slots in "HH:MM" format
+          const isAvailable = slots.includes(timeToCheck);
+
+          if (isAvailable) {
+            const formattedDate = formatDisplayDate(utcDate);
+            const formattedTime = formatTime12Hour(timeToCheck);
+            return {
+              text: `Yes, ${formattedTime} on ${formattedDate}${availabilityMsgPrefix} is available.`,
+            };
+          } else {
+            const formattedDate = formatDisplayDate(utcDate);
+            const formattedTime = formatTime12Hour(timeToCheck);
+            return {
+              text: `Sorry, ${formattedTime} on ${formattedDate}${availabilityMsgPrefix} is not available. Available slots are: ${slots.join(', ')}`,
+            };
+          }
         }
 
         if (slots.length > 0) {

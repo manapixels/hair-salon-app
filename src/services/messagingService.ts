@@ -1,5 +1,5 @@
 import type { Appointment, User } from '../types';
-import { formatLongDate } from '@/lib/timeUtils';
+import { formatLongDate, formatTime12Hour } from '@/lib/timeUtils';
 
 /**
  * Messaging Service for appointment confirmations
@@ -164,12 +164,9 @@ function formatAppointmentMessage(
     case 'confirmation':
       return `🎉 *Appointment Confirmed!*
 
-*Signature Trims Hair Salon*
-
 📅 *Date:* ${date}
-🕐 *Time:* ${appointment.time}
+🕐 *Time:* ${formatTime12Hour(appointment.time)}
 ✂️ *Services:* ${services}
-💰 *Total:* $${appointment.totalPrice}
 ⏱️ *Duration:* ${appointment.totalDuration} minutes
 
 Thank you for booking with us! We look forward to seeing you.
@@ -179,12 +176,10 @@ Thank you for booking with us! We look forward to seeing you.
     case 'reminder':
       return `⏰ *Appointment Reminder*
 
-*Signature Trims Hair Salon*
-
 Your appointment is tomorrow:
 
 📅 *Date:* ${date}
-🕐 *Time:* ${appointment.time}
+🕐 *Time:* ${formatTime12Hour(appointment.time)}
 ✂️ *Services:* ${services}
 
 See you soon! 💇‍♀️`;
@@ -192,12 +187,10 @@ See you soon! 💇‍♀️`;
     case 'cancellation':
       return `❌ *Appointment Cancelled*
 
-*Signature Trims Hair Salon*
-
 Your appointment has been cancelled:
 
 📅 *Date:* ${date}
-🕐 *Time:* ${appointment.time}
+🕐 *Time:* ${formatTime12Hour(appointment.time)}
 ✂️ *Services:* ${services}
 
 We hope to see you again soon! Book anytime through our website or chat.`;
@@ -205,14 +198,11 @@ We hope to see you again soon! Book anytime through our website or chat.`;
     case 'reschedule':
       return `🔄 *Appointment Rescheduled!*
 
-*Signature Trims Hair Salon*
-
 Your appointment has been successfully rescheduled:
 
 📅 *New Date:* ${date}
-🕐 *New Time:* ${appointment.time}
+🕐 *New Time:* ${formatTime12Hour(appointment.time)}
 ✂️ *Services:* ${services}
-💰 *Total:* $${appointment.totalPrice}
 ⏱️ *Duration:* ${appointment.totalDuration} minutes
 ${appointment.stylist ? `👤 *Stylist:* ${appointment.stylist.name}` : ''}
 

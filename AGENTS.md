@@ -6,18 +6,28 @@
 
 ## 🤖 Agent Architecture Overview
 
-```
-AI Layer:
-├── Gemini AI Service     # Natural language → function calls
-├── Telegram Bot          # Command-based booking interface
-├── WhatsApp Chat         # Customer support & booking
-├── NLU Helpers           # Service aliases, datetime parsing
-└── Retention Engine      # Automated feedback/rebooking/winback
+The system uses a **tiered approach** to handle user interactions, prioritizing speed and reliability:
 
-Data Layer:
-├── Database Caching      # Next.js unstable_cache with tag-based revalidation
-├── Server Actions        # Cache invalidation on mutations
-└── PostgreSQL/Neon       # Persistent storage
+1.  **Level 1: Intent Parser (Deterministic)** - _Highest Priority_
+    - **Role**: Handles specific keywords, system commands, and structured flows immediately.
+    - **Behavior**: Rule-based, deterministic, zero-latency.
+    - **Examples**: `/start`, `/hours`, "book haircut", "tomorrow at 2pm".
+    - **Fallback**: If no clear intent is found, passes to Level 2.
+
+2.  **Level 2: Gemini AI Service (LLM)** - _Secondary / Smart Fallback_
+    - **Role**: Handles complex queries, natural language reasoning, and ambiguity.
+    - **Behavior**: Generative, context-aware, higher latency.
+    - **Examples**: "Book with May for next Monday", "Do you have parking?", "I want to speak to a human".
+
+```
+Incoming Message
+    │
+    ▼
+[Intent Parser] ──(Matched?)──▶ [Execute Command] ──▶ Reply
+    │
+    │ (No Match)
+    ▼
+[Gemini AI] ──────▶ [Function Call] ──▶ [DB] ──▶ Reply
 ```
 
 ---
@@ -395,10 +405,12 @@ TELEGRAM_BOT_TOKEN=your_telegram_bot_token
 - Include emojis for visual clarity
 - Provide clear CTAs (Call-to-Action)
 - Add unsubscribe options for retention messages
+- Fallback for empty service names
 
 ❌ **DON'T:**
 
 - Show technical formats (ISO strings, HH:MM)
+- **Show prices in confirmation messages** (Privacy/Simplicity)
 - Send without rate limiting
 - Block user flow during sending
 - Forget error handling + retries
