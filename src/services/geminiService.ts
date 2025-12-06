@@ -197,6 +197,35 @@ const modifyAppointment: FunctionDeclaration = {
   },
 };
 
+const rescheduleByDetails: FunctionDeclaration = {
+  name: 'rescheduleByDetails',
+  description:
+    'Reschedule an appointment by identifying it via email, service type, and current date. ' +
+    'Use this when user says "reschedule my haircut on 12 dec to 14 dec" without providing ID.',
+  parameters: {
+    type: Type.OBJECT,
+    properties: {
+      customerEmail: {
+        type: Type.STRING,
+        description: "The customer's email address.",
+      },
+      currentDate: {
+        type: Type.STRING,
+        description: 'The current date of the appointment to reschedule, in YYYY-MM-DD format.',
+      },
+      newDate: {
+        type: Type.STRING,
+        description: 'The new date for the appointment, in YYYY-MM-DD format.',
+      },
+      newTime: {
+        type: Type.STRING,
+        description: 'The new time for the appointment in HH:MM format. If "same time", use null.',
+      },
+    },
+    required: ['customerEmail', 'currentDate', 'newDate'],
+  },
+};
+
 export interface MessageResponse {
   text: string;
   buttons?: Array<{ text: string; data: string }>;
@@ -560,6 +589,7 @@ ${servicesListString}
               cancelAppointment,
               listMyAppointments,
               modifyAppointment,
+              rescheduleByDetails,
               searchKnowledgeBaseTool,
               flagForAdminTool,
             ],
@@ -959,6 +989,78 @@ ${servicesListString}
         } catch (e: any) {
           return {
             text: `I'm sorry, I couldn't modify that appointment. Reason: ${e.message}. Please try again or contact the salon directly.`,
+          };
+        }
+      }
+
+      if (name === 'rescheduleByDetails') {
+        try {
+          const { customerEmail, currentDate, newDate, newTime } = args as {
+            customerEmail: string;
+            currentDate: string;
+            newDate: string;
+            newTime?: string;
+          };
+
+          // Find appointments for this user
+          const appointments = await findAppointmentsByEmail(customerEmail);
+          if (appointments.length === 0) {
+            return {
+              text: `You don't have any upcoming appointments to reschedule.`,
+            };
+          }
+
+          // Find appointment matching the current date
+          const targetDate = new Date(currentDate);
+          const matchingApt = appointments.find(apt => {
+            const aptDate = new Date(apt.date);
+            return (
+              aptDate.getFullYear() === targetDate.getFullYear() &&
+              aptDate.getMonth() === targetDate.getMonth() &&
+              aptDate.getDate() === targetDate.getDate()
+            );
+          });
+
+          if (!matchingApt) {
+            return {
+              text: `I couldn't find an appointment on ${formatDisplayDate(
+                targetDate,
+              )}. Your upcoming appointments are on: ${appointments
+                .map(a => formatDisplayDate(a.date))
+                .join(', ')}.`,
+            };
+          }
+
+          // Use existing time if "same time" requested
+          const finalTime = newTime || matchingApt.time;
+
+          // Update the appointment
+          const updateData: any = {
+            customerName: matchingApt.customerName,
+            customerEmail: matchingApt.customerEmail,
+            date: new Date(newDate),
+            time: finalTime,
+            services: matchingApt.services,
+            totalPrice: matchingApt.totalPrice,
+            totalDuration: matchingApt.totalDuration,
+          };
+
+          const updatedAppointment = await updateAppointment(matchingApt.id, updateData);
+
+          // Format time for display
+          const [hours, minutes] = finalTime.split(':').map(Number);
+          const period = hours >= 12 ? 'PM' : 'AM';
+          const displayHours = hours > 12 ? hours - 12 : hours === 0 ? 12 : hours;
+          const formattedTime = `${displayHours}:${minutes.toString().padStart(2, '0')} ${period}`;
+
+          return {
+            text: `✅ **Appointment Rescheduled!**\n\n${
+              matchingApt.category?.title || 'Appointment'
+            }\n📅 ${formatDisplayDate(new Date(newDate))} at ${formattedTime}\n\nSee you then!`,
+          };
+        } catch (e: any) {
+          return {
+            text: `I'm sorry, I couldn't reschedule that appointment. ${e.message}`,
           };
         }
       }
