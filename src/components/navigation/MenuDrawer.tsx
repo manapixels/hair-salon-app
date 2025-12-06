@@ -175,7 +175,7 @@ export default function MenuDrawer({ isOpen, onClose }: MenuDrawerProps) {
                     href="https://instagram.com/signaturetrims"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="p-3 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl text-white hover:scale-105 transition-transform touch-target"
+                    className="p-3 bg-primary/10 rounded-xl text-primary hover:bg-primary/20 transition-colors touch-target"
                     aria-label="Follow us on Instagram"
                   >
                     <Instagram className="w-6 h-6" />
@@ -186,7 +186,7 @@ export default function MenuDrawer({ isOpen, onClose }: MenuDrawerProps) {
                     href="https://facebook.com/signaturetrims"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="p-3 bg-[#1877F2] rounded-xl text-white hover:scale-105 transition-transform touch-target"
+                    className="p-3 bg-primary/10 rounded-xl text-primary hover:bg-primary/20 transition-colors touch-target"
                     aria-label="Follow us on Facebook"
                   >
                     <Facebook className="w-6 h-6" />
@@ -197,7 +197,7 @@ export default function MenuDrawer({ isOpen, onClose }: MenuDrawerProps) {
                     href="https://wa.me/1234567890"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="p-3 bg-[#25D366] rounded-xl text-white hover:scale-105 transition-transform touch-target"
+                    className="p-3 bg-primary/10 rounded-xl text-primary hover:bg-primary/20 transition-colors touch-target"
                     aria-label="Chat with us on WhatsApp"
                   >
                     <WhatsAppIcon className="w-6 h-6" />
