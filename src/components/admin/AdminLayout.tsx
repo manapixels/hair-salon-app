@@ -34,7 +34,7 @@ export default function AdminLayout({
   const derivedTitle = title || getTitleFromPath(pathname, basePath);
 
   return (
-    <div className="min-h-screen bg-muted">
+    <div className="min-h-screen bg-muted flex flex-col">
       {/* Mobile Header */}
       <header className="lg:hidden sticky top-0 z-40 bg-background border-b border-border">
         <div className="flex items-center justify-between px-4 h-14">
@@ -86,17 +86,17 @@ export default function AdminLayout({
       )}
 
       {/* Desktop Layout */}
-      <div className="lg:flex">
+      <div className="lg:flex flex-1">
         {/* Desktop Sidebar */}
-        <aside className="hidden lg:block w-64 fixed left-0 top-0 bottom-0 bg-background border-r border-border overflow-y-auto">
-          <div className="p-6">
+        <aside className="hidden lg:block w-64 border-r border-border bg-background shrink-0">
+          <div className="sticky top-20 p-6">
             <h1 className="text-xl font-serif font-light text-foreground mb-6">Admin Dashboard</h1>
             <AdminNavigation badges={badges} />
           </div>
         </aside>
 
         {/* Main Content */}
-        <main className="lg:ml-64 flex-1 min-h-screen">
+        <main className="flex-1">
           {/* Desktop Header */}
           <header className="hidden lg:block sticky top-0 z-30 bg-muted/80 backdrop-blur-sm border-b border-border">
             <div className="px-6 py-4">
