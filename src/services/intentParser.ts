@@ -9,6 +9,7 @@
  */
 
 import { getAllCategories, type ServiceCategory } from '@/lib/categories';
+import { getStylists } from '@/lib/database';
 
 // ============================================================================
 // Types
@@ -47,8 +48,11 @@ export interface ParsedIntent {
     range?: { start: string; end: string }; // For "afternoon" → 12:00-17:00
   };
   stylist?: string; // Stylist name or "any"
+  stylistId?: string; // Stylist ID for booking
+  stylistName?: string; // Stylist display name
   ambiguousCategories?: ServiceCategory[]; // When multiple matches
   originalMessage: string;
+  hasNegation?: boolean; // "don't want", "cancel that" detected
 }
 
 export interface ConversationalResponse {
@@ -72,16 +76,38 @@ export interface BookingContextUpdate {
 
 const INTENT_KEYWORDS: Record<IntentType, string[]> = {
   book: [
+    // Direct requests
     'book',
+    'booking',
     'appointment',
     'schedule',
     'reserve',
     'make an appointment',
+    // Desire expressions
     'i want',
     'i need',
     "i'd like",
+    'i would like',
+    'can i get',
+    'could i get',
+    'looking for',
+    'looking to',
+    'interested in',
+    // Informal
+    'get a',
+    'do a',
+    'have a',
+    'need a',
+    // Question-based
+    'can you book',
+    'could you book',
+    'is it possible to book',
+    // Future tense
+    'going to get',
+    'gonna get',
+    'planning to get',
   ],
-  cancel: ['cancel', 'delete', 'remove', 'call off'],
+  cancel: ['cancel', 'delete', 'remove', 'call off', 'cancel my appointment', 'cancel booking'],
   reschedule: [
     'reschedule',
     'change',
@@ -89,6 +115,9 @@ const INTENT_KEYWORDS: Record<IntentType, string[]> = {
     'different time',
     'another time',
     'change my appointment',
+    'move my appointment',
+    'new time',
+    'new date',
   ],
   view_appointments: [
     'my appointments',
@@ -98,10 +127,32 @@ const INTENT_KEYWORDS: Record<IntentType, string[]> = {
     'see my',
     'upcoming',
     'what appointments',
+    'check my',
+    'view my',
   ],
-  services: ['services', 'prices', 'menu', 'offer', 'treatments', 'what do you', 'how much'],
-  hours: ['hours', 'open', 'close', 'when are you', 'location', 'address', 'where are you'],
-  help: ['help', 'commands', 'what can you', 'how do i', 'options'],
+  services: [
+    'services',
+    'prices',
+    'menu',
+    'offer',
+    'treatments',
+    'what do you',
+    'how much',
+    'what services',
+    'price list',
+  ],
+  hours: [
+    'hours',
+    'open',
+    'close',
+    'when are you',
+    'location',
+    'address',
+    'where are you',
+    'opening hours',
+    'business hours',
+  ],
+  help: ['help', 'commands', 'what can you', 'how do i', 'options', 'what can i do'],
   greeting: ['hi', 'hello', 'hey', 'good morning', 'good afternoon', 'good evening', 'start'],
   confirmation: [
     'yes',
@@ -114,13 +165,34 @@ const INTENT_KEYWORDS: Record<IntentType, string[]> = {
     'correct',
     'right',
     'book it',
+    'sounds good',
+    'perfect',
+    'go ahead',
+    'do it',
+    "let's do it",
   ],
   unknown: [],
 };
 
 // Map user phrases to category slugs
 const CATEGORY_KEYWORDS: Record<string, string[]> = {
-  haircut: ['haircut', 'cut', 'trim', 'hair cut'],
+  haircut: [
+    'haircut',
+    'cut',
+    'trim',
+    'hair cut',
+    'snip',
+    "men's cut",
+    'mens cut',
+    "women's cut",
+    'womens cut',
+    'bang trim',
+    'fringe trim',
+    'shave',
+    'buzz cut',
+    'layer',
+    'layers',
+  ],
   'hair-colouring': [
     'color',
     'colour',
@@ -130,11 +202,70 @@ const CATEGORY_KEYWORDS: Record<string, string[]> = {
     'colouring',
     'coloring',
     'tint',
+    'bleach',
+    'ombre',
+    'root touch up',
+    'grey coverage',
+    'gray coverage',
+    'fashion color',
+    'fantasy color',
   ],
-  'keratin-treatment': ['keratin', 'treatment', 'smoothing', 'rebonding', 'straightening'],
-  perm: ['perm', 'curl', 'wave', 'curly'],
-  'scalp-therapy': ['scalp', 'dandruff', 'hair loss', 'scalp treatment'],
+  'keratin-treatment': [
+    'keratin',
+    'treatment',
+    'smoothing',
+    'rebonding',
+    'straightening',
+    'brazilian blowout',
+    'frizz',
+    'anti-frizz',
+    'k-gloss',
+    'tiboli',
+    'hair treatment',
+  ],
+  perm: [
+    'perm',
+    'curl',
+    'wave',
+    'curly',
+    'digital perm',
+    'cold perm',
+    'volume perm',
+    'root perm',
+    'iron perm',
+    'wavy',
+  ],
+  'scalp-therapy': [
+    'scalp',
+    'dandruff',
+    'hair loss',
+    'scalp treatment',
+    'oily scalp',
+    'dry scalp',
+    'itchy scalp',
+    'flaky',
+    'scalp therapy',
+    'thinning',
+  ],
 };
+
+// Negation phrases that indicate user is NOT requesting something
+const NEGATION_PHRASES = [
+  "don't want",
+  'do not want',
+  'not interested',
+  'no thanks',
+  'never mind',
+  'nevermind',
+  'cancel that',
+  'forget it',
+  'not anymore',
+  'changed my mind',
+  'actually no',
+  'nah',
+  "don't need",
+  'do not need',
+];
 
 // Days of the week
 const DAYS = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
@@ -145,6 +276,79 @@ const TIME_PERIODS: Record<string, { start: string; end: string }> = {
   afternoon: { start: '12:00', end: '17:00' },
   evening: { start: '17:00', end: '20:00' },
 };
+
+// ============================================================================
+// Negation Detection
+// ============================================================================
+
+/**
+ * Check if message contains negation that invalidates the intent
+ */
+function hasNegation(message: string): boolean {
+  const lower = message.toLowerCase();
+  return NEGATION_PHRASES.some(phrase => lower.includes(phrase));
+}
+
+// ============================================================================
+// Stylist Matching
+// ============================================================================
+
+/**
+ * Match user input to a stylist
+ * Handles: "with May", "by Sarah", "anyone", "any stylist"
+ * Auto-assigns single stylist when none mentioned
+ */
+async function matchStylist(message: string): Promise<{
+  stylistId: string | null;
+  stylistName: string | null;
+  isAnyStylist: boolean;
+}> {
+  const lower = message.toLowerCase();
+
+  // Check for "any stylist" variants
+  if (/\b(any|anyone|no preference|doesn't matter|whoever|any stylist|anybody)\b/.test(lower)) {
+    return { stylistId: null, stylistName: null, isAnyStylist: true };
+  }
+
+  // Fetch stylists from database
+  const stylists = await getStylists();
+
+  // If only one stylist exists and no specific preference mentioned, auto-assign
+  if (stylists.length === 1) {
+    return {
+      stylistId: stylists[0].id,
+      stylistName: stylists[0].name,
+      isAnyStylist: false,
+    };
+  }
+
+  // Extract "with [name]" or "by [name]" patterns
+  const withMatch = lower.match(/\b(?:with|by)\s+([a-z]+)/i);
+  const preferredName = withMatch?.[1];
+
+  // Try to match stylist name
+  for (const stylist of stylists) {
+    const nameLower = stylist.name.toLowerCase();
+    const firstName = nameLower.split(' ')[0];
+
+    // Match full name or first name
+    if (
+      lower.includes(nameLower) ||
+      lower.includes(firstName) ||
+      preferredName === firstName ||
+      preferredName === nameLower
+    ) {
+      return {
+        stylistId: stylist.id,
+        stylistName: stylist.name,
+        isAnyStylist: false,
+      };
+    }
+  }
+
+  // No specific stylist mentioned
+  return { stylistId: null, stylistName: null, isAnyStylist: false };
+}
 
 // ============================================================================
 // Intent Detection
@@ -491,24 +695,27 @@ function formatTime(hours: number, minutes: number): string {
 // ============================================================================
 
 /**
- * Parse a user message and extract intent, category, date, time
+ * Parse a user message and extract intent, category, date, time, stylist
  */
 export async function parseMessage(message: string): Promise<ParsedIntent> {
   const intent = detectIntent(message);
   const { category, ambiguous } = await matchCategory(message);
   const date = parseNaturalDate(message);
   const time = parseNaturalTime(message);
+  const stylistMatch = await matchStylist(message);
+  const negation = hasNegation(message);
 
-  // Check for stylist preference
+  // Determine stylist display value
   let stylist: string | undefined;
-  const lower = message.toLowerCase();
-  if (lower.includes('any stylist') || lower.includes('anyone') || lower.includes('any is fine')) {
+  if (stylistMatch.isAnyStylist) {
     stylist = 'any';
+  } else if (stylistMatch.stylistName) {
+    stylist = stylistMatch.stylistName;
   }
 
   return {
-    type: intent.type,
-    confidence: intent.confidence,
+    type: negation ? 'unknown' : intent.type, // Negation invalidates intent
+    confidence: negation ? 0.2 : intent.confidence,
     category: category
       ? {
           id: category.id,
@@ -520,8 +727,11 @@ export async function parseMessage(message: string): Promise<ParsedIntent> {
     date: date.parsed ? date : undefined,
     time: time.parsed || time.range ? time : undefined,
     stylist,
+    stylistId: stylistMatch.stylistId ?? undefined,
+    stylistName: stylistMatch.stylistName ?? undefined,
     ambiguousCategories: ambiguous.length > 0 ? ambiguous : undefined,
     originalMessage: message,
+    hasNegation: negation,
   };
 }
 
@@ -596,18 +806,29 @@ Just chat naturally! For example:
   if (parsed.type === 'book' || currentContext?.awaitingInput === 'category') {
     // If category was detected
     if (parsed.category) {
-      const summary = `✅ *Your Booking:*\n✂️ ${parsed.category.name} ${parsed.category.priceNote ? `(${parsed.category.priceNote})` : ''}`;
+      // Build summary with stylist if available
+      let summary = `✅ *Your Booking:*\n✂️ ${parsed.category.name} ${parsed.category.priceNote ? `(${parsed.category.priceNote})` : ''}`;
+      if (parsed.stylistName) {
+        summary += `\n💇 ${parsed.stylistName}`;
+      }
 
       if (parsed.date?.parsed && parsed.time?.parsed) {
-        // Full booking info provided
+        // Full booking info provided - show confirmation summary
+        let confirmText = `${summary}\n📅 ${parsed.date.formatted}\n🕐 ${parsed.time.formatted}\n\nReply 'yes' to confirm your booking!`;
+        if (!parsed.stylistName && parsed.stylist !== 'any') {
+          // No stylist specified and not "any" - note this
+          confirmText += '\n(Stylist will be assigned based on availability)';
+        }
+
         return {
-          text: `${summary}\n📅 ${parsed.date.formatted}\n🕐 ${parsed.time.formatted}\n\nAll set! Just say 'yes' to confirm this booking.\n(Final price will be confirmed at the salon)`,
+          text: confirmText,
           updatedContext: {
             categoryId: parsed.category.id,
             categoryName: parsed.category.name,
             priceNote: parsed.category.priceNote,
             date: parsed.date.parsed.toISOString().split('T')[0],
             time: parsed.time.parsed,
+            stylistId: parsed.stylistId,
             awaitingInput: 'confirmation',
           },
         };

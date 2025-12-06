@@ -351,9 +351,18 @@ Available Stylists:
 ${stylistsListString}
 
 IMPORTANT - Checking Availability:
-- If the user asks for a specific time (e.g., "2pm"), call only checkAvailability with the 'time' parameter to confirm it.
+- If the user asks for a specific time (e.g., "2pm"), call checkAvailability with the 'time' parameter to confirm it.
 - If the user asks generally ("what time?", "available slots?"), call checkAvailability WITHOUT the 'time' parameter to get a list.
-- If a slot is confirmed available, immediately ask to book it.
+- When a slot is confirmed available AND you have all booking details (service, date, time, stylist), show a FULL CONFIRMATION SUMMARY:
+  "✅ *Your Booking:*
+  ✂️ [Service] ([price])
+  📅 [Date]
+  🕐 [Time]
+  💇 [Stylist]
+  
+  Reply 'yes' to confirm your booking!"
+- Do NOT just say "Yes, [time] is available" - go straight to the confirmation summary when you have all details.
+
 
 IMPORTANT - Progressive Confirmation:
 As you collect booking details, ALWAYS show a running summary at the TOP of your response:

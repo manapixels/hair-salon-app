@@ -139,6 +139,37 @@ if (response.functionCall) {
 - **Telegram Bot**: Inline queries, natural language commands
 - **Database**: Direct read/write via `src/lib/database.ts`
 - **Messaging**: Auto-confirmations via `messagingService.ts`
+- **Fallback**: `intentParser.ts` for deterministic parsing when Gemini unavailable
+
+---
+
+## 🔍 1b. Intent Parser (`src/services/intentParser.ts`)
+
+### **Purpose**
+
+Deterministic fallback parser for when Gemini AI is unavailable. Parses user messages using keyword matching, natural language date/time parsing, stylist matching, and category matching.
+
+### **Key Features**
+
+- ✅ **Stylist matching**: "with May", "by Sarah", auto-assigns single stylist
+- ✅ **40+ booking phrases**: "I'd like to get", "can I schedule", "gonna get"
+- ✅ **Date parsing**: "tomorrow", "next Friday", "Dec 12"
+- ✅ **Time parsing**: "2pm", "afternoon", "3:30"
+- ✅ **Negation detection**: "don't want", "never mind" invalidates intent
+- ✅ **Category keywords**: Maps "frizz" → Keratin, "bang trim" → Haircut
+
+### **Usage**
+
+```typescript
+import { parseMessage, generateFallbackResponse } from './intentParser';
+
+// Parse user message
+const parsed = await parseMessage('Book keratin with May at 2pm Friday');
+// → { type: 'book', category: {...}, date: {...}, time: {...}, stylistId: '...', stylistName: 'May' }
+
+// Generate response when Gemini unavailable
+const response = await generateFallbackResponse(message, currentContext);
+```
 
 ---
 
