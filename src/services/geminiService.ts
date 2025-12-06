@@ -302,7 +302,17 @@ export const handleWhatsAppMessage = async (
         : undefined;
 
     // Use intent parser for high-confidence booking flows
-    const handledIntents = ['book', 'greeting', 'services', 'hours', 'help', 'confirmation'];
+    const handledIntents = [
+      'book',
+      'greeting',
+      'services',
+      'hours',
+      'help',
+      'confirmation',
+      'view_appointments',
+      'cancel',
+      'reschedule',
+    ];
     if (parsed.confidence >= 0.7 && handledIntents.includes(parsed.type)) {
       console.log(
         `[IntentParser] Handling "${parsed.type}" intent (confidence: ${parsed.confidence})`,
@@ -819,13 +829,23 @@ ${servicesListString}
 
           let appointmentsList = `Here are your upcoming appointments:\n\n`;
           appointments.forEach((apt, index) => {
-            const services = apt.services.map(s => s.name).join(', ');
+            // Show category name for category-based bookings, or services list for legacy bookings
+            const serviceName =
+              apt.category?.title ||
+              (apt.services?.length > 0 ? apt.services.map(s => s.name).join(', ') : 'Appointment');
             const date = formatDisplayDate(apt.date);
-            appointmentsList += `${index + 1}. **${date} at ${apt.time}**\n`;
-            appointmentsList += `   Services: ${services}\n`;
-            appointmentsList += `   Duration: ${apt.totalDuration} minutes\n`;
-            appointmentsList += `   Total: $${apt.totalPrice}\n`;
-            appointmentsList += `   ID: ${apt.id}\n\n`;
+            // Format time as 12-hour (e.g., "2:00 PM")
+            const [hours, minutes] = apt.time.split(':').map(Number);
+            const period = hours >= 12 ? 'PM' : 'AM';
+            const displayHours = hours > 12 ? hours - 12 : hours === 0 ? 12 : hours;
+            const formattedTime = `${displayHours}:${minutes.toString().padStart(2, '0')} ${period}`;
+            const stylist = apt.stylist?.name ? ` with ${apt.stylist.name}` : '';
+            appointmentsList += `${index + 1}. **${serviceName}${stylist}**\n`;
+            appointmentsList += `   📅 ${date} at ${formattedTime}\n`;
+            if (apt.totalDuration) {
+              appointmentsList += `   ⏱️ ${apt.totalDuration} minutes\n`;
+            }
+            appointmentsList += `\n`;
           });
 
           appointmentsList += `To modify any appointment, just let me know which one and what you'd like to change!`;

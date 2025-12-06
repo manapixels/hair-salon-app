@@ -143,6 +143,7 @@ const INTENT_KEYWORDS: Record<IntentType, string[]> = {
   view_appointments: [
     'my appointments',
     'my bookings',
+    'my booking',
     'show my',
     'list my',
     'see my',
@@ -150,6 +151,11 @@ const INTENT_KEYWORDS: Record<IntentType, string[]> = {
     'what appointments',
     'check my',
     'view my',
+    'show appointments',
+    'view appointments',
+    'do i have any',
+    'when is my',
+    'booked for',
   ],
   services: [
     'services',

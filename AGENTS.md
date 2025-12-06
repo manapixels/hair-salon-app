@@ -9,10 +9,10 @@
 The system uses a **tiered approach** to handle user interactions, prioritizing speed and reliability:
 
 1.  **Level 1: Intent Parser (Deterministic)** - _Highest Priority_
-    - **Role**: Handles specific keywords, system commands, and structured flows immediately.
-    - **Behavior**: Rule-based, deterministic, zero-latency.
-    - **Examples**: `/start`, `/hours`, "book haircut", "tomorrow at 2pm".
-    - **Fallback**: If no clear intent is found, passes to Level 2.
+    - **Role**: Handles all booking flows with actual API calls: book, view, cancel, reschedule.
+    - **Behavior**: Rule-based, deterministic, calls DB functions directly.
+    - **Handled Intents**: `book`, `confirmation`, `view_appointments`, `cancel`, `reschedule`, `greeting`, `services`, `hours`, `help`.
+    - **Fallback**: If confidence < 0.7 or unhandled intent, passes to Level 2.
 
 2.  **Level 2: Gemini AI Service (LLM)** - _Secondary / Smart Fallback_
     - **Role**: Handles complex queries, natural language reasoning, and ambiguity.
