@@ -8,6 +8,7 @@
 import { searchKnowledgeBase, addToKnowledgeBase } from '../services/knowledgeBaseService';
 import { handleWhatsAppMessage } from '../services/geminiService';
 import { calculateUserPattern } from '../services/messagingUserService';
+import { parseMessage, generateFallbackResponse } from '../services/intentParser';
 
 describe('Knowledge Base Search Evaluation', () => {
   beforeAll(async () => {
@@ -162,5 +163,85 @@ describe('Performance Metrics', () => {
 
     // Should respond within 5 seconds
     expect(responseTime).toBeLessThan(5000);
+  });
+});
+
+// ============================================================================
+// Intent Parser Tests (Primary Handler)
+// ============================================================================
+
+describe('Intent Parser - Booking Flow', () => {
+  test('Should parse complete booking request', async () => {
+    const parsed = await parseMessage("I'd like to get a keratin treatment at 2pm next Friday");
+
+    expect(parsed.type).toBe('book');
+    expect(parsed.category?.name.toLowerCase()).toContain('keratin');
+    expect(parsed.time?.parsed).toBe('14:00');
+    expect(parsed.date?.parsed).not.toBeNull();
+    expect(parsed.confidence).toBeGreaterThanOrEqual(0.7);
+  });
+
+  test('Should detect negation and invalidate intent', async () => {
+    const parsed = await parseMessage("I don't want a haircut anymore");
+
+    expect(parsed.hasNegation).toBe(true);
+    expect(parsed.type).toBe('unknown');
+    expect(parsed.confidence).toBeLessThan(0.5);
+  });
+
+  test('Should recognize informal booking phrases', async () => {
+    const parsed = await parseMessage('I wanna get a perm tomorrow');
+
+    expect(parsed.type).toBe('book');
+    expect(parsed.category?.name.toLowerCase()).toContain('perm');
+  });
+
+  test('Should recognize service category keywords', async () => {
+    const parsed = await parseMessage('Help me with my frizzy hair');
+
+    // "frizz" should map to keratin treatment
+    expect(parsed.category?.name.toLowerCase()).toContain('keratin');
+  });
+});
+
+describe('Intent Parser - Response Generation', () => {
+  test('Should show confirmation summary when all details present', async () => {
+    const response = await generateFallbackResponse('Book a haircut at 2pm tomorrow');
+
+    expect(response.text).toContain('Your Booking');
+    expect(response.text).toContain('yes');
+    expect(response.updatedContext?.awaitingInput).toBe('confirmation');
+  });
+
+  test('Should ask for time when only date provided', async () => {
+    const response = await generateFallbackResponse('Book a haircut for next Monday');
+
+    expect(response.text.toLowerCase()).toContain('time');
+  });
+
+  test('Should ask for date when only service provided', async () => {
+    const response = await generateFallbackResponse('I want a haircut');
+
+    expect(response.text.toLowerCase()).toContain('when');
+  });
+});
+
+describe('Booking Flow - End to End', () => {
+  test('Should use intent parser for high-confidence booking (no Gemini)', async () => {
+    const startTime = Date.now();
+
+    const response = await handleWhatsAppMessage("I'd like to get a haircut at 3pm tomorrow", [], {
+      name: 'Test User',
+      email: 'test@example.com',
+    });
+
+    const responseTime = Date.now() - startTime;
+
+    // Should contain confirmation summary
+    expect(response.text).toContain('Your Booking');
+    expect(response.text.toLowerCase()).toContain('haircut');
+
+    // Should be fast (no Gemini API call)
+    expect(responseTime).toBeLessThan(1000);
   });
 });

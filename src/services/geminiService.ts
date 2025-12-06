@@ -206,6 +206,7 @@ export interface MessageResponse {
     services?: string[];
     date?: string;
     time?: string;
+    stylistId?: string;
   };
 }
 
@@ -246,10 +247,63 @@ export const handleWhatsAppMessage = async (
       text: "I'm still checking on that for you with our team. Thanks for your patience!",
     };
   }
-  // Also check by phone/telegram ID if available (passed in userContext or derived)
-  // Note: Ideally we'd check by the platform ID, but userContext is what we have here.
-  // The caller (messagingUserService) should handle the 'isFlagged' check before calling this if possible,
-  // but we add a safeguard here.
+
+  // ============================================================================
+  // Primary Handler: Deterministic Intent Parser
+  // Try intent parser first for fast, predictable responses
+  // Falls back to Gemini AI for complex/ambiguous queries
+  // ============================================================================
+  try {
+    const { parseMessage, generateFallbackResponse } = await import('./intentParser');
+    const parsed = await parseMessage(userInput);
+
+    // Convert booking context to intent parser format
+    const intentParserContext = bookingContext
+      ? {
+          categoryId: bookingContext.services?.[0],
+          date: bookingContext.date,
+          time: bookingContext.time,
+          stylistId: bookingContext.stylistId,
+        }
+      : undefined;
+
+    // Use intent parser for high-confidence booking flows
+    const handledIntents = ['book', 'greeting', 'services', 'hours', 'help', 'confirmation'];
+    if (parsed.confidence >= 0.7 && handledIntents.includes(parsed.type)) {
+      console.log(
+        `[IntentParser] Handling "${parsed.type}" intent (confidence: ${parsed.confidence})`,
+      );
+      const response = await generateFallbackResponse(userInput, intentParserContext);
+
+      // Log for analytics
+      console.log(`[IntentParser] Response generated deterministically`);
+
+      return {
+        text: response.text,
+        bookingDetails: response.updatedContext
+          ? {
+              services: response.updatedContext.categoryId
+                ? [response.updatedContext.categoryId]
+                : undefined,
+              stylistId: response.updatedContext.stylistId,
+              date: response.updatedContext.date,
+              time: response.updatedContext.time,
+            }
+          : undefined,
+      };
+    }
+
+    // Low confidence or unhandled intent - fall through to Gemini AI
+    console.log(
+      `[IntentParser] Low confidence (${parsed.confidence}) or unhandled intent "${parsed.type}", falling back to Gemini`,
+    );
+  } catch (intentParserError) {
+    console.error('[IntentParser] Error, falling back to Gemini:', intentParserError);
+  }
+
+  // ============================================================================
+  // Fallback Handler: Gemini AI for complex/ambiguous queries
+  // ============================================================================
 
   const allServices = await getServices();
   const servicesListString = allServices
