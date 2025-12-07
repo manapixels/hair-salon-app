@@ -90,13 +90,13 @@ async function sendWhatsAppReply(to: string, text: string): Promise<void> {
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
+      const errorData = (await response.json()) as any;
       console.error('Failed to send WhatsApp reply:', JSON.stringify(errorData, null, 2));
       throw new Error(`WhatsApp API request failed with status ${response.status}`);
     }
 
     console.log(`Successfully sent WhatsApp reply to ${to}`);
-    const responseData = await response.json();
+    const responseData = (await response.json()) as any;
     console.log('WhatsApp API Response:', responseData);
   } catch (error) {
     console.error('Exception when trying to send WhatsApp reply:', error);
@@ -394,7 +394,7 @@ export async function POST(request: Request) {
           });
 
           if (mediaUrlResponse.ok) {
-            const mediaData = await mediaUrlResponse.json();
+            const mediaData = (await mediaUrlResponse.json()) as { url: string };
             const imageUrl = mediaData.url;
 
             // Download actual image

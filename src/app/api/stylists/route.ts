@@ -32,7 +32,15 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
+    const body = (await request.json()) as {
+      name: string;
+      email: string;
+      bio?: string;
+      avatar?: string;
+      specialtyCategoryIds: string[];
+      workingHours?: any;
+      userId?: string;
+    };
     const { name, email, bio, avatar, specialtyCategoryIds, workingHours, userId } = body;
 
     if (!name || !Array.isArray(specialtyCategoryIds)) {

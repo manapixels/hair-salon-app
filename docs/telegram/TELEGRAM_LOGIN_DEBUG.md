@@ -108,7 +108,7 @@ The Telegram login flow has 5 steps:
 
 2. **Is the token being created?**
    - Look for: `[START-LOGIN] Token saved to database with ID: ...`
-   - If missing: Database connection issue or Prisma error
+   - If missing: Database connection issue or Drizzle error
 
 3. **Is the webhook finding the token?**
    - Look for: `[LOGIN-WEBHOOK] Token found, checking expiry...`
@@ -167,10 +167,10 @@ The Telegram login flow has 5 steps:
 **Possible Causes**:
 
 - Database constraint violation
-- Prisma unique constraint error
+- Drizzle unique constraint error
 - Network issue during update
 
-**Fix**: Check webhook error logs for specific Prisma error
+**Fix**: Check webhook error logs for specific Drizzle error
 
 #### Scenario D: User Creation Fails
 

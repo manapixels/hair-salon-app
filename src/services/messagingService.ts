@@ -42,7 +42,7 @@ export async function sendWhatsAppMessage(to: string, text: string): Promise<boo
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
+      const errorData = (await response.json()) as any;
       console.error('Failed to send WhatsApp message:', JSON.stringify(errorData, null, 2));
       return false;
     }
@@ -85,7 +85,7 @@ export async function sendTelegramMessage(chatId: number, text: string): Promise
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
+      const errorData = (await response.json()) as any;
       console.error('Failed to send Telegram message:', JSON.stringify(errorData, null, 2));
       return false;
     }
@@ -133,7 +133,7 @@ export async function sendTelegramMessageWithKeyboard(
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
+      const errorData = (await response.json()) as any;
       console.error(
         'Failed to send Telegram message with keyboard:',
         JSON.stringify(errorData, null, 2),
@@ -286,7 +286,6 @@ export async function findUserForAppointment(appointment: Appointment): Promise<
 
   if (!user) return null;
 
-  // Convert Prisma types to app types
   return {
     ...user,
     role: user.role as 'CUSTOMER' | 'ADMIN',

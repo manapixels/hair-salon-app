@@ -10,7 +10,12 @@ import { sendAppointmentConfirmation } from '../../../../services/messagingServi
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
+    const body = (await request.json()) as {
+      appointmentId: string;
+      newDate: string;
+      newTime: string;
+      customerEmail?: string;
+    };
     const { appointmentId, newDate, newTime, customerEmail } = body;
 
     if (!appointmentId || !newDate || !newTime) {
@@ -45,7 +50,6 @@ export async function POST(request: NextRequest) {
       const dbUser = customerEmail ? await findUserByEmail(customerEmail) : null;
       let user = null;
       if (dbUser) {
-        // Convert Prisma types to app types
         user = {
           ...dbUser,
           role: dbUser.role as 'CUSTOMER' | 'ADMIN',

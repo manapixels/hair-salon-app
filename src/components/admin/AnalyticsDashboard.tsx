@@ -34,7 +34,7 @@ export default function AnalyticsDashboard() {
       setIsLoading(true);
       const response = await fetch(`/api/admin/analytics?range=${timeRange}`);
       if (response.ok) {
-        const analyticsData = await response.json();
+        const analyticsData = (await response.json()) as AnalyticsData;
         setData(analyticsData);
       }
     } catch (error) {

@@ -124,7 +124,7 @@ export default function RescheduleModal({
         }),
       });
 
-      const data = await response.json();
+      const data = (await response.json()) as { error?: string };
 
       if (response.ok) {
         toast.success('Appointment rescheduled successfully!', { id: toastId });

@@ -8,7 +8,9 @@
 import { handleMessagingWithUserContext } from '../../../../services/messagingUserService';
 import { createUserFromOAuth, findUserByTelegramId } from '@/lib/database';
 import { randomBytes } from 'crypto';
-import { prisma } from '@/lib/prisma';
+import { getDb } from '@/db';
+import * as schema from '@/db/schema';
+import { eq } from 'drizzle-orm';
 import { checkRateLimit } from '@/services/rateLimitService';
 import {
   handleStartCommand,
@@ -116,13 +118,13 @@ async function sendTelegramReply(
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
+      const errorData = (await response.json()) as any;
       console.error('Failed to send Telegram reply:', JSON.stringify(errorData, null, 2));
       throw new Error(`Telegram API request failed with status ${response.status}`);
     }
 
     console.log(`Successfully sent Telegram reply to chat ${chatId}`);
-    const responseData = await response.json();
+    const responseData = (await response.json()) as any;
     console.log('Telegram API Response:', responseData);
 
     return responseData.result; // Contains message_id
@@ -180,7 +182,7 @@ async function editTelegramMessage(
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
+      const errorData = (await response.json()) as any;
       console.error('Failed to edit Telegram message:', JSON.stringify(errorData, null, 2));
       return false;
     }
@@ -243,9 +245,13 @@ async function handleLoginCommand(
   console.log('[LOGIN-WEBHOOK] Token (redacted):', loginToken.substring(0, 10) + '...');
 
   try {
-    const tokenData = await prisma.loginToken.findUnique({
-      where: { token: loginToken },
-    });
+    const db = await getDb();
+    const tokenResults = await db
+      .select()
+      .from(schema.loginTokens)
+      .where(eq(schema.loginTokens.token, loginToken))
+      .limit(1);
+    const tokenData = tokenResults[0];
 
     if (!tokenData) {
       console.error('[LOGIN-WEBHOOK] FAILED: Token not found in database');
@@ -260,7 +266,7 @@ async function handleLoginCommand(
 
     if (tokenData.expiresAt.getTime() < Date.now()) {
       console.error('[LOGIN-WEBHOOK] FAILED: Token expired');
-      await prisma.loginToken.delete({ where: { id: tokenData.id } });
+      await db.delete(schema.loginTokens).where(eq(schema.loginTokens.id, tokenData.id));
       await sendTelegramReply(
         chatId,
         '⏰ This login link has expired. Please try logging in again from the website.',
@@ -295,10 +301,10 @@ async function handleLoginCommand(
     console.log('[LOGIN-WEBHOOK] Updating token with userId...');
 
     try {
-      await prisma.loginToken.update({
-        where: { id: tokenData.id },
-        data: { userId: dbUser.id },
-      });
+      await db
+        .update(schema.loginTokens)
+        .set({ userId: dbUser.id })
+        .where(eq(schema.loginTokens.id, tokenData.id));
       console.log('[LOGIN-WEBHOOK] Token updated successfully');
     } catch (tokenUpdateError) {
       console.error('[LOGIN-WEBHOOK] FAILED: Error updating token with userId:', tokenUpdateError);
@@ -341,7 +347,7 @@ This link will expire in 10 minutes for security.`;
 
 // POST handler for receiving Telegram messages
 export async function POST(request: Request) {
-  const requestBody = await request.json();
+  const requestBody = (await request.json()) as any;
 
   console.log('Received Telegram webhook payload:', JSON.stringify(requestBody, null, 2));
 

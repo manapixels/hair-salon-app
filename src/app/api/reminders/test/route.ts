@@ -5,7 +5,7 @@ import { sendAppointmentReminder } from '@/services/reminderService';
 
 export const POST = withAdminAuth(async (request: NextRequest, { user }) => {
   try {
-    const body = await request.json();
+    const body = (await request.json()) as { appointmentId?: string; userId?: string };
     const { appointmentId, userId } = body;
 
     if (appointmentId) {

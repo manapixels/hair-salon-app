@@ -1,11 +1,8 @@
-import { prisma } from '@/lib/prisma';
 import type { WhatsAppMessage } from '@/types';
 import dotenv from 'dotenv';
 import * as intentParser from '@/services/intentParser';
 
 import path from 'path';
-
-// ... (Environment loading code remains same, skipping for brevity in this replace block if not targeting it)
 
 // Load environment variables from .env.local
 const result = dotenv.config({ path: path.resolve(process.cwd(), '.env.local') });
@@ -23,7 +20,7 @@ if (!apiKey) {
 }
 
 // Mock User Data
-const TEST_USER_PHONE = '1234567890'; // Use a dummy phone number
+const TEST_USER_PHONE = '1234567890';
 const TEST_USER_NAME = 'Test User';
 
 // Console colors
@@ -75,7 +72,6 @@ async function simulateUserMessage(message: string, contextDescription: string) 
       source = 'Level 1 (Intent Parser)';
     } else {
       // Fallback to Level 2: Gemini
-      // Dynamic import to ensure env vars are loaded
       const { handleWhatsAppMessage } = await import('@/services/geminiService');
 
       const mockHistory: Pick<WhatsAppMessage, 'text' | 'sender'>[] = [];
@@ -106,52 +102,36 @@ async function simulateUserMessage(message: string, contextDescription: string) 
 async function runTests() {
   await setupTestUser();
 
-  // ==========================================
-  // SCENARIO 1: Deterministic (Level 1) Checks
-  // ==========================================
+  // SCENARIO 1: Deterministic / Intent Parser Checks
   logStep('SCENARIO 1: Deterministic / Intent Parser Checks');
 
-  // Test 1.1: Hours
   let res = await simulateUserMessage('What are your hours?', 'Asking for business hours');
   logResult(
     res.source === 'Level 1 (Intent Parser)' && res.text.includes('Monday'),
     'Should return hours via Intent Parser',
   );
 
-  // Test 1.2: Services
   res = await simulateUserMessage('Show me services', 'Asking for service list');
   logResult(
     res.source === 'Level 1 (Intent Parser)' && res.text.includes('Haircut'),
     'Should return services via Intent Parser',
   );
 
-  // Test 1.3: Simple Booking Flow - Intent Extraction
-  // "I want a haircut" -> Expect intent 'book' with category 'haircut'
   res = await simulateUserMessage('I want a haircut', 'Booking intent with category');
   logResult(
     res.intent?.type === 'book' && res.intent?.category?.slug === 'haircut',
     'Parser should detect "book" intent and "haircut" category',
   );
 
-  // Test 1.4: Date Parsing
-  // "Tomorrow" -> Expect date parsed
   res = await simulateUserMessage('tomorrow', 'Date input');
   logResult(res.intent?.date?.parsed != null, 'Parser should identify "tomorrow" as a date');
 
-  // Test 1.5: Time Parsing
-  // "2pm" -> Expect time parsed
   res = await simulateUserMessage('2pm', 'Time input');
   logResult(res.intent?.time?.parsed === '14:00', 'Parser should identify "2pm" as "14:00"');
 
-  // ==========================================
   // SCENARIO 2: AI Agent (Level 2) Checks
-  // ==========================================
   logStep('SCENARIO 2: Gemini AI / Complex Logic');
 
-  // Test 2.1: Complex Booking (should bypass Parser high-confidence or require AI for slot checking)
-  // "Book with May for next Monday" -> Parser might catch parts, but AI handles the flow
-  // We expect this to likely hit AI because "May" (stylist) might not be strictly parsed by the basic intentParser yet
-  // unless we added stylist lookup to it.
   res = await simulateUserMessage(
     'Book a haircut with May for next Monday at 10am',
     'Complex full booking request',
@@ -161,24 +141,15 @@ async function runTests() {
     'Response should acknowledge Stylist (May) and Time',
   );
 
-  // Test 2.2: Context/Follow-up (Mocking conversation state is harder in a script without preserving generic state,
-  // but handleWhatsAppMessage maintains history in DB/memory usually. If stateless, this might fail).
-  // We'll skip deep multi-turn state checks here unless we mock the persistence layer, but we can check simple NLU.
-
-  // Test 2.3: Edge Case - Unavailable Time
-  // "Book for 3am" -> Logic check
   res = await simulateUserMessage('Book a haircut for 3am tomorrow', 'Booking invalid time');
   logResult(
     res.text.toLowerCase().includes('closed') || res.text.toLowerCase().includes('sorry'),
     'Bot should reject 3am booking',
   );
 
-  // ==========================================
-  // SCENARIO 3: Admin / Management
-  // ==========================================
+  // SCENARIO 3: Management
   logStep('SCENARIO 3: Management');
 
-  // Test 3.1: View Appointments
   res = await simulateUserMessage('My appointments', 'Listing appointments');
   logResult(
     res.text.includes('appointments') || res.text.includes('email'),
@@ -192,5 +163,6 @@ async function runTests() {
 runTests()
   .catch(console.error)
   .finally(async () => {
-    await prisma.$disconnect();
+    // No need to disconnect Drizzle HTTP client
+    console.log('Test script finished.');
   });

@@ -7,10 +7,10 @@
  * modular and testable.
  */
 
-async function handleResponse(response: Response) {
+async function handleResponse<T = any>(response: Response): Promise<T> {
   // For a '204 No Content' response, we can return immediately.
   if (response.status === 204) {
-    return;
+    return null as T;
   }
 
   // Check if the response is JSON before trying to parse it.
@@ -21,24 +21,25 @@ async function handleResponse(response: Response) {
     if (!response.ok) {
       throw new Error(text || `HTTP error! status: ${response.status}`);
     }
-    return text;
+    return text as unknown as T;
   }
 
-  const data = await response.json();
+  const data = (await response.json()) as T;
   if (!response.ok) {
     // The API handlers return error messages in a 'message' property.
-    throw new Error(data.message || `HTTP error! status: ${response.status}`);
+    const errorData = data as any;
+    throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
   }
   return data;
 }
 
 export const apiClient = {
-  async get(url: string) {
-    return handleResponse(await fetch(url));
+  async get<T = any>(url: string): Promise<T> {
+    return handleResponse<T>(await fetch(url));
   },
 
-  async post(url: string, body?: any) {
-    return handleResponse(
+  async post<T = any>(url: string, body?: any): Promise<T> {
+    return handleResponse<T>(
       await fetch(url, {
         method: 'POST',
         headers: body ? { 'Content-Type': 'application/json' } : {},
@@ -47,21 +48,37 @@ export const apiClient = {
     );
   },
 
-  async delete(url: string, body?: any) {
-    return handleResponse(
+  async delete<T = any>(url: string, body?: any): Promise<T> {
+    return handleResponse<T>(
       await fetch(url, {
         method: 'DELETE',
-        headers: body ? { 'Content-Type': 'application/json' } : {},
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: body ? JSON.stringify(body) : undefined,
       }),
     );
   },
 
-  async patch(url: string, body?: any) {
-    return handleResponse(
+  async put<T = any>(url: string, body?: any): Promise<T> {
+    return handleResponse<T>(
+      await fetch(url, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: body ? JSON.stringify(body) : undefined,
+      }),
+    );
+  },
+
+  async patch<T = any>(url: string, body?: any): Promise<T> {
+    return handleResponse<T>(
       await fetch(url, {
         method: 'PATCH',
-        headers: body ? { 'Content-Type': 'application/json' } : {},
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: body ? JSON.stringify(body) : undefined,
       }),
     );

@@ -3,7 +3,9 @@ import {
   sendTelegramMessage,
   sendTelegramMessageWithKeyboard,
 } from './messagingService';
-import { prisma } from '@/lib/prisma';
+import { getDb } from '@/db';
+import * as schema from '@/db/schema';
+import { eq } from 'drizzle-orm';
 import { logRetentionMessage } from './retentionService';
 import { generateFeedbackKeyboard } from './messageTemplates';
 
@@ -21,12 +23,20 @@ export async function sendRetentionMessage(
   message: string,
   messageType: 'FEEDBACK_REQUEST' | 'REBOOKING_NUDGE' | 'WIN_BACK',
   daysSinceLastVisit: number,
-  appointmentId?: string, // Optional: for feedback requests with inline buttons
+  appointmentId?: string,
 ): Promise<MessageResult> {
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: { telegramId: true, whatsappPhone: true },
-  });
+  const db = await getDb();
+
+  const users = await db
+    .select({
+      telegramId: schema.users.telegramId,
+      whatsappPhone: schema.users.whatsappPhone,
+    })
+    .from(schema.users)
+    .where(eq(schema.users.id, userId))
+    .limit(1);
+
+  const user = users[0];
 
   if (!user) {
     return {
@@ -42,7 +52,6 @@ export async function sendRetentionMessage(
   try {
     // Try Telegram first if available
     if (user.telegramId) {
-      // For feedback requests, use inline keyboard buttons
       if (messageType === 'FEEDBACK_REQUEST' && appointmentId) {
         const keyboard = generateFeedbackKeyboard(appointmentId);
         success = await sendTelegramMessageWithKeyboard(user.telegramId, message, keyboard);

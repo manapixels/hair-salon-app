@@ -9,12 +9,14 @@ import type {
   StylistSummary,
   BlockedPeriod,
 } from '../types';
-import { prisma } from './prisma';
+import { getDb } from '../db';
+import * as schema from '../db/schema';
+import { eq, and, gte, lt, desc, asc, not, isNull, sql, ilike } from 'drizzle-orm';
 import { unstable_cache, revalidateTag } from 'next/cache';
 
 /**
- * DATABASE FUNCTIONS USING PRISMA + NEON
- * Persistent PostgreSQL database for production use
+ * DATABASE FUNCTIONS USING DRIZZLE + NEON
+ * Edge-compatible PostgreSQL database layer for Cloudflare Workers
  */
 
 // Cache tags for on-demand revalidation
@@ -25,7 +27,6 @@ const CACHE_TAGS = {
   CATEGORY_BY_ID: (id: string) => `category-${id}`,
   STYLISTS: 'stylists',
   STYLIST_BY_ID: (id: string) => `stylist-${id}`,
-  // Availability cache tags (date-based for fine-grained invalidation)
   AVAILABILITY: 'availability',
   AVAILABILITY_BY_DATE: (date: string) => `availability-${date}`,
   AVAILABILITY_BY_STYLIST: (stylistId: string, date: string) => `availability-${stylistId}-${date}`,
@@ -33,7 +34,6 @@ const CACHE_TAGS = {
 
 /**
  * Revalidate availability cache for a specific date
- * Called after booking/canceling appointments
  */
 export function revalidateAvailability(dateKey: string, stylistId?: string) {
   revalidateTag(CACHE_TAGS.AVAILABILITY);
@@ -43,41 +43,38 @@ export function revalidateAvailability(dateKey: string, stylistId?: string) {
   }
 }
 
-// Helper to normalize service ID for comparison (handles both string and number IDs)
 const normalizeServiceId = (id: any): string => String(id);
 
 // Initialize default admin user and settings on first run
 async function initializeDatabase() {
   try {
-    // Check if any admin user exists
-    const adminUser = await prisma.user.findFirst({
-      where: { role: 'ADMIN' },
-    });
+    const db = await getDb();
 
-    if (!adminUser) {
+    // Check if any admin user exists
+    const adminUser = await db
+      .select()
+      .from(schema.users)
+      .where(eq(schema.users.role, 'ADMIN'))
+      .limit(1);
+
+    if (adminUser.length === 0) {
       console.log('⚠️  No admin user found. To create an admin:');
       console.log('1. Login via WhatsApp/Telegram OAuth first');
       console.log('2. Run: npm run create-admin <your-email>');
-      console.log('3. This will promote your user to admin role');
     }
 
     // Check if admin settings exist
-    const settings = await prisma.adminSettings.findFirst();
-    if (!settings) {
-      await prisma.adminSettings.create({
-        data: {
-          weeklySchedule: getDefaultWeeklySchedule() as any,
-          closedDates: [],
-          blockedSlots: {},
-          businessName: 'Signature Trims Hair Salon',
-          businessAddress: '930 Yishun Avenue 1 #01-127, Singapore 760930',
-          businessPhone: '(555) 123-4567',
-        },
+    const settings = await db.select().from(schema.adminSettings).limit(1);
+    if (settings.length === 0) {
+      await db.insert(schema.adminSettings).values({
+        weeklySchedule: getDefaultWeeklySchedule(),
+        closedDates: [],
+        blockedSlots: {},
+        businessName: 'Signature Trims Hair Salon',
+        businessAddress: '930 Yishun Avenue 1 #01-127, Singapore 760930',
+        businessPhone: '(555) 123-4567',
       });
     }
-
-    // Services are now seeded via prisma/seed.ts
-    // No need to initialize here
   } catch (error) {
     console.error('Database initialization error:', error);
   }
@@ -100,20 +97,27 @@ const generateTimeSlots = (start: string, end: string): string[] => {
   return slots;
 };
 
-// --- PUBLIC API for the database module ---
+// --- USER MANAGEMENT ---
 
-// User Management
 export const findUserByEmail = async (email: string) => {
-  return await prisma.user.findUnique({
-    where: { email: email.toLowerCase() },
-  });
+  const db = await getDb();
+  const result = await db
+    .select()
+    .from(schema.users)
+    .where(eq(schema.users.email, email.toLowerCase()))
+    .limit(1);
+  return result[0] || null;
 };
 
 export const findUserByTelegramId = async (telegramId: number): Promise<User | null> => {
-  const user = await prisma.user.findFirst({
-    where: { telegramId },
-  });
+  const db = await getDb();
+  const result = await db
+    .select()
+    .from(schema.users)
+    .where(eq(schema.users.telegramId, telegramId))
+    .limit(1);
 
+  const user = result[0];
   if (!user) return null;
 
   return {
@@ -127,10 +131,10 @@ export const findUserByTelegramId = async (telegramId: number): Promise<User | n
 };
 
 export const findUserById = async (id: string): Promise<User | null> => {
-  const user = await prisma.user.findUnique({
-    where: { id },
-  });
+  const db = await getDb();
+  const result = await db.select().from(schema.users).where(eq(schema.users.id, id)).limit(1);
 
+  const user = result[0];
   if (!user) return null;
 
   return {
@@ -144,57 +148,50 @@ export const findUserById = async (id: string): Promise<User | null> => {
 };
 
 export const createUserFromOAuth = async (userData: Omit<User, 'id' | 'role'>): Promise<User> => {
-  // First, check by whatsappPhone if it's a WhatsApp login
+  const db = await getDb();
+
+  // Check for existing user
   let existingUser = null;
 
   if (userData.authProvider === 'whatsapp' && userData.whatsappPhone) {
-    existingUser = await prisma.user.findFirst({
-      where: { whatsappPhone: userData.whatsappPhone },
-    });
+    const result = await db
+      .select()
+      .from(schema.users)
+      .where(eq(schema.users.whatsappPhone, userData.whatsappPhone))
+      .limit(1);
+    existingUser = result[0];
   } else if (userData.authProvider === 'telegram' && userData.telegramId) {
-    existingUser = await prisma.user.findFirst({
-      where: { telegramId: userData.telegramId },
-    });
+    const result = await db
+      .select()
+      .from(schema.users)
+      .where(eq(schema.users.telegramId, userData.telegramId))
+      .limit(1);
+    existingUser = result[0];
   }
 
-  // Fallback to email check
   if (!existingUser) {
     existingUser = await findUserByEmail(userData.email);
   }
 
   if (existingUser) {
-    // For returning users: only update fields that should change
-    const updateData: any = {
-      authProvider: userData.authProvider,
-    };
+    // Update existing user
+    const updateData: any = { authProvider: userData.authProvider };
+    if (userData.whatsappPhone) updateData.whatsappPhone = userData.whatsappPhone;
+    if (userData.telegramId) updateData.telegramId = userData.telegramId;
+    if (userData.avatar) updateData.avatar = userData.avatar;
 
-    // Update phone/telegram ID if provided
-    if (userData.whatsappPhone) {
-      updateData.whatsappPhone = userData.whatsappPhone;
-    }
-    if (userData.telegramId) {
-      updateData.telegramId = userData.telegramId;
-    }
-    if (userData.avatar) {
-      updateData.avatar = userData.avatar;
-    }
-
-    // Only update name if:
-    // 1. User provided a new name AND
-    // 2. It's not the fallback name pattern (WhatsApp User XXXX or User XXXX)
     const isFallbackName =
       userData.name &&
       (userData.name.startsWith('WhatsApp User') || userData.name.startsWith('User '));
+    if (userData.name && !isFallbackName) updateData.name = userData.name;
 
-    if (userData.name && !isFallbackName) {
-      updateData.name = userData.name;
-    }
+    const result = await db
+      .update(schema.users)
+      .set({ ...updateData, updatedAt: new Date() })
+      .where(eq(schema.users.id, existingUser.id))
+      .returning();
 
-    const updatedUser = await prisma.user.update({
-      where: { id: existingUser.id },
-      data: updateData,
-    });
-
+    const updatedUser = result[0];
     return {
       ...updatedUser,
       role: updatedUser.role as 'CUSTOMER' | 'ADMIN',
@@ -205,9 +202,10 @@ export const createUserFromOAuth = async (userData: Omit<User, 'id' | 'role'>): 
     };
   }
 
-  // New user creation
-  const newUser = await prisma.user.create({
-    data: {
+  // Create new user
+  const result = await db
+    .insert(schema.users)
+    .values({
       name: userData.name || `User ${userData.whatsappPhone?.slice(-4) || 'Unknown'}`,
       email: userData.email.toLowerCase(),
       role: 'CUSTOMER',
@@ -215,9 +213,10 @@ export const createUserFromOAuth = async (userData: Omit<User, 'id' | 'role'>): 
       telegramId: userData.telegramId,
       whatsappPhone: userData.whatsappPhone,
       avatar: userData.avatar,
-    },
-  });
+    })
+    .returning();
 
+  const newUser = result[0];
   return {
     ...newUser,
     role: newUser.role as 'CUSTOMER' | 'ADMIN',
@@ -229,19 +228,20 @@ export const createUserFromOAuth = async (userData: Omit<User, 'id' | 'role'>): 
 };
 
 export const promoteUserToAdmin = async (email: string): Promise<User | null> => {
-  const user = await prisma.user.findUnique({
-    where: { email: email.toLowerCase() },
-  });
+  const db = await getDb();
+  const user = await findUserByEmail(email);
 
   if (!user) {
     throw new Error('User not found. Please login via WhatsApp/Telegram first.');
   }
 
-  const updatedUser = await prisma.user.update({
-    where: { email: email.toLowerCase() },
-    data: { role: 'ADMIN' },
-  });
+  const result = await db
+    .update(schema.users)
+    .set({ role: 'ADMIN', updatedAt: new Date() })
+    .where(eq(schema.users.email, email.toLowerCase()))
+    .returning();
 
+  const updatedUser = result[0];
   return {
     ...updatedUser,
     role: updatedUser.role as 'CUSTOMER' | 'ADMIN',
@@ -252,44 +252,44 @@ export const promoteUserToAdmin = async (email: string): Promise<User | null> =>
   };
 };
 
-// Service Management
+// --- SERVICE MANAGEMENT ---
+
 export const getServices = unstable_cache(
   async (): Promise<Service[]> => {
-    const services = await prisma.service.findMany({
-      where: { isActive: true },
-    });
+    const db = await getDb();
+    const services = await db
+      .select()
+      .from(schema.services)
+      .where(eq(schema.services.isActive, true));
     return services.map(s => ({
       ...s,
       subtitle: s.subtitle ?? undefined,
       description: s.description ?? undefined,
       maxPrice: s.maxPrice ?? undefined,
       imageUrl: s.imageUrl ?? undefined,
+      tags: s.tags ?? [],
     }));
   },
   ['services'],
-  {
-    tags: [CACHE_TAGS.SERVICES],
-    revalidate: false,
-  },
+  { tags: [CACHE_TAGS.SERVICES], revalidate: false },
 );
 
 export const getServiceCategories = unstable_cache(
   async (): Promise<ServiceCategory[]> => {
-    const categories = await prisma.serviceCategory.findMany({
-      include: {
-        items: {
-          where: { isActive: true },
-          include: {
-            addons: true,
-            serviceTags: {
-              include: {
-                tag: true,
-              },
-            },
-          },
-        },
-      },
-    });
+    const db = await getDb();
+
+    // Get categories
+    const categories = await db.select().from(schema.serviceCategories);
+
+    // Get services with addons for each category
+    const servicesWithAddons = await db
+      .select()
+      .from(schema.services)
+      .where(eq(schema.services.isActive, true));
+
+    const addons = await db.select().from(schema.serviceAddons);
+    const tagRelations = await db.select().from(schema.serviceTagRelations);
+    const tags = await db.select().from(schema.serviceTags);
 
     return categories.map(cat => ({
       ...cat,
@@ -303,38 +303,45 @@ export const getServiceCategories = unstable_cache(
       isFeatured: cat.isFeatured ?? undefined,
       imageUrl: cat.imageUrl ?? undefined,
       illustrationUrl: cat.illustrationUrl ?? undefined,
-      items: cat.items.map(s => ({
-        ...s,
-        subtitle: s.subtitle ?? undefined,
-        description: s.description ?? undefined,
-        maxPrice: s.maxPrice ?? undefined,
-        imageUrl: s.imageUrl ?? undefined,
-        addons: s.addons?.map(a => ({
-          ...a,
-          description: a.description ?? undefined,
-          benefits: (a.benefits as string[]) ?? undefined,
+      items: servicesWithAddons
+        .filter(s => s.categoryId === cat.id)
+        .map(s => ({
+          ...s,
+          subtitle: s.subtitle ?? undefined,
+          description: s.description ?? undefined,
+          maxPrice: s.maxPrice ?? undefined,
+          imageUrl: s.imageUrl ?? undefined,
+          addons: addons
+            .filter(a => a.serviceId === s.id)
+            .map(a => ({
+              ...a,
+              description: a.description ?? undefined,
+              benefits: (a.benefits as string[]) ?? undefined,
+            })),
+          tags: s.tags ?? [],
         })),
-      })),
     }));
   },
   ['service-categories'],
-  {
-    tags: [CACHE_TAGS.SERVICE_CATEGORIES],
-    revalidate: false,
-  },
+  { tags: [CACHE_TAGS.SERVICE_CATEGORIES], revalidate: false },
 );
 
 export async function getServiceById(id: string): Promise<Service | null> {
   const getCachedService = unstable_cache(
     async () => {
-      const service = await prisma.service.findUnique({
-        where: { id },
-        include: {
-          addons: true,
-        },
-      });
-
+      const db = await getDb();
+      const result = await db
+        .select()
+        .from(schema.services)
+        .where(eq(schema.services.id, id))
+        .limit(1);
+      const service = result[0];
       if (!service) return null;
+
+      const addons = await db
+        .select()
+        .from(schema.serviceAddons)
+        .where(eq(schema.serviceAddons.serviceId, id));
 
       return {
         ...service,
@@ -342,78 +349,80 @@ export async function getServiceById(id: string): Promise<Service | null> {
         description: service.description ?? undefined,
         maxPrice: service.maxPrice ?? undefined,
         imageUrl: service.imageUrl ?? undefined,
-        addons: service.addons?.map(a => ({
+        addons: addons.map(a => ({
           ...a,
           description: a.description ?? undefined,
           benefits: (a.benefits as string[]) ?? undefined,
         })),
+        tags: service.tags ?? [],
       };
     },
     ['service', id],
-    {
-      tags: [CACHE_TAGS.SERVICE_BY_ID(id), CACHE_TAGS.SERVICES],
-      revalidate: false,
-    },
+    { tags: [CACHE_TAGS.SERVICE_BY_ID(id), CACHE_TAGS.SERVICES], revalidate: false },
   );
 
   return getCachedService();
 }
 
-// Appointment Management
-export const getAppointments = async (): Promise<Appointment[]> => {
-  const appointments = await prisma.appointment.findMany({
-    include: {
-      stylist: true,
-      category: true, // Include category relation
-    },
-    orderBy: { date: 'asc' },
-  });
+// --- APPOINTMENT MANAGEMENT ---
 
+export const getAppointments = async (): Promise<Appointment[]> => {
+  const db = await getDb();
+  const appointments = await db
+    .select()
+    .from(schema.appointments)
+    .orderBy(asc(schema.appointments.date));
+  const stylists = await db.select().from(schema.stylists);
+  const categories = await db.select().from(schema.serviceCategories);
   const allServices = await getServices();
 
-  return appointments.map(apt => ({
-    ...apt,
-    services: Array.isArray(apt.services) ? (apt.services as unknown as Service[]) : [],
-    stylistId: apt.stylistId ?? undefined,
-    stylist: apt.stylist
-      ? {
-          ...apt.stylist,
-          email: apt.stylist.email ?? undefined,
-          bio: apt.stylist.bio ?? undefined,
-          avatar: apt.stylist.avatar ?? undefined,
-          specialties: Array.isArray(apt.stylist.specialties)
-            ? ((apt.stylist.specialties as any[])
-                .map(id => allServices.find(s => s.id === normalizeServiceId(id)))
-                .filter(Boolean) as Service[])
-            : [],
-          workingHours: (apt.stylist.workingHours as any) || getDefaultWorkingHours(),
-          blockedDates:
-            apt.stylist.blockedDates && Array.isArray(apt.stylist.blockedDates)
-              ? (apt.stylist.blockedDates as string[])
+  return appointments.map(apt => {
+    const stylist = stylists.find(s => s.id === apt.stylistId);
+    const category = categories.find(c => c.id === apt.categoryId);
+
+    return {
+      ...apt,
+      services: Array.isArray(apt.services) ? (apt.services as unknown as Service[]) : [],
+      stylistId: apt.stylistId ?? undefined,
+      stylist: stylist
+        ? {
+            ...stylist,
+            email: stylist.email ?? undefined,
+            bio: stylist.bio ?? undefined,
+            avatar: stylist.avatar ?? undefined,
+            specialties: Array.isArray(stylist.specialties)
+              ? ((stylist.specialties as any[])
+                  .map(id => allServices.find(s => s.id === normalizeServiceId(id)))
+                  .filter(Boolean) as Service[])
               : [],
-        }
-      : undefined,
-    calendarEventId: apt.calendarEventId ?? undefined,
-    // Category-based booking fields
-    categoryId: apt.categoryId ?? undefined,
-    category: apt.category
-      ? {
-          ...apt.category,
-          shortTitle: apt.category.shortTitle ?? undefined,
-          description: apt.category.description ?? undefined,
-          icon: apt.category.icon ?? undefined,
-          priceRangeMin: apt.category.priceRangeMin ?? undefined,
-          priceRangeMax: apt.category.priceRangeMax ?? undefined,
-          priceNote: apt.category.priceNote ?? undefined,
-          estimatedDuration: apt.category.estimatedDuration ?? undefined,
-          isFeatured: apt.category.isFeatured ?? undefined,
-          imageUrl: apt.category.imageUrl ?? undefined,
-          illustrationUrl: apt.category.illustrationUrl ?? undefined,
-          items: [], // Don't load all services for appointments
-        }
-      : undefined,
-    estimatedDuration: apt.estimatedDuration ?? undefined,
-  }));
+            workingHours: (stylist.workingHours as any) || getDefaultWorkingHours(),
+            blockedDates:
+              stylist.blockedDates && Array.isArray(stylist.blockedDates)
+                ? (stylist.blockedDates as string[])
+                : [],
+          }
+        : undefined,
+      calendarEventId: apt.calendarEventId ?? undefined,
+      categoryId: apt.categoryId ?? undefined,
+      category: category
+        ? {
+            ...category,
+            shortTitle: category.shortTitle ?? undefined,
+            description: category.description ?? undefined,
+            icon: category.icon ?? undefined,
+            priceRangeMin: category.priceRangeMin ?? undefined,
+            priceRangeMax: category.priceRangeMax ?? undefined,
+            priceNote: category.priceNote ?? undefined,
+            estimatedDuration: category.estimatedDuration ?? undefined,
+            isFeatured: category.isFeatured ?? undefined,
+            imageUrl: category.imageUrl ?? undefined,
+            illustrationUrl: category.illustrationUrl ?? undefined,
+            items: [],
+          }
+        : undefined,
+      estimatedDuration: apt.estimatedDuration ?? undefined,
+    };
+  });
 };
 
 const getDefaultWeeklySchedule = () => ({
@@ -427,9 +436,11 @@ const getDefaultWeeklySchedule = () => ({
 });
 
 export const getAdminSettings = async (): Promise<AdminSettings> => {
-  const settings = await prisma.adminSettings.findFirst();
+  const db = await getDb();
+  const result = await db.select().from(schema.adminSettings).limit(1);
+  const settings = result[0];
+
   if (!settings) {
-    // Return default settings if none exist
     return {
       weeklySchedule: getDefaultWeeklySchedule(),
       specialClosures: [],
@@ -440,23 +451,16 @@ export const getAdminSettings = async (): Promise<AdminSettings> => {
     };
   }
 
-  // Migrate legacy closedDates (string[]) to specialClosures (BlockedPeriod[])
+  // Migrate legacy closedDates to specialClosures
   let specialClosures: BlockedPeriod[] = [];
   if (settings.closedDates && Array.isArray(settings.closedDates)) {
-    const rawClosures = settings.closedDates as any[];
-    specialClosures = rawClosures
+    specialClosures = (settings.closedDates as any[])
       .map(item => {
-        // If it's already a BlockedPeriod object, use it
         if (typeof item === 'object' && item !== null && 'date' in item) {
           return item as BlockedPeriod;
         }
-        // If it's a legacy string date, convert to full-day closure
         if (typeof item === 'string') {
-          return {
-            date: item,
-            isFullDay: true,
-            reason: undefined,
-          };
+          return { date: item, isFullDay: true, reason: undefined };
         }
         return null;
       })
@@ -484,82 +488,74 @@ export const getAdminSettings = async (): Promise<AdminSettings> => {
 export const updateAdminSettings = async (
   newSettings: Partial<AdminSettings>,
 ): Promise<AdminSettings> => {
-  const existingSettings = await prisma.adminSettings.findFirst();
+  const db = await getDb();
+  const existing = await db.select().from(schema.adminSettings).limit(1);
   const currentSettings = await getAdminSettings();
 
-  if (existingSettings) {
-    const updated = await prisma.adminSettings.update({
-      where: { id: existingSettings.id },
-      data: {
+  if (existing.length > 0) {
+    await db
+      .update(schema.adminSettings)
+      .set({
         weeklySchedule: (newSettings.weeklySchedule ?? currentSettings.weeklySchedule) as any,
         closedDates: (newSettings.specialClosures ?? currentSettings.specialClosures) as any,
-        businessName: newSettings.businessName ?? existingSettings.businessName,
-        businessAddress: newSettings.businessAddress ?? existingSettings.businessAddress,
-        businessPhone: newSettings.businessPhone ?? existingSettings.businessPhone,
+        businessName: newSettings.businessName ?? existing[0].businessName,
+        businessAddress: newSettings.businessAddress ?? existing[0].businessAddress,
+        businessPhone: newSettings.businessPhone ?? existing[0].businessPhone,
         blockedSlots: (newSettings.blockedSlots ?? currentSettings.blockedSlots) as any,
-      },
-    });
-
-    return await getAdminSettings();
+        updatedAt: new Date(),
+      })
+      .where(eq(schema.adminSettings.id, existing[0].id));
   } else {
-    await prisma.adminSettings.create({
-      data: {
-        weeklySchedule: (newSettings.weeklySchedule ?? getDefaultWeeklySchedule()) as any,
-        closedDates: (newSettings.specialClosures ?? []) as any,
-        blockedSlots: (newSettings.blockedSlots ?? {}) as any,
-        businessName: newSettings.businessName ?? 'Signature Trims Hair Salon',
-        businessAddress:
-          newSettings.businessAddress ?? '930 Yishun Avenue 1 #01-127, Singapore 760930',
-        businessPhone: newSettings.businessPhone ?? '(555) 123-4567',
-      },
+    await db.insert(schema.adminSettings).values({
+      weeklySchedule: (newSettings.weeklySchedule ?? getDefaultWeeklySchedule()) as any,
+      closedDates: (newSettings.specialClosures ?? []) as any,
+      blockedSlots: (newSettings.blockedSlots ?? {}) as any,
+      businessName: newSettings.businessName ?? 'Signature Trims Hair Salon',
+      businessAddress:
+        newSettings.businessAddress ?? '930 Yishun Avenue 1 #01-127, Singapore 760930',
+      businessPhone: newSettings.businessPhone ?? '(555) 123-4567',
     });
-
-    return await getAdminSettings();
   }
+
+  return await getAdminSettings();
 };
 
-/**
- * Get general availability for a date (cached with 30s TTL)
- * Uses unstable_cache for server-side caching with tag-based invalidation
- */
+// --- AVAILABILITY ---
+
 export const getAvailability = async (date: Date): Promise<string[]> => {
   const dateKey = dateToKey(date);
 
-  // Create a cached version using the date key
   const getCachedAvailability = unstable_cache(
     async (dateKeyParam: string) => {
+      const db = await getDb();
       const settings = await getAdminSettings();
 
-      // Check if date has a full-day closure
+      // Check for full-day closure
       const fullDayClosure = settings.specialClosures.find(
         closure => closure.date === dateKeyParam && closure.isFullDay,
       );
-      if (fullDayClosure) {
-        return []; // Store is closed on this date
-      }
+      if (fullDayClosure) return [];
 
-      // Get day of week and check if store is open
+      // Get day schedule
       const dateObj = new Date(dateKeyParam + 'T12:00:00.000Z');
       const dayOfWeek = dateObj.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
       const daySchedule =
         settings.weeklySchedule[dayOfWeek as keyof typeof settings.weeklySchedule];
 
-      if (!daySchedule || !daySchedule.isOpen) {
-        return []; // Store is closed on this day of week
-      }
+      if (!daySchedule || !daySchedule.isOpen) return [];
 
-      // Generate time slots based on day-specific hours
       const allSlots = generateTimeSlots(daySchedule.openingTime, daySchedule.closingTime);
 
-      // Get booked appointments for this date
-      const appointments = await prisma.appointment.findMany({
-        where: {
-          date: {
-            gte: new Date(dateKeyParam + 'T00:00:00.000Z'),
-            lt: new Date(dateKeyParam + 'T23:59:59.999Z'),
-          },
-        },
-      });
+      // Get booked appointments
+      const appointments = await db
+        .select()
+        .from(schema.appointments)
+        .where(
+          and(
+            gte(schema.appointments.date, new Date(dateKeyParam + 'T00:00:00.000Z')),
+            lt(schema.appointments.date, new Date(dateKeyParam + 'T23:59:59.999Z')),
+          ),
+        );
 
       const bookedSlots = new Set<string>();
       appointments.forEach(app => {
@@ -576,73 +572,52 @@ export const getAvailability = async (date: Date): Promise<string[]> => {
       return allSlots.filter(slot => !bookedSlots.has(slot) && !blockedByAdmin.has(slot));
     },
     ['availability', dateKey],
-    {
-      tags: [CACHE_TAGS.AVAILABILITY, CACHE_TAGS.AVAILABILITY_BY_DATE(dateKey)],
-      revalidate: 30, // 30 seconds TTL as fallback
-    },
+    { tags: [CACHE_TAGS.AVAILABILITY, CACHE_TAGS.AVAILABILITY_BY_DATE(dateKey)], revalidate: 30 },
   );
 
   return getCachedAvailability(dateKey);
 };
 
-/**
- * Get stylist-specific availability for a date (cached with 30s TTL)
- * Uses unstable_cache for server-side caching with tag-based invalidation
- */
 export const getStylistAvailability = async (date: Date, stylistId: string): Promise<string[]> => {
   const dateKey = dateToKey(date);
 
-  // Create a cached version using date key and stylist ID
   const getCachedStylistAvailability = unstable_cache(
     async (dateKeyParam: string, stylistIdParam: string) => {
+      const db = await getDb();
       const dateObj = new Date(dateKeyParam + 'T12:00:00.000Z');
       const dayOfWeek = dateObj.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
 
-      // Get stylist information including working hours
       const stylist = await getStylistById(stylistIdParam);
-      if (!stylist || !stylist.isActive) {
-        return []; // Inactive stylist has no availability
-      }
+      if (!stylist || !stylist.isActive) return [];
 
-      // Check if stylist has blocked this date (holidays/breaks)
-      // Handle both string[] and BlockedPeriod[] formats
+      // Check if date is blocked
       const isDateBlocked = stylist.blockedDates?.some(d => {
         const dateStr = typeof d === 'string' ? d : d.date;
         return dateStr === dateKeyParam;
       });
-      if (isDateBlocked) {
-        return []; // Stylist is not available on this date
-      }
+      if (isDateBlocked) return [];
 
-      // Check if stylist is working on this day
       if (!stylist.workingHours || typeof stylist.workingHours !== 'object') {
-        console.warn(
-          `Stylist ${stylistIdParam} has invalid workingHours, falling back to salon hours`,
-        );
-        // Fall back to salon's general availability instead of returning empty
         return await getAvailability(dateObj);
       }
 
       const workingHours = stylist.workingHours[dayOfWeek as keyof typeof stylist.workingHours];
-      if (!workingHours || !workingHours.isWorking) {
-        return []; // Stylist doesn't work on this day
-      }
+      if (!workingHours || !workingHours.isWorking) return [];
 
-      // Generate time slots based on stylist's working hours
       const stylistSlots = generateTimeSlots(workingHours.start, workingHours.end);
 
-      // Get appointments for this stylist on this date
-      const stylistAppointments = await prisma.appointment.findMany({
-        where: {
-          stylistId: stylistIdParam,
-          date: {
-            gte: new Date(dateKeyParam + 'T00:00:00.000Z'),
-            lt: new Date(dateKeyParam + 'T23:59:59.999Z'),
-          },
-        },
-      });
+      // Get stylist appointments
+      const stylistAppointments = await db
+        .select()
+        .from(schema.appointments)
+        .where(
+          and(
+            eq(schema.appointments.stylistId, stylistIdParam),
+            gte(schema.appointments.date, new Date(dateKeyParam + 'T00:00:00.000Z')),
+            lt(schema.appointments.date, new Date(dateKeyParam + 'T23:59:59.999Z')),
+          ),
+        );
 
-      // Calculate booked slots for this stylist
       const bookedSlots = new Set<string>();
       stylistAppointments.forEach(app => {
         let appTime = new Date(`1970-01-01T${app.time}:00`);
@@ -653,11 +628,9 @@ export const getStylistAvailability = async (date: Date, stylistId: string): Pro
         }
       });
 
-      // Get admin blocked slots for this date
       const settings = await getAdminSettings();
       const blockedByAdmin = new Set<string>(settings.blockedSlots[dateKeyParam] || []);
 
-      // Return available slots for this stylist
       return stylistSlots.filter(slot => !bookedSlots.has(slot) && !blockedByAdmin.has(slot));
     },
     ['stylist-availability', dateKey, stylistId],
@@ -667,48 +640,43 @@ export const getStylistAvailability = async (date: Date, stylistId: string): Pro
         CACHE_TAGS.AVAILABILITY_BY_DATE(dateKey),
         CACHE_TAGS.AVAILABILITY_BY_STYLIST(stylistId, dateKey),
       ],
-      revalidate: 30, // 30 seconds TTL as fallback
+      revalidate: 30,
     },
   );
 
   return getCachedStylistAvailability(dateKey, stylistId);
 };
 
+// --- BOOKING ---
+
 export const bookNewAppointment = async (
   appointmentData: CreateAppointmentInput,
 ): Promise<Appointment> => {
+  const db = await getDb();
+
   const availableSlots = appointmentData.stylistId
     ? await getStylistAvailability(appointmentData.date, appointmentData.stylistId)
     : await getAvailability(appointmentData.date);
 
-  // Determine if this is category-based or service-based booking
   const isCategoryBased = Boolean(appointmentData.categoryId);
 
   let totalPrice = 0;
   let totalDuration = 0;
 
   if (isCategoryBased && appointmentData.estimatedDuration) {
-    // Category-based booking: use estimated duration, no upfront price
     totalDuration = appointmentData.estimatedDuration;
-    totalPrice = 0; // Price TBD during appointment
+    totalPrice = 0;
   } else {
-    // Legacy service-based booking: calculate from services
     const result = appointmentData.services.reduce(
       (acc, service) => {
         acc.totalPrice += service.basePrice;
         acc.totalDuration += service.duration;
-
-        // Include selected add-ons in price and duration
         if (service.addons && Array.isArray(service.addons)) {
           service.addons.forEach(addon => {
             acc.totalPrice += addon.basePrice;
-            // Add addon duration if it exists
-            if (addon.duration) {
-              acc.totalDuration += addon.duration;
-            }
+            if (addon.duration) acc.totalDuration += addon.duration;
           });
         }
-
         return acc;
       },
       { totalPrice: 0, totalDuration: 0 },
@@ -724,38 +692,32 @@ export const bookNewAppointment = async (
     slotToCheck.setMinutes(slotToCheck.getMinutes() + i * 30);
     const timeString = slotToCheck.toTimeString().substring(0, 5);
     if (!availableSlots.includes(timeString)) {
-      throw new Error(
-        `Booking conflict. Not enough consecutive slots available for the selected services.`,
-      );
+      throw new Error('Booking conflict. Not enough consecutive slots available.');
     }
   }
 
-  const newAppointment = await prisma.appointment.create({
-    data: {
+  const result = await db
+    .insert(schema.appointments)
+    .values({
       date: appointmentData.date,
       time: appointmentData.time,
       services: appointmentData.services as any,
       stylistId: appointmentData.stylistId,
       customerName: appointmentData.customerName,
       customerEmail: appointmentData.customerEmail,
-      userId: appointmentData.userId, // Link to user account if available
+      userId: appointmentData.userId,
       totalPrice,
       totalDuration,
-      // Category-based fields (optional)
       categoryId: appointmentData.categoryId,
       estimatedDuration: appointmentData.estimatedDuration,
-    },
-    include: {
-      stylist: true,
-      category: true,
-    },
-  });
+    })
+    .returning();
 
-  // Revalidate availability cache for this date (and stylist if applicable)
+  const newAppointment = result[0];
+
+  // Revalidate cache
   const dateKey = dateToKey(appointmentData.date);
   revalidateAvailability(dateKey, appointmentData.stylistId);
-
-  const allServices = await getServices();
 
   return {
     ...newAppointment,
@@ -763,32 +725,8 @@ export const bookNewAppointment = async (
       ? (newAppointment.services as unknown as Service[])
       : [],
     stylistId: newAppointment.stylistId ?? undefined,
-    stylist: newAppointment.stylist
-      ? {
-          id: newAppointment.stylist.id,
-          name: newAppointment.stylist.name,
-          email: newAppointment.stylist.email ?? undefined,
-        }
-      : undefined,
     calendarEventId: newAppointment.calendarEventId ?? undefined,
-    // Category-based booking fields
     categoryId: newAppointment.categoryId ?? undefined,
-    category: newAppointment.category
-      ? {
-          ...newAppointment.category,
-          shortTitle: newAppointment.category.shortTitle ?? undefined,
-          description: newAppointment.category.description ?? undefined,
-          icon: newAppointment.category.icon ?? undefined,
-          priceRangeMin: newAppointment.category.priceRangeMin ?? undefined,
-          priceRangeMax: newAppointment.category.priceRangeMax ?? undefined,
-          priceNote: newAppointment.category.priceNote ?? undefined,
-          estimatedDuration: newAppointment.category.estimatedDuration ?? undefined,
-          isFeatured: newAppointment.category.isFeatured ?? undefined,
-          imageUrl: newAppointment.category.imageUrl ?? undefined,
-          illustrationUrl: newAppointment.category.illustrationUrl ?? undefined,
-          items: [], // Don't load all services for appointments
-        }
-      : undefined,
     estimatedDuration: newAppointment.estimatedDuration ?? undefined,
   };
 };
@@ -798,28 +736,28 @@ export const cancelAppointment = async (details: {
   date: string;
   time: string;
 }): Promise<Appointment> => {
+  const db = await getDb();
   const { customerEmail, date, time } = details;
 
-  const appointment = await prisma.appointment.findFirst({
-    where: {
-      customerEmail: { equals: customerEmail, mode: 'insensitive' },
-      date: {
-        gte: new Date(date + 'T00:00:00.000Z'),
-        lt: new Date(date + 'T23:59:59.999Z'),
-      },
-      time: time,
-    },
-  });
+  const appointments = await db
+    .select()
+    .from(schema.appointments)
+    .where(
+      and(
+        sql`LOWER(${schema.appointments.customerEmail}) = LOWER(${customerEmail})`,
+        gte(schema.appointments.date, new Date(date + 'T00:00:00.000Z')),
+        lt(schema.appointments.date, new Date(date + 'T23:59:59.999Z')),
+        eq(schema.appointments.time, time),
+      ),
+    );
 
+  const appointment = appointments[0];
   if (!appointment) {
     throw new Error('Appointment not found. Please check the details provided.');
   }
 
-  await prisma.appointment.delete({
-    where: { id: appointment.id },
-  });
+  await db.delete(schema.appointments).where(eq(schema.appointments.id, appointment.id));
 
-  // Revalidate availability cache for this date (and stylist if applicable)
   revalidateAvailability(date, appointment.stylistId ?? undefined);
 
   return {
@@ -829,7 +767,6 @@ export const cancelAppointment = async (details: {
       : [],
     stylistId: appointment.stylistId ?? undefined,
     calendarEventId: appointment.calendarEventId ?? undefined,
-    // Category-based booking fields
     categoryId: appointment.categoryId ?? undefined,
     estimatedDuration: appointment.estimatedDuration ?? undefined,
   };
@@ -843,12 +780,8 @@ export const blockSlot = async (
   const dateKey = dateToKey(date);
 
   const updatedBlockedSlots = { ...settings.blockedSlots };
-  if (!updatedBlockedSlots[dateKey]) {
-    updatedBlockedSlots[dateKey] = [];
-  }
-  if (!updatedBlockedSlots[dateKey].includes(time)) {
-    updatedBlockedSlots[dateKey].push(time);
-  }
+  if (!updatedBlockedSlots[dateKey]) updatedBlockedSlots[dateKey] = [];
+  if (!updatedBlockedSlots[dateKey].includes(time)) updatedBlockedSlots[dateKey].push(time);
 
   await updateAdminSettings({ blockedSlots: updatedBlockedSlots });
   return updatedBlockedSlots;
@@ -874,16 +807,21 @@ export const updateAppointmentCalendarId = async (
   appointmentId: string,
   calendarEventId: string,
 ): Promise<void> => {
-  await prisma.appointment.update({
-    where: { id: appointmentId },
-    data: { calendarEventId },
-  });
+  const db = await getDb();
+  await db
+    .update(schema.appointments)
+    .set({ calendarEventId, updatedAt: new Date() })
+    .where(eq(schema.appointments.id, appointmentId));
 };
 
 export const findAppointmentById = async (id: string): Promise<Appointment | null> => {
-  const appointment = await prisma.appointment.findUnique({
-    where: { id },
-  });
+  const db = await getDb();
+  const result = await db
+    .select()
+    .from(schema.appointments)
+    .where(eq(schema.appointments.id, id))
+    .limit(1);
+  const appointment = result[0];
 
   if (!appointment) return null;
 
@@ -894,24 +832,23 @@ export const findAppointmentById = async (id: string): Promise<Appointment | nul
       : [],
     stylistId: appointment.stylistId ?? undefined,
     calendarEventId: appointment.calendarEventId ?? undefined,
-    // Category-based booking fields
     categoryId: appointment.categoryId ?? undefined,
     estimatedDuration: appointment.estimatedDuration ?? undefined,
   };
 };
 
 export const findAppointmentsByEmail = async (customerEmail: string): Promise<Appointment[]> => {
-  const appointments = await prisma.appointment.findMany({
-    where: {
-      customerEmail: { equals: customerEmail, mode: 'insensitive' },
-      date: { gte: new Date() }, // Only future appointments
-    },
-    include: {
-      category: true,
-      stylist: true,
-    },
-    orderBy: { date: 'asc' },
-  });
+  const db = await getDb();
+  const appointments = await db
+    .select()
+    .from(schema.appointments)
+    .where(
+      and(
+        sql`LOWER(${schema.appointments.customerEmail}) = LOWER(${customerEmail})`,
+        gte(schema.appointments.date, new Date()),
+      ),
+    )
+    .orderBy(asc(schema.appointments.date));
 
   return appointments.map(appointment => ({
     ...appointment,
@@ -920,12 +857,8 @@ export const findAppointmentsByEmail = async (customerEmail: string): Promise<Ap
       : [],
     stylistId: appointment.stylistId ?? undefined,
     calendarEventId: appointment.calendarEventId ?? undefined,
-    // Category-based booking fields
     categoryId: appointment.categoryId ?? undefined,
     estimatedDuration: appointment.estimatedDuration ?? undefined,
-    // Convert null to undefined and cast for type compatibility
-    category: (appointment.category ?? undefined) as ServiceCategory | undefined,
-    stylist: (appointment.stylist ?? undefined) as Stylist | undefined,
   }));
 };
 
@@ -944,21 +877,20 @@ export const updateAppointment = async (
     estimatedDuration?: number | null;
   },
 ): Promise<Appointment> => {
-  // Check if the updated time slot is available (excluding the current appointment)
-  const availableSlots = await getAvailability(appointmentData.date);
-  const numSlotsRequired = Math.ceil(appointmentData.totalDuration / 30);
-
-  // Get existing appointments for this date excluding the current one
+  const db = await getDb();
   const dateKey = dateToKey(appointmentData.date);
-  const existingAppointments = await prisma.appointment.findMany({
-    where: {
-      date: {
-        gte: new Date(dateKey + 'T00:00:00.000Z'),
-        lt: new Date(dateKey + 'T23:59:59.999Z'),
-      },
-      id: { not: id }, // Exclude current appointment
-    },
-  });
+
+  // Check conflicts excluding current appointment
+  const existingAppointments = await db
+    .select()
+    .from(schema.appointments)
+    .where(
+      and(
+        gte(schema.appointments.date, new Date(dateKey + 'T00:00:00.000Z')),
+        lt(schema.appointments.date, new Date(dateKey + 'T23:59:59.999Z')),
+        not(eq(schema.appointments.id, id)),
+      ),
+    );
 
   const bookedSlots = new Set<string>();
   existingAppointments.forEach(app => {
@@ -970,36 +902,38 @@ export const updateAppointment = async (
     }
   });
 
-  // Check if the new time slots are available
+  const numSlotsRequired = Math.ceil(appointmentData.totalDuration / 30);
   for (let i = 0; i < numSlotsRequired; i++) {
     const slotToCheck = new Date(`1970-01-01T${appointmentData.time}:00`);
     slotToCheck.setMinutes(slotToCheck.getMinutes() + i * 30);
     const timeString = slotToCheck.toTimeString().substring(0, 5);
     if (bookedSlots.has(timeString)) {
-      throw new Error(
-        `Booking conflict. Time slot ${timeString} is already booked for the selected date.`,
-      );
+      throw new Error(`Booking conflict. Time slot ${timeString} is already booked.`);
     }
   }
 
-  const updatedAppointment = await prisma.appointment.update({
-    where: { id },
-    data: {
-      customerName: appointmentData.customerName,
-      customerEmail: appointmentData.customerEmail,
-      date: appointmentData.date,
-      time: appointmentData.time,
-      services: appointmentData.services as any,
-      totalPrice: appointmentData.totalPrice,
-      totalDuration: appointmentData.totalDuration,
-      // Optional fields - only update if explicitly provided
-      ...(appointmentData.stylistId !== undefined && { stylistId: appointmentData.stylistId }),
-      ...(appointmentData.categoryId !== undefined && { categoryId: appointmentData.categoryId }),
-      ...(appointmentData.estimatedDuration !== undefined && {
-        estimatedDuration: appointmentData.estimatedDuration,
-      }),
-    },
-  });
+  const updateData: any = {
+    customerName: appointmentData.customerName,
+    customerEmail: appointmentData.customerEmail,
+    date: appointmentData.date,
+    time: appointmentData.time,
+    services: appointmentData.services,
+    totalPrice: appointmentData.totalPrice,
+    totalDuration: appointmentData.totalDuration,
+    updatedAt: new Date(),
+  };
+
+  if (appointmentData.stylistId !== undefined) updateData.stylistId = appointmentData.stylistId;
+  if (appointmentData.categoryId !== undefined) updateData.categoryId = appointmentData.categoryId;
+  if (appointmentData.estimatedDuration !== undefined)
+    updateData.estimatedDuration = appointmentData.estimatedDuration;
+
+  const result = await db
+    .update(schema.appointments)
+    .set(updateData)
+    .where(eq(schema.appointments.id, id))
+    .returning();
+  const updatedAppointment = result[0];
 
   return {
     ...updatedAppointment,
@@ -1008,26 +942,38 @@ export const updateAppointment = async (
       : [],
     stylistId: updatedAppointment.stylistId ?? undefined,
     calendarEventId: updatedAppointment.calendarEventId ?? undefined,
-    // Category-based booking fields
     categoryId: updatedAppointment.categoryId ?? undefined,
     estimatedDuration: updatedAppointment.estimatedDuration ?? undefined,
   };
 };
 
-// Stylist Management
-export const getStylists = async (): Promise<Stylist[]> => {
-  const stylists = await prisma.stylist.findMany({
-    where: { isActive: true },
-    orderBy: { name: 'asc' },
-  });
+// --- STYLIST MANAGEMENT ---
 
-  // Fetch all categories for specialty mapping
-  const allCategories = await prisma.serviceCategory.findMany({
-    orderBy: { sortOrder: 'asc' },
-  });
+function getDefaultWorkingHours(): Stylist['workingHours'] {
+  return {
+    monday: { start: '09:00', end: '17:00', isWorking: true },
+    tuesday: { start: '09:00', end: '17:00', isWorking: true },
+    wednesday: { start: '09:00', end: '17:00', isWorking: true },
+    thursday: { start: '09:00', end: '17:00', isWorking: true },
+    friday: { start: '09:00', end: '17:00', isWorking: true },
+    saturday: { start: '09:00', end: '15:00', isWorking: true },
+    sunday: { start: '10:00', end: '14:00', isWorking: false },
+  };
+}
+
+export const getStylists = async (): Promise<Stylist[]> => {
+  const db = await getDb();
+  const stylists = await db
+    .select()
+    .from(schema.stylists)
+    .where(eq(schema.stylists.isActive, true))
+    .orderBy(asc(schema.stylists.name));
+  const allCategories = await db
+    .select()
+    .from(schema.serviceCategories)
+    .orderBy(asc(schema.serviceCategories.sortOrder));
 
   return stylists.map(stylist => {
-    // Ensure workingHours is valid, otherwise use default
     let workingHours = getDefaultWorkingHours();
     if (
       stylist.workingHours &&
@@ -1035,14 +981,8 @@ export const getStylists = async (): Promise<Stylist[]> => {
       !Array.isArray(stylist.workingHours)
     ) {
       workingHours = stylist.workingHours as any;
-    } else if (stylist.workingHours) {
-      console.warn(
-        `Stylist ${stylist.id} has invalid workingHours structure, using defaults:`,
-        stylist.workingHours,
-      );
     }
 
-    // Map specialty category IDs to full ServiceCategory objects
     const specialtyCategoryIds = Array.isArray(stylist.specialties)
       ? (stylist.specialties as string[])
       : [];
@@ -1055,10 +995,7 @@ export const getStylists = async (): Promise<Stylist[]> => {
       specialties: specialtyCategoryIds
         .map(categoryId => allCategories.find(c => c.id === categoryId))
         .filter(Boolean)
-        .map(cat => ({
-          ...cat!,
-          items: [], // Categories don't need items for specialty display
-        })) as ServiceCategory[],
+        .map(cat => ({ ...cat!, items: [] })) as ServiceCategory[],
       workingHours,
       blockedDates:
         stylist.blockedDates && Array.isArray(stylist.blockedDates)
@@ -1069,18 +1006,17 @@ export const getStylists = async (): Promise<Stylist[]> => {
 };
 
 export const getStylistById = async (id: string): Promise<Stylist | null> => {
-  const stylist = await prisma.stylist.findUnique({
-    where: { id },
-  });
+  const db = await getDb();
+  const result = await db.select().from(schema.stylists).where(eq(schema.stylists.id, id)).limit(1);
+  const stylist = result[0];
 
   if (!stylist) return null;
 
-  // Fetch all categories for specialty mapping
-  const allCategories = await prisma.serviceCategory.findMany({
-    orderBy: { sortOrder: 'asc' },
-  });
+  const allCategories = await db
+    .select()
+    .from(schema.serviceCategories)
+    .orderBy(asc(schema.serviceCategories.sortOrder));
 
-  // Ensure workingHours is valid, otherwise use default
   let workingHours = getDefaultWorkingHours();
   if (
     stylist.workingHours &&
@@ -1088,14 +1024,8 @@ export const getStylistById = async (id: string): Promise<Stylist | null> => {
     !Array.isArray(stylist.workingHours)
   ) {
     workingHours = stylist.workingHours as any;
-  } else if (stylist.workingHours) {
-    console.warn(
-      `Stylist ${id} has invalid workingHours structure, using defaults:`,
-      stylist.workingHours,
-    );
   }
 
-  // Map specialty category IDs to full ServiceCategory objects
   const specialtyCategoryIds = Array.isArray(stylist.specialties)
     ? (stylist.specialties as string[])
     : [];
@@ -1108,10 +1038,7 @@ export const getStylistById = async (id: string): Promise<Stylist | null> => {
     specialties: specialtyCategoryIds
       .map(categoryId => allCategories.find(c => c.id === categoryId))
       .filter(Boolean)
-      .map(cat => ({
-        ...cat!,
-        items: [], // Categories don't need items for specialty display
-      })) as ServiceCategory[],
+      .map(cat => ({ ...cat!, items: [] })) as ServiceCategory[],
     workingHours,
     blockedDates:
       stylist.blockedDates && Array.isArray(stylist.blockedDates)
@@ -1125,38 +1052,40 @@ export const createStylist = async (stylistData: {
   email?: string;
   bio?: string;
   avatar?: string;
-  specialtyCategoryIds: string[]; // Category IDs instead of service IDs
+  specialtyCategoryIds: string[];
   workingHours?: Stylist['workingHours'];
   blockedDates?: string[];
-  userId?: string; // Link to User account (for promoted users)
+  userId?: string;
 }): Promise<Stylist> => {
+  const db = await getDb();
   const defaultHours = getDefaultWorkingHours();
 
-  // If userId provided, update user's role to STYLIST
   if (stylistData.userId) {
-    await prisma.user.update({
-      where: { id: stylistData.userId },
-      data: { role: 'STYLIST' as any }, // Type assertion until Prisma client regenerated
-    });
+    await db
+      .update(schema.users)
+      .set({ role: 'STYLIST', updatedAt: new Date() })
+      .where(eq(schema.users.id, stylistData.userId));
   }
 
-  const newStylist = await prisma.stylist.create({
-    data: {
+  const result = await db
+    .insert(schema.stylists)
+    .values({
       name: stylistData.name,
-      email: stylistData.email || null, // null is accepted by Prisma for optional fields
+      email: stylistData.email || null,
       bio: stylistData.bio,
       avatar: stylistData.avatar,
       specialties: stylistData.specialtyCategoryIds,
       workingHours: stylistData.workingHours || defaultHours,
       blockedDates: stylistData.blockedDates || [],
       userId: stylistData.userId,
-    },
-  });
+    })
+    .returning();
 
-  // Fetch all categories for specialty mapping
-  const allCategories = await prisma.serviceCategory.findMany({
-    orderBy: { sortOrder: 'asc' },
-  });
+  const newStylist = result[0];
+  const allCategories = await db
+    .select()
+    .from(schema.serviceCategories)
+    .orderBy(asc(schema.serviceCategories.sortOrder));
 
   return {
     ...newStylist,
@@ -1166,10 +1095,7 @@ export const createStylist = async (stylistData: {
     specialties: stylistData.specialtyCategoryIds
       .map(categoryId => allCategories.find(c => c.id === categoryId))
       .filter(Boolean)
-      .map(cat => ({
-        ...cat!,
-        items: [], // Categories don't need items for specialty display
-      })) as ServiceCategory[],
+      .map(cat => ({ ...cat!, items: [] })) as ServiceCategory[],
     workingHours: (newStylist.workingHours as any) || defaultHours,
     blockedDates:
       newStylist.blockedDates && Array.isArray(newStylist.blockedDates)
@@ -1185,13 +1111,14 @@ export const updateStylist = async (
     email?: string;
     bio?: string;
     avatar?: string;
-    specialtyCategoryIds?: string[]; // Category IDs instead of service IDs
+    specialtyCategoryIds?: string[];
     workingHours?: Stylist['workingHours'];
     blockedDates?: string[];
     isActive?: boolean;
   },
 ): Promise<Stylist> => {
-  const updatePayload: any = {};
+  const db = await getDb();
+  const updatePayload: any = { updatedAt: new Date() };
 
   if (updateData.name !== undefined) updatePayload.name = updateData.name;
   if (updateData.email !== undefined) updatePayload.email = updateData.email;
@@ -1203,17 +1130,17 @@ export const updateStylist = async (
   if (updateData.blockedDates !== undefined) updatePayload.blockedDates = updateData.blockedDates;
   if (updateData.isActive !== undefined) updatePayload.isActive = updateData.isActive;
 
-  const updatedStylist = await prisma.stylist.update({
-    where: { id },
-    data: updatePayload,
-  });
+  const result = await db
+    .update(schema.stylists)
+    .set(updatePayload)
+    .where(eq(schema.stylists.id, id))
+    .returning();
+  const updatedStylist = result[0];
 
-  // Fetch all categories for specialty mapping
-  const allCategories = await prisma.serviceCategory.findMany({
-    orderBy: { sortOrder: 'asc' },
-  });
-
-  // Map specialty category IDs to full ServiceCategory objects
+  const allCategories = await db
+    .select()
+    .from(schema.serviceCategories)
+    .orderBy(asc(schema.serviceCategories.sortOrder));
   const specialtyCategoryIds = Array.isArray(updatedStylist.specialties)
     ? (updatedStylist.specialties as string[])
     : [];
@@ -1226,10 +1153,7 @@ export const updateStylist = async (
     specialties: specialtyCategoryIds
       .map(categoryId => allCategories.find(c => c.id === categoryId))
       .filter(Boolean)
-      .map(cat => ({
-        ...cat!,
-        items: [], // Categories don't need items for specialty display
-      })) as ServiceCategory[],
+      .map(cat => ({ ...cat!, items: [] })) as ServiceCategory[],
     workingHours: (updatedStylist.workingHours as any) || getDefaultWorkingHours(),
     blockedDates:
       updatedStylist.blockedDates && Array.isArray(updatedStylist.blockedDates)
@@ -1239,160 +1163,33 @@ export const updateStylist = async (
 };
 
 export const deleteStylist = async (id: string): Promise<void> => {
-  await prisma.stylist.update({
-    where: { id },
-    data: { isActive: false },
-  });
+  const db = await getDb();
+  await db
+    .update(schema.stylists)
+    .set({ isActive: false, updatedAt: new Date() })
+    .where(eq(schema.stylists.id, id));
 };
 
-/**
- * Get stylists that specialize in a specific category
- * Used in category-based booking flow
- */
 export const getStylistsForCategory = async (categoryId: string): Promise<Stylist[]> => {
   const stylists = await getStylists();
-
   return stylists.filter(stylist =>
     stylist.specialties.some(specialty => specialty.id === categoryId),
   );
 };
 
-export const rescheduleAppointment = async (
-  appointmentId: string,
-  newDate: Date,
-  newTime: string,
-): Promise<Appointment> => {
-  // Get the existing appointment
-  const existingAppointment = await prisma.appointment.findUnique({
-    where: { id: appointmentId },
-    include: { stylist: true },
-  });
+// --- USER PROFILE ---
 
-  if (!existingAppointment) {
-    throw new Error('Appointment not found');
-  }
-
-  // Validate minimum advance notice (2 hours)
-  const now = new Date();
-  const appointmentDateTime = new Date(`${newDate.toISOString().split('T')[0]}T${newTime}:00`);
-  const hoursUntilAppointment = (appointmentDateTime.getTime() - now.getTime()) / (1000 * 60 * 60);
-
-  if (hoursUntilAppointment < 2) {
-    throw new Error('Please provide at least 2 hours advance notice for rescheduling');
-  }
-
-  // Check if new time is during business hours
-  const settings = await getAdminSettings();
-  const dateKey = dateToKey(newDate);
-
-  // Check if store is closed on this date (full-day closure)
-  const fullDayClosure = settings.specialClosures.find(
-    closure => closure.date === dateKey && closure.isFullDay,
-  );
-  if (fullDayClosure) {
-    throw new Error('The store is closed on this date');
-  }
-
-  // Get day schedule
-  const dayOfWeek = newDate.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
-  const daySchedule = settings.weeklySchedule[dayOfWeek as keyof typeof settings.weeklySchedule];
-
-  if (!daySchedule || !daySchedule.isOpen) {
-    throw new Error('The store is closed on this day');
-  }
-
-  if (newTime < daySchedule.openingTime || newTime >= daySchedule.closingTime) {
-    throw new Error(
-      `Appointments are only available between ${daySchedule.openingTime} and ${daySchedule.closingTime} on ${dayOfWeek}s`,
-    );
-  }
-
-  // Check stylist availability for the new time
-  if (existingAppointment.stylistId) {
-    const stylistAvailability = await getStylistAvailability(
-      newDate,
-      existingAppointment.stylistId,
-    );
-
-    // Check if enough consecutive slots are available
-    const requiredSlots = Math.ceil(existingAppointment.totalDuration / 30);
-    const timeSlots = stylistAvailability;
-    const startIndex = timeSlots.indexOf(newTime);
-
-    if (startIndex === -1) {
-      throw new Error('Selected time slot is not available');
-    }
-
-    // Check consecutive availability
-    for (let i = 0; i < requiredSlots; i++) {
-      const neededTime = new Date(`1970-01-01T${newTime}:00`);
-      neededTime.setMinutes(neededTime.getMinutes() + i * 30);
-      const neededTimeStr = neededTime.toTimeString().substring(0, 5);
-
-      if (!timeSlots.includes(neededTimeStr)) {
-        throw new Error(
-          `Not enough consecutive time slots available. Need ${requiredSlots * 30} minutes.`,
-        );
-      }
-    }
-  } else {
-    // Check general availability if no specific stylist
-    const generalAvailability = await getAvailability(newDate);
-    const requiredSlots = Math.ceil(existingAppointment.totalDuration / 30);
-    const startIndex = generalAvailability.indexOf(newTime);
-
-    if (startIndex === -1) {
-      throw new Error('Selected time slot is not available');
-    }
-
-    for (let i = 0; i < requiredSlots; i++) {
-      const neededTime = new Date(`1970-01-01T${newTime}:00`);
-      neededTime.setMinutes(neededTime.getMinutes() + i * 30);
-      const neededTimeStr = neededTime.toTimeString().substring(0, 5);
-
-      if (!generalAvailability.includes(neededTimeStr)) {
-        throw new Error(
-          `Not enough consecutive time slots available. Need ${requiredSlots * 30} minutes.`,
-        );
-      }
-    }
-  }
-
-  // Update the appointment
-  const updatedAppointment = await updateAppointment(appointmentId, {
-    date: newDate,
-    time: newTime,
-    customerName: existingAppointment.customerName,
-    customerEmail: existingAppointment.customerEmail,
-    services: existingAppointment.services as any,
-    totalPrice: existingAppointment.totalPrice,
-    totalDuration: existingAppointment.totalDuration,
-  });
-
-  return updatedAppointment;
-};
-
-function getDefaultWorkingHours(): Stylist['workingHours'] {
-  return {
-    monday: { start: '09:00', end: '17:00', isWorking: true },
-    tuesday: { start: '09:00', end: '17:00', isWorking: true },
-    wednesday: { start: '09:00', end: '17:00', isWorking: true },
-    thursday: { start: '09:00', end: '17:00', isWorking: true },
-    friday: { start: '09:00', end: '17:00', isWorking: true },
-    saturday: { start: '09:00', end: '15:00', isWorking: true },
-    sunday: { start: '10:00', end: '14:00', isWorking: false },
-  };
-}
-
-// Customer dashboard functions
 export const updateUserProfile = async (
   userId: string,
   updates: { name?: string },
 ): Promise<User> => {
-  const updatedUser = await prisma.user.update({
-    where: { id: userId },
-    data: updates,
-  });
+  const db = await getDb();
+  const result = await db
+    .update(schema.users)
+    .set({ ...updates, updatedAt: new Date() })
+    .where(eq(schema.users.id, userId))
+    .returning();
+  const updatedUser = result[0];
 
   return {
     id: updatedUser.id,
@@ -1407,115 +1204,61 @@ export const updateUserProfile = async (
 };
 
 export const getUserAppointments = async (userId: string): Promise<Appointment[]> => {
-  try {
-    console.log('[getUserAppointments] Querying appointments for userId:', userId);
+  const db = await getDb();
+  const appointments = await db
+    .select()
+    .from(schema.appointments)
+    .where(eq(schema.appointments.userId, userId))
+    .orderBy(desc(schema.appointments.date), desc(schema.appointments.time));
+  const stylists = await db.select().from(schema.stylists);
 
-    const appointments = await prisma.appointment.findMany({
-      where: { userId },
-      include: {
-        stylist: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-      },
-      orderBy: [{ date: 'desc' }, { time: 'desc' }],
-    });
-
-    console.log(`[getUserAppointments] Found ${appointments.length} raw appointments`);
-
-    // Map appointments with error handling for each record
-    return appointments.map((appointment, index) => {
-      try {
-        return {
-          id: appointment.id,
-          date: appointment.date,
-          time: appointment.time,
-          services: Array.isArray(appointment.services)
-            ? (appointment.services as unknown as Service[])
-            : [],
-          stylistId: appointment.stylistId,
-          stylist: appointment.stylist
-            ? {
-                id: appointment.stylist.id,
-                name: appointment.stylist.name,
-                email: appointment.stylist.email ?? undefined,
-              }
-            : undefined,
-          customerName: appointment.customerName,
-          customerEmail: appointment.customerEmail,
-          totalPrice: appointment.totalPrice,
-          totalDuration: appointment.totalDuration,
-          calendarEventId: appointment.calendarEventId,
-          userId: appointment.userId,
-          createdAt: appointment.createdAt,
-          updatedAt: appointment.updatedAt,
-        };
-      } catch (mapError) {
-        console.error(`[getUserAppointments] Error mapping appointment ${index}:`, {
-          appointmentId: appointment.id,
-          error: mapError,
-          services: appointment.services,
-        });
-        // Return a safe version of the appointment
-        return {
-          id: appointment.id,
-          date: appointment.date,
-          time: appointment.time,
-          services: [], // Default to empty array if services are malformed
-          stylistId: appointment.stylistId,
-          stylist: appointment.stylist
-            ? {
-                id: appointment.stylist.id,
-                name: appointment.stylist.name,
-                email: appointment.stylist.email ?? undefined,
-              }
-            : undefined,
-          customerName: appointment.customerName,
-          customerEmail: appointment.customerEmail,
-          totalPrice: appointment.totalPrice,
-          totalDuration: appointment.totalDuration,
-          calendarEventId: appointment.calendarEventId,
-          userId: appointment.userId,
-          createdAt: appointment.createdAt,
-          updatedAt: appointment.updatedAt,
-        };
-      }
-    });
-  } catch (error) {
-    console.error('[getUserAppointments] Database query failed:', {
-      error,
-      message: error instanceof Error ? error.message : 'Unknown error',
-      stack: error instanceof Error ? error.stack : undefined,
-      userId,
-    });
-    throw error; // Re-throw to be handled by API route
-  }
+  return appointments.map(appointment => {
+    const stylist = stylists.find(s => s.id === appointment.stylistId);
+    return {
+      id: appointment.id,
+      date: appointment.date,
+      time: appointment.time,
+      services: Array.isArray(appointment.services)
+        ? (appointment.services as unknown as Service[])
+        : [],
+      stylistId: appointment.stylistId,
+      stylist: stylist
+        ? { id: stylist.id, name: stylist.name, email: stylist.email ?? undefined }
+        : undefined,
+      customerName: appointment.customerName,
+      customerEmail: appointment.customerEmail,
+      totalPrice: appointment.totalPrice,
+      totalDuration: appointment.totalDuration,
+      calendarEventId: appointment.calendarEventId,
+      userId: appointment.userId,
+      createdAt: appointment.createdAt,
+      updatedAt: appointment.updatedAt,
+    };
+  });
 };
 
 export const getUserAppointmentById = async (
   appointmentId: string,
   userId: string,
 ): Promise<Appointment | null> => {
-  const appointment = await prisma.appointment.findFirst({
-    where: {
-      id: appointmentId,
-      userId: userId,
-    },
-    include: {
-      stylist: {
-        select: {
-          id: true,
-          name: true,
-          email: true,
-        },
-      },
-    },
-  });
+  const db = await getDb();
+  const result = await db
+    .select()
+    .from(schema.appointments)
+    .where(and(eq(schema.appointments.id, appointmentId), eq(schema.appointments.userId, userId)))
+    .limit(1);
 
+  const appointment = result[0];
   if (!appointment) return null;
+
+  const stylistResult = appointment.stylistId
+    ? await db
+        .select()
+        .from(schema.stylists)
+        .where(eq(schema.stylists.id, appointment.stylistId))
+        .limit(1)
+    : [];
+  const stylist = stylistResult[0];
 
   return {
     id: appointment.id,
@@ -1525,12 +1268,8 @@ export const getUserAppointmentById = async (
       ? (appointment.services as unknown as Service[])
       : [],
     stylistId: appointment.stylistId,
-    stylist: appointment.stylist
-      ? {
-          id: appointment.stylist.id,
-          name: appointment.stylist.name,
-          email: appointment.stylist.email ?? undefined,
-        }
+    stylist: stylist
+      ? { id: stylist.id, name: stylist.name, email: stylist.email ?? undefined }
       : undefined,
     customerName: appointment.customerName,
     customerEmail: appointment.customerEmail,
@@ -1544,183 +1283,260 @@ export const getUserAppointmentById = async (
 };
 
 export const deleteAppointment = async (appointmentId: string): Promise<void> => {
-  await prisma.appointment.delete({
-    where: { id: appointmentId },
+  const db = await getDb();
+  await db.delete(schema.appointments).where(eq(schema.appointments.id, appointmentId));
+};
+
+// --- RESCHEDULING ---
+
+export const rescheduleAppointment = async (
+  appointmentId: string,
+  newDate: Date,
+  newTime: string,
+): Promise<Appointment> => {
+  const db = await getDb();
+
+  const existingResult = await db
+    .select()
+    .from(schema.appointments)
+    .where(eq(schema.appointments.id, appointmentId))
+    .limit(1);
+  const existingAppointment = existingResult[0];
+
+  if (!existingAppointment) {
+    throw new Error('Appointment not found');
+  }
+
+  const now = new Date();
+  const appointmentDateTime = new Date(`${newDate.toISOString().split('T')[0]}T${newTime}:00`);
+  const hoursUntilAppointment = (appointmentDateTime.getTime() - now.getTime()) / (1000 * 60 * 60);
+
+  if (hoursUntilAppointment < 2) {
+    throw new Error('Please provide at least 2 hours advance notice for rescheduling');
+  }
+
+  const settings = await getAdminSettings();
+  const dateKey = dateToKey(newDate);
+
+  const fullDayClosure = settings.specialClosures.find(
+    closure => closure.date === dateKey && closure.isFullDay,
+  );
+  if (fullDayClosure) {
+    throw new Error('The store is closed on this date');
+  }
+
+  const dayOfWeek = newDate.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
+  const daySchedule = settings.weeklySchedule[dayOfWeek as keyof typeof settings.weeklySchedule];
+
+  if (!daySchedule || !daySchedule.isOpen) {
+    throw new Error('The store is closed on this day');
+  }
+
+  if (newTime < daySchedule.openingTime || newTime >= daySchedule.closingTime) {
+    throw new Error(
+      `Appointments are only available between ${daySchedule.openingTime} and ${daySchedule.closingTime} on ${dayOfWeek}s`,
+    );
+  }
+
+  // Check availability
+  const requiredSlots = Math.ceil(existingAppointment.totalDuration / 30);
+  let availableSlots: string[];
+
+  if (existingAppointment.stylistId) {
+    availableSlots = await getStylistAvailability(newDate, existingAppointment.stylistId);
+  } else {
+    availableSlots = await getAvailability(newDate);
+  }
+
+  const startIndex = availableSlots.indexOf(newTime);
+  if (startIndex === -1) {
+    throw new Error('Selected time slot is not available');
+  }
+
+  for (let i = 0; i < requiredSlots; i++) {
+    const neededTime = new Date(`1970-01-01T${newTime}:00`);
+    neededTime.setMinutes(neededTime.getMinutes() + i * 30);
+    const neededTimeStr = neededTime.toTimeString().substring(0, 5);
+
+    if (!availableSlots.includes(neededTimeStr)) {
+      throw new Error(
+        `Not enough consecutive time slots available. Need ${requiredSlots * 30} minutes.`,
+      );
+    }
+  }
+
+  return await updateAppointment(appointmentId, {
+    date: newDate,
+    time: newTime,
+    customerName: existingAppointment.customerName,
+    customerEmail: existingAppointment.customerEmail,
+    services: existingAppointment.services as any,
+    totalPrice: existingAppointment.totalPrice,
+    totalDuration: existingAppointment.totalDuration,
   });
 };
 
-// Appointment Reminders Functions
+// --- REMINDERS ---
+
 export const getUpcomingAppointmentsForReminders = async (
   hoursAhead: number = 24,
 ): Promise<Appointment[]> => {
+  const db = await getDb();
   const now = new Date();
   const reminderTime = new Date(now.getTime() + hoursAhead * 60 * 60 * 1000);
+  const startWindow = new Date(reminderTime.getTime() - 60 * 60 * 1000);
+  const endWindow = new Date(reminderTime.getTime() + 60 * 60 * 1000);
 
-  // Get appointments that are approximately 24 hours away (within a 2-hour window for flexibility)
-  const startWindow = new Date(reminderTime.getTime() - 60 * 60 * 1000); // 1 hour before
-  const endWindow = new Date(reminderTime.getTime() + 60 * 60 * 1000); // 1 hour after
+  const appointments = await db
+    .select()
+    .from(schema.appointments)
+    .where(
+      and(
+        gte(schema.appointments.date, startWindow),
+        lt(schema.appointments.date, endWindow),
+        not(isNull(schema.appointments.userId)),
+      ),
+    );
 
-  const appointments = await prisma.appointment.findMany({
-    where: {
-      date: {
-        gte: startWindow,
-        lte: endWindow,
-      },
-      // Only send reminders for appointments with users (not guest bookings)
-      userId: {
-        not: null,
-      },
-    },
-    include: {
-      user: {
-        select: {
-          id: true,
-          name: true,
-          email: true,
-          authProvider: true,
-          telegramId: true,
-          whatsappPhone: true,
-          role: true,
-          avatar: true,
-        },
-      },
-      stylist: {
-        select: {
-          id: true,
-          name: true,
-          email: true,
-        },
-      },
-    },
+  const userIds = Array.from(new Set(appointments.map(a => a.userId).filter(Boolean))) as string[];
+  const users =
+    userIds.length > 0
+      ? await db
+          .select()
+          .from(schema.users)
+          .where(sql`${schema.users.id} IN ${userIds}`)
+      : [];
+
+  const stylistIds = Array.from(
+    new Set(appointments.map(a => a.stylistId).filter(Boolean)),
+  ) as string[];
+  const stylists =
+    stylistIds.length > 0
+      ? await db
+          .select()
+          .from(schema.stylists)
+          .where(sql`${schema.stylists.id} IN ${stylistIds}`)
+      : [];
+
+  return appointments.map(appointment => {
+    const user = users.find(u => u.id === appointment.userId);
+    const stylist = stylists.find(s => s.id === appointment.stylistId);
+
+    return {
+      id: appointment.id,
+      date: appointment.date,
+      time: appointment.time,
+      services: Array.isArray(appointment.services)
+        ? (appointment.services as unknown as Service[])
+        : [],
+      stylistId: appointment.stylistId,
+      stylist: stylist
+        ? { id: stylist.id, name: stylist.name, email: stylist.email ?? undefined }
+        : undefined,
+      customerName: appointment.customerName,
+      customerEmail: appointment.customerEmail,
+      totalPrice: appointment.totalPrice,
+      totalDuration: appointment.totalDuration,
+      calendarEventId: appointment.calendarEventId,
+      userId: appointment.userId,
+      createdAt: appointment.createdAt,
+      updatedAt: appointment.updatedAt,
+      user: user
+        ? {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            authProvider: user.authProvider as 'whatsapp' | 'telegram' | 'email',
+            telegramId: user.telegramId ?? undefined,
+            whatsappPhone: user.whatsappPhone ?? undefined,
+            role: user.role as 'CUSTOMER' | 'ADMIN',
+            avatar: user.avatar ?? undefined,
+          }
+        : undefined,
+    };
   });
-
-  return appointments.map(appointment => ({
-    id: appointment.id,
-    date: appointment.date,
-    time: appointment.time,
-    services: Array.isArray(appointment.services)
-      ? (appointment.services as unknown as Service[])
-      : [],
-    stylistId: appointment.stylistId,
-    stylist: appointment.stylist
-      ? {
-          id: appointment.stylist.id,
-          name: appointment.stylist.name,
-          email: appointment.stylist.email ?? undefined,
-        }
-      : undefined,
-    customerName: appointment.customerName,
-    customerEmail: appointment.customerEmail,
-    totalPrice: appointment.totalPrice,
-    totalDuration: appointment.totalDuration,
-    calendarEventId: appointment.calendarEventId,
-    userId: appointment.userId,
-    createdAt: appointment.createdAt,
-    updatedAt: appointment.updatedAt,
-    // Add user data for messaging
-    user: appointment.user
-      ? {
-          id: appointment.user.id,
-          name: appointment.user.name,
-          email: appointment.user.email,
-          authProvider: appointment.user.authProvider as 'whatsapp' | 'telegram' | 'email',
-          telegramId: appointment.user.telegramId ?? undefined,
-          whatsappPhone: appointment.user.whatsappPhone ?? undefined,
-          role: appointment.user.role as 'CUSTOMER' | 'ADMIN',
-          avatar: appointment.user.avatar ?? undefined,
-        }
-      : undefined,
-  }));
 };
 
 export const markReminderSent = async (appointmentId: string): Promise<void> => {
-  // Add a reminder sent flag to prevent duplicate reminders
-  // For now, we'll use the updatedAt field, but in production you might want a dedicated field
-  await prisma.appointment.update({
-    where: { id: appointmentId },
-    data: { updatedAt: new Date() },
-  });
+  const db = await getDb();
+  await db
+    .update(schema.appointments)
+    .set({ updatedAt: new Date() })
+    .where(eq(schema.appointments.id, appointmentId));
 };
 
-// Re-export retention service function for auto-complete
+// Re-export retention service function
 export { markAppointmentCompleted } from '../services/retentionService';
 
 export const getUnsyncedAppointments = async (): Promise<Appointment[]> => {
+  const db = await getDb();
   const twoDaysAgo = new Date();
   twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
 
-  const appointments = await prisma.appointment.findMany({
-    where: {
-      calendarEventId: null,
-      createdAt: { gte: twoDaysAgo },
-      date: { gte: new Date() },
-    },
-    include: {
-      stylist: true,
-    },
-  });
+  const appointments = await db
+    .select()
+    .from(schema.appointments)
+    .where(
+      and(
+        isNull(schema.appointments.calendarEventId),
+        gte(schema.appointments.createdAt, twoDaysAgo),
+        gte(schema.appointments.date, new Date()),
+      ),
+    );
 
   const allServices = await getServices();
+  const stylists = await db.select().from(schema.stylists);
 
-  return appointments.map(apt => ({
-    ...apt,
-    services: Array.isArray(apt.services) ? (apt.services as unknown as Service[]) : [],
-    stylistId: apt.stylistId ?? undefined,
-    stylist: apt.stylist
-      ? {
-          ...apt.stylist,
-          email: apt.stylist.email ?? undefined,
-          bio: apt.stylist.bio ?? undefined,
-          avatar: apt.stylist.avatar ?? undefined,
-          specialties: Array.isArray(apt.stylist.specialties)
-            ? ((apt.stylist.specialties as any[])
-                .map(id => allServices.find(s => s.id === normalizeServiceId(id)))
-                .filter(Boolean) as Service[])
-            : [],
-          workingHours: (apt.stylist.workingHours as any) || getDefaultWorkingHours(),
-          blockedDates:
-            apt.stylist.blockedDates && Array.isArray(apt.stylist.blockedDates)
-              ? (apt.stylist.blockedDates as string[])
+  return appointments.map(apt => {
+    const stylist = stylists.find(s => s.id === apt.stylistId);
+    return {
+      ...apt,
+      services: Array.isArray(apt.services) ? (apt.services as unknown as Service[]) : [],
+      stylistId: apt.stylistId ?? undefined,
+      stylist: stylist
+        ? {
+            ...stylist,
+            email: stylist.email ?? undefined,
+            bio: stylist.bio ?? undefined,
+            avatar: stylist.avatar ?? undefined,
+            specialties: Array.isArray(stylist.specialties)
+              ? ((stylist.specialties as any[])
+                  .map(id => allServices.find(s => s.id === normalizeServiceId(id)))
+                  .filter(Boolean) as Service[])
               : [],
-        }
-      : undefined,
-    calendarEventId: apt.calendarEventId ?? undefined,
-    // Category-based booking fields
-    categoryId: apt.categoryId ?? undefined,
-    estimatedDuration: apt.estimatedDuration ?? undefined,
-  }));
+            workingHours: (stylist.workingHours as any) || getDefaultWorkingHours(),
+            blockedDates:
+              stylist.blockedDates && Array.isArray(stylist.blockedDates)
+                ? (stylist.blockedDates as string[])
+                : [],
+          }
+        : undefined,
+      calendarEventId: apt.calendarEventId ?? undefined,
+      categoryId: apt.categoryId ?? undefined,
+      estimatedDuration: apt.estimatedDuration ?? undefined,
+    };
+  });
 };
 
 export const getUsersForRebookingReminders = async (daysAgo: number = 28): Promise<User[]> => {
+  const db = await getDb();
   const targetDate = new Date();
   targetDate.setDate(targetDate.getDate() - daysAgo);
 
-  const users = await prisma.user.findMany({
-    where: {
-      appointments: {
-        some: {
-          date: {
-            equals: targetDate,
-          },
-        },
-        none: {
-          date: {
-            gt: targetDate,
-          },
-        },
-      },
-    },
-    include: {
-      appointments: {
-        orderBy: {
-          date: 'desc',
-        },
-        take: 1,
-      },
-    },
+  // This is a simplified version - complex subqueries need raw SQL in Drizzle
+  const appointments = await db.select().from(schema.appointments);
+  const users = await db.select().from(schema.users);
+
+  const usersWithRecentAppointments = users.filter(user => {
+    const userAppointments = appointments.filter(a => a.userId === user.id);
+    const hasAppointmentOnTargetDate = userAppointments.some(
+      a => dateToKey(a.date) === dateToKey(targetDate),
+    );
+    const hasLaterAppointment = userAppointments.some(a => a.date > targetDate);
+    return hasAppointmentOnTargetDate && !hasLaterAppointment;
   });
 
-  return users.map(user => ({
+  return usersWithRecentAppointments.map(user => ({
     id: user.id,
     name: user.name,
     email: user.email,
@@ -1733,15 +1549,15 @@ export const getUsersForRebookingReminders = async (daysAgo: number = 28): Promi
 };
 
 export const getLastAppointmentByUserId = async (userId: string): Promise<Appointment | null> => {
-  const appointment = await prisma.appointment.findFirst({
-    where: {
-      userId: userId,
-    },
-    orderBy: {
-      date: 'desc',
-    },
-  });
+  const db = await getDb();
+  const result = await db
+    .select()
+    .from(schema.appointments)
+    .where(eq(schema.appointments.userId, userId))
+    .orderBy(desc(schema.appointments.date))
+    .limit(1);
 
+  const appointment = result[0];
   if (!appointment) return null;
 
   return {
@@ -1751,7 +1567,6 @@ export const getLastAppointmentByUserId = async (userId: string): Promise<Appoin
       : [],
     stylistId: appointment.stylistId ?? undefined,
     calendarEventId: appointment.calendarEventId ?? undefined,
-    // Category-based booking fields
     categoryId: appointment.categoryId ?? undefined,
     estimatedDuration: appointment.estimatedDuration ?? undefined,
   };

@@ -160,7 +160,7 @@ const AdminDashboard: React.FC = () => {
       });
 
       if (!response.ok) {
-        const error = await response.json();
+        const error = (await response.json()) as any;
         throw new Error(error.message || 'Failed to mark as no-show');
       }
 
@@ -198,7 +198,7 @@ const AdminDashboard: React.FC = () => {
       });
 
       if (!response.ok) {
-        const error = await response.json();
+        const error = (await response.json()) as any;
         throw new Error(error.message || 'Failed to update appointment');
       }
 

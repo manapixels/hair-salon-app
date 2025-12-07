@@ -55,7 +55,7 @@ export default function WhatsAppOTPLogin({ onSuccess, onBack }: WhatsAppOTPLogin
         body: JSON.stringify({ phoneNumber: phone }),
       });
 
-      const data = await response.json();
+      const data = (await response.json()) as { exists: boolean; name?: string };
 
       if (data.exists) {
         setIsReturningUser(true);
@@ -85,7 +85,11 @@ export default function WhatsAppOTPLogin({ onSuccess, onBack }: WhatsAppOTPLogin
         body: JSON.stringify({ phoneNumber }),
       });
 
-      const data = await response.json();
+      const data = (await response.json()) as {
+        error?: string;
+        testOtp?: string;
+        expiresIn: number;
+      };
 
       if (!response.ok) {
         throw new Error(data.error || 'Failed to send OTP');
@@ -120,7 +124,7 @@ export default function WhatsAppOTPLogin({ onSuccess, onBack }: WhatsAppOTPLogin
         body: JSON.stringify({ phoneNumber, otp, name }),
       });
 
-      const data = await response.json();
+      const data = (await response.json()) as { error?: string };
 
       if (!response.ok) {
         throw new Error(data.error || 'Invalid OTP');

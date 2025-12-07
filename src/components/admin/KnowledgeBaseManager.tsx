@@ -32,7 +32,7 @@ export default function KnowledgeBaseManager() {
       setIsLoading(true);
       const response = await fetch('/api/admin/knowledge-base');
       if (response.ok) {
-        const data = await response.json();
+        const data = (await response.json()) as KBItem[];
         setItems(data);
       } else {
         toast.error('Failed to load knowledge base');

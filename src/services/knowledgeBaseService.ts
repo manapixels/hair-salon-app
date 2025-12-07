@@ -1,4 +1,6 @@
-import { prisma } from '@/lib/prisma';
+import { getDb } from '@/db';
+import * as schema from '@/db/schema';
+import { eq, desc } from 'drizzle-orm';
 import { generateEmbedding, semanticSearch } from './vectorSearchService';
 
 export interface QA {
@@ -11,11 +13,10 @@ export interface QA {
 
 /**
  * Search the knowledge base for relevant answers
- * Uses vector similarity search for semantic matching, falls back to keyword search
  */
 export const searchKnowledgeBase = async (query: string): Promise<string | null> => {
-  // Fetch all items from database
-  const dbItems = await prisma.knowledgeBase.findMany();
+  const db = await getDb();
+  const dbItems = await db.select().from(schema.knowledgeBase);
 
   if (dbItems.length === 0) return null;
 
@@ -24,11 +25,11 @@ export const searchKnowledgeBase = async (query: string): Promise<string | null>
     id: item.id,
     question: item.question,
     answer: item.answer,
-    tags: item.tags,
+    tags: (item.tags as string[]) || [],
     embedding: item.embedding ? (item.embedding as unknown as number[]) : undefined,
   }));
 
-  // Try vector search first (if embeddings available)
+  // Try vector search first
   const hasEmbeddings = items.some(item => item.embedding);
   if (hasEmbeddings) {
     const vectorResult = await semanticSearch(query, items, 0.7);
@@ -44,7 +45,6 @@ export const searchKnowledgeBase = async (query: string): Promise<string | null>
   const queryLower = query.toLowerCase();
   const keywords = queryLower.split(/\s+/).filter(w => w.length > 3);
 
-  // Exact match check
   const exactMatch = items.find(
     item =>
       item.question.toLowerCase().includes(queryLower) ||
@@ -56,7 +56,6 @@ export const searchKnowledgeBase = async (query: string): Promise<string | null>
     return exactMatch.answer;
   }
 
-  // Keyword matching
   let bestMatch: QA | null = null;
   let maxMatches = 0;
 
@@ -76,7 +75,6 @@ export const searchKnowledgeBase = async (query: string): Promise<string | null>
     }
   }
 
-  // Threshold: at least 1 significant keyword match
   if (bestMatch && maxMatches > 0) {
     console.log('[KB Search] Keyword match');
     return bestMatch.answer;
@@ -87,61 +85,70 @@ export const searchKnowledgeBase = async (query: string): Promise<string | null>
 
 /**
  * Add a new Q&A pair to the knowledge base
- * Automatically generates embedding for semantic search
  */
 export const addToKnowledgeBase = async (question: string, answer: string, tags: string[] = []) => {
-  // Generate embedding for the question
+  const db = await getDb();
   const embedding = await generateEmbedding(question);
 
-  return await prisma.knowledgeBase.create({
-    data: {
+  const result = await db
+    .insert(schema.knowledgeBase)
+    .values({
       question,
       answer,
       tags,
       embedding: embedding || undefined,
-    },
-  });
+    })
+    .returning();
+
+  return result[0];
 };
 
 /**
  * Get all knowledge base items
  */
 export const getAllKnowledgeBaseItems = async () => {
-  return await prisma.knowledgeBase.findMany({
-    orderBy: { createdAt: 'desc' },
-  });
+  const db = await getDb();
+  return await db.select().from(schema.knowledgeBase).orderBy(desc(schema.knowledgeBase.createdAt));
 };
 
 /**
  * Update a knowledge base item
- * Regenerates embedding if question changes
  */
 export const updateKnowledgeBaseItem = async (
   id: string,
   data: { question?: string; answer?: string; tags?: string[] },
 ) => {
-  // If question is being updated, regenerate embedding
+  const db = await getDb();
+
   let embedding: number[] | null | undefined = undefined;
   if (data.question) {
     embedding = await generateEmbedding(data.question);
   }
 
-  const updateData: any = { ...data };
+  const updateData: any = { ...data, updatedAt: new Date() };
   if (embedding !== undefined) {
     updateData.embedding = embedding;
   }
 
-  return await prisma.knowledgeBase.update({
-    where: { id },
-    data: updateData,
-  });
+  const result = await db
+    .update(schema.knowledgeBase)
+    .set(updateData)
+    .where(eq(schema.knowledgeBase.id, id))
+    .returning();
+
+  return result[0];
 };
 
 /**
  * Delete a knowledge base item
  */
 export const deleteKnowledgeBaseItem = async (id: string) => {
-  return await prisma.knowledgeBase.delete({
-    where: { id },
-  });
+  const db = await getDb();
+
+  const result = await db
+    .delete(schema.knowledgeBase)
+    .where(eq(schema.knowledgeBase.id, id))
+    .returning();
+
+  return result[0];
 };

@@ -3,7 +3,9 @@
  * Handles user identification and context for messaging platforms
  */
 import { findUserByEmail, findAppointmentsByEmail } from '../lib/database';
-import { prisma } from '../lib/prisma';
+import { getDb } from '../db';
+import * as schema from '../db/schema';
+import { eq } from 'drizzle-orm';
 import type { User } from '../types';
 import {
   addMessage,
@@ -92,14 +94,14 @@ export const calculateUserPattern = (appointments: any[]): UserPattern => {
 /**
  * Find user by WhatsApp phone number
  */
-
-/**
- * Find user by WhatsApp phone number
- */
 export async function findUserByWhatsAppPhone(phone: string): Promise<User | null> {
-  const dbUser = await prisma.user.findFirst({
-    where: { whatsappPhone: phone },
-  });
+  const db = await getDb();
+  const users = await db
+    .select()
+    .from(schema.users)
+    .where(eq(schema.users.whatsappPhone, phone))
+    .limit(1);
+  const dbUser = users[0];
 
   if (!dbUser) return null;
 
@@ -117,9 +119,13 @@ export async function findUserByWhatsAppPhone(phone: string): Promise<User | nul
  * Find user by Telegram ID
  */
 export async function findUserByTelegramId(telegramId: number): Promise<User | null> {
-  const dbUser = await prisma.user.findFirst({
-    where: { telegramId: telegramId },
-  });
+  const db = await getDb();
+  const users = await db
+    .select()
+    .from(schema.users)
+    .where(eq(schema.users.telegramId, telegramId))
+    .limit(1);
+  const dbUser = users[0];
 
   if (!dbUser) return null;
 

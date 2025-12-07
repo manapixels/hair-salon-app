@@ -5,7 +5,11 @@ import { createUserFromOAuth } from '@/lib/database';
 // WhatsApp OTP verification endpoint
 export async function POST(request: NextRequest) {
   try {
-    const { phoneNumber, otp, name } = await request.json();
+    const { phoneNumber, otp, name } = (await request.json()) as {
+      phoneNumber: string;
+      otp: string;
+      name?: string;
+    };
 
     if (!phoneNumber || !otp) {
       return NextResponse.json(

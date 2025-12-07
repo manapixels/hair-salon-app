@@ -17,7 +17,7 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
+    const body = (await req.json()) as { question: string; answer: string; tags?: string[] };
     const { question, answer, tags } = body;
 
     if (!question || !answer) {

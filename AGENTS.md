@@ -51,21 +51,37 @@ import { SERVICE_LINKS } from '@/config/navigation';
 
 ---
 
-## 💾 Database Layer Caching
+## 💾 Database Layer (Drizzle ORM)
 
 ### **Overview**
 
-Next.js 14 caching layer using `unstable_cache` with tag-based revalidation for faster page loads. Caches frequently accessed data (services, categories, stylists) and auto-invalidates when data changes via Server Actions.
+Database access uses **Drizzle ORM** with `@neondatabase/serverless` for edge-compatible HTTP connections. Optimized for Cloudflare Workers with Hyperdrive connection pooling. Next.js 14 caching layer using `unstable_cache` with tag-based revalidation for faster page loads.
 
-**Performance**: Instant page loads for service listings, reduced database queries, better UX.
+**Performance**: Instant page loads for service listings, reduced database queries, edge-compatible.
 
 ### **Key Files**
 
-- **`src/lib/database.ts`** - Cached query functions (`getServices`, `getServiceCategories`, `getServiceById`)
-- **`src/lib/actions/services.ts`** - Server Actions with cache revalidation (`updateService`, `createService`, `deleteService`)
-- **Cache tag constants** - Defined in both files, must match exactly
+- **`src/db/schema.ts`** - Drizzle table definitions, enums, and relations
+- **`src/db/index.ts`** - Database connection factory (`getDb()`) with Hyperdrive support
+- **`src/lib/database.ts`** - Business logic functions (cached queries, CRUD operations)
+- **`src/lib/actions/services.ts`** - Server Actions with cache revalidation
+- **`drizzle.config.ts`** - Drizzle Kit configuration for migrations
 
-### **How It Works**
+### **Connection Setup**
+
+```typescript
+import { getDb } from '@/db';
+import * as schema from '@/db/schema';
+import { eq } from 'drizzle-orm';
+
+const db = await getDb();
+const users = await db.select().from(schema.users).where(eq(schema.users.email, email));
+```
+
+- **Cloudflare**: Uses `getCloudflareContext().env.HYPERDRIVE.connectionString`
+- **Local/Vercel**: Uses `DATABASE_URL` environment variable
+
+### **How Caching Works**
 
 1. **Cached Queries**: Functions wrapped with `unstable_cache` using cache tags (`'services'`, `'service-categories'`, `'service-{id}'`)
 2. **Mutations**: Server Actions update database then call `revalidateTag()` to invalidate affected caches
@@ -92,15 +108,13 @@ Cache is automatically revalidated in `bookNewAppointment()` and `cancelAppointm
 
 ### **Critical Notes for Developers**
 
-⚠️ **When updating services/categories:**
+⚠️ **Use `getDb()` for database access** - Always import from `@/db`, never instantiate clients directly
 
-- Use Server Actions from `src/lib/actions/services.ts` (they handle cache invalidation)
-- Don't directly call Prisma mutations without invalidating caches
-- Check server logs for `[Revalidation]` messages to verify cache invalidation
+⚠️ **Use Server Actions from `src/lib/actions/services.ts`** - They handle cache invalidation
 
 ⚠️ **Cache tags must match** between `database.ts` and `actions/services.ts`
 
-⚠️ **New cached functions**: Follow the pattern in `getServiceById()` - use dynamic cache keys and appropriate tags
+⚠️ **HTTP driver limitations**: No transactions with the HTTP driver; use sequential operations
 
 ---
 
@@ -359,24 +373,26 @@ export const RETENTION_CONFIG = {
 };
 ```
 
-### **Database Schema** (Prisma)
+### **Database Schema** (Drizzle)
 
-```prisma
-model RetentionMessage {
-  id                  String   @id @default(cuid())
-  userId              String
-  messageType         RetentionMessageType
-  daysSinceLastVisit  Int
-  sentAt              DateTime @default(now())
-  deliveryStatus      String   @default("PENDING") // SENT/FAILED/REPLIED
-  deliveryError       String?
-}
+```typescript
+export const retentionMessages = pgTable('retention_messages', {
+  id: text('id')
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  userId: text('userId').notNull(),
+  messageType: retentionMessageTypeEnum('messageType').notNull(),
+  daysSinceLastVisit: integer('daysSinceLastVisit').notNull(),
+  sentAt: timestamp('sentAt').defaultNow().notNull(),
+  deliveryStatus: text('deliveryStatus').default('PENDING'), // SENT/FAILED/REPLIED
+  deliveryError: text('deliveryError'),
+});
 
-enum RetentionMessageType {
-  FEEDBACK_REQUEST
-  REBOOKING_NUDGE
-  WIN_BACK
-}
+export const retentionMessageTypeEnum = pgEnum('RetentionMessageType', [
+  'FEEDBACK_REQUEST',
+  'REBOOKING_NUDGE',
+  'WIN_BACK',
+]);
 ```
 
 ---
@@ -497,6 +513,33 @@ npx tsc --noEmit src/components/MyComponent.tsx
 - **`npx tsc --noEmit`**: Quick type checking during development
 - **`npm run build`**: Only before deployment or when you need production build
 - **`npm run dev`**: Local development server (auto-reloads on changes)
+
+### **Cloudflare Deployment (Alternative to Vercel)**
+
+The app supports deployment to Cloudflare Pages with Hyperdrive for database acceleration.
+
+**Configuration Files:**
+
+- `wrangler.toml` - Cloudflare Workers config with Hyperdrive binding
+- `open-next.config.ts` - OpenNext adapter configuration
+
+**Build Scripts:**
+
+```bash
+# Build for Cloudflare
+npm run cf:build
+
+# Deploy to Cloudflare
+npm run cf:deploy
+
+# Create Hyperdrive config (first-time setup)
+wrangler hyperdrive create hair-salon-db --connection-string="<NEON_URL>"
+```
+
+**Key Files for Cloudflare:**
+
+- `src/db/index.ts` - Uses `postgres` driver (postgres.js) for Cloudflare Workers with Hyperdrive
+- `src/db/schema.ts` - Drizzle schema definitions
 
 ---
 
@@ -658,14 +701,17 @@ export default async function HomePage() {
 
 ```tsx
 // app/services/hair-colouring/page.tsx - NO 'use client'
-import { prisma } from '@/lib/prisma';
+import { getDb } from '@/db';
+import * as schema from '@/db/schema';
+import { eq } from 'drizzle-orm';
 import ServiceBookingWrapper from '@/components/services/ServiceBookingWrapper';
 
 export default async function HairColouringPage() {
-  // Direct Prisma query - server-side only
-  const service = await prisma.service.findFirst({
-    where: { name: 'Hair Colouring' },
-    include: { addons: true, category: true },
+  // Direct Drizzle query - server-side only
+  const db = await getDb();
+  const service = await db.query.services.findFirst({
+    where: eq(schema.services.name, 'Hair Colouring'),
+    with: { addons: true, category: true },
   });
 
   if (!service) notFound();
@@ -730,7 +776,10 @@ export default function ServiceBookingWrapper({
 ```tsx
 // Server component page
 export default async function ServicePage({ params }) {
-  const service = await prisma.service.findFirst(...);
+  const db = await getDb();
+  const service = await db.query.services.findFirst({
+    where: eq(schema.services.id, params.id),
+  });
 
   return (
     <div>
@@ -739,10 +788,7 @@ export default async function ServicePage({ params }) {
       <p>{service.description}</p>
 
       {/* Client component boundary */}
-      <ServiceBookingWrapper
-        preSelectedServiceId={service.id}
-        serviceName={service.name}
-      />
+      <ServiceBookingWrapper preSelectedServiceId={service.id} serviceName={service.name} />
     </div>
   );
 }
@@ -796,8 +842,9 @@ export default function ProductPage({ params }) {
 ```tsx
 // GOOD - Server component with direct DB access
 export default async function ProductPage({ params }) {
-  const product = await prisma.product.findUnique({
-    where: { id: params.id },
+  const db = await getDb();
+  const product = await db.query.products.findFirst({
+    where: eq(schema.products.id, params.id),
   });
 
   return <div>{product.name}</div>;

@@ -385,7 +385,7 @@ curl https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getUpdates
 
 ```bash
 # Connect to database
-npx prisma studio
+npx drizzle-kit studio
 
 # Or run SQL directly
 psql $DATABASE_URL

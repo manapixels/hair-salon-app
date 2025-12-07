@@ -5,7 +5,7 @@ import { setSessionCookie } from '@/lib/secureSession';
 
 export const PATCH = withAuth(async (request: NextRequest, { user }) => {
   try {
-    const body = await request.json();
+    const body = (await request.json()) as { name: string };
     const { name } = body;
 
     // Validate input

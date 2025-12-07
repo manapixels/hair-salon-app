@@ -6,11 +6,14 @@
  */
 import { NextRequest, NextResponse } from 'next/server';
 import { withAdminAuth } from '@/lib/sessionMiddleware';
-import { prisma } from '@/lib/prisma';
+import { getDb } from '@/db';
+import * as schema from '@/db/schema';
+import { eq, desc } from 'drizzle-orm';
 
 export const POST = withAdminAuth(async (request: NextRequest) => {
   try {
-    const body = await request.json();
+    const db = await getDb();
+    const body = (await request.json()) as { appointmentId: string };
     const { appointmentId } = body;
 
     if (!appointmentId) {
@@ -18,15 +21,18 @@ export const POST = withAdminAuth(async (request: NextRequest) => {
     }
 
     // Get the appointment
-    const appointment = await prisma.appointment.findUnique({
-      where: { id: appointmentId },
-      select: {
-        id: true,
-        status: true,
-        userId: true,
-        completedAt: true,
-      },
-    });
+    const appointments = await db
+      .select({
+        id: schema.appointments.id,
+        status: schema.appointments.status,
+        userId: schema.appointments.userId,
+        completedAt: schema.appointments.completedAt,
+      })
+      .from(schema.appointments)
+      .where(eq(schema.appointments.id, appointmentId))
+      .limit(1);
+
+    const appointment = appointments[0];
 
     if (!appointment) {
       return NextResponse.json({ message: 'Appointment not found' }, { status: 404 });
@@ -42,13 +48,10 @@ export const POST = withAdminAuth(async (request: NextRequest) => {
 
     if (!appointment.userId) {
       // Guest booking, just update status
-      await prisma.appointment.update({
-        where: { id: appointmentId },
-        data: {
-          status: 'NO_SHOW',
-          completedAt: null,
-        },
-      });
+      await db
+        .update(schema.appointments)
+        .set({ status: 'NO_SHOW', completedAt: null, updatedAt: new Date() })
+        .where(eq(schema.appointments.id, appointmentId));
 
       return NextResponse.json({
         message: 'Appointment marked as no-show',
@@ -56,49 +59,49 @@ export const POST = withAdminAuth(async (request: NextRequest) => {
       });
     }
 
-    // For user appointments, reverse the stats in a transaction
-    const userId = appointment.userId; // userId is guaranteed to be string at this point
-    await prisma.$transaction(async tx => {
-      // Update appointment status
-      await tx.appointment.update({
-        where: { id: appointmentId },
-        data: {
-          status: 'NO_SHOW',
-          completedAt: null, // Clear completion timestamp
-        },
-      });
+    // For user appointments, update stats (Drizzle doesn't have transactions with HTTP driver, so sequential ops)
+    const userId = appointment.userId;
 
+    // Update appointment status
+    await db
+      .update(schema.appointments)
+      .set({ status: 'NO_SHOW', completedAt: null, updatedAt: new Date() })
+      .where(eq(schema.appointments.id, appointmentId));
+
+    // Get current user to decrement visits
+    const userResult = await db
+      .select()
+      .from(schema.users)
+      .where(eq(schema.users.id, userId))
+      .limit(1);
+    const currentUser = userResult[0];
+
+    if (currentUser) {
       // Decrement user's total visits
-      await tx.user.update({
-        where: { id: userId },
-        data: {
-          totalVisits: { decrement: 1 },
-        },
-      });
+      await db
+        .update(schema.users)
+        .set({
+          totalVisits: Math.max(0, (currentUser.totalVisits || 1) - 1),
+          updatedAt: new Date(),
+        })
+        .where(eq(schema.users.id, userId));
 
       // Recalculate lastVisitDate from remaining COMPLETED appointments
-      const lastCompletedAppointment = await tx.appointment.findFirst({
-        where: {
-          userId: userId,
-          status: 'COMPLETED',
-        },
-        orderBy: {
-          completedAt: 'desc',
-        },
-        select: {
-          completedAt: true,
-        },
-      });
+      const completedAppointments = await db
+        .select()
+        .from(schema.appointments)
+        .where(eq(schema.appointments.userId, userId))
+        .orderBy(desc(schema.appointments.completedAt));
 
-      // Update lastVisitDate - set to the completedAt of last completed appointment, or null if none
-      const newLastVisitDate = lastCompletedAppointment?.completedAt || null;
-      await tx.user.update({
-        where: { id: userId },
-        data: {
-          lastVisitDate: newLastVisitDate,
-        },
-      });
-    });
+      const lastCompleted = completedAppointments.find(
+        a => a.status === 'COMPLETED' && a.completedAt,
+      );
+
+      await db
+        .update(schema.users)
+        .set({ lastVisitDate: lastCompleted?.completedAt || null, updatedAt: new Date() })
+        .where(eq(schema.users.id, userId));
+    }
 
     return NextResponse.json({
       message: 'Appointment marked as no-show and user stats updated',

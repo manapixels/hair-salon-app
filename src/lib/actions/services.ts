@@ -1,7 +1,9 @@
 'use server';
 
 import { revalidateTag } from 'next/cache';
-import { prisma } from '@/lib/prisma';
+import { getDb } from '@/db';
+import * as schema from '@/db/schema';
+import { eq } from 'drizzle-orm';
 import type { Service, ServiceCategory } from '@/types';
 
 // Cache tag constants (must match database.ts)
@@ -21,32 +23,35 @@ export async function updateService(
   updates: Partial<Omit<Service, 'id' | 'categoryId' | 'createdAt' | 'updatedAt'>>,
 ) {
   try {
-    // Update database
-    const updatedService = await prisma.service.update({
-      where: { id: serviceId },
-      data: {
-        name: updates.name,
-        subtitle: updates.subtitle,
-        description: updates.description,
-        price: updates.price,
-        basePrice: updates.basePrice,
-        maxPrice: updates.maxPrice,
-        duration: updates.duration,
-        isActive: updates.isActive,
-        imageUrl: updates.imageUrl,
-        popularityScore: updates.popularityScore,
-        tags: updates.tags,
-      },
-    });
+    const db = await getDb();
+
+    const updateData: Record<string, any> = { updatedAt: new Date() };
+    if (updates.name !== undefined) updateData.name = updates.name;
+    if (updates.subtitle !== undefined) updateData.subtitle = updates.subtitle;
+    if (updates.description !== undefined) updateData.description = updates.description;
+    if (updates.price !== undefined) updateData.price = updates.price;
+    if (updates.basePrice !== undefined) updateData.basePrice = updates.basePrice;
+    if (updates.maxPrice !== undefined) updateData.maxPrice = updates.maxPrice;
+    if (updates.duration !== undefined) updateData.duration = updates.duration;
+    if (updates.isActive !== undefined) updateData.isActive = updates.isActive;
+    if (updates.imageUrl !== undefined) updateData.imageUrl = updates.imageUrl;
+    if (updates.popularityScore !== undefined) updateData.popularityScore = updates.popularityScore;
+    if (updates.tags !== undefined) updateData.tags = updates.tags;
+
+    const result = await db
+      .update(schema.services)
+      .set(updateData)
+      .where(eq(schema.services.id, serviceId))
+      .returning();
 
     // Revalidate caches
-    revalidateTag(CACHE_TAGS.SERVICES); // All services list
-    revalidateTag(CACHE_TAGS.SERVICE_BY_ID(serviceId)); // This specific service
-    revalidateTag(CACHE_TAGS.SERVICE_CATEGORIES); // Categories (includes nested services)
+    revalidateTag(CACHE_TAGS.SERVICES);
+    revalidateTag(CACHE_TAGS.SERVICE_BY_ID(serviceId));
+    revalidateTag(CACHE_TAGS.SERVICE_CATEGORIES);
 
     console.log(`[Revalidation] Service ${serviceId} updated, tags invalidated`);
 
-    return { success: true, service: updatedService };
+    return { success: true, service: result[0] };
   } catch (error) {
     console.error('Failed to update service:', error);
     throw new Error('Failed to update service');
@@ -61,33 +66,37 @@ export async function updateServiceCategory(
   updates: Partial<Omit<ServiceCategory, 'id' | 'createdAt' | 'updatedAt' | 'items'>>,
 ) {
   try {
-    // Update database
-    const updatedCategory = await prisma.serviceCategory.update({
-      where: { id: categoryId },
-      data: {
-        title: updates.title,
-        shortTitle: updates.shortTitle,
-        slug: updates.slug,
-        description: updates.description,
-        priceRangeMin: updates.priceRangeMin,
-        priceRangeMax: updates.priceRangeMax,
-        estimatedDuration: updates.estimatedDuration,
-        priceNote: updates.priceNote,
-        sortOrder: updates.sortOrder,
-        isFeatured: updates.isFeatured,
-        imageUrl: updates.imageUrl,
-        illustrationUrl: updates.illustrationUrl,
-        icon: updates.icon,
-      },
-    });
+    const db = await getDb();
+
+    const updateData: Record<string, any> = { updatedAt: new Date() };
+    if (updates.title !== undefined) updateData.title = updates.title;
+    if (updates.shortTitle !== undefined) updateData.shortTitle = updates.shortTitle;
+    if (updates.slug !== undefined) updateData.slug = updates.slug;
+    if (updates.description !== undefined) updateData.description = updates.description;
+    if (updates.priceRangeMin !== undefined) updateData.priceRangeMin = updates.priceRangeMin;
+    if (updates.priceRangeMax !== undefined) updateData.priceRangeMax = updates.priceRangeMax;
+    if (updates.estimatedDuration !== undefined)
+      updateData.estimatedDuration = updates.estimatedDuration;
+    if (updates.priceNote !== undefined) updateData.priceNote = updates.priceNote;
+    if (updates.sortOrder !== undefined) updateData.sortOrder = updates.sortOrder;
+    if (updates.isFeatured !== undefined) updateData.isFeatured = updates.isFeatured;
+    if (updates.imageUrl !== undefined) updateData.imageUrl = updates.imageUrl;
+    if (updates.illustrationUrl !== undefined) updateData.illustrationUrl = updates.illustrationUrl;
+    if (updates.icon !== undefined) updateData.icon = updates.icon;
+
+    const result = await db
+      .update(schema.serviceCategories)
+      .set(updateData)
+      .where(eq(schema.serviceCategories.id, categoryId))
+      .returning();
 
     // Revalidate caches
-    revalidateTag(CACHE_TAGS.SERVICE_CATEGORIES); // All categories
-    revalidateTag(CACHE_TAGS.CATEGORY_BY_ID(categoryId)); // This specific category
+    revalidateTag(CACHE_TAGS.SERVICE_CATEGORIES);
+    revalidateTag(CACHE_TAGS.CATEGORY_BY_ID(categoryId));
 
     console.log(`[Revalidation] Category ${categoryId} updated, tags invalidated`);
 
-    return { success: true, category: updatedCategory };
+    return { success: true, category: result[0] };
   } catch (error) {
     console.error('Failed to update category:', error);
     throw new Error('Failed to update category');
@@ -108,8 +117,11 @@ export async function createService(data: {
   maxPrice?: number;
 }) {
   try {
-    const newService = await prisma.service.create({
-      data: {
+    const db = await getDb();
+
+    const result = await db
+      .insert(schema.services)
+      .values({
         name: data.name,
         categoryId: data.categoryId,
         price: data.price,
@@ -121,8 +133,8 @@ export async function createService(data: {
         isActive: true,
         popularityScore: 0,
         tags: [],
-      },
-    });
+      })
+      .returning();
 
     // Revalidate caches
     revalidateTag(CACHE_TAGS.SERVICES);
@@ -130,7 +142,7 @@ export async function createService(data: {
 
     console.log(`[Revalidation] New service created, caches invalidated`);
 
-    return { success: true, service: newService };
+    return { success: true, service: result[0] };
   } catch (error) {
     console.error('Failed to create service:', error);
     throw new Error('Failed to create service');
@@ -142,11 +154,12 @@ export async function createService(data: {
  */
 export async function deleteService(serviceId: string) {
   try {
-    // Soft delete: set isActive to false
-    await prisma.service.update({
-      where: { id: serviceId },
-      data: { isActive: false },
-    });
+    const db = await getDb();
+
+    await db
+      .update(schema.services)
+      .set({ isActive: false, updatedAt: new Date() })
+      .where(eq(schema.services.id, serviceId));
 
     // Revalidate caches
     revalidateTag(CACHE_TAGS.SERVICES);
@@ -167,19 +180,18 @@ export async function deleteService(serviceId: string) {
  */
 export async function updateServiceTags(serviceId: string, tagIds: string[]) {
   try {
+    const db = await getDb();
+
     // Delete existing tag relations
-    await prisma.serviceTagRelation.deleteMany({
-      where: { serviceId },
-    });
+    await db
+      .delete(schema.serviceTagRelations)
+      .where(eq(schema.serviceTagRelations.serviceId, serviceId));
 
     // Create new tag relations
     if (tagIds.length > 0) {
-      await prisma.serviceTagRelation.createMany({
-        data: tagIds.map(tagId => ({
-          serviceId,
-          tagId,
-        })),
-      });
+      await db
+        .insert(schema.serviceTagRelations)
+        .values(tagIds.map(tagId => ({ serviceId, tagId })));
     }
 
     // Revalidate caches

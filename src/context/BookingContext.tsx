@@ -56,7 +56,7 @@ export const BookingProvider: React.FC<{ children: ReactNode }> = ({ children })
         return;
       }
 
-      const fetchedAppointments = await response.json();
+      const fetchedAppointments = (await response.json()) as Appointment[];
 
       // Validate response is an array
       if (!Array.isArray(fetchedAppointments)) {

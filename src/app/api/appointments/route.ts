@@ -27,7 +27,16 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
+    const body = (await request.json()) as {
+      date: string;
+      time: string;
+      services?: any[];
+      stylistId?: string;
+      customerName: string;
+      customerEmail: string;
+      categoryId?: string;
+      estimatedDuration?: number;
+    };
     const {
       date,
       time,
@@ -87,7 +96,6 @@ export async function POST(request: NextRequest) {
     try {
       let user = null;
       if (existingUser) {
-        // Convert Prisma types to app types (user already looked up above)
         user = {
           ...existingUser,
           role: existingUser.role as 'CUSTOMER' | 'ADMIN',

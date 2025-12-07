@@ -5,9 +5,9 @@
  * Replaces the old bookingCategories.ts and navigation.ts static configs.
  */
 
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { getDb } from '@/db';
+import * as schema from '@/db/schema';
+import { eq, asc } from 'drizzle-orm';
 
 /**
  * Category data structure matching database schema
@@ -33,40 +33,121 @@ export interface ServiceCategory {
  * Get all categories ordered by sortOrder
  */
 export async function getAllCategories(): Promise<ServiceCategory[]> {
-  return await prisma.serviceCategory.findMany({
-    orderBy: { sortOrder: 'asc' },
-  });
+  const db = await getDb();
+  const categories = await db
+    .select()
+    .from(schema.serviceCategories)
+    .orderBy(asc(schema.serviceCategories.sortOrder));
+
+  return categories.map(cat => ({
+    id: cat.id,
+    slug: cat.slug,
+    title: cat.title,
+    shortTitle: cat.shortTitle ?? null,
+    description: cat.description ?? null,
+    icon: cat.icon ?? null,
+    priceRangeMin: cat.priceRangeMin ?? null,
+    priceRangeMax: cat.priceRangeMax ?? null,
+    priceNote: cat.priceNote ?? null,
+    estimatedDuration: cat.estimatedDuration ?? null,
+    sortOrder: cat.sortOrder,
+    isFeatured: cat.isFeatured,
+    imageUrl: cat.imageUrl ?? null,
+    illustrationUrl: cat.illustrationUrl ?? null,
+  }));
 }
 
 /**
  * Get only featured categories (for main navigation)
- * TEMP: Returning all categories due to Prisma client sync issue
- * TODO: Re-enable isFeatured filter after running 'npx prisma generate'
  */
 export async function getFeaturedCategories(): Promise<ServiceCategory[]> {
-  return await prisma.serviceCategory.findMany({
-    // TEMP: Commented out until Prisma client is regenerated
-    // where: { isFeatured: true },
-    orderBy: { sortOrder: 'asc' },
-  });
+  const db = await getDb();
+  const categories = await db
+    .select()
+    .from(schema.serviceCategories)
+    .where(eq(schema.serviceCategories.isFeatured, true))
+    .orderBy(asc(schema.serviceCategories.sortOrder));
+
+  return categories.map(cat => ({
+    id: cat.id,
+    slug: cat.slug,
+    title: cat.title,
+    shortTitle: cat.shortTitle ?? null,
+    description: cat.description ?? null,
+    icon: cat.icon ?? null,
+    priceRangeMin: cat.priceRangeMin ?? null,
+    priceRangeMax: cat.priceRangeMax ?? null,
+    priceNote: cat.priceNote ?? null,
+    estimatedDuration: cat.estimatedDuration ?? null,
+    sortOrder: cat.sortOrder,
+    isFeatured: cat.isFeatured,
+    imageUrl: cat.imageUrl ?? null,
+    illustrationUrl: cat.illustrationUrl ?? null,
+  }));
 }
 
 /**
  * Get category by slug (e.g., 'hair-colouring' from navigation links)
  */
 export async function getCategoryBySlug(slug: string): Promise<ServiceCategory | null> {
-  return await prisma.serviceCategory.findUnique({
-    where: { slug },
-  });
+  const db = await getDb();
+  const results = await db
+    .select()
+    .from(schema.serviceCategories)
+    .where(eq(schema.serviceCategories.slug, slug))
+    .limit(1);
+  const cat = results[0];
+
+  if (!cat) return null;
+
+  return {
+    id: cat.id,
+    slug: cat.slug,
+    title: cat.title,
+    shortTitle: cat.shortTitle ?? null,
+    description: cat.description ?? null,
+    icon: cat.icon ?? null,
+    priceRangeMin: cat.priceRangeMin ?? null,
+    priceRangeMax: cat.priceRangeMax ?? null,
+    priceNote: cat.priceNote ?? null,
+    estimatedDuration: cat.estimatedDuration ?? null,
+    sortOrder: cat.sortOrder,
+    isFeatured: cat.isFeatured,
+    imageUrl: cat.imageUrl ?? null,
+    illustrationUrl: cat.illustrationUrl ?? null,
+  };
 }
 
 /**
  * Get category by ID
  */
 export async function getCategoryById(id: string): Promise<ServiceCategory | null> {
-  return await prisma.serviceCategory.findUnique({
-    where: { id },
-  });
+  const db = await getDb();
+  const results = await db
+    .select()
+    .from(schema.serviceCategories)
+    .where(eq(schema.serviceCategories.id, id))
+    .limit(1);
+  const cat = results[0];
+
+  if (!cat) return null;
+
+  return {
+    id: cat.id,
+    slug: cat.slug,
+    title: cat.title,
+    shortTitle: cat.shortTitle ?? null,
+    description: cat.description ?? null,
+    icon: cat.icon ?? null,
+    priceRangeMin: cat.priceRangeMin ?? null,
+    priceRangeMax: cat.priceRangeMax ?? null,
+    priceNote: cat.priceNote ?? null,
+    estimatedDuration: cat.estimatedDuration ?? null,
+    sortOrder: cat.sortOrder,
+    isFeatured: cat.isFeatured,
+    imageUrl: cat.imageUrl ?? null,
+    illustrationUrl: cat.illustrationUrl ?? null,
+  };
 }
 
 /**

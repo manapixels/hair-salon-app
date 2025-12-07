@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { getDb } from '@/db';
+import * as schema from '@/db/schema';
+import { gte } from 'drizzle-orm';
 
 export async function GET(req: NextRequest) {
   try {
+    const db = await getDb();
     const { searchParams } = new URL(req.url);
     const range = searchParams.get('range') || '30d';
 
@@ -12,13 +15,10 @@ export async function GET(req: NextRequest) {
     const startDate = new Date(now.getTime() - daysAgo * 24 * 60 * 60 * 1000);
 
     // Fetch flagged conversations analytics
-    const allFlags = await prisma.flaggedConversation.findMany({
-      where: {
-        flaggedAt: {
-          gte: startDate,
-        },
-      },
-    });
+    const allFlags = await db
+      .select()
+      .from(schema.flaggedConversations)
+      .where(gte(schema.flaggedConversations.flaggedAt, startDate));
 
     const resolvedFlags = allFlags.filter(f => f.isResolved);
     const totalFlags = allFlags.length;
@@ -50,7 +50,8 @@ export async function GET(req: NextRequest) {
       .slice(0, 5);
 
     // Knowledge base analytics
-    const totalKBItems = await prisma.knowledgeBase.count();
+    const kbItems = await db.select().from(schema.knowledgeBase);
+    const totalKBItems = kbItems.length;
 
     // Extract top missing queries from flagged conversations
     const kbRelatedFlags = allFlags.filter(
@@ -67,15 +68,13 @@ export async function GET(req: NextRequest) {
       .filter(Boolean)
       .slice(0, 5) as string[];
 
-    // Mock sentiment data (in production, this would come from tracked sentiment logs)
-    // You would store sentiment from messagingUserService.ts analyzeSentiment()
+    // Mock sentiment data
     const userSentiment = {
       positive: Math.floor(Math.random() * 50) + 30,
       negative: Math.floor(Math.random() * 10) + 2,
       neutral: Math.floor(Math.random() * 30) + 10,
     };
 
-    // Mock KB success rate (would be calculated from actual query logs)
     const kbSuccessRate = totalKBItems > 0 ? 75 : 0;
 
     const analyticsData = {

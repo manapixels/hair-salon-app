@@ -6,7 +6,11 @@ import { sendAppointmentConfirmation } from '@/services/messagingService';
 
 export const PATCH = withAuth(async (request: NextRequest, { user }) => {
   try {
-    const body = await request.json();
+    const body = (await request.json()) as {
+      appointmentId: string;
+      newDate: string;
+      newTime: string;
+    };
     const { appointmentId, newDate, newTime } = body;
 
     if (!appointmentId || !newDate || !newTime) {

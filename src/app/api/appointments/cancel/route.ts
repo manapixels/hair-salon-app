@@ -10,7 +10,7 @@ import { sendAppointmentCancellation } from '../../../../services/messagingServi
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
+    const body = (await request.json()) as { customerEmail: string; date: string; time: string };
     const { customerEmail, date, time } = body;
 
     if (!customerEmail || !date || !time) {
@@ -46,7 +46,6 @@ export async function POST(request: NextRequest) {
       const dbUser = await findUserByEmail(cancelledAppointment.customerEmail);
       let user = null;
       if (dbUser) {
-        // Convert Prisma types to app types
         user = {
           ...dbUser,
           role: dbUser.role as 'CUSTOMER' | 'ADMIN',

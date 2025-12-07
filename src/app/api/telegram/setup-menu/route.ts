@@ -70,7 +70,7 @@ export async function POST(req: NextRequest) {
       }),
     });
 
-    const data = await response.json();
+    const data = (await response.json()) as { ok: boolean; description?: string; result?: any };
 
     if (!response.ok || !data.ok) {
       console.error('Telegram API error:', data);
@@ -127,7 +127,11 @@ export async function GET(req: NextRequest) {
     const telegramApiUrl = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getMyCommands`;
 
     const response = await fetch(telegramApiUrl);
-    const data = await response.json();
+    const data = (await response.json()) as {
+      ok: boolean;
+      result?: Array<{ command: string; description: string }>;
+      description?: string;
+    };
 
     if (!response.ok || !data.ok) {
       console.error('Telegram API error:', data);
@@ -196,7 +200,7 @@ export async function DELETE(req: NextRequest) {
       }),
     });
 
-    const data = await response.json();
+    const data = (await response.json()) as { ok: boolean; description?: string };
 
     if (!response.ok || !data.ok) {
       console.error('Telegram API error:', data);

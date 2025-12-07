@@ -41,7 +41,7 @@ export default function MenuDrawer({ isOpen, onClose }: MenuDrawerProps) {
     if (isOpen) {
       fetch('/api/admin/settings')
         .then(res => res.json())
-        .then(setSettings)
+        .then(data => setSettings(data as AdminSettings))
         .catch(console.error);
     }
   }, [isOpen]);

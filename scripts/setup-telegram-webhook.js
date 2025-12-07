@@ -12,12 +12,15 @@
  *   node scripts/setup-telegram-webhook.js delete
  */
 
+require('dotenv').config({ path: '.env.local' });
+require('dotenv').config();
+
 const https = require('https');
 
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const WEBHOOK_URL = process.env.NEXTAUTH_URL
   ? `${process.env.NEXTAUTH_URL}/api/telegram/webhook`
-  : 'https://hair-salon-appt.vercel.app/api/telegram/webhook';
+  : 'https://hair-salon-app.chrenelias.workers.dev/api/telegram/webhook';
 
 if (!BOT_TOKEN) {
   console.error('❌ TELEGRAM_BOT_TOKEN environment variable is not set!');

@@ -1,36 +1,33 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withAuth } from '@/lib/sessionMiddleware';
-import { prisma } from '@/lib/prisma';
+import { getDb } from '@/db';
+import * as schema from '@/db/schema';
+import { eq, gte, asc } from 'drizzle-orm';
 
 export const GET = withAuth(async (request: NextRequest, { user }) => {
   try {
+    const db = await getDb();
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
     // Count upcoming appointments (today and future)
-    const count = await prisma.appointment.count({
-      where: {
-        userId: user.id,
-        date: {
-          gte: today,
-        },
-      },
+    const appointments = await db
+      .select()
+      .from(schema.appointments)
+      .where(eq(schema.appointments.userId, user.id));
+
+    const upcomingAppointments = appointments.filter(a => a.date >= today);
+    const count = upcomingAppointments.length;
+
+    // Get next appointment details
+    const sortedAppointments = upcomingAppointments.sort((a, b) => {
+      if (a.date.getTime() !== b.date.getTime()) {
+        return a.date.getTime() - b.date.getTime();
+      }
+      return a.time.localeCompare(b.time);
     });
 
-    // Get next appointment details (optional, for future tooltip enhancement)
-    const nextAppointment = await prisma.appointment.findFirst({
-      where: {
-        userId: user.id,
-        date: {
-          gte: today,
-        },
-      },
-      orderBy: [{ date: 'asc' }, { time: 'asc' }],
-      select: {
-        date: true,
-        time: true,
-      },
-    });
+    const nextAppointment = sortedAppointments[0] || null;
 
     return NextResponse.json(
       {
@@ -45,7 +42,7 @@ export const GET = withAuth(async (request: NextRequest, { user }) => {
       {
         status: 200,
         headers: {
-          'Cache-Control': 'private, max-age=300', // Cache for 5 minutes
+          'Cache-Control': 'private, max-age=300',
         },
       },
     );
