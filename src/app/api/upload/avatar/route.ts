@@ -1,18 +1,36 @@
 /**
  * API Route: /api/upload/avatar
- * Handles avatar image uploads for stylists
+ * Handles avatar image uploads for stylists using Cloudflare R2
  */
 import { NextRequest, NextResponse } from 'next/server';
-import { writeFile, mkdir } from 'fs/promises';
-import path from 'path';
-import { existsSync } from 'fs';
+import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 
-const UPLOAD_DIR = path.join(process.cwd(), 'public', 'uploads', 'avatars');
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 
+// Initialize S3 client for Cloudflare R2
+const s3Client = new S3Client({
+  region: 'auto',
+  endpoint: `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+  credentials: {
+    accessKeyId: process.env.R2_ACCESS_KEY_ID || '',
+    secretAccessKey: process.env.R2_SECRET_ACCESS_KEY || '',
+  },
+});
+
 export async function POST(request: NextRequest) {
   try {
+    // Check for R2 configuration
+    if (
+      !process.env.R2_ACCOUNT_ID ||
+      !process.env.R2_ACCESS_KEY_ID ||
+      !process.env.R2_SECRET_ACCESS_KEY ||
+      !process.env.R2_BUCKET_NAME
+    ) {
+      console.error('R2 configuration missing');
+      return NextResponse.json({ message: 'Storage configuration error' }, { status: 500 });
+    }
+
     const formData = await request.formData();
     const file = formData.get('file') as File | null;
 
@@ -36,26 +54,28 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Ensure upload directory exists
-    if (!existsSync(UPLOAD_DIR)) {
-      await mkdir(UPLOAD_DIR, { recursive: true });
-    }
-
     // Generate unique filename
     const timestamp = Date.now();
     const randomString = Math.random().toString(36).substring(2, 8);
     const extension = file.name.split('.').pop() || 'jpg';
-    const filename = `avatar_${timestamp}_${randomString}.${extension}`;
+    const filename = `avatars/avatar_${timestamp}_${randomString}.${extension}`;
 
-    // Convert file to buffer and save
+    // Convert file to buffer
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    const filepath = path.join(UPLOAD_DIR, filename);
-    await writeFile(filepath, buffer);
+    // Upload to R2
+    const command = new PutObjectCommand({
+      Bucket: process.env.R2_BUCKET_NAME,
+      Key: filename,
+      Body: buffer,
+      ContentType: file.type,
+    });
 
-    // Return the public URL
-    const publicUrl = `/uploads/avatars/${filename}`;
+    await s3Client.send(command);
+
+    // Construct the public URL
+    const publicUrl = `${process.env.R2_PUBLIC_URL}/${filename}`;
 
     return NextResponse.json({
       success: true,
