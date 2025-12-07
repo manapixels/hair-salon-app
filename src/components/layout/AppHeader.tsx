@@ -77,7 +77,7 @@ export default function AppHeader({ view, onViewChange, serviceLinks }: AppHeade
       try {
         const response = await fetch('/api/services');
         if (response.ok) {
-          const data = await response.json();
+          const data = (await response.json()) as ServiceCategory[];
           setCategories(data);
         }
       } catch (error) {
@@ -94,7 +94,7 @@ export default function AppHeader({ view, onViewChange, serviceLinks }: AppHeade
         try {
           const response = await fetch('/api/appointments/count');
           if (response.ok) {
-            const data = await response.json();
+            const data = (await response.json()) as { count: number };
             setAppointmentCount(data.count);
           }
         } catch (error) {

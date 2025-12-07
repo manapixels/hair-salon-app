@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { getDb } from '@/db';
+import * as schema from '@/db/schema';
+import { asc } from 'drizzle-orm';
 import { unstable_cache } from 'next/cache';
 
 /**
@@ -9,9 +11,11 @@ import { unstable_cache } from 'next/cache';
 
 const getServiceTags = unstable_cache(
   async () => {
-    const tags = await prisma.serviceTag.findMany({
-      orderBy: [{ category: 'asc' }, { sortOrder: 'asc' }],
-    });
+    const db = await getDb();
+    const tags = await db
+      .select()
+      .from(schema.serviceTags)
+      .orderBy(asc(schema.serviceTags.category), asc(schema.serviceTags.sortOrder));
 
     return {
       concerns: tags.filter(tag => tag.category === 'CONCERN'),

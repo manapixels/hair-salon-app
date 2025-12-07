@@ -8,7 +8,7 @@ import { blockSlot, unblockSlot } from '../../../../lib/database';
 // POST /api/admin/blocked-slots
 export async function POST(request: NextRequest) {
   try {
-    const requestBody = await request.json();
+    const requestBody = (await request.json()) as { date: string; time: string };
     const { date, time } = requestBody;
 
     if (!date || !time) {
@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
 // DELETE /api/admin/blocked-slots
 export async function DELETE(request: NextRequest) {
   try {
-    const requestBody = await request.json();
+    const requestBody = (await request.json()) as { date: string; time: string };
     const { date, time } = requestBody;
 
     if (!date || !time) {

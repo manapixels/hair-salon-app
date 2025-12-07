@@ -3,7 +3,9 @@ import { RETENTION_CONFIG } from '@/config/retention';
 import { getCompletedAppointmentsNeedingFeedback } from '@/services/retentionService';
 import { generateFeedbackRequestMessage } from '@/services/messageTemplates';
 import { sendRetentionMessage } from '@/services/retentionMessageService';
-import { prisma } from '@/lib/prisma';
+import { getDb } from '@/db';
+import * as schema from '@/db/schema';
+import { eq } from 'drizzle-orm';
 
 export const sendFeedbackRequests = inngest.createFunction(
   { id: 'send-feedback-requests', name: 'Send Feedback Requests' },
@@ -18,6 +20,8 @@ export const sendFeedbackRequests = inngest.createFunction(
     }
 
     const results = await step.run('send-feedback-messages', async () => {
+      const db = await getDb();
+
       const sendResults = await Promise.allSettled(
         appointments.map(async appointment => {
           if (!appointment.user || !appointment.userId) {
@@ -37,15 +41,15 @@ export const sendFeedbackRequests = inngest.createFunction(
             message,
             'FEEDBACK_REQUEST',
             daysSinceVisit,
-            appointment.id, // Pass appointmentId for inline keyboard buttons
+            appointment.id,
           );
 
           // Mark appointment as having feedback request sent
           if (result.success) {
-            await prisma.appointment.update({
-              where: { id: appointment.id },
-              data: { feedbackSent: true },
-            });
+            await db
+              .update(schema.appointments)
+              .set({ feedbackSent: true, updatedAt: new Date() })
+              .where(eq(schema.appointments.id, appointment.id));
           }
 
           return result;

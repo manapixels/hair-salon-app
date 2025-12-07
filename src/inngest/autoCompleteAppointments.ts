@@ -1,5 +1,7 @@
 import { inngest } from '@/lib/inngest';
-import { prisma } from '@/lib/prisma';
+import { getDb } from '@/db';
+import * as schema from '@/db/schema';
+import { eq, lt } from 'drizzle-orm';
 import { markAppointmentCompleted } from '@/lib/database';
 
 export const autoCompleteAppointments = inngest.createFunction(
@@ -7,31 +9,27 @@ export const autoCompleteAppointments = inngest.createFunction(
   { cron: '0 1 * * *' }, // Daily at 1 AM
   async ({ step }) => {
     const pastAppointments = await step.run('fetch-past-appointments', async () => {
+      const db = await getDb();
       const now = new Date();
       const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
 
-      // Find scheduled appointments where date + time is more than 1 hour ago
-      const appointments = await prisma.appointment.findMany({
-        where: {
-          status: 'SCHEDULED',
-          date: {
-            lt: now, // Date is in the past
-          },
-        },
-        select: {
-          id: true,
-          date: true,
-          time: true,
-          userId: true,
-        },
-      });
+      // Find scheduled appointments where date is in the past
+      const appointments = await db
+        .select({
+          id: schema.appointments.id,
+          date: schema.appointments.date,
+          time: schema.appointments.time,
+          userId: schema.appointments.userId,
+        })
+        .from(schema.appointments)
+        .where(eq(schema.appointments.status, 'SCHEDULED'));
 
       // Filter to only include appointments where date+time < now - 1 hour
       return appointments.filter(apt => {
+        if (apt.date >= now) return false;
         const [hours, minutes] = apt.time.split(':').map(Number);
         const appointmentDateTime = new Date(apt.date);
         appointmentDateTime.setHours(hours, minutes, 0, 0);
-
         return appointmentDateTime < oneHourAgo;
       });
     });
@@ -44,7 +42,6 @@ export const autoCompleteAppointments = inngest.createFunction(
       const completionResults = await Promise.allSettled(
         pastAppointments.map(async appointment => {
           if (!appointment.userId) {
-            // Skip guest bookings without userId
             return { success: false, reason: 'No userId' };
           }
 

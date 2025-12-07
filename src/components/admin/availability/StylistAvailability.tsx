@@ -67,7 +67,7 @@ export default function StylistAvailability({ onNavigateToStylists }: StylistAva
     try {
       const response = await fetch('/api/stylists');
       if (!response.ok) throw new Error('Failed to load stylists');
-      const data = await response.json();
+      const data = (await response.json()) as Stylist[];
       if (Array.isArray(data)) {
         setStylists(data);
         if (data.length > 0) {

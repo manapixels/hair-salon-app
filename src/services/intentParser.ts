@@ -9,6 +9,13 @@
  */
 
 import { getAllCategories, type ServiceCategory } from '@/lib/categories';
+import {
+  getStylists,
+  bookNewAppointment,
+  findAppointmentsByEmail,
+  cancelAppointment,
+  rescheduleAppointment,
+} from '@/lib/database';
 
 // ============================================================================
 // Types
@@ -47,8 +54,11 @@ export interface ParsedIntent {
     range?: { start: string; end: string }; // For "afternoon" → 12:00-17:00
   };
   stylist?: string; // Stylist name or "any"
+  stylistId?: string; // Stylist ID for booking
+  stylistName?: string; // Stylist display name
   ambiguousCategories?: ServiceCategory[]; // When multiple matches
   originalMessage: string;
+  hasNegation?: boolean; // "don't want", "cancel that" detected
 }
 
 export interface ConversationalResponse {
@@ -63,7 +73,22 @@ export interface BookingContextUpdate {
   date?: string;
   time?: string;
   stylistId?: string;
-  awaitingInput?: 'category' | 'date' | 'time' | 'stylist' | 'confirmation';
+  stylistName?: string;
+  customerName?: string;
+  customerEmail?: string;
+  // For cancel/reschedule flows
+  pendingAction?: 'cancel' | 'reschedule' | 'view';
+  appointmentId?: string;
+  newDate?: string;
+  newTime?: string;
+  awaitingInput?:
+    | 'category'
+    | 'date'
+    | 'time'
+    | 'stylist'
+    | 'confirmation'
+    | 'email'
+    | 'appointment_select';
 }
 
 // ============================================================================
@@ -72,16 +97,38 @@ export interface BookingContextUpdate {
 
 const INTENT_KEYWORDS: Record<IntentType, string[]> = {
   book: [
+    // Direct requests
     'book',
+    'booking',
     'appointment',
     'schedule',
     'reserve',
     'make an appointment',
+    // Desire expressions
     'i want',
     'i need',
     "i'd like",
+    'i would like',
+    'can i get',
+    'could i get',
+    'looking for',
+    'looking to',
+    'interested in',
+    // Informal
+    'get a',
+    'do a',
+    'have a',
+    'need a',
+    // Question-based
+    'can you book',
+    'could you book',
+    'is it possible to book',
+    // Future tense
+    'going to get',
+    'gonna get',
+    'planning to get',
   ],
-  cancel: ['cancel', 'delete', 'remove', 'call off'],
+  cancel: ['cancel', 'delete', 'remove', 'call off', 'cancel my appointment', 'cancel booking'],
   reschedule: [
     'reschedule',
     'change',
@@ -89,19 +136,50 @@ const INTENT_KEYWORDS: Record<IntentType, string[]> = {
     'different time',
     'another time',
     'change my appointment',
+    'move my appointment',
+    'new time',
+    'new date',
   ],
   view_appointments: [
     'my appointments',
     'my bookings',
+    'my booking',
     'show my',
     'list my',
     'see my',
     'upcoming',
     'what appointments',
+    'check my',
+    'view my',
+    'show appointments',
+    'view appointments',
+    'do i have any',
+    'when is my',
+    'booked for',
   ],
-  services: ['services', 'prices', 'menu', 'offer', 'treatments', 'what do you', 'how much'],
-  hours: ['hours', 'open', 'close', 'when are you', 'location', 'address', 'where are you'],
-  help: ['help', 'commands', 'what can you', 'how do i', 'options'],
+  services: [
+    'services',
+    'prices',
+    'menu',
+    'offer',
+    'treatments',
+    'what do you',
+    'how much',
+    'what services',
+    'price list',
+  ],
+  hours: [
+    'hours',
+    'open',
+    'close',
+    'when are you',
+    'location',
+    'address',
+    'where are you',
+    'opening hours',
+    'business hours',
+  ],
+  help: ['help', 'commands', 'what can you', 'how do i', 'options', 'what can i do'],
   greeting: ['hi', 'hello', 'hey', 'good morning', 'good afternoon', 'good evening', 'start'],
   confirmation: [
     'yes',
@@ -114,13 +192,34 @@ const INTENT_KEYWORDS: Record<IntentType, string[]> = {
     'correct',
     'right',
     'book it',
+    'sounds good',
+    'perfect',
+    'go ahead',
+    'do it',
+    "let's do it",
   ],
   unknown: [],
 };
 
 // Map user phrases to category slugs
 const CATEGORY_KEYWORDS: Record<string, string[]> = {
-  haircut: ['haircut', 'cut', 'trim', 'hair cut'],
+  haircut: [
+    'haircut',
+    'cut',
+    'trim',
+    'hair cut',
+    'snip',
+    "men's cut",
+    'mens cut',
+    "women's cut",
+    'womens cut',
+    'bang trim',
+    'fringe trim',
+    'shave',
+    'buzz cut',
+    'layer',
+    'layers',
+  ],
   'hair-colouring': [
     'color',
     'colour',
@@ -130,11 +229,70 @@ const CATEGORY_KEYWORDS: Record<string, string[]> = {
     'colouring',
     'coloring',
     'tint',
+    'bleach',
+    'ombre',
+    'root touch up',
+    'grey coverage',
+    'gray coverage',
+    'fashion color',
+    'fantasy color',
   ],
-  'keratin-treatment': ['keratin', 'treatment', 'smoothing', 'rebonding', 'straightening'],
-  perm: ['perm', 'curl', 'wave', 'curly'],
-  'scalp-therapy': ['scalp', 'dandruff', 'hair loss', 'scalp treatment'],
+  'keratin-treatment': [
+    'keratin',
+    'treatment',
+    'smoothing',
+    'rebonding',
+    'straightening',
+    'brazilian blowout',
+    'frizz',
+    'anti-frizz',
+    'k-gloss',
+    'tiboli',
+    'hair treatment',
+  ],
+  perm: [
+    'perm',
+    'curl',
+    'wave',
+    'curly',
+    'digital perm',
+    'cold perm',
+    'volume perm',
+    'root perm',
+    'iron perm',
+    'wavy',
+  ],
+  'scalp-therapy': [
+    'scalp',
+    'dandruff',
+    'hair loss',
+    'scalp treatment',
+    'oily scalp',
+    'dry scalp',
+    'itchy scalp',
+    'flaky',
+    'scalp therapy',
+    'thinning',
+  ],
 };
+
+// Negation phrases that indicate user is NOT requesting something
+const NEGATION_PHRASES = [
+  "don't want",
+  'do not want',
+  'not interested',
+  'no thanks',
+  'never mind',
+  'nevermind',
+  'cancel that',
+  'forget it',
+  'not anymore',
+  'changed my mind',
+  'actually no',
+  'nah',
+  "don't need",
+  'do not need',
+];
 
 // Days of the week
 const DAYS = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
@@ -145,6 +303,79 @@ const TIME_PERIODS: Record<string, { start: string; end: string }> = {
   afternoon: { start: '12:00', end: '17:00' },
   evening: { start: '17:00', end: '20:00' },
 };
+
+// ============================================================================
+// Negation Detection
+// ============================================================================
+
+/**
+ * Check if message contains negation that invalidates the intent
+ */
+function hasNegation(message: string): boolean {
+  const lower = message.toLowerCase();
+  return NEGATION_PHRASES.some(phrase => lower.includes(phrase));
+}
+
+// ============================================================================
+// Stylist Matching
+// ============================================================================
+
+/**
+ * Match user input to a stylist
+ * Handles: "with May", "by Sarah", "anyone", "any stylist"
+ * Auto-assigns single stylist when none mentioned
+ */
+async function matchStylist(message: string): Promise<{
+  stylistId: string | null;
+  stylistName: string | null;
+  isAnyStylist: boolean;
+}> {
+  const lower = message.toLowerCase();
+
+  // Check for "any stylist" variants
+  if (/\b(any|anyone|no preference|doesn't matter|whoever|any stylist|anybody)\b/.test(lower)) {
+    return { stylistId: null, stylistName: null, isAnyStylist: true };
+  }
+
+  // Fetch stylists from database
+  const stylists = await getStylists();
+
+  // If only one stylist exists and no specific preference mentioned, auto-assign
+  if (stylists.length === 1) {
+    return {
+      stylistId: stylists[0].id,
+      stylistName: stylists[0].name,
+      isAnyStylist: false,
+    };
+  }
+
+  // Extract "with [name]" or "by [name]" patterns
+  const withMatch = lower.match(/\b(?:with|by)\s+([a-z]+)/i);
+  const preferredName = withMatch?.[1];
+
+  // Try to match stylist name
+  for (const stylist of stylists) {
+    const nameLower = stylist.name.toLowerCase();
+    const firstName = nameLower.split(' ')[0];
+
+    // Match full name or first name
+    if (
+      lower.includes(nameLower) ||
+      lower.includes(firstName) ||
+      preferredName === firstName ||
+      preferredName === nameLower
+    ) {
+      return {
+        stylistId: stylist.id,
+        stylistName: stylist.name,
+        isAnyStylist: false,
+      };
+    }
+  }
+
+  // No specific stylist mentioned
+  return { stylistId: null, stylistName: null, isAnyStylist: false };
+}
 
 // ============================================================================
 // Intent Detection
@@ -491,24 +722,27 @@ function formatTime(hours: number, minutes: number): string {
 // ============================================================================
 
 /**
- * Parse a user message and extract intent, category, date, time
+ * Parse a user message and extract intent, category, date, time, stylist
  */
 export async function parseMessage(message: string): Promise<ParsedIntent> {
   const intent = detectIntent(message);
   const { category, ambiguous } = await matchCategory(message);
   const date = parseNaturalDate(message);
   const time = parseNaturalTime(message);
+  const stylistMatch = await matchStylist(message);
+  const negation = hasNegation(message);
 
-  // Check for stylist preference
+  // Determine stylist display value
   let stylist: string | undefined;
-  const lower = message.toLowerCase();
-  if (lower.includes('any stylist') || lower.includes('anyone') || lower.includes('any is fine')) {
+  if (stylistMatch.isAnyStylist) {
     stylist = 'any';
+  } else if (stylistMatch.stylistName) {
+    stylist = stylistMatch.stylistName;
   }
 
   return {
-    type: intent.type,
-    confidence: intent.confidence,
+    type: negation ? 'unknown' : intent.type, // Negation invalidates intent
+    confidence: negation ? 0.2 : intent.confidence,
     category: category
       ? {
           id: category.id,
@@ -520,8 +754,11 @@ export async function parseMessage(message: string): Promise<ParsedIntent> {
     date: date.parsed ? date : undefined,
     time: time.parsed || time.range ? time : undefined,
     stylist,
+    stylistId: stylistMatch.stylistId ?? undefined,
+    stylistName: stylistMatch.stylistName ?? undefined,
     ambiguousCategories: ambiguous.length > 0 ? ambiguous : undefined,
     originalMessage: message,
+    hasNegation: negation,
   };
 }
 
@@ -540,12 +777,57 @@ export async function generateFallbackResponse(
   const parsed = await parseMessage(message);
   const allCategories = await getAllCategories();
 
-  // Handle confirmation
-  if (parsed.type === 'confirmation' && currentContext?.awaitingInput === 'confirmation') {
-    return {
-      text: "I'd love to confirm your booking, but I'm having some trouble with my booking system right now. Please try again in a moment, or use our web app at the link in your profile to complete your booking.",
-      updatedContext: currentContext,
-    };
+  // Handle confirmation ('yes', 'confirm', etc.)
+  if (parsed.type === 'confirmation') {
+    // Check if we have all required booking info
+    const hasBookingInfo =
+      currentContext?.categoryId && currentContext?.date && currentContext?.time;
+
+    if (hasBookingInfo) {
+      try {
+        // Get category info for the booking
+        const category = allCategories.find(c => c.id === currentContext.categoryId);
+
+        // Create the booking
+        const appointment = await bookNewAppointment({
+          date: new Date(currentContext.date!),
+          time: currentContext.time!,
+          categoryId: currentContext.categoryId,
+          estimatedDuration: category?.estimatedDuration || 60,
+          services: [], // Category-based booking, no individual services
+          customerName: currentContext.customerName || 'Guest',
+          customerEmail: currentContext.customerEmail || '',
+          stylistId: currentContext.stylistId,
+        });
+
+        // Format success message
+        const stylistName = currentContext.stylistName || appointment.stylist?.name;
+        let successMsg = `✅ *Booking Confirmed!*\n\n`;
+        successMsg += `✂️ ${currentContext.categoryName || category?.title}`;
+        if (stylistName) {
+          successMsg += ` with ${stylistName}`;
+        }
+        successMsg += `\n📅 ${currentContext.date} at ${currentContext.time}`;
+        successMsg += `\n\n📍 We'll see you then! You'll receive a reminder before your appointment.`;
+
+        return {
+          text: successMsg,
+          updatedContext: undefined, // Clear context after successful booking
+        };
+      } catch (error: any) {
+        console.error('[IntentParser] Booking creation failed:', error);
+        return {
+          text: `Sorry, I couldn't complete your booking: ${error.message || 'Please try again or use our web app to book.'}`,
+          updatedContext: currentContext,
+        };
+      }
+    } else {
+      // No booking context - user said 'yes' but we don't know what they're confirming
+      return {
+        text: `Great! What would you like to book?\n\nJust tell me the service, date, and time. For example:\n"Book a haircut for tomorrow at 2pm"`,
+        updatedContext: { awaitingInput: 'category' },
+      };
+    }
   }
 
   // Handle greeting
@@ -596,25 +878,40 @@ Just chat naturally! For example:
   if (parsed.type === 'book' || currentContext?.awaitingInput === 'category') {
     // If category was detected
     if (parsed.category) {
-      const summary = `✅ *Your Booking:*\n✂️ ${parsed.category.name} ${parsed.category.priceNote ? `(${parsed.category.priceNote})` : ''}`;
+      // Build service line with stylist if available
+      let serviceLine = `✂️ ${parsed.category.name}`;
+      if (parsed.category.priceNote) {
+        serviceLine += ` (${parsed.category.priceNote})`;
+      }
+      if (parsed.stylistName) {
+        serviceLine += ` with ${parsed.stylistName}`;
+      }
 
       if (parsed.date?.parsed && parsed.time?.parsed) {
-        // Full booking info provided
+        // Full booking info provided - show confirmation summary
+        // Use 📋 (not ✅) to indicate pending, not confirmed
+        let confirmText = `📋 *Ready to Book:*\n${serviceLine}\n📅 ${parsed.date.formatted} at ${parsed.time.formatted}\n\n👉 *Reply 'yes' to confirm*`;
+        if (!parsed.stylistName && parsed.stylist !== 'any') {
+          // No stylist specified and not "any" - note this
+          confirmText += '\n_(Stylist assigned based on availability)_';
+        }
+
         return {
-          text: `${summary}\n📅 ${parsed.date.formatted}\n🕐 ${parsed.time.formatted}\n\nAll set! Just say 'yes' to confirm this booking.\n(Final price will be confirmed at the salon)`,
+          text: confirmText,
           updatedContext: {
             categoryId: parsed.category.id,
             categoryName: parsed.category.name,
             priceNote: parsed.category.priceNote,
             date: parsed.date.parsed.toISOString().split('T')[0],
             time: parsed.time.parsed,
+            stylistId: parsed.stylistId,
             awaitingInput: 'confirmation',
           },
         };
       } else if (parsed.date?.parsed) {
         // Has date but not time
         return {
-          text: `${summary}\n📅 ${parsed.date.formatted}\n\nWhat time works for you? You can say something like "2pm" or "afternoon".`,
+          text: `📋 *Almost there:*\n${serviceLine}\n📅 ${parsed.date.formatted}\n\nWhat time works for you? (e.g. "2pm" or "afternoon")`,
           updatedContext: {
             categoryId: parsed.category.id,
             categoryName: parsed.category.name,
@@ -626,7 +923,7 @@ Just chat naturally! For example:
       } else {
         // Has category but no date
         return {
-          text: `${summary}\n\nGreat choice! When would you like to come in?\nJust say something like "tomorrow at 2pm" or "next Saturday".`,
+          text: `📋 *Great choice:*\n${serviceLine}\n\nWhen would you like to come in? (e.g. "tomorrow at 2pm")`,
           updatedContext: {
             categoryId: parsed.category.id,
             categoryName: parsed.category.name,
@@ -660,7 +957,7 @@ Just chat naturally! For example:
     if (parsed.date?.parsed || parsed.time?.parsed) {
       const updatedContext = { ...currentContext };
 
-      let summary = '✅ *Your Booking:*';
+      let summary = '📋 *Almost there:*';
       if (currentContext.categoryName) {
         summary += `\n✂️ ${currentContext.categoryName} ${currentContext.priceNote ? `(${currentContext.priceNote})` : ''}`;
       }
@@ -703,17 +1000,250 @@ Just chat naturally! For example:
 
   // Handle view appointments
   if (parsed.type === 'view_appointments') {
-    return {
-      text: "To view your appointments, I'll need to look that up for you. Could you please provide your email address, or try again in a moment?",
-    };
+    const email = currentContext?.customerEmail;
+
+    if (email) {
+      try {
+        const appointments = await findAppointmentsByEmail(email);
+        if (appointments.length === 0) {
+          return {
+            text: `📅 You don't have any upcoming appointments.\n\nWould you like to book one?`,
+          };
+        }
+
+        // Format appointments list
+        const appointmentList = appointments
+          .slice(0, 5) // Show max 5
+          .map((apt, i) => {
+            const date = new Date(apt.date).toLocaleDateString('en-US', {
+              weekday: 'short',
+              month: 'short',
+              day: 'numeric',
+            });
+            // Format time as 12-hour (e.g., "2:00 PM")
+            const [hours, minutes] = apt.time.split(':').map(Number);
+            const period = hours >= 12 ? 'PM' : 'AM';
+            const displayHours = hours > 12 ? hours - 12 : hours === 0 ? 12 : hours;
+            const formattedTime = `${displayHours}:${minutes.toString().padStart(2, '0')} ${period}`;
+            const service = apt.category?.title || 'Appointment';
+            const stylist = apt.stylist?.name ? ` with ${apt.stylist.name}` : '';
+            return `${i + 1}. ${service}${stylist}\n   ${date} at ${formattedTime}`;
+          })
+          .join('\n\n');
+
+        return {
+          text: `📅 *Your Upcoming Appointments:*\n\n${appointmentList}\n\nTo cancel or reschedule, just let me know which one.`,
+          updatedContext: { ...currentContext, pendingAction: 'view' },
+        };
+      } catch (error) {
+        console.error('[IntentParser] Error fetching appointments:', error);
+        return {
+          text: `Sorry, I couldn't fetch your appointments right now. Please try again.`,
+        };
+      }
+    } else {
+      return {
+        text: `To view your appointments, please provide your email address.`,
+        updatedContext: { pendingAction: 'view', awaitingInput: 'email' },
+      };
+    }
   }
 
-  // Handle cancel/reschedule
-  if (parsed.type === 'cancel' || parsed.type === 'reschedule') {
-    const action = parsed.type === 'cancel' ? 'cancel' : 'reschedule';
-    return {
-      text: `I'd be happy to help you ${action} your appointment. Could you provide your email address, or tell me which appointment you'd like to ${action}?`,
-    };
+  // Handle cancel
+  if (parsed.type === 'cancel') {
+    const email = currentContext?.customerEmail;
+
+    // If we have an appointment ID to cancel
+    if (currentContext?.appointmentId && email) {
+      try {
+        await cancelAppointment({
+          customerEmail: email,
+          date: currentContext.date!,
+          time: currentContext.time!,
+        });
+        return {
+          text: `✅ *Appointment Cancelled*\n\nYour appointment has been cancelled successfully.\n\nWould you like to book a new appointment?`,
+          updatedContext: undefined, // Clear context
+        };
+      } catch (error: any) {
+        console.error('[IntentParser] Cancel failed:', error);
+        return {
+          text: `Sorry, I couldn't cancel that appointment: ${error.message || 'Please try again.'}`,
+          updatedContext: currentContext,
+        };
+      }
+    }
+
+    // If we have email, show appointments to select from
+    if (email) {
+      try {
+        const appointments = await findAppointmentsByEmail(email);
+        if (appointments.length === 0) {
+          return {
+            text: `You don't have any upcoming appointments to cancel.`,
+          };
+        }
+
+        if (appointments.length === 1) {
+          // Only one appointment - confirm cancellation
+          const apt = appointments[0];
+          const date = new Date(apt.date).toLocaleDateString('en-US', {
+            weekday: 'short',
+            month: 'short',
+            day: 'numeric',
+          });
+          return {
+            text: `🗑️ *Cancel Appointment?*\n\n${apt.category?.title || 'Appointment'}\n📅 ${date} at ${apt.time}\n\n👉 Reply 'yes' to confirm cancellation`,
+            updatedContext: {
+              ...currentContext,
+              pendingAction: 'cancel',
+              appointmentId: apt.id,
+              date: apt.date.toString().split('T')[0],
+              time: apt.time,
+              awaitingInput: 'confirmation',
+            },
+          };
+        }
+
+        // Multiple appointments - ask which one
+        const list = appointments
+          .slice(0, 5)
+          .map((apt, i) => {
+            const date = new Date(apt.date).toLocaleDateString('en-US', {
+              weekday: 'short',
+              month: 'short',
+              day: 'numeric',
+            });
+            return `${i + 1}. ${apt.category?.title || 'Appointment'} - ${date} at ${apt.time}`;
+          })
+          .join('\n');
+
+        return {
+          text: `Which appointment would you like to cancel?\n\n${list}\n\nReply with the number.`,
+          updatedContext: {
+            ...currentContext,
+            pendingAction: 'cancel',
+            awaitingInput: 'appointment_select',
+          },
+        };
+      } catch (error) {
+        console.error('[IntentParser] Error fetching appointments for cancel:', error);
+        return {
+          text: `Sorry, I couldn't fetch your appointments. Please try again.`,
+        };
+      }
+    } else {
+      return {
+        text: `To cancel an appointment, please provide your email address.`,
+        updatedContext: { pendingAction: 'cancel', awaitingInput: 'email' },
+      };
+    }
+  }
+
+  // Handle reschedule
+  if (parsed.type === 'reschedule') {
+    const email = currentContext?.customerEmail;
+
+    // Detect complex inline reschedule requests like "reschedule my haircut on 12 dec to 14 dec"
+    // These contain date info and should fall through to Gemini for NLP processing
+    const hasInlineDates =
+      /\d{1,2}\s*(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)/i.test(message) ||
+      /to\s+(next|this|tomorrow|mon|tue|wed|thu|fri|sat|sun|\d{1,2})/i.test(message);
+    if (hasInlineDates && !currentContext?.appointmentId) {
+      // Complex request - fall through to Gemini
+      return null as any; // Signal to geminiService to use AI
+    }
+
+    // If we have appointment and new date/time - execute reschedule
+    if (
+      currentContext?.appointmentId &&
+      currentContext?.newDate &&
+      currentContext?.newTime &&
+      email
+    ) {
+      try {
+        await rescheduleAppointment(
+          currentContext.appointmentId,
+          new Date(currentContext.newDate),
+          currentContext.newTime,
+        );
+        return {
+          text: `✅ *Appointment Rescheduled*\n\n📅 New time: ${currentContext.newDate} at ${currentContext.newTime}\n\nSee you then!`,
+          updatedContext: undefined, // Clear context
+        };
+      } catch (error: any) {
+        console.error('[IntentParser] Reschedule failed:', error);
+        return {
+          text: `Sorry, I couldn't reschedule: ${error.message || 'Please try again.'}`,
+          updatedContext: currentContext,
+        };
+      }
+    }
+
+    // If we have email, show appointments to select from
+    if (email) {
+      try {
+        const appointments = await findAppointmentsByEmail(email);
+        if (appointments.length === 0) {
+          return {
+            text: `You don't have any upcoming appointments to reschedule.`,
+          };
+        }
+
+        if (appointments.length === 1) {
+          // Only one appointment - ask for new date/time
+          const apt = appointments[0];
+          const date = new Date(apt.date).toLocaleDateString('en-US', {
+            weekday: 'short',
+            month: 'short',
+            day: 'numeric',
+          });
+          return {
+            text: `📅 *Reschedule Appointment*\n\n${apt.category?.title || 'Appointment'}\nCurrently: ${date} at ${apt.time}\n\nWhen would you like to reschedule to? (e.g. "next Tuesday at 3pm")`,
+            updatedContext: {
+              ...currentContext,
+              pendingAction: 'reschedule',
+              appointmentId: apt.id,
+              date: apt.date.toString().split('T')[0],
+              time: apt.time,
+              awaitingInput: 'date',
+            },
+          };
+        }
+
+        // Multiple appointments - ask which one
+        const list = appointments
+          .slice(0, 5)
+          .map((apt, i) => {
+            const date = new Date(apt.date).toLocaleDateString('en-US', {
+              weekday: 'short',
+              month: 'short',
+              day: 'numeric',
+            });
+            return `${i + 1}. ${apt.category?.title || 'Appointment'} - ${date} at ${apt.time}`;
+          })
+          .join('\n');
+
+        return {
+          text: `Which appointment would you like to reschedule?\n\n${list}\n\nReply with the number.`,
+          updatedContext: {
+            ...currentContext,
+            pendingAction: 'reschedule',
+            awaitingInput: 'appointment_select',
+          },
+        };
+      } catch (error) {
+        console.error('[IntentParser] Error fetching appointments for reschedule:', error);
+        return {
+          text: `Sorry, I couldn't fetch your appointments. Please try again.`,
+        };
+      }
+    } else {
+      return {
+        text: `To reschedule an appointment, please provide your email address.`,
+        updatedContext: { pendingAction: 'reschedule', awaitingInput: 'email' },
+      };
+    }
   }
 
   // Unknown intent - provide helpful guidance

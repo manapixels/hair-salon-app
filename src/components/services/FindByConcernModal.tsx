@@ -68,7 +68,7 @@ export function FindByConcernModal({ isOpen, onClose, serviceLinks }: FindByConc
       fetch('/api/services/tags')
         .then(res => {
           if (!res.ok) throw new Error('Failed to fetch tags');
-          return res.json();
+          return res.json() as Promise<{ concerns: ServiceTag[]; outcomes?: ServiceTag[] }>;
         })
         .then(data => {
           const tags = [...(data.concerns || []), ...(data.outcomes || [])];
@@ -111,7 +111,7 @@ export function FindByConcernModal({ isOpen, onClose, serviceLinks }: FindByConc
       const res = await fetch('/api/services');
       if (!res.ok) throw new Error('Failed to fetch services');
 
-      const categories = await res.json();
+      const categories = (await res.json()) as ServiceCategory[];
 
       // Find categories that have services matching this concern
       const relevantCategories = categories
@@ -178,7 +178,10 @@ export function FindByConcernModal({ isOpen, onClose, serviceLinks }: FindByConc
                   setError(null);
                   setLoadingTags(true);
                   fetch('/api/services/tags')
-                    .then(res => res.json())
+                    .then(
+                      res =>
+                        res.json() as Promise<{ concerns: ServiceTag[]; outcomes?: ServiceTag[] }>,
+                    )
                     .then(data => {
                       const tags = [...(data.concerns || []), ...(data.outcomes || [])];
                       setAvailableTags(tags);

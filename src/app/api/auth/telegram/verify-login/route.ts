@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { setSessionCookie } from '@/lib/secureSession';
 import { findUserById } from '@/lib/database';
-import { prisma } from '@/lib/prisma';
+import { getDb } from '@/db';
+import * as schema from '@/db/schema';
+import { eq } from 'drizzle-orm';
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
@@ -18,7 +20,6 @@ export async function GET(request: NextRequest) {
 
   if (isTelegramBot) {
     console.log('[VERIFY-LOGIN] Telegram preview bot detected - returning simple success page');
-    // Return a simple HTML page for the preview without consuming the token
     return new NextResponse(
       `<!DOCTYPE html>
 <html>
@@ -33,9 +34,7 @@ export async function GET(request: NextRequest) {
 </html>`,
       {
         status: 200,
-        headers: {
-          'Content-Type': 'text/html',
-        },
+        headers: { 'Content-Type': 'text/html' },
       },
     );
   }
@@ -49,18 +48,20 @@ export async function GET(request: NextRequest) {
   console.log('[VERIFY-LOGIN] Token full length:', sessionToken.length);
 
   try {
+    const db = await getDb();
     console.log('[VERIFY-LOGIN] Querying database for token...');
 
     // Query all tokens to see what's in the database
-    const allTokens = await prisma.loginToken.findMany({
-      select: {
-        id: true,
-        token: true,
-        userId: true,
-        expiresAt: true,
-        createdAt: true,
-      },
-    });
+    const allTokens = await db
+      .select({
+        id: schema.loginTokens.id,
+        token: schema.loginTokens.token,
+        userId: schema.loginTokens.userId,
+        expiresAt: schema.loginTokens.expiresAt,
+        createdAt: schema.loginTokens.createdAt,
+      })
+      .from(schema.loginTokens);
+
     console.log('[VERIFY-LOGIN] Total tokens in database:', allTokens.length);
     console.log(
       '[VERIFY-LOGIN] Token prefixes:',
@@ -71,9 +72,12 @@ export async function GET(request: NextRequest) {
       })),
     );
 
-    const tokenData = await prisma.loginToken.findUnique({
-      where: { token: sessionToken },
-    });
+    const tokenResults = await db
+      .select()
+      .from(schema.loginTokens)
+      .where(eq(schema.loginTokens.token, sessionToken))
+      .limit(1);
+    const tokenData = tokenResults[0];
 
     if (!tokenData) {
       console.error('[VERIFY-LOGIN] FAILED: Token not found in database');
@@ -87,7 +91,7 @@ export async function GET(request: NextRequest) {
 
     if (tokenData.expiresAt.getTime() < Date.now()) {
       console.error('[VERIFY-LOGIN] FAILED: Token expired');
-      await prisma.loginToken.delete({ where: { id: tokenData.id } });
+      await db.delete(schema.loginTokens).where(eq(schema.loginTokens.id, tokenData.id));
       return NextResponse.redirect(`${process.env.NEXTAUTH_URL}/?error=token_expired`);
     }
 
@@ -135,7 +139,7 @@ export async function GET(request: NextRequest) {
     await setSessionCookie(userForSession);
 
     console.log('[VERIFY-LOGIN] Deleting used token...');
-    await prisma.loginToken.delete({ where: { id: tokenData.id } });
+    await db.delete(schema.loginTokens).where(eq(schema.loginTokens.id, tokenData.id));
 
     console.log('[VERIFY-LOGIN] SUCCESS: Redirecting to app with login=success');
     return NextResponse.redirect(`${process.env.NEXTAUTH_URL}/?login=success`);

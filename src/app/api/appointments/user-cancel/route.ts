@@ -6,7 +6,7 @@ import { sendAppointmentCancellation } from '@/services/messagingService';
 
 export const DELETE = withAuth(async (request: NextRequest, { user }) => {
   try {
-    const body = await request.json();
+    const body = (await request.json()) as { appointmentId: string };
     const { appointmentId } = body;
 
     if (!appointmentId) {

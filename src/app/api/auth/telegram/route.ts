@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
   try {
     // Get bot information to return username
     const response = await fetch(`https://api.telegram.org/bot${botToken}/getMe`);
-    const botInfo = await response.json();
+    const botInfo = (await response.json()) as { ok: boolean; result: { username: string } };
 
     if (!botInfo.ok) {
       throw new Error('Failed to get bot info');

@@ -33,7 +33,15 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
 export async function PUT(request: NextRequest, { params }: RouteParams) {
   try {
-    const body = await request.json();
+    const body = (await request.json()) as {
+      name?: string;
+      email?: string;
+      bio?: string;
+      avatar?: string;
+      specialtyCategoryIds?: string[];
+      workingHours?: any;
+      isActive?: boolean;
+    };
     const { name, email, bio, avatar, specialtyCategoryIds, workingHours, isActive } = body;
 
     // Validate category IDs if provided

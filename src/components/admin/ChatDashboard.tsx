@@ -33,7 +33,7 @@ export default function ChatDashboard() {
     try {
       const response = await fetch('/api/admin/chat');
       if (response.ok) {
-        const data = await response.json();
+        const data = (await response.json()) as FlaggedConversation[];
         setConversations(data);
       }
     } catch (error) {

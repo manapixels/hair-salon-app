@@ -43,7 +43,7 @@ export default function InfoPopup({ isOpen, onClose }: InfoPopupProps) {
     if (isOpen && !settings) {
       fetch('/api/admin/settings')
         .then(res => res.json())
-        .then(setSettings)
+        .then(data => setSettings(data as AdminSettings))
         .catch(console.error);
     }
   }, [isOpen, settings]);

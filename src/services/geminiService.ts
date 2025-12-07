@@ -197,6 +197,35 @@ const modifyAppointment: FunctionDeclaration = {
   },
 };
 
+const rescheduleByDetails: FunctionDeclaration = {
+  name: 'rescheduleByDetails',
+  description:
+    'Reschedule an appointment by identifying it via email, service type, and current date. ' +
+    'Use this when user says "reschedule my haircut on 12 dec to 14 dec" without providing ID.',
+  parameters: {
+    type: Type.OBJECT,
+    properties: {
+      customerEmail: {
+        type: Type.STRING,
+        description: "The customer's email address.",
+      },
+      currentDate: {
+        type: Type.STRING,
+        description: 'The current date of the appointment to reschedule, in YYYY-MM-DD format.',
+      },
+      newDate: {
+        type: Type.STRING,
+        description: 'The new date for the appointment, in YYYY-MM-DD format.',
+      },
+      newTime: {
+        type: Type.STRING,
+        description: 'The new time for the appointment in HH:MM format. If "same time", use null.',
+      },
+    },
+    required: ['customerEmail', 'currentDate', 'newDate'],
+  },
+};
+
 export interface MessageResponse {
   text: string;
   buttons?: Array<{ text: string; data: string }>;
@@ -206,6 +235,21 @@ export interface MessageResponse {
     services?: string[];
     date?: string;
     time?: string;
+    stylistId?: string;
+    // Additional context for intent parser flows
+    categoryId?: string;
+    categoryName?: string;
+    stylistName?: string;
+    awaitingInput?:
+      | 'category'
+      | 'date'
+      | 'time'
+      | 'stylist'
+      | 'confirmation'
+      | 'email'
+      | 'appointment_select';
+    pendingAction?: 'cancel' | 'reschedule' | 'view';
+    appointmentId?: string;
   };
 }
 
@@ -246,10 +290,109 @@ export const handleWhatsAppMessage = async (
       text: "I'm still checking on that for you with our team. Thanks for your patience!",
     };
   }
-  // Also check by phone/telegram ID if available (passed in userContext or derived)
-  // Note: Ideally we'd check by the platform ID, but userContext is what we have here.
-  // The caller (messagingUserService) should handle the 'isFlagged' check before calling this if possible,
-  // but we add a safeguard here.
+
+  // ============================================================================
+  // Primary Handler: Deterministic Intent Parser
+  // Try intent parser first for fast, predictable responses
+  // Falls back to Gemini AI for complex/ambiguous queries
+  // ============================================================================
+  try {
+    const { parseMessage, generateFallbackResponse } = await import('./intentParser');
+    const parsed = await parseMessage(userInput);
+
+    // Convert booking context to intent parser format
+    // Include user context for booking creation
+    // Cast to access all stored fields including those from intent parser
+    const storedContext = bookingContext as Record<string, any> | undefined;
+    const intentParserContext = storedContext
+      ? {
+          categoryId: storedContext.categoryId || storedContext.services?.[0],
+          categoryName: storedContext.categoryName,
+          date: storedContext.date,
+          time: storedContext.time,
+          stylistId: storedContext.stylistId,
+          stylistName: storedContext.stylistName,
+          customerName: storedContext.customerName || userContext?.name,
+          customerEmail: storedContext.customerEmail || userContext?.email,
+          // Use stored awaitingInput if present, otherwise derive from booking state
+          awaitingInput:
+            storedContext.awaitingInput ||
+            (storedContext.services?.[0] && storedContext.date && storedContext.time
+              ? 'confirmation'
+              : undefined),
+          pendingAction: storedContext.pendingAction,
+          appointmentId: storedContext.appointmentId,
+        }
+      : userContext
+        ? {
+            customerName: userContext.name,
+            customerEmail: userContext.email,
+          }
+        : undefined;
+
+    // Use intent parser for high-confidence booking flows
+    const handledIntents = [
+      'book',
+      'greeting',
+      'services',
+      'hours',
+      'help',
+      'confirmation',
+      'view_appointments',
+      'cancel',
+      'reschedule',
+    ];
+    if (parsed.confidence >= 0.7 && handledIntents.includes(parsed.type)) {
+      console.log(
+        `[IntentParser] Handling "${parsed.type}" intent (confidence: ${parsed.confidence})`,
+      );
+      const response = await generateFallbackResponse(userInput, intentParserContext);
+
+      // If intent parser returns null, it's signaling to fall through to Gemini
+      if (response === null) {
+        console.log(`[IntentParser] Complex request, falling through to Gemini`);
+        // Fall through to Gemini below
+      } else {
+        // Log for analytics
+        console.log(`[IntentParser] Response generated deterministically`);
+
+        return {
+          text: response.text,
+          bookingDetails: response.updatedContext
+            ? {
+                // Map categoryId to services array for backwards compatibility
+                services: response.updatedContext.categoryId
+                  ? [response.updatedContext.categoryId]
+                  : undefined,
+                stylistId: response.updatedContext.stylistId,
+                date: response.updatedContext.date,
+                time: response.updatedContext.time,
+                // Pass through all other context for proper persistence
+                categoryId: response.updatedContext.categoryId,
+                categoryName: response.updatedContext.categoryName,
+                stylistName: response.updatedContext.stylistName,
+                customerName: response.updatedContext.customerName,
+                customerEmail: response.updatedContext.customerEmail,
+                awaitingInput: response.updatedContext.awaitingInput,
+                pendingAction: response.updatedContext.pendingAction,
+                appointmentId: response.updatedContext.appointmentId,
+              }
+            : undefined,
+        };
+      }
+    }
+
+    // Low confidence or unhandled intent - fall through to Gemini AI
+    console.log(
+      `[IntentParser] Low confidence (${parsed.confidence}) or unhandled intent "${parsed.type}", falling back to Gemini`,
+    );
+  } catch (intentParserError) {
+    console.error('[IntentParser] Error, falling back to Gemini:', intentParserError);
+  }
+
+  // ============================================================================
+  // Fallback Handler: Gemini AI for complex/ambiguous queries
+  // ============================================================================
 
   const allServices = await getServices();
   const servicesListString = allServices
@@ -351,9 +494,18 @@ Available Stylists:
 ${stylistsListString}
 
 IMPORTANT - Checking Availability:
-- If the user asks for a specific time (e.g., "2pm"), call only checkAvailability with the 'time' parameter to confirm it.
+- If the user asks for a specific time (e.g., "2pm"), call checkAvailability with the 'time' parameter to confirm it.
 - If the user asks generally ("what time?", "available slots?"), call checkAvailability WITHOUT the 'time' parameter to get a list.
-- If a slot is confirmed available, immediately ask to book it.
+- When a slot is confirmed available AND you have all booking details (service, date, time, stylist), show a FULL CONFIRMATION SUMMARY:
+  "✅ *Your Booking:*
+  ✂️ [Service] ([price])
+  📅 [Date]
+  🕐 [Time]
+  💇 [Stylist]
+  
+  Reply 'yes' to confirm your booking!"
+- Do NOT just say "Yes, [time] is available" - go straight to the confirmation summary when you have all details.
+
 
 IMPORTANT - Progressive Confirmation:
 As you collect booking details, ALWAYS show a running summary at the TOP of your response:
@@ -437,6 +589,7 @@ ${servicesListString}
               cancelAppointment,
               listMyAppointments,
               modifyAppointment,
+              rescheduleByDetails,
               searchKnowledgeBaseTool,
               flagForAdminTool,
             ],
@@ -712,13 +865,23 @@ ${servicesListString}
 
           let appointmentsList = `Here are your upcoming appointments:\n\n`;
           appointments.forEach((apt, index) => {
-            const services = apt.services.map(s => s.name).join(', ');
+            // Show category name for category-based bookings, or services list for legacy bookings
+            const serviceName =
+              apt.category?.title ||
+              (apt.services?.length > 0 ? apt.services.map(s => s.name).join(', ') : 'Appointment');
             const date = formatDisplayDate(apt.date);
-            appointmentsList += `${index + 1}. **${date} at ${apt.time}**\n`;
-            appointmentsList += `   Services: ${services}\n`;
-            appointmentsList += `   Duration: ${apt.totalDuration} minutes\n`;
-            appointmentsList += `   Total: $${apt.totalPrice}\n`;
-            appointmentsList += `   ID: ${apt.id}\n\n`;
+            // Format time as 12-hour (e.g., "2:00 PM")
+            const [hours, minutes] = apt.time.split(':').map(Number);
+            const period = hours >= 12 ? 'PM' : 'AM';
+            const displayHours = hours > 12 ? hours - 12 : hours === 0 ? 12 : hours;
+            const formattedTime = `${displayHours}:${minutes.toString().padStart(2, '0')} ${period}`;
+            const stylist = apt.stylist?.name ? ` with ${apt.stylist.name}` : '';
+            appointmentsList += `${index + 1}. **${serviceName}${stylist}**\n`;
+            appointmentsList += `   📅 ${date} at ${formattedTime}\n`;
+            if (apt.totalDuration) {
+              appointmentsList += `   ⏱️ ${apt.totalDuration} minutes\n`;
+            }
+            appointmentsList += `\n`;
           });
 
           appointmentsList += `To modify any appointment, just let me know which one and what you'd like to change!`;
@@ -826,6 +989,78 @@ ${servicesListString}
         } catch (e: any) {
           return {
             text: `I'm sorry, I couldn't modify that appointment. Reason: ${e.message}. Please try again or contact the salon directly.`,
+          };
+        }
+      }
+
+      if (name === 'rescheduleByDetails') {
+        try {
+          const { customerEmail, currentDate, newDate, newTime } = args as {
+            customerEmail: string;
+            currentDate: string;
+            newDate: string;
+            newTime?: string;
+          };
+
+          // Find appointments for this user
+          const appointments = await findAppointmentsByEmail(customerEmail);
+          if (appointments.length === 0) {
+            return {
+              text: `You don't have any upcoming appointments to reschedule.`,
+            };
+          }
+
+          // Find appointment matching the current date
+          const targetDate = new Date(currentDate);
+          const matchingApt = appointments.find(apt => {
+            const aptDate = new Date(apt.date);
+            return (
+              aptDate.getFullYear() === targetDate.getFullYear() &&
+              aptDate.getMonth() === targetDate.getMonth() &&
+              aptDate.getDate() === targetDate.getDate()
+            );
+          });
+
+          if (!matchingApt) {
+            return {
+              text: `I couldn't find an appointment on ${formatDisplayDate(
+                targetDate,
+              )}. Your upcoming appointments are on: ${appointments
+                .map(a => formatDisplayDate(a.date))
+                .join(', ')}.`,
+            };
+          }
+
+          // Use existing time if "same time" requested
+          const finalTime = newTime || matchingApt.time;
+
+          // Update the appointment
+          const updateData: any = {
+            customerName: matchingApt.customerName,
+            customerEmail: matchingApt.customerEmail,
+            date: new Date(newDate),
+            time: finalTime,
+            services: matchingApt.services,
+            totalPrice: matchingApt.totalPrice,
+            totalDuration: matchingApt.totalDuration,
+          };
+
+          const updatedAppointment = await updateAppointment(matchingApt.id, updateData);
+
+          // Format time for display
+          const [hours, minutes] = finalTime.split(':').map(Number);
+          const period = hours >= 12 ? 'PM' : 'AM';
+          const displayHours = hours > 12 ? hours - 12 : hours === 0 ? 12 : hours;
+          const formattedTime = `${displayHours}:${minutes.toString().padStart(2, '0')} ${period}`;
+
+          return {
+            text: `✅ **Appointment Rescheduled!**\n\n${
+              matchingApt.category?.title || 'Appointment'
+            }\n📅 ${formatDisplayDate(new Date(newDate))} at ${formattedTime}\n\nSee you then!`,
+          };
+        } catch (e: any) {
+          return {
+            text: `I'm sorry, I couldn't reschedule that appointment. ${e.message}`,
           };
         }
       }

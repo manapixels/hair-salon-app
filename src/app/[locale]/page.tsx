@@ -30,7 +30,7 @@ export default function HomePage() {
   // Fetch data on mount
   useEffect(() => {
     fetch('/api/admin/settings')
-      .then(res => res.json())
+      .then(res => res.json() as Promise<AdminSettings>)
       .then(settings => {
         setAdminSettings(settings);
       })

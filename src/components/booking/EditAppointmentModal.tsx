@@ -109,7 +109,7 @@ export default function EditAppointmentModal({
     const fetchData = async () => {
       try {
         const response = await fetch('/api/services');
-        const data = await response.json();
+        const data = (await response.json()) as ServiceCategory[];
         setCategories(data);
         // Flatten categories to get all services
         const allServices = data.flatMap((category: ServiceCategory) => category.items || []);

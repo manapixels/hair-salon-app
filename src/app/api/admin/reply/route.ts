@@ -5,7 +5,7 @@ import { findUserByWhatsAppPhone, findUserByTelegramId } from '@/services/messag
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
+    const body = (await req.json()) as { userId: string; message: string; resolve?: boolean };
     const { userId, message, resolve } = body;
 
     if (!userId || !message) {

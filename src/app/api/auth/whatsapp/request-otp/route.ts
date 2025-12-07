@@ -4,7 +4,7 @@ import { sendWhatsAppMessage } from '@/services/messagingService';
 // WhatsApp OTP request endpoint
 export async function POST(request: NextRequest) {
   try {
-    const { phoneNumber } = await request.json();
+    const { phoneNumber } = (await request.json()) as { phoneNumber: string };
 
     if (!phoneNumber) {
       return NextResponse.json({ error: 'Phone number is required' }, { status: 400 });

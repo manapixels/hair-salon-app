@@ -41,7 +41,7 @@ export default function OAuthLoginModal({ isOpen, onClose }: OAuthLoginModalProp
       fetch('/api/auth/telegram')
         .then(res => {
           if (!res.ok) throw new Error('Failed to load Telegram configuration');
-          return res.json();
+          return res.json() as Promise<{ botUsername?: string }>;
         })
         .then(data => {
           if (data.botUsername) {

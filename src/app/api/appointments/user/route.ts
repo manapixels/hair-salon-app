@@ -23,7 +23,6 @@ export const GET = withAuth(async (request: NextRequest, { user }) => {
         userId: user.id,
       });
 
-      // Check if it's a Prisma connection error
       if (dbError instanceof Error && dbError.message.includes('connection')) {
         return NextResponse.json(
           { error: 'Database connection failed. Please try again later.' },

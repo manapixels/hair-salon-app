@@ -9,7 +9,9 @@
  */
 
 import type { WhatsAppMessage } from '../types';
-import { prisma } from '../lib/prisma';
+import { getDb } from '../db';
+import * as schema from '../db/schema';
+import { eq, and, desc } from 'drizzle-orm';
 
 // Store conversation history: userId -> messages
 const history: Record<string, Pick<WhatsAppMessage, 'text' | 'sender'>[]> = {};
@@ -30,7 +32,19 @@ interface BookingContext {
   time?: string; // HH:MM
   confirmed?: boolean;
   awaitingCustomDate?: boolean; // True when user is entering custom date via text
-  awaitingInput?: 'category' | 'date' | 'time' | 'stylist' | 'confirmation'; // Current step for conversational flow
+  awaitingInput?:
+    | 'category'
+    | 'date'
+    | 'time'
+    | 'stylist'
+    | 'confirmation'
+    | 'email'
+    | 'appointment_select'; // Current step for conversational flow
+  // For cancel/reschedule flows
+  pendingAction?: 'cancel' | 'reschedule' | 'view';
+  appointmentId?: string;
+  newDate?: string;
+  newTime?: string;
   // Favorite/last booking tracking for quick rebooking
   lastServiceBooked?: string; // Last service name
   lastStylistBooked?: string; // Last stylist ID
@@ -159,15 +173,14 @@ export const flagConversation = async (
     chatHistory.length > 0 ? chatHistory[chatHistory.length - 1].text : 'No message';
 
   try {
+    const db = await getDb();
     // Create in database
-    await prisma.flaggedConversation.create({
-      data: {
-        userId,
-        platform,
-        reason,
-        lastMessage,
-        isResolved: false,
-      },
+    await db.insert(schema.flaggedConversations).values({
+      userId,
+      platform,
+      reason,
+      lastMessage,
+      isResolved: false,
     });
 
     // Also update in-memory for backward compatibility
@@ -193,18 +206,24 @@ export const resolveFlag = async (userId: string, resolvedBy?: string) => {
   checkTimeout(userId);
 
   try {
-    // Update database
-    await prisma.flaggedConversation.updateMany({
-      where: {
-        userId,
-        isResolved: false,
-      },
-      data: {
-        isResolved: true,
-        resolvedAt: new Date(),
-        resolvedBy,
-      },
-    });
+    const db = await getDb();
+    // Get all unresolved flags for this user and update them
+    const unresolvedFlags = await db
+      .select()
+      .from(schema.flaggedConversations)
+      .where(
+        and(
+          eq(schema.flaggedConversations.userId, userId),
+          eq(schema.flaggedConversations.isResolved, false),
+        ),
+      );
+
+    for (const flag of unresolvedFlags) {
+      await db
+        .update(schema.flaggedConversations)
+        .set({ isResolved: true, resolvedAt: new Date(), resolvedBy })
+        .where(eq(schema.flaggedConversations.id, flag.id));
+    }
 
     // Clear in-memory
     if (flaggedStates[userId]) {
@@ -225,15 +244,20 @@ export const isFlagged = async (userId: string): Promise<boolean> => {
   checkTimeout(userId);
 
   try {
+    const db = await getDb();
     // Check database first
-    const dbFlag = await prisma.flaggedConversation.findFirst({
-      where: {
-        userId,
-        isResolved: false,
-      },
-    });
+    const dbFlags = await db
+      .select()
+      .from(schema.flaggedConversations)
+      .where(
+        and(
+          eq(schema.flaggedConversations.userId, userId),
+          eq(schema.flaggedConversations.isResolved, false),
+        ),
+      )
+      .limit(1);
 
-    if (dbFlag) {
+    if (dbFlags.length > 0) {
       return true;
     }
 
@@ -250,18 +274,21 @@ export const getFlagReason = async (userId: string): Promise<string | undefined>
   checkTimeout(userId);
 
   try {
-    const dbFlag = await prisma.flaggedConversation.findFirst({
-      where: {
-        userId,
-        isResolved: false,
-      },
-      orderBy: {
-        flaggedAt: 'desc',
-      },
-    });
+    const db = await getDb();
+    const dbFlags = await db
+      .select()
+      .from(schema.flaggedConversations)
+      .where(
+        and(
+          eq(schema.flaggedConversations.userId, userId),
+          eq(schema.flaggedConversations.isResolved, false),
+        ),
+      )
+      .orderBy(desc(schema.flaggedConversations.flaggedAt))
+      .limit(1);
 
-    if (dbFlag) {
-      return dbFlag.reason;
+    if (dbFlags.length > 0) {
+      return dbFlags[0].reason;
     }
 
     // Fallback to in-memory
@@ -274,17 +301,14 @@ export const getFlagReason = async (userId: string): Promise<string | undefined>
 
 export const getAllFlaggedUsers = async (): Promise<string[]> => {
   try {
-    const dbFlags = await prisma.flaggedConversation.findMany({
-      where: {
-        isResolved: false,
-      },
-      select: {
-        userId: true,
-      },
-      distinct: ['userId'],
-    });
+    const db = await getDb();
+    const dbFlags = await db
+      .select({ userId: schema.flaggedConversations.userId })
+      .from(schema.flaggedConversations)
+      .where(eq(schema.flaggedConversations.isResolved, false));
 
-    const dbUserIds = dbFlags.map(f => f.userId);
+    // Get unique user IDs
+    const dbUserIds = Array.from(new Set(dbFlags.map(f => f.userId)));
 
     // Merge with in-memory (for backwards compatibility during transition)
     const memoryUserIds = Object.keys(flaggedStates).filter(

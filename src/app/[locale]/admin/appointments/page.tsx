@@ -10,7 +10,6 @@ import EditAppointmentModal from '@/components/booking/EditAppointmentModal';
 import type { Appointment } from '@/types';
 import { formatDisplayDate, formatTime12Hour } from '@/lib/timeUtils';
 import { toast } from 'sonner';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import {
   Select,
@@ -181,8 +180,8 @@ export default function AppointmentsPage() {
       body: JSON.stringify({ id: selectedAppointment.id, ...updatedData }),
     });
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Failed to update');
+      const errorData = (await response.json()) as { message?: string };
+      throw new Error(errorData.message || 'Failed to update');
     }
     await fetchAndSetAppointments();
     setEditModalOpen(false);

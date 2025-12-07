@@ -20,7 +20,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     try {
       const response = await fetch('/api/auth/session');
       if (response.ok) {
-        const sessionUser = await response.json();
+        const sessionUser = (await response.json()) as User | null;
         setUser(sessionUser);
       } else {
         setUser(null);

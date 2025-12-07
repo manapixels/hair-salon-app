@@ -8,7 +8,12 @@ import { createFeedback } from '@/services/retentionService';
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
+    const body = (await request.json()) as {
+      appointmentId: string;
+      userId: string;
+      rating: number;
+      comment?: string;
+    };
     const { appointmentId, userId, rating, comment } = body;
 
     // Validate required fields

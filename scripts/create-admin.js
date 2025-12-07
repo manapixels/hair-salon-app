@@ -1,8 +1,45 @@
 #!/usr/bin/env node
 
-const { PrismaClient } = require('@prisma/client');
+/**
+ * Admin Management Script - Drizzle ORM Version
+ *
+ * This script manages admin users in the database.
+ * Since it runs standalone (not in Cloudflare), it uses DATABASE_URL directly.
+ */
 
-const prisma = new PrismaClient();
+const { neon } = require('@neondatabase/serverless');
+const { drizzle } = require('drizzle-orm/neon-http');
+const { eq, asc } = require('drizzle-orm');
+const { text, pgTable, pgEnum, integer, boolean, timestamp } = require('drizzle-orm/pg-core');
+
+// Inline schema for standalone usage
+const roleEnum = pgEnum('Role', ['CUSTOMER', 'STYLIST', 'ADMIN']);
+const users = pgTable('users', {
+  id: text('id').primaryKey(),
+  name: text('name').notNull(),
+  email: text('email').notNull().unique(),
+  password: text('password'),
+  role: roleEnum('role').default('CUSTOMER').notNull(),
+  authProvider: text('authProvider'),
+  telegramId: integer('telegramId').unique(),
+  whatsappPhone: text('whatsappPhone').unique(),
+  avatar: text('avatar'),
+  lastVisitDate: timestamp('lastVisitDate'),
+  totalVisits: integer('totalVisits').default(0).notNull(),
+  lastRetentionMessageSent: timestamp('lastRetentionMessageSent'),
+  createdAt: timestamp('createdAt').defaultNow().notNull(),
+  updatedAt: timestamp('updatedAt').defaultNow().notNull(),
+});
+
+// Database connection
+const connectionString = process.env.DATABASE_URL;
+if (!connectionString) {
+  console.error('❌ DATABASE_URL environment variable not set');
+  process.exit(1);
+}
+
+const sql = neon(connectionString);
+const db = drizzle(sql);
 
 // Audit logging function
 function logAdminAction(action, email, actor = 'CLI') {
@@ -23,9 +60,12 @@ async function manageAdmin() {
       console.log(`🔧 Promoting user ${email} to admin...`);
 
       // Find user by email
-      const user = await prisma.user.findUnique({
-        where: { email: email.toLowerCase() },
-      });
+      const userResults = await db
+        .select()
+        .from(users)
+        .where(eq(users.email, email.toLowerCase()))
+        .limit(1);
+      const user = userResults[0];
 
       if (!user) {
         console.log(`❌ User with email ${email} not found.`);
@@ -49,10 +89,10 @@ async function manageAdmin() {
       }
 
       // Promote to admin
-      await prisma.user.update({
-        where: { email: email.toLowerCase() },
-        data: { role: 'ADMIN' },
-      });
+      await db
+        .update(users)
+        .set({ role: 'ADMIN', updatedAt: new Date() })
+        .where(eq(users.email, email.toLowerCase()));
 
       logAdminAction('PROMOTE', email);
       console.log(`✅ User ${email} has been promoted to admin!`);
@@ -61,9 +101,12 @@ async function manageAdmin() {
       console.log(`🔧 Demoting user ${email} from admin...`);
 
       // Find user by email
-      const user = await prisma.user.findUnique({
-        where: { email: email.toLowerCase() },
-      });
+      const userResults = await db
+        .select()
+        .from(users)
+        .where(eq(users.email, email.toLowerCase()))
+        .limit(1);
+      const user = userResults[0];
 
       if (!user) {
         console.log(`❌ User with email ${email} not found.`);
@@ -76,9 +119,8 @@ async function manageAdmin() {
       }
 
       // Count admins before demotion
-      const adminCount = await prisma.user.count({
-        where: { role: 'ADMIN' },
-      });
+      const adminResults = await db.select().from(users).where(eq(users.role, 'ADMIN'));
+      const adminCount = adminResults.length;
 
       if (adminCount <= 1) {
         console.log(`❌ Cannot demote ${email} - they are the last admin!`);
@@ -87,10 +129,10 @@ async function manageAdmin() {
       }
 
       // Demote to customer
-      await prisma.user.update({
-        where: { email: email.toLowerCase() },
-        data: { role: 'CUSTOMER' },
-      });
+      await db
+        .update(users)
+        .set({ role: 'CUSTOMER', updatedAt: new Date() })
+        .where(eq(users.email, email.toLowerCase()));
 
       logAdminAction('DEMOTE', email);
       console.log(`✅ User ${email} has been demoted to customer.`);
@@ -99,18 +141,18 @@ async function manageAdmin() {
       console.log('👥 Current Admin Users:');
       console.log('');
 
-      const admins = await prisma.user.findMany({
-        where: { role: 'ADMIN' },
-        select: {
-          email: true,
-          name: true,
-          authProvider: true,
-          telegramId: true,
-          whatsappPhone: true,
-          createdAt: true,
-        },
-        orderBy: { createdAt: 'asc' },
-      });
+      const admins = await db
+        .select({
+          email: users.email,
+          name: users.name,
+          authProvider: users.authProvider,
+          telegramId: users.telegramId,
+          whatsappPhone: users.whatsappPhone,
+          createdAt: users.createdAt,
+        })
+        .from(users)
+        .where(eq(users.role, 'ADMIN'))
+        .orderBy(asc(users.createdAt));
 
       if (admins.length === 0) {
         console.log('❌ No admin users found!');
@@ -149,9 +191,8 @@ async function manageAdmin() {
     }
   } catch (error) {
     console.error('❌ Error managing admin user:', error.message);
-  } finally {
-    await prisma.$disconnect();
   }
+  // No disconnect needed for HTTP-based Neon driver
 }
 
 manageAdmin();

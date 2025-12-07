@@ -45,7 +45,7 @@ const TelegramLoginWidget: React.FC<TelegramLoginWidgetProps> = ({
         throw new Error('Failed to generate login token');
       }
 
-      const { token } = await response.json();
+      const { token } = (await response.json()) as { token: string };
 
       // Create deep link to Telegram bot
       const telegramDeepLink = `https://t.me/${botUsername}?start=login_${token}`;

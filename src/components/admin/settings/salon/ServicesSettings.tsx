@@ -23,7 +23,7 @@ export default function ServicesSettings() {
   const fetchCategories = async () => {
     try {
       const response = await fetch('/api/services');
-      const data = await response.json();
+      const data = (await response.json()) as ServiceCategory[];
       setCategories(data);
       if (data.length > 0) setActiveCategory(data[0].id);
     } catch (error) {

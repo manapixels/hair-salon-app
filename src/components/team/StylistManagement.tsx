@@ -42,7 +42,7 @@ export default function StylistManagement({ onClose }: StylistManagementProps) {
   const fetchCategories = useCallback(async () => {
     try {
       const response = await fetch('/api/services');
-      const data = await response.json();
+      const data = (await response.json()) as ServiceCategory[];
       // Get just the category info (without items) for specialty selection
       const categories = data.map((cat: ServiceCategory) => ({
         id: cat.id,
@@ -67,7 +67,7 @@ export default function StylistManagement({ onClose }: StylistManagementProps) {
         throw new Error(t('loadFailed'));
       }
 
-      const data = await response.json();
+      const data = (await response.json()) as Stylist[];
 
       // Validate response is an array
       if (!Array.isArray(data)) {
@@ -352,7 +352,7 @@ function StylistModal({
     try {
       const response = await fetch('/api/admin/settings');
       if (response.ok) {
-        const data = await response.json();
+        const data = (await response.json()) as AdminSettings;
         setSalonSettings(data);
       }
     } catch (err) {
@@ -462,7 +462,7 @@ function StylistModal({
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
+        const errorData = (await response.json()) as any;
         throw new Error(errorData.message || t('saveFailed'));
       }
 
@@ -501,7 +501,7 @@ function StylistModal({
         `/api/admin/users/search?q=${encodeURIComponent(query)}&excludeStylists=true`,
       );
       if (response.ok) {
-        const users = await response.json();
+        const users = (await response.json()) as any[];
         setUserSearchResults(users);
       }
     } catch (err) {
@@ -566,11 +566,11 @@ function StylistModal({
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
+        const errorData = (await response.json()) as any;
         throw new Error(errorData.message || t('avatarUploadFailed'));
       }
 
-      const data = await response.json();
+      const data = (await response.json()) as { url: string };
       setFormData(prev => ({ ...prev, avatar: data.url }));
       // Notify parent to update the stylist card immediately
       if (onAvatarChange) {
