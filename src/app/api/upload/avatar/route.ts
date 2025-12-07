@@ -11,7 +11,7 @@ const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 // Initialize S3 client for Cloudflare R2
 const s3Client = new S3Client({
   region: 'auto',
-  endpoint: `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+  endpoint: `https://${process.env.CLOUDFLARE_ACCOUNT_ID}.r2.cloudflarestorage.com`,
   credentials: {
     accessKeyId: process.env.R2_ACCESS_KEY_ID || '',
     secretAccessKey: process.env.R2_SECRET_ACCESS_KEY || '',
@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
   try {
     // Check for R2 configuration
     if (
-      !process.env.R2_ACCOUNT_ID ||
+      !process.env.CLOUDFLARE_ACCOUNT_ID ||
       !process.env.R2_ACCESS_KEY_ID ||
       !process.env.R2_SECRET_ACCESS_KEY ||
       !process.env.R2_BUCKET_NAME

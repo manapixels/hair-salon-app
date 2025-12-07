@@ -406,7 +406,7 @@ WHATSAPP_ACCESS_TOKEN=your_whatsapp_token
 TELEGRAM_BOT_TOKEN=your_telegram_bot_token
 
 # Cloudflare R2 (Avatar Storage)
-R2_ACCOUNT_ID=your_cloudflare_account_id
+CLOUDFLARE_ACCOUNT_ID=your_cloudflare_account_id
 R2_ACCESS_KEY_ID=your_r2_access_key
 R2_SECRET_ACCESS_KEY=your_r2_secret_key
 R2_BUCKET_NAME=your_bucket_name

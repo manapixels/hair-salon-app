@@ -9,7 +9,7 @@ Migrate the storage of avatar images from the local `public/uploads` directory t
 > [!IMPORTANT]
 > You will need to provide the following Cloudflare R2 credentials in your `.env.local` file:
 >
-> - `R2_ACCOUNT_ID`
+> - `CLOUDFLARE_ACCOUNT_ID`
 > - `R2_ACCESS_KEY_ID`
 > - `R2_SECRET_ACCESS_KEY`
 > - `R2_BUCKET_NAME`
