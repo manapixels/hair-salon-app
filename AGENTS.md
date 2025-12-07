@@ -569,6 +569,43 @@ wrangler hyperdrive create hair-salon-db --connection-string="<NEON_URL>"
 
 ---
 
+## 🧪 Testing & Quality Assurance
+
+### **Overview**
+
+We maintain both automated and manual tests to ensure agent reliability. **Always update tests when adding or modifying features.**
+
+### **Test Locations**
+
+| Component        | Test Type     | Location                                  | Command / Guide                         |
+| ---------------- | ------------- | ----------------------------------------- | --------------------------------------- |
+| **Telegram Bot** | Manual        | `docs/telegram/TELEGRAM_TESTING_GUIDE.md` | Follow the guide manually               |
+| **Agent Logic**  | Automated     | `src/tests/agent-evaluation.test.ts`      | `npm test`                              |
+| **Scenarios**    | Manual Script | `src/tests/manual-scenarios.ts`           | `npx tsx src/tests/manual-scenarios.ts` |
+
+### **🧪 Current Test Suites**
+
+1.  **Agent Evaluation (`src/tests/agent-evaluation.test.ts`)**
+    - Knowledge Base Search (Exact & Semantic)
+    - User Pattern Recognition (Favorite service/stylist)
+    - Response Accuracy (Context usage, service matching)
+    - Safety & Guardrails (Inappropriate content, injection)
+    - Handoff Triggers (Unknown queries)
+    - Performance Metrics (Response time)
+
+2.  **Manual Scenarios (`src/tests/manual-scenarios.ts`)**
+    - Deterministic Intent Parser checks (Hours, Services, basic booking)
+    - Gemini AI Logic (Complex requests, time validation)
+    - Management commands (appointments list)
+
+### **⚠️ Development Rules**
+
+- **New Feature?** → Add a corresponding test case.
+- **Bug Fix?** → Add a regression test.
+- **Prompt Change?** → Verify against `agent-evaluation.test.ts` to ensure no degradation.
+
+---
+
 ## 🚀 Future Enhancements (See `../implementation-plans/ai-agents-plan.md`)
 
 ### **Phase 1: NLU Helpers**
