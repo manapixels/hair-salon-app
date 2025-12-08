@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
+import { useTranslations } from 'next-intl';
 import TelegramLoginWidget from './TelegramLoginWidget';
 import WhatsAppOTPLogin from './WhatsAppOTPLogin';
 
@@ -21,6 +22,7 @@ interface OAuthLoginModalProps {
 }
 
 export default function OAuthLoginModal({ isOpen, onClose }: OAuthLoginModalProps) {
+  const t = useTranslations('OAuthLoginModal');
   const [telegramBotUsername, setTelegramBotUsername] = useState<string | null>(null);
   const [showTelegramWidget, setShowTelegramWidget] = useState(false);
   const [showWhatsAppOTP, setShowWhatsAppOTP] = useState(false);
@@ -74,10 +76,8 @@ export default function OAuthLoginModal({ isOpen, onClose }: OAuthLoginModalProp
       <DialogContent className="max-w-lg space-y-6">
         <DialogHeader className="flex flex-row items-start justify-between space-y-0">
           <div>
-            <DialogTitle>Sign In</DialogTitle>
-            <DialogDescription>
-              Choose your preferred messaging platform to continue to Signature Trims.
-            </DialogDescription>
+            <DialogTitle>{t('title')}</DialogTitle>
+            <DialogDescription>{t('description')}</DialogDescription>
           </div>
         </DialogHeader>
 
@@ -85,16 +85,14 @@ export default function OAuthLoginModal({ isOpen, onClose }: OAuthLoginModalProp
           <WhatsAppOTPLogin onSuccess={onClose} onBack={() => setShowWhatsAppOTP(false)} />
         ) : (
           <div className="space-y-4">
-            <p className="text-center text-sm text-gray-600">
-              Sign in with your preferred messaging platform
-            </p>
+            <p className="text-center text-sm text-gray-600">{t('chooseProvider')}</p>
 
             <Button
               onClick={handleWhatsAppLogin}
               className="w-full border border-[#1ebe5d] bg-[#25D366] text-white hover:bg-[#1ebe5d]"
             >
               <WhatsAppIcon className="h-5 w-5 mr-2" />
-              Continue with WhatsApp
+              {t('continueWithWhatsApp')}
             </Button>
 
             <Button
@@ -103,27 +101,22 @@ export default function OAuthLoginModal({ isOpen, onClose }: OAuthLoginModalProp
               className="w-full bg-[#0088cc] text-white hover:bg-[#007ab8] disabled:bg-[#8ccae8]"
             >
               <TelegramIcon className="h-5 w-5 mr-2" />
-              {showTelegramWidget ? 'Hide Telegram' : 'Continue with Telegram'}
+              {showTelegramWidget ? t('hideTelegram') : t('continueWithTelegram')}
             </Button>
 
             {showTelegramWidget && (
               <div className="rounded-xl border border-blue-100 bg-blue-50 p-5">
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <h3 className="text-sm font-semibold text-blue-800">
-                      Ready to sign in with Telegram?
-                    </h3>
-                    <p className="mt-1 text-sm text-blue-700">
-                      A new tab will open. Tap <span className="font-semibold">Start</span> in the
-                      bot chat to finish logging in.
-                    </p>
+                    <h3 className="text-sm font-semibold text-blue-800">{t('telegramReady')}</h3>
+                    <p className="mt-1 text-sm text-blue-700">{t('telegramInstructions')}</p>
                   </div>
                   <Button
                     variant="ghost"
                     className="h-8 px-3 text-xs text-blue-700 hover:text-blue-800 hover:bg-blue-100"
                     onClick={() => setShowTelegramWidget(false)}
                   >
-                    Close
+                    {t('close')}
                   </Button>
                 </div>
 
@@ -135,7 +128,7 @@ export default function OAuthLoginModal({ isOpen, onClose }: OAuthLoginModalProp
                       className="flex justify-center"
                     />
                   ) : (
-                    <p className="text-sm text-blue-700">Loading Telegram login...</p>
+                    <p className="text-sm text-blue-700">{t('loadingTelegram')}</p>
                   )}
                 </div>
               </div>
@@ -161,7 +154,7 @@ export default function OAuthLoginModal({ isOpen, onClose }: OAuthLoginModalProp
                     setTelegramBotUsername(null);
                   }}
                 >
-                  Retry
+                  {t('retry')}
                 </Button>
               </div>
             )}
@@ -169,9 +162,7 @@ export default function OAuthLoginModal({ isOpen, onClose }: OAuthLoginModalProp
         )}
 
         <div className="border-t border-gray-200 pt-4 text-center">
-          <p className="text-sm text-gray-500">
-            By signing in, you agree to our terms of service and privacy policy.
-          </p>
+          <p className="text-sm text-gray-500">{t('termsAgreement')}</p>
         </div>
       </DialogContent>
     </Dialog>
