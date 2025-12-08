@@ -158,7 +158,7 @@ export default function WhatsAppOTPLogin({ onSuccess, onBack }: WhatsAppOTPLogin
   if (step === 'phone') {
     return (
       <div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Sign in with WhatsApp</h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Log in with WhatsApp</h3>
 
         <form onSubmit={handlePhoneSubmit} className="space-y-4">
           <div>

@@ -99,7 +99,7 @@ export default function CustomerDashboard() {
   if (!user) {
     return (
       <div className="text-center py-12">
-        <div className="text-gray-600">Please sign in to view your dashboard</div>
+        <div className="text-gray-600">Please log in to view your dashboard</div>
       </div>
     );
   }

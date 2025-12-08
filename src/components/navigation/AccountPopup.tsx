@@ -155,12 +155,12 @@ export default function AccountPopup({ isOpen, onClose }: AccountPopupProps) {
                       {isLoggingOut ? (
                         <>
                           <Loader2 className="w-4 h-4 animate-spin" />
-                          {t('signingOut')}
+                          {t('loggingOut')}
                         </>
                       ) : (
                         <>
                           <LogOut className="w-4 h-4" />
-                          {t('signOut')}
+                          {t('logOut')}
                         </>
                       )}
                     </button>
@@ -171,7 +171,7 @@ export default function AccountPopup({ isOpen, onClose }: AccountPopupProps) {
                       <User className="w-8 h-8 text-gray-400" />
                     </div>
                     <div>
-                      <h4 className="text-lg font-semibold text-gray-900 mb-1">{t('signIn')}</h4>
+                      <h4 className="text-lg font-semibold text-gray-900 mb-1">{t('logIn')}</h4>
                       <p className="text-sm text-gray-500">{t('loginPrompt')}</p>
                     </div>
                     <Button
@@ -181,7 +181,7 @@ export default function AccountPopup({ isOpen, onClose }: AccountPopupProps) {
                       onClick={() => setIsLoginOpen(true)}
                     >
                       <LogIn className="w-4 h-4 mr-2" />
-                      {t('signInSignUp')}
+                      {t('logInSignUp')}
                     </Button>
                   </div>
                 )}

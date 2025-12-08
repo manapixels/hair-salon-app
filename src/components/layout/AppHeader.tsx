@@ -346,14 +346,14 @@ export default function AppHeader({ view, onViewChange, serviceLinks }: AppHeade
                     }}
                   >
                     <LogOut className="h-4 w-4" aria-hidden="true" />
-                    <span>{tAccount('signOut')}</span>
+                    <span>{tAccount('logOut')}</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
               <Button variant="default" size="default" onClick={() => setIsLoginOpen(true)}>
                 <LogIn className="h-4 w-4" aria-hidden="true" />
-                {tAccount('signIn')}
+                {tAccount('logIn')}
               </Button>
             )}
           </div>
