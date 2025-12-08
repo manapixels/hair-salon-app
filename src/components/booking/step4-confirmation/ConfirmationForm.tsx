@@ -15,7 +15,6 @@ interface ConfirmationFormProps {
   onConfirm: (name: string, email: string) => void;
   isSubmitting: boolean;
   selectedCategory?: ServiceCategory | null;
-  selectedServices: Service[];
   selectedStylist: Stylist | null;
   selectedDate: Date;
   selectedTime: string;
@@ -26,7 +25,6 @@ export const ConfirmationForm: React.FC<ConfirmationFormProps> = ({
   onConfirm,
   isSubmitting,
   selectedCategory,
-  selectedServices,
   selectedStylist,
   selectedDate,
   selectedTime,
@@ -63,7 +61,6 @@ export const ConfirmationForm: React.FC<ConfirmationFormProps> = ({
 
       <BookingConfirmationSummary
         selectedCategory={selectedCategory}
-        selectedServices={[]} // Empty for category-based booking
         selectedStylist={selectedStylist}
         selectedDate={selectedDate}
         selectedTime={selectedTime}

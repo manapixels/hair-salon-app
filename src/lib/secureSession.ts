@@ -5,7 +5,7 @@ import type { User } from '@/types';
 
 // Session configuration
 const SESSION_COOKIE_NAME = 'luxecuts_session';
-const SESSION_DURATION = 7 * 24 * 60 * 60 * 1000; // 7 days in milliseconds
+const SESSION_DURATION = 45 * 24 * 60 * 60 * 1000; // 45 days in milliseconds
 const JWT_SECRET_KEY = new TextEncoder().encode(
   process.env.JWT_SECRET || 'default-secret-change-in-production',
 );

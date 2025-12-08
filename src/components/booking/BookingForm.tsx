@@ -8,10 +8,9 @@ import type { Appointment, Stylist, ServiceCategory } from '@/types';
 import { useBooking } from '@/context/BookingContext';
 import { useBookingModal } from '@/context/BookingModalContext';
 import { format } from 'date-fns';
-import { formatDisplayDate, formatTimeDisplay } from '@/lib/timeUtils';
 import { Button } from '@/components/ui/button';
 import { Check } from '@/lib/icons';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useFormatter } from 'next-intl';
 
 // Imports from subfolders
 import { SimpleCategorySelector } from './step1-service';
@@ -57,6 +56,22 @@ const BookingForm: React.FC<BookingFormProps> = ({
 }) => {
   const t = useTranslations('BookingForm');
   const tNav = useTranslations('Navigation');
+  const formatter = useFormatter();
+
+  // i18n date/time formatting helpers
+  const formatDate = (date: Date | string) => {
+    const dateObj = typeof date === 'string' ? new Date(date) : date;
+    return formatter.dateTime(dateObj, { day: 'numeric', month: 'short', year: 'numeric' });
+  };
+
+  const formatTime = (time: string) => {
+    if (!time) return '';
+    const [hours, minutes] = time.split(':').map(Number);
+    const date = new Date();
+    date.setHours(hours, minutes);
+    return formatter.dateTime(date, { hour: 'numeric', minute: '2-digit', hour12: true });
+  };
+
   // Get booking categories from context
   const { bookingCategories } = useBookingModal();
 
@@ -412,7 +427,7 @@ Please confirm availability. Thank you!`;
             </p>
           )}
           <p>
-            <strong>{t('dateLabel')}:</strong> {formatDisplayDate(bookingConfirmed.date)}
+            <strong>{t('dateLabel')}:</strong> {formatDate(bookingConfirmed.date)}
           </p>
           <p>
             <strong>{t('timeLabel')}:</strong> {bookingConfirmed.time}
@@ -547,7 +562,7 @@ Please confirm availability. Thank you!`;
                   collapsedContent={
                     <CollapsedStepSummary
                       selectionType={t('dateAndTime')}
-                      selection={`${formatDisplayDate(selectedDate)}, ${formatTimeDisplay(selectedTime || '')}`}
+                      selection={`${formatDate(selectedDate)}, ${formatTime(selectedTime || '')}`}
                       onEdit={() => handleEditStep(3)}
                       id="step-3-heading"
                     />
@@ -586,7 +601,6 @@ Please confirm availability. Thank you!`;
                   onConfirm={handleConfirmBooking}
                   isSubmitting={isSubmitting}
                   selectedCategory={selectedCategory}
-                  selectedServices={[]}
                   selectedStylist={selectedStylist}
                   selectedDate={selectedDate}
                   selectedTime={selectedTime}
