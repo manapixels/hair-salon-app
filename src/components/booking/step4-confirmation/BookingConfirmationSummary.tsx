@@ -1,12 +1,11 @@
 import React from 'react';
 import { User, Calendar, Clock, X, Scissors } from 'lucide-react';
-import { Service, Stylist, ServiceCategory } from '@/types';
-import { formatShortDate, formatTimeDisplay, formatDuration } from '@/lib/timeUtils';
-import { useTranslations } from 'next-intl';
+import { Stylist, ServiceCategory } from '@/types';
+import { getDurationParts } from '@/lib/timeUtils';
+import { useTranslations, useFormatter } from 'next-intl';
 
 interface BookingConfirmationSummaryProps {
-  selectedServices?: Service[]; // Optional for backward compatibility
-  selectedCategory?: ServiceCategory | null; // NEW: Category-based booking
+  selectedCategory?: ServiceCategory | null;
   selectedStylist: Stylist | null;
   selectedDate: Date;
   selectedTime: string;
@@ -16,7 +15,6 @@ interface BookingConfirmationSummaryProps {
 }
 
 export const BookingConfirmationSummary: React.FC<BookingConfirmationSummaryProps> = ({
-  selectedServices,
   selectedCategory,
   selectedStylist,
   selectedDate,
@@ -26,14 +24,39 @@ export const BookingConfirmationSummary: React.FC<BookingConfirmationSummaryProp
   onClose,
 }) => {
   const t = useTranslations('BookingForm');
-  // Determine display based on booking type
-  const displayText = selectedCategory
-    ? selectedCategory.title
-    : selectedServices && selectedServices.length > 0
-      ? selectedServices.map(s => s.name).join(', ')
-      : t('noServiceSelected');
+  const tNav = useTranslations('Navigation');
+  const format = useFormatter();
 
-  const isCategoryBased = Boolean(selectedCategory);
+  // Get translated category name using slug, fallback to database title
+  const displayText = selectedCategory
+    ? tNav(`serviceNames.${selectedCategory.slug}`, { default: selectedCategory.title })
+    : t('noServiceSelected');
+
+  // Format duration using translation keys
+  const { hours, mins } = getDurationParts(totalDuration);
+  const durationText =
+    hours === 0
+      ? t('durationMinutesOnly', { minutes: mins })
+      : mins === 0
+        ? t('durationHoursOnly', { hours })
+        : t('durationHoursMinutes', { hours, minutes: mins });
+
+  // Format date and time using useFormatter for i18n
+  const formattedDate = format.dateTime(selectedDate, {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  });
+
+  // Parse time string (HH:MM format) and format it
+  const formatTime = (time: string): string => {
+    if (!time) return '';
+    const [hours, minutes] = time.split(':').map(Number);
+    const date = new Date();
+    date.setHours(hours, minutes);
+    return format.dateTime(date, { hour: 'numeric', minute: '2-digit', hour12: true });
+  };
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-6">
@@ -42,9 +65,7 @@ export const BookingConfirmationSummary: React.FC<BookingConfirmationSummaryProp
         <div className="flex items-center gap-3 px-4 py-2.5 bg-gray-50/50">
           <Scissors className="w-5 h-5 text-gray-500" />
           <div className="text-sm">
-            <span className="text-gray-500 mr-2">
-              {isCategoryBased ? t('serviceCategory') : t('services')}
-            </span>
+            <span className="text-gray-500 mr-2">{t('serviceCategory')}</span>
             <span className="font-medium text-gray-900">{displayText}</span>
           </div>
         </div>
@@ -66,7 +87,7 @@ export const BookingConfirmationSummary: React.FC<BookingConfirmationSummaryProp
           <div className="text-sm">
             <span className="text-gray-500 mr-2">{t('when')}</span>
             <span className="font-medium text-gray-900">
-              {formatShortDate(selectedDate)}, {formatTimeDisplay(selectedTime)}
+              {formattedDate}, {formatTime(selectedTime)}
             </span>
           </div>
         </div>
@@ -76,7 +97,7 @@ export const BookingConfirmationSummary: React.FC<BookingConfirmationSummaryProp
           <Clock className="w-5 h-5 text-gray-500" />
           <div className="text-sm">
             <span className="text-gray-500 mr-2">{t('duration')}</span>
-            <span className="font-medium text-gray-900">{formatDuration(totalDuration)}</span>
+            <span className="font-medium text-gray-900">{durationText}</span>
           </div>
         </div>
       </div>

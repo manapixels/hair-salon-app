@@ -1,7 +1,6 @@
 'use client';
 
 import { useRef, useMemo } from 'react';
-import { format } from 'date-fns';
 import { CalendarView } from './CalendarView';
 import { TimeSlotList } from './TimeSlotList';
 import { MobileDateTimePicker } from './MobileDateTimePicker';
@@ -9,6 +8,7 @@ import { useCalendar } from '@/hooks/useCalendar';
 import { useDelayedLoading } from '@/hooks/useDelayedLoading';
 import { useAvailability } from '@/hooks/queries';
 import type { TimeSlot, Stylist } from '@/types';
+import { useTranslations, useFormatter } from 'next-intl';
 
 interface CalendlyStyleDateTimePickerProps {
   selectedDate: Date;
@@ -31,6 +31,8 @@ export default function CalendlyStyleDateTimePicker({
 }: CalendlyStyleDateTimePickerProps) {
   const { currentMonth, daysInMonth, goToPreviousMonth, goToNextMonth } = useCalendar(selectedDate);
   const timeSlotsRef = useRef<HTMLDivElement>(null);
+  const t = useTranslations('BookingForm');
+  const format = useFormatter();
 
   // Use React Query hook for availability with 1-minute cache
   const { data: availabilityData = [], isLoading } = useAvailability({
@@ -61,18 +63,18 @@ export default function CalendlyStyleDateTimePicker({
 
   return (
     <div id="date-time-picker">
-      <h2 className="text-xl font-semibold mb-4 text-gray-800">3. Select Date & Time</h2>
+      <h2 className="text-xl font-semibold mb-4 text-gray-800">{t('step3')}</h2>
 
       {/* ARIA Live Region for Screen Readers */}
       <div aria-live="polite" aria-atomic="true" className="sr-only">
-        {showLoader && 'Loading available time slots'}
+        {showLoader && t('findingTimes')}
         {!showLoader &&
           timeSlots.length === 0 &&
-          `No available slots on ${format(selectedDate, 'MMMM d, yyyy')}`}
+          `${t('noSlots')} ${format.dateTime(selectedDate, { month: 'long', day: 'numeric', year: 'numeric' })}`}
         {!showLoader &&
           timeSlots.length > 0 &&
-          `${timeSlots.length} time slots available on ${format(selectedDate, 'MMMM d, yyyy')}`}
-        {selectedTime && `Time slot ${selectedTime} selected`}
+          `${timeSlots.length} ${t('slotsAvailable')} - ${format.dateTime(selectedDate, { month: 'long', day: 'numeric', year: 'numeric' })}`}
+        {selectedTime && `${t('time')}: ${selectedTime}`}
       </div>
 
       <div className="block lg:hidden">
@@ -95,7 +97,7 @@ export default function CalendlyStyleDateTimePicker({
       <div className="hidden lg:grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
         {/* Left Column: Calendar */}
         <div className="flex flex-col">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Choose a Date</h3>
+          <h3 className="text-lg font-medium text-gray-900 mb-4">{t('date')}</h3>
           <CalendarView
             selectedDate={selectedDate}
             onDateChange={handleDateChange}
@@ -111,8 +113,10 @@ export default function CalendlyStyleDateTimePicker({
         {/* Right Column: Time Slots */}
         <div className="flex flex-col" ref={timeSlotsRef}>
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-medium text-gray-900">Available Times</h3>
-            <span className="text-sm text-gray-500">{format(selectedDate, 'EEEE, MMM d')}</span>
+            <h3 className="text-lg font-medium text-gray-900">{t('availableTimes')}</h3>
+            <span className="text-sm text-gray-500">
+              {format.dateTime(selectedDate, { weekday: 'long', month: 'short', day: 'numeric' })}
+            </span>
           </div>
 
           <div className="max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">

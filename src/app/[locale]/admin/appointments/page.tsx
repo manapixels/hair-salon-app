@@ -8,7 +8,6 @@ import { useBooking } from '@/context/BookingContext';
 import { LoadingSpinner } from '@/components/feedback/loaders/LoadingSpinner';
 import EditAppointmentModal from '@/components/booking/EditAppointmentModal';
 import type { Appointment } from '@/types';
-import { formatDisplayDate, formatTime12Hour } from '@/lib/timeUtils';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import {
@@ -29,13 +28,27 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Refresh } from '@/lib/icons';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useFormatter } from 'next-intl';
 
 export default function AppointmentsPage() {
   const { user, isLoading: authLoading } = useAuth();
   const { appointments, fetchAndSetAppointments } = useBooking();
   const router = useRouter();
   const t = useTranslations('Admin.Appointments');
+  const format = useFormatter();
+
+  // i18n date/time formatting helpers
+  const formatDate = (date: Date | string) => {
+    const dateObj = typeof date === 'string' ? new Date(date) : date;
+    return format.dateTime(dateObj, { day: 'numeric', month: 'short', year: 'numeric' });
+  };
+
+  const formatTime = (time: string) => {
+    const [hours, minutes] = time.split(':').map(Number);
+    const date = new Date();
+    date.setHours(hours, minutes);
+    return format.dateTime(date, { hour: 'numeric', minute: '2-digit', hour12: true });
+  };
 
   const [appointmentsLoading, setAppointmentsLoading] = useState(true);
   const [editModalOpen, setEditModalOpen] = useState(false);
@@ -274,9 +287,9 @@ export default function AppointmentsPage() {
                     <p className="text-sm text-muted-foreground">{appointment.customerEmail}</p>
                   </div>
                   <div className="text-right">
-                    <p className="font-medium">{formatDisplayDate(appointment.date)}</p>
+                    <p className="font-medium">{formatDate(appointment.date)}</p>
                     <p className="text-sm text-muted-foreground">
-                      {formatTime12Hour(appointment.time)} ({appointment.totalDuration}m)
+                      {formatTime(appointment.time)} ({appointment.totalDuration}m)
                     </p>
                   </div>
                 </div>

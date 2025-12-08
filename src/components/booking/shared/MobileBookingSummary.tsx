@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, memo } from 'react';
 import { Button } from '@/components/ui/button';
-import { formatDuration } from '@/lib/timeUtils';
 import { Spinner } from '@/components/ui/spinner';
 import { useTranslations } from 'next-intl';
 import { Clock } from 'lucide-react';

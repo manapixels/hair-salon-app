@@ -48,17 +48,15 @@ export function formatTimeRange(startTime: string, durationMinutes: number): str
 }
 
 /**
- * Format duration in human-readable format
+ * Get duration parts for use with i18n translation keys
  * @param minutes - Duration in minutes
- * @returns Human-readable format like "3h 30min" or "45min"
+ * @returns Object with hours and minutes for translation interpolation
  */
-export function formatDuration(minutes: number): string {
-  const hours = Math.floor(minutes / 60);
-  const mins = minutes % 60;
-
-  if (hours === 0) return `${mins}min`;
-  if (mins === 0) return `${hours}h`;
-  return `${hours}h ${mins}min`;
+export function getDurationParts(minutes: number): { hours: number; mins: number } {
+  return {
+    hours: Math.floor(minutes / 60),
+    mins: minutes % 60,
+  };
 }
 
 /**
@@ -141,6 +139,7 @@ export function groupSlotsByPeriod<T extends { time: string }>(
 
 /**
  * Format a date in the universal "18 Oct 2025" format
+ * For locale-aware formatting, use next-intl's useFormatter hook in components
  * @param date - Date object or string to format
  * @returns Formatted date string like "18 Oct 2025"
  */
@@ -162,7 +161,7 @@ export function formatDisplayDate(date: Date | string): string {
 
 /**
  * Format a date in long format with day of week
- * For messages and confirmations: "Monday, 18 Oct 2025"
+ * For locale-aware formatting, use next-intl's useFormatter hook in components
  * @param date - Date object or string to format
  * @returns Formatted date string like "Monday, 18 Oct 2025"
  */
@@ -185,7 +184,7 @@ export function formatLongDate(date: Date | string): string {
 
 /**
  * Format a date in short format with day of week
- * For messages and confirmations: "Mon, 18 Oct 2025"
+ * For locale-aware formatting, use next-intl's useFormatter hook in components
  * @param date - Date object or string to format
  * @returns Formatted date string like "Mon, 18 Oct 2025"
  */
@@ -206,7 +205,13 @@ export function formatShortDate(date: Date | string): string {
   return `${dayOfWeek}, ${day} ${month} ${year}`;
 }
 
-export const formatTimeDisplay = (time: string) => {
+/**
+ * Format time for display (e.g., "3:30 pm")
+ * For locale-aware formatting, use next-intl's useFormatter hook in components
+ * @param time - Time string in HH:MM format
+ * @returns Formatted time string
+ */
+export const formatTimeDisplay = (time: string): string => {
   // Guard against null, undefined, or empty string
   if (!time || time.trim() === '') {
     return '';

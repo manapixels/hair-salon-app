@@ -1,11 +1,12 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { format, addDays, isSameDay, startOfDay, eachDayOfInterval } from 'date-fns';
+import { isSameDay, startOfDay, eachDayOfInterval, addDays } from 'date-fns';
 import { ChevronRight, ChevronDown, Check } from 'lucide-react';
 import { CalendarView } from './CalendarView';
 import type { TimeSlot } from '@/types';
 import { groupSlotsByPeriod } from '@/lib/timeUtils';
+import { useTranslations, useFormatter } from 'next-intl';
 
 interface MobileDateTimePickerProps {
   selectedDate: Date;
@@ -39,6 +40,8 @@ export function MobileDateTimePicker({
 }: MobileDateTimePickerProps) {
   const [isCalendarExpanded, setIsCalendarExpanded] = useState(false);
   const dateScrollRef = useRef<HTMLDivElement>(null);
+  const t = useTranslations('BookingForm');
+  const format = useFormatter();
 
   // Generate dates for the horizontal scroll (next 30 days)
   // If selectedDate is far in the future, ensure it's included or the range starts near it?
@@ -77,12 +80,14 @@ export function MobileDateTimePicker({
       {/* Date Selection Section */}
       <div className="space-y-3 overflow-x-hidden">
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-gray-900">{format(selectedDate, 'MMMM')}</h3>
+          <h3 className="text-lg font-semibold text-gray-900">
+            {format.dateTime(selectedDate, { month: 'long' })}
+          </h3>
           <button
             onClick={() => setIsCalendarExpanded(!isCalendarExpanded)}
             className="flex items-center gap-1 text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors"
           >
-            {isCalendarExpanded ? 'Less dates' : 'More dates'}
+            {isCalendarExpanded ? t('lessDates') : t('moreDates')}
             {isCalendarExpanded ? (
               <ChevronDown className="w-4 h-4" />
             ) : (
@@ -92,7 +97,7 @@ export function MobileDateTimePicker({
         </div>
 
         {isCalendarExpanded ? (
-          <div className="bg-white rounded-xl border border-gray-200 p-4 animate-in slide-in-from-top-2">
+          <div className="bg-white animate-in slide-in-from-top-2">
             <CalendarView
               selectedDate={selectedDate}
               onDateChange={handleDateClick}
@@ -141,12 +146,12 @@ export function MobileDateTimePicker({
                   <span
                     className={`text-xs font-medium mb-1 ${isSelected ? 'text-primary/70' : 'text-gray-500'}`}
                   >
-                    {format(date, 'EEE')}
+                    {format.dateTime(date, { weekday: 'short' })}
                   </span>
                   <span
                     className={`text-xl font-bold ${isSelected ? 'text-primary' : 'text-gray-900'}`}
                   >
-                    {format(date, 'dd')}
+                    {format.dateTime(date, { day: '2-digit' })}
                   </span>
                 </button>
               );
@@ -158,8 +163,8 @@ export function MobileDateTimePicker({
       {/* Time Selection Section */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-gray-900">Available Times</h3>
-          {loading && <span className="text-xs text-gray-500">Loading...</span>}
+          <h3 className="text-lg font-semibold text-gray-900">{t('availableTimes')}</h3>
+          {loading && <span className="text-xs text-gray-500">{t('loading')}</span>}
         </div>
 
         {loading ? (
@@ -170,7 +175,7 @@ export function MobileDateTimePicker({
           </div>
         ) : timeSlots.length === 0 ? (
           <div className="text-center py-8 bg-gray-50 rounded-lg border border-dashed border-gray-200">
-            <p className="text-gray-500">No slots available for this date</p>
+            <p className="text-gray-500">{t('noSlotsForDate')}</p>
           </div>
         ) : (
           <div className="space-y-6">
@@ -178,7 +183,7 @@ export function MobileDateTimePicker({
             {groupedSlots.morning.length > 0 && (
               <div className="space-y-3 overflow-x-hidden">
                 <h4 className="text-sm font-medium text-gray-500 uppercase tracking-wider">
-                  Morning
+                  {t('morning')}
                 </h4>
                 <div className="flex gap-3 overflow-x-auto py-2 -mx-4 px-4 scrollbar-hide">
                   {groupedSlots.morning.map(slot => (
@@ -198,7 +203,7 @@ export function MobileDateTimePicker({
             {groupedSlots.afternoon.length > 0 && (
               <div className="space-y-3 overflow-x-hidden">
                 <h4 className="text-sm font-medium text-gray-500 uppercase tracking-wider">
-                  Afternoon
+                  {t('afternoon')}
                 </h4>
                 <div className="flex gap-3 overflow-x-auto py-2 -mx-4 px-4 scrollbar-hide">
                   {groupedSlots.afternoon.map(slot => (
@@ -218,7 +223,7 @@ export function MobileDateTimePicker({
             {groupedSlots.evening.length > 0 && (
               <div className="space-y-3 overflow-x-hidden">
                 <h4 className="text-sm font-medium text-gray-500 uppercase tracking-wider">
-                  Evening
+                  {t('evening')}
                 </h4>
                 <div className="flex gap-3 overflow-x-auto py-2 -mx-4 px-4 scrollbar-hide">
                   {groupedSlots.evening.map(slot => (

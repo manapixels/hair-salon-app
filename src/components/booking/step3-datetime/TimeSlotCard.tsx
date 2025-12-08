@@ -1,9 +1,10 @@
 import {
   calculateEndTime,
-  formatDuration,
+  getDurationParts,
   getDurationColor,
   getDurationPercentage,
 } from '@/lib/timeUtils';
+import { useTranslations } from 'next-intl';
 
 export const TimeSlotCard: React.FC<{
   time: string;
@@ -12,8 +13,17 @@ export const TimeSlotCard: React.FC<{
   isAvailable: boolean;
   onClick: () => void;
 }> = ({ time, duration, isSelected, isAvailable, onClick }) => {
+  const t = useTranslations('BookingForm');
   const endTime = calculateEndTime(time, duration);
-  const durationText = formatDuration(duration);
+
+  // Format duration using translation keys
+  const { hours, mins } = getDurationParts(duration);
+  const durationText =
+    hours === 0
+      ? t('durationMinutesOnly', { minutes: mins })
+      : mins === 0
+        ? t('durationHoursOnly', { hours })
+        : t('durationHoursMinutes', { hours, minutes: mins });
 
   return (
     <button

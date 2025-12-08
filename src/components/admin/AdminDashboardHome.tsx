@@ -2,10 +2,9 @@
 
 import { useMemo } from 'react';
 import Link from 'next/link';
-import { useLocale, useTranslations } from 'next-intl';
+import { useLocale, useTranslations, useFormatter } from 'next-intl';
 import { Calendar, TrendingUp, Clock, DollarSign, ChevronRight, MessageSquare } from 'lucide-react';
 import type { Appointment } from '@/types';
-import { formatDisplayDate, formatTime12Hour } from '@/lib/timeUtils';
 
 interface AdminDashboardHomeProps {
   appointments: Appointment[];
@@ -18,7 +17,16 @@ export default function AdminDashboardHome({
 }: AdminDashboardHomeProps) {
   const t = useTranslations('Admin.Dashboard');
   const locale = useLocale();
+  const format = useFormatter();
   const basePath = `/${locale}/admin`;
+
+  // Helper to format time from HH:MM string
+  const formatTime = (time: string) => {
+    const [hours, minutes] = time.split(':').map(Number);
+    const date = new Date();
+    date.setHours(hours, minutes);
+    return format.dateTime(date, { hour: 'numeric', minute: '2-digit', hour12: true });
+  };
 
   // Calculate KPIs
   const kpis = useMemo(() => {
@@ -115,7 +123,7 @@ export default function AdminDashboardHome({
                 <div className="flex items-center gap-4">
                   <div className="text-center">
                     <div className="text-lg font-semibold text-foreground">
-                      {formatTime12Hour(appointment.time)}
+                      {formatTime(appointment.time)}
                     </div>
                     <div className="text-xs text-muted-foreground">
                       {appointment.totalDuration}m

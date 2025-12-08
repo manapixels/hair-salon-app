@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { formatDisplayDate } from '@/lib/timeUtils';
+import { useFormatter } from 'next-intl';
 import { Checkbox } from '@/components/ui/checkbox';
 import type { BlockedPeriod } from '@/types';
 
@@ -22,11 +22,18 @@ const generateTimeOptions = () => {
 const timeOptions = generateTimeOptions();
 
 export default function ClosuresSettings({ closures, onChange }: ClosuresSettingsProps) {
+  const format = useFormatter();
   const [newDate, setNewDate] = useState('');
   const [isFullDay, setIsFullDay] = useState(true);
   const [startTime, setStartTime] = useState('09:00');
   const [endTime, setEndTime] = useState('12:00');
   const [reason, setReason] = useState('');
+
+  // Format date for display
+  const formatDate = (date: Date | string) => {
+    const dateObj = typeof date === 'string' ? new Date(date) : date;
+    return format.dateTime(dateObj, { day: 'numeric', month: 'short', year: 'numeric' });
+  };
 
   const handleAddClosure = () => {
     if (!newDate) return;
@@ -198,7 +205,7 @@ export default function ClosuresSettings({ closures, onChange }: ClosuresSetting
                   </svg>
                   <div>
                     <div className="text-sm font-medium text-foreground">
-                      {formatDisplayDate(new Date(closure.date))}
+                      {formatDate(new Date(closure.date))}
                       <span className="ml-2 text-xs text-muted-foreground">({closure.date})</span>
                     </div>
                     <div className="text-xs text-muted-foreground">
@@ -262,7 +269,7 @@ export default function ClosuresSettings({ closures, onChange }: ClosuresSetting
                   </svg>
                   <div>
                     <div className="text-sm text-muted-foreground">
-                      {formatDisplayDate(new Date(closure.date))}
+                      {formatDate(new Date(closure.date))}
                       <span className="ml-2 text-xs text-gray-500">({closure.date})</span>
                     </div>
                     <div className="text-xs text-gray-500">

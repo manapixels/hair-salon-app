@@ -16,6 +16,7 @@ import {
   endOfWeek,
 } from 'date-fns';
 import { LoadingSpinner } from '@/components/feedback/loaders/LoadingSpinner';
+import { useFormatter, useTranslations } from 'next-intl';
 
 interface CalendarViewProps {
   selectedDate: Date;
@@ -42,6 +43,20 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
   maxDate,
   loading = false,
 }) => {
+  const formatter = useFormatter();
+  const t = useTranslations('BookingForm');
+
+  // Generate locale-aware weekday names
+  const weekdayNames = useMemo(() => {
+    // Create dates for a week starting from Sunday
+    const sunday = new Date(2024, 0, 7); // Known Sunday
+    return Array.from({ length: 7 }, (_, i) => {
+      const day = new Date(sunday);
+      day.setDate(sunday.getDate() + i);
+      return formatter.dateTime(day, { weekday: 'short' });
+    });
+  }, [formatter]);
+
   const isDateAvailable = (date: Date) => {
     if (!availableDates) return true;
     const dateKey = format(date, 'yyyy-MM-dd');
@@ -132,7 +147,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
 
         <div className="flex items-center gap-2">
           <h2 className="text-lg font-semibold text-gray-900">
-            {format(currentMonth, 'MMMM yyyy')}
+            {formatter.dateTime(currentMonth, { month: 'long', year: 'numeric' })}
           </h2>
           {loading && <LoadingSpinner size="sm" className="text-primary" />}
         </div>
@@ -156,7 +171,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
 
       {/* Weekday Header */}
       <div className="grid grid-cols-7 gap-1 mb-2">
-        {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+        {weekdayNames.map(day => (
           <div key={day} className="text-xs font-medium text-gray-600 text-center py-2 uppercase">
             {day}
           </div>
@@ -180,9 +195,11 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
             <button
               key={date.toISOString()}
               role="gridcell"
-              aria-label={
-                format(date, 'MMMM d, yyyy') + (isAvailable ? ', Available' : ', Unavailable')
-              }
+              aria-label={formatter.dateTime(date, {
+                month: 'long',
+                day: 'numeric',
+                year: 'numeric',
+              })}
               aria-selected={isSelected}
               aria-disabled={isDisabled}
               disabled={isDisabled}
@@ -211,7 +228,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
       {/* Screen reader announcement */}
       {loading && (
         <div className="sr-only" role="status" aria-live="polite">
-          Loading available dates...
+          {t('loading')}
         </div>
       )}
     </div>

@@ -1,7 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { toast } from 'sonner';
 import type { DateRange } from 'react-day-picker';
-import { formatDisplayDate } from '@/lib/timeUtils';
 import * as Select from '@radix-ui/react-select';
 import { LoadingSpinner } from '@/components/feedback/loaders/LoadingSpinner';
 import { Calendar } from '@/components/ui/calendar';
