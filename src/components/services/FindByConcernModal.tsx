@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import Image from 'next/image';
 import * as Dialog from '@radix-ui/react-dialog';
 import {
   Drawer,
@@ -20,14 +19,7 @@ import {
   CommandGroup,
   CommandItem,
 } from '@/components/ui/command';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table';
 import { ArrowLeft, Clock, X } from 'lucide-react';
 import { useBookingModal } from '@/context/BookingModalContext';
 import { useIsMobile } from '@/hooks/useMediaQuery';
@@ -242,7 +234,7 @@ export function FindByConcernModal({ isOpen, onClose, serviceLinks }: FindByConc
                           <div>
                             <div className="font-medium">{concern.label}</div>
                             {concern.description && (
-                              <div className="text-xs text-gray-600">{concern.description}</div>
+                              <div className="text-xs">{concern.description}</div>
                             )}
                           </div>
                         </CommandItem>

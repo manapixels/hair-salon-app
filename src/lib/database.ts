@@ -319,6 +319,23 @@ export const getServiceCategories = unstable_cache(
               benefits: (a.benefits as string[]) ?? undefined,
             })),
           tags: s.tags ?? [],
+          serviceTags: tagRelations
+            .filter(r => r.serviceId === s.id)
+            .map(r => {
+              const tag = tags.find(t => t.id === r.tagId);
+              if (!tag) return null;
+              return {
+                ...r,
+                tag: {
+                  ...tag,
+                  category: tag.category as 'CONCERN' | 'OUTCOME' | 'HAIR_TYPE',
+                  description: tag.description ?? undefined,
+                  iconName: tag.iconName ?? undefined,
+                  // Ensure other optional fields are handled if necessary
+                },
+              };
+            })
+            .filter((r): r is NonNullable<typeof r> => r !== null),
         })),
     }));
   },
@@ -355,6 +372,33 @@ export async function getServiceById(id: string): Promise<Service | null> {
           benefits: (a.benefits as string[]) ?? undefined,
         })),
         tags: service.tags ?? [],
+        serviceTags: (
+          await Promise.all(
+            (
+              await db
+                .select()
+                .from(schema.serviceTagRelations)
+                .where(eq(schema.serviceTagRelations.serviceId, id))
+            ).map(async r => {
+              const tagResult = await db
+                .select()
+                .from(schema.serviceTags)
+                .where(eq(schema.serviceTags.id, r.tagId))
+                .limit(1);
+              const tag = tagResult[0];
+              if (!tag) return null;
+              return {
+                ...r,
+                tag: {
+                  ...tag,
+                  category: tag.category as 'CONCERN' | 'OUTCOME' | 'HAIR_TYPE',
+                  description: tag.description ?? undefined,
+                  iconName: tag.iconName ?? undefined,
+                },
+              };
+            }),
+          )
+        ).filter((r): r is NonNullable<typeof r> => r !== null),
       };
     },
     ['service', id],

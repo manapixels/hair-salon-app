@@ -26,30 +26,19 @@ export default function AdminDashboardHome({
     const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
     const endOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59);
 
-    const startOfWeek = new Date(today);
-    startOfWeek.setDate(today.getDate() - today.getDay());
-    startOfWeek.setHours(0, 0, 0, 0);
-    const endOfWeek = new Date(startOfWeek);
-    endOfWeek.setDate(startOfWeek.getDate() + 6);
-    endOfWeek.setHours(23, 59, 59, 999);
-
     const appointmentsList = Array.isArray(appointments) ? appointments : [];
 
     const todayAppts = appointmentsList.filter(
       a => new Date(a.date) >= startOfToday && new Date(a.date) <= endOfToday,
     );
 
-    const weekAppts = appointmentsList.filter(
-      a => new Date(a.date) >= startOfWeek && new Date(a.date) <= endOfWeek,
-    );
-
     const upcomingAppts = appointmentsList.filter(a => new Date(a.date) > endOfToday);
 
     return {
       today: todayAppts.length,
-      thisWeek: weekAppts.length,
+
       upcoming: upcomingAppts.length,
-      weekRevenue: weekAppts.reduce((sum, a) => sum + a.totalPrice, 0),
+
       todayAppointments: todayAppts.slice(0, 5), // First 5 for preview
     };
   }, [appointments]);
@@ -66,26 +55,13 @@ export default function AdminDashboardHome({
             icon={<Calendar className="w-5 h-5 text-blue-600" />}
             iconBg="bg-blue-100"
           />
-          <KPICard
-            title={t('thisWeek')}
-            value={kpis.thisWeek}
-            subtitle={t('appointments')}
-            icon={<TrendingUp className="w-5 h-5 text-green-600" />}
-            iconBg="bg-green-100"
-          />
+
           <KPICard
             title={t('upcoming')}
             value={kpis.upcoming}
             subtitle={t('futureBookings')}
             icon={<Clock className="w-5 h-5 text-amber-600" />}
             iconBg="bg-amber-100"
-          />
-          <KPICard
-            title={t('weekRevenue')}
-            value={`$${kpis.weekRevenue}`}
-            subtitle={t('thisWeek')}
-            icon={<DollarSign className="w-5 h-5 text-primary" />}
-            iconBg="bg-primary/10"
           />
         </div>
       </section>
