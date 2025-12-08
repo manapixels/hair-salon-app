@@ -24,7 +24,6 @@ export default function HomePage() {
   const tNav = useTranslations('Navigation');
   const { openModal, bookingCategories } = useBookingModal();
   const [adminSettings, setAdminSettings] = useState<AdminSettings | null>(null);
-  const [serviceLinks, setServiceLinks] = useState<ServiceLink[]>([]);
   const [isConcernModalOpen, setIsConcernModalOpen] = useState(false);
 
   // Fetch data on mount
@@ -35,28 +34,21 @@ export default function HomePage() {
         setAdminSettings(settings);
       })
       .catch(err => console.error('Failed to fetch data:', err));
+  }, []);
 
-    // Convert bookingCategories to serviceLinks format
-    const links = bookingCategories
-      .filter(c => c.isFeatured)
-      .map(c => ({
-        id: c.id,
-        slug: c.slug,
-        title: c.title,
-        short_title: c.shortTitle || c.title,
-        href: `/services/${c.slug}`,
-        description: c.description || undefined,
-        image: c.imageUrl || undefined,
-        illustration: c.illustrationUrl || undefined,
-      }));
-    setServiceLinks(links);
-  }, [bookingCategories]);
-
-  // Extract featured services from booking categories
-  const featuredServiceNames = serviceLinks.map((s: ServiceLink) => s.title);
-  const featuredServices = bookingCategories
-    .flatMap((cat: any) => cat.items || [])
-    .filter((service: any) => featuredServiceNames.includes(service.name));
+  // Compute service links for FindByConcernModal
+  const serviceLinks: ServiceLink[] = bookingCategories
+    .filter(c => c.isFeatured)
+    .map(c => ({
+      id: c.id,
+      slug: c.slug,
+      title: c.title,
+      short_title: c.shortTitle || c.title,
+      href: `/services/${c.slug}`,
+      description: c.description || undefined,
+      image: c.imageUrl || undefined,
+      illustration: c.illustrationUrl || undefined,
+    }));
 
   if (!adminSettings) {
     return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
@@ -154,51 +146,51 @@ export default function HomePage() {
           </span>
         </button>
 
-        {serviceLinks.map(service => {
-          const serviceData = featuredServices.find(s => s.name === service.title);
-          const serviceId = serviceData?.id;
-
-          return (
-            <DropdownMenu key={service.href}>
-              <DropdownMenuTrigger asChild>
-                <button className="group/item flex flex-col items-center justify-between gap-1 border border-primary/50 hover:border-primary transition-colors rounded-lg p-2 w-full outline-none focus:ring-2 focus:ring-primary/20 bg-transparent cursor-pointer">
-                  <div className="relative w-16 h-16 rounded-lg">
-                    <Image
-                      src={service.illustration || ''}
-                      alt={service.title}
-                      fill
-                      className="object-cover"
-                      sizes="64px"
-                    />
-                  </div>
-                  <span className="text-md text-center leading-[1.1] text-primary font-medium flex-1 flex items-center justify-center w-full">
-                    {tNav(`serviceNames.${service.slug}`)}
-                  </span>
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuItem asChild>
-                  <Link
-                    href={service.href}
-                    className="justify-center bg-transparent text-primary focus:bg-transparent"
+        {bookingCategories
+          .filter(c => c.isFeatured)
+          .map(category => {
+            const serviceUrl = `/services/${category.slug}`;
+            return (
+              <DropdownMenu key={category.slug}>
+                <DropdownMenuTrigger asChild>
+                  <button className="group/item flex flex-col items-center justify-between gap-1 border border-primary/50 hover:border-primary transition-colors rounded-lg p-2 w-full outline-none focus:ring-2 focus:ring-primary/20 bg-transparent cursor-pointer">
+                    <div className="relative w-16 h-16 rounded-lg">
+                      <Image
+                        src={category.illustrationUrl || ''}
+                        alt={category.title}
+                        fill
+                        className="object-cover"
+                        sizes="64px"
+                      />
+                    </div>
+                    <span className="text-md text-center leading-[1.1] text-primary font-medium flex-1 flex items-center justify-center w-full">
+                      {tNav(`serviceNames.${category.slug}`)}
+                    </span>
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuItem asChild>
+                    <Link
+                      href={serviceUrl}
+                      className="justify-center bg-transparent text-primary focus:bg-transparent"
+                    >
+                      {t('learnMore')}
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onSelect={() =>
+                      openModal({
+                        preSelectedCategoryId: category.id,
+                      })
+                    }
+                    className="bg-primary text-white hover:text-white focus:text-white justify-center"
                   >
-                    {t('learnMore')}
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onSelect={() =>
-                    openModal({
-                      preSelectedCategoryId: service.id,
-                    })
-                  }
-                  className="bg-primary text-white hover:text-white focus:text-white justify-center"
-                >
-                  {t('bookNow')}
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          );
-        })}
+                    {t('bookNow')}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            );
+          })}
       </section>
       {/* Desktop Ver. */}
       <section className="hidden sm:block py-16 md:py-24 lg:px-12 bg-white" id="services">
@@ -225,74 +217,73 @@ export default function HomePage() {
         {/* Featured Services Grid - Large Cards with Images */}
         <div className="px-4 md:px-0">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-            {featuredServices.slice(0, 6).map((service, index) => {
-              const serviceLink = serviceLinks.find(s => s.title === service.name);
-              // Use category info from serviceLink (which comes from categories)
-              // fallback to service info (which comes from service items)
-              const imageUrl =
-                service.imageUrl || serviceLink?.image || '/background-images/menu-service-bg.png';
-              // Use category slug for href
-              const serviceUrl = serviceLink?.href;
-              // Use category ID if available
-              const categoryId = serviceLink?.id || service.categoryId;
+            {bookingCategories
+              .filter(c => c.isFeatured)
+              .slice(0, 6)
+              .map((category, index) => {
+                const imageUrl = category.imageUrl || '/background-images/menu-service-bg.png';
+                const serviceUrl = `/services/${category.slug}`;
+                const categoryId = category.id;
 
-              return (
-                <div
-                  key={service.id}
-                  className="relative flex flex-col sm:flex-row gap-3 sm:gap-4 snap-center bg-[#FDFCF8] px-6 py-5 md:px-8 md:py-6 border border-white/5 hover:border-gold-primary/50 transition-colors duration-500 group rounded-lg"
-                >
-                  <div className="w-full sm:w-[70%]">
-                    <div className="text-gold-primary text-3xl md:text-4xl mb-4 md:mb-6 group-hover:translate-x-2 transition-transform duration-300">
-                      0{index + 1}.
+                // Format price display
+                let priceDisplay = '';
+                if (category.priceNote) {
+                  priceDisplay = category.priceNote;
+                } else if (category.priceRangeMin) {
+                  priceDisplay = `From $${category.priceRangeMin}`;
+                }
+
+                return (
+                  <div
+                    key={category.id}
+                    className="relative flex flex-col sm:flex-row gap-3 sm:gap-4 snap-center bg-[#FDFCF8] px-6 py-5 md:px-8 md:py-6 border border-white/5 hover:border-gold-primary/50 transition-colors duration-500 group rounded-lg"
+                  >
+                    <div className="w-full sm:w-[70%]">
+                      <div className="text-gold-primary text-3xl md:text-4xl mb-4 md:mb-6 group-hover:translate-x-2 transition-transform duration-300">
+                        0{index + 1}.
+                      </div>
+                      <h3 className="font-serif text-xl md:text-2xl text-primary mb-2">
+                        {category.title}
+                      </h3>
+                      <div className="h-px w-full bg-primary/10 my-3 md:my-4"></div>
+                      <div className="text-sm text-gray-400 uppercase tracking-wider mb-3 md:mb-4">
+                        <span></span>
+                        <span className="text-gold-light">{priceDisplay}</span>
+                      </div>
+                      {category.description && (
+                        <p className="text-gray-500 text-sm mb-4 line-clamp-2">
+                          {category.description}
+                        </p>
+                      )}
+                      {/* Service Details */}
+                      <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+                        <Link
+                          href={serviceUrl}
+                          className="min-h-touch-lg flex-1 py-3 bg-white text-primary/60 border-2 border-primary/60 rounded-lg hover:bg-stone-50 active-scale transition-colors duration-200 font-medium text-center"
+                        >
+                          {t('learnMore')}
+                        </Link>
+                        <button
+                          onClick={() => openModal({ preSelectedCategoryId: categoryId })}
+                          className="min-h-touch-lg py-3 bg-gray-800 text-white rounded-lg hover:bg-stone-800 active-scale transition-colors duration-200 font-medium text-center flex-1"
+                        >
+                          {t('bookNow')}
+                        </button>
+                      </div>
                     </div>
-                    <h3 className="font-serif text-xl md:text-2xl text-primary mb-2">
-                      {service.name}
-                    </h3>
-                    <div className="h-px w-full bg-primary/10 my-3 md:my-4"></div>
-                    <div className="text-sm text-gray-400 uppercase tracking-wider mb-3 md:mb-4">
-                      <span></span>
-                      <span className="text-gold-light">{service.price}</span>
-                    </div>
-                    {service.subtitle && (
-                      <p className="text-gray-500 text-sm mb-4">{service.subtitle}</p>
-                    )}
-                    {/* Service Details */}
-                    <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-                      {(() => {
-                        return (
-                          <>
-                            {serviceUrl && (
-                              <Link
-                                href={serviceUrl}
-                                className="min-h-touch-lg flex-1 py-3 bg-white text-primary/60 border-2 border-primary/60 rounded-lg hover:bg-stone-50 active-scale transition-colors duration-200 font-medium text-center"
-                              >
-                                {t('learnMore')}
-                              </Link>
-                            )}
-                            <button
-                              onClick={() => openModal({ preSelectedCategoryId: categoryId })}
-                              className={`min-h-touch-lg py-3 bg-gray-800 text-white rounded-lg hover:bg-stone-800 active-scale transition-colors duration-200 font-medium text-center ${serviceUrl ? 'flex-1' : 'w-full'}`}
-                            >
-                              {t('bookNow')}
-                            </button>
-                          </>
-                        );
-                      })()}
+                    <div className="relative w-full h-48 sm:w-[30%] sm:h-auto sm:min-h-[200px] rounded-lg overflow-hidden">
+                      <Image
+                        src={imageUrl}
+                        alt={category.title}
+                        fill
+                        className="object-cover transition-transform duration-700"
+                        sizes="(max-width: 640px) 100vw, 30vw"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
                     </div>
                   </div>
-                  <div className="relative w-full h-48 sm:w-[30%] sm:h-auto sm:min-h-[200px] rounded-lg overflow-hidden">
-                    <Image
-                      src={imageUrl}
-                      alt={service.name}
-                      fill
-                      className="object-cover transition-transform duration-700"
-                      sizes="(max-width: 640px) 100vw, 30vw"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
-                  </div>
-                </div>
-              );
-            })}
+                );
+              })}
             <div className="group p-6 md:p-8 rounded-3xl bg-primary/30 text-black border border-transparent hover:scale-[1.02] active-scale transition-all duration-300 flex flex-col justify-center items-center text-center min-h-touch-lg">
               <h3 className="text-xl md:text-2xl font-serif mb-2">{t('needAdvice')}</h3>
               <p className="text-sm mb-6">{t('consultationDescription')}</p>
