@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Check } from '@/lib/icons';
 import { LoadingSpinner } from '@/components/feedback/loaders/LoadingSpinner';
 import { BookingConfirmationSummary } from './BookingConfirmationSummary';
+import OAuthLoginModal from '@/components/auth/OAuthLoginModal';
 import type { Service, Stylist, ServiceCategory } from '@/types';
 
 interface ConfirmationFormProps {
@@ -35,6 +36,7 @@ export const ConfirmationForm: React.FC<ConfirmationFormProps> = ({
   const [name, setName] = useState(user?.name || '');
   const [email, setEmail] = useState(user?.email || '');
   const [error, setError] = useState('');
+  const [isLoginOpen, setIsLoginOpen] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -71,7 +73,17 @@ export const ConfirmationForm: React.FC<ConfirmationFormProps> = ({
         <div className="px-6 py-4 space-y-2 mb-2">
           <div className="flex items-center justify-between">
             <div className="text-md font-semibold text-gray-800">{t('bookingUsing')}</div>
-            <div className="text-sm text-gray-500">{user ? t('loggedIn') : t('notLoggedIn')}</div>
+            {user ? (
+              <div className="text-sm text-gray-500">{t('loggedIn')}</div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setIsLoginOpen(true)}
+                className="text-sm text-primary hover:text-primary/80 font-medium underline underline-offset-2 transition-colors"
+              >
+                {t('logIn')}
+              </button>
+            )}
           </div>
           <InputGroup className="bg-white">
             <InputGroupInput
@@ -129,6 +141,8 @@ export const ConfirmationForm: React.FC<ConfirmationFormProps> = ({
           )}
         </Button>
       </form>
+
+      <OAuthLoginModal isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
     </div>
   );
 };
