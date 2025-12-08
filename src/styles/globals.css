@@ -131,3 +131,13 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Pre-selection banner progress bar animation */
+@keyframes shrink-width {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0%;
+  }
+}

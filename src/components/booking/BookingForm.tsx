@@ -22,6 +22,7 @@ import {
   DateTimePickerLoading,
   CollapsedStepSummary,
   MobileBookingSummary,
+  AnimatedStepContainer,
 } from './shared';
 
 // Code-split heavy components for better performance
@@ -76,9 +77,13 @@ const BookingForm: React.FC<BookingFormProps> = ({
   const [bookingConfirmed, setBookingConfirmed] = useState<Appointment | null>(null);
   const { createAppointment } = useBooking();
 
-  // Step tracking
   const [currentStep, setCurrentStep] = useState(1);
   const [editingStep, setEditingStep] = useState<number | null>(null);
+
+  // Pre-selection/selection animation states for all steps
+  const [isPreSelectionAnimating, setIsPreSelectionAnimating] = useState(false);
+  const [isStylistAnimating, setIsStylistAnimating] = useState(false);
+  const [isTimeAnimating, setIsTimeAnimating] = useState(false);
 
   // Refs for scrolling
   const serviceSectionRef = useRef<HTMLDivElement>(null);
@@ -121,51 +126,64 @@ const BookingForm: React.FC<BookingFormProps> = ({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [selectedTime, selectedStylist]);
 
+  // Ref to track if component is mounted
+  const isMounted = useRef(false);
+  useEffect(() => {
+    isMounted.current = true;
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
+
+  // Ref to track if pre-selection animation has run
+  const hasHandledPreSelection = useRef(false);
+
   // Auto-select category when pre-selected service ID (actually slug) is provided
   // Maps service detail page slugs to booking categories
   useEffect(() => {
-    // Priority to explicit category ID from options
-    if (preSelectedCategoryId && !selectedCategory) {
-      const category = bookingCategories.find(c => c.id === preSelectedCategoryId);
-      if (category) {
-        setSelectedCategory(category);
-        if (!disableAutoScroll) {
-          setTimeout(() => {
-            const element = document.getElementById('service-selector');
-            if (element) {
-              element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
-          }, 500);
-        }
-      }
-    }
-    // Fallback to service slug mapping
-    else if (preSelectedCategorySlug && !selectedCategory) {
-      // preSelectedCategorySlug is a slug like 'hair-colouring' from navigation.ts
-      const category = bookingCategories.find(c => c.slug === preSelectedCategorySlug);
-      if (category) {
-        setSelectedCategory(category);
+    // Prevent re-running if already handled
+    if (hasHandledPreSelection.current) return;
 
-        // Only show toast and scroll if auto-scroll is enabled (i.e., not on service detail pages)
-        if (!disableAutoScroll) {
-          toast.success(`${category.title} has been pre-selected for you!`);
+    let categoryToSelect: ServiceCategory | undefined;
 
-          setTimeout(() => {
-            const element = document.getElementById('service-selector');
-            if (element) {
-              element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
-          }, 500);
-        }
-      }
+    // 1. Resolve the category
+    if (preSelectedCategoryId) {
+      categoryToSelect = bookingCategories.find(c => c.id === preSelectedCategoryId);
+    } else if (preSelectedCategorySlug) {
+      categoryToSelect = bookingCategories.find(c => c.slug === preSelectedCategorySlug);
     }
-  }, [
-    preSelectedCategorySlug,
-    preSelectedCategoryId,
-    selectedCategory,
-    disableAutoScroll,
-    bookingCategories,
-  ]);
+
+    // 2. Execute Pre-selection Animation with pulse feedback
+    if (categoryToSelect && !selectedCategory) {
+      hasHandledPreSelection.current = true;
+
+      // Stage 1: Select category with pulse animation
+      setTimeout(() => {
+        if (isMounted.current) {
+          setIsPreSelectionAnimating(true);
+          setSelectedCategory(categoryToSelect!);
+        }
+      }, 400);
+
+      // Stage 2: Stop pulse animation (after 1.5 seconds of pulsing)
+      setTimeout(() => {
+        if (isMounted.current) {
+          setIsPreSelectionAnimating(false);
+        }
+      }, 1900);
+
+      // Stage 3: Scroll to next step (after user has seen feedback)
+      setTimeout(() => {
+        if (isMounted.current) {
+          const element =
+            document.getElementById('stylist-selector-section') || stylistSectionRef.current;
+          if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }
+      }, 2500);
+    }
+  }, [preSelectedCategorySlug, preSelectedCategoryId, selectedCategory, bookingCategories]);
 
   // Smart reset logic: only reset when necessary
   useEffect(() => {
@@ -253,27 +271,38 @@ Please confirm availability. Thank you!`;
   // Category selection handler
   const handleCategorySelect = (category: ServiceCategory) => {
     setSelectedCategory(category);
-    // Clear editing state when user makes a selection
     setEditingStep(null);
-    // Auto-advance to Step 2 (Stylist) with a small delay
-    setTimeout(() => scrollToSection(stylistSectionRef), 300);
+
+    // Pulse animation + delay before collapse (same pattern as Steps 2 and 3)
+    setIsPreSelectionAnimating(true);
+    setTimeout(() => {
+      setIsPreSelectionAnimating(false);
+      scrollToSection(stylistSectionRef);
+    }, 1200); // 1.2s to show pulse before advancing
   };
 
   const handleStylistSelect = (stylist: Stylist | null) => {
     setSelectedStylist(stylist);
-    // Clear editing state when user makes a selection
     setEditingStep(null);
-    // Auto-scroll to date time picker
-    scrollToSection(dateTimeSectionRef);
+
+    // Pulse animation + delay before collapse
+    setIsStylistAnimating(true);
+    setTimeout(() => {
+      setIsStylistAnimating(false);
+      scrollToSection(dateTimeSectionRef);
+    }, 1200); // 1.2s to show pulse before advancing
   };
 
   const handleTimeSelect = (time: string | null) => {
     setSelectedTime(time);
-    // Clear editing state when user makes a selection
     setEditingStep(null);
     if (time) {
-      // Auto-scroll to confirmation
-      scrollToSection(confirmationSectionRef);
+      // Pulse animation + delay before collapse
+      setIsTimeAnimating(true);
+      setTimeout(() => {
+        setIsTimeAnimating(false);
+        scrollToSection(confirmationSectionRef);
+      }, 1200); // 1.2s to show pulse before advancing
     }
   };
 
@@ -435,23 +464,33 @@ Please confirm availability. Thank you!`;
             aria-labelledby="step-1-heading"
             aria-current={currentStep === 1 ? 'step' : undefined}
           >
-            {currentStep > 1 && selectedCategory && editingStep !== 1 ? (
-              <CollapsedStepSummary
-                selectionType={t('service')}
-                selection={getCategoryName(selectedCategory)}
-                onEdit={() => handleEditStep(1)}
-                id="step-1-heading"
-              />
-            ) : (
-              <SimpleCategorySelector
-                selectedCategory={selectedCategory}
-                onCategorySelect={handleCategorySelect}
-              />
-            )}
+            <AnimatedStepContainer
+              isCollapsed={
+                currentStep > 1 &&
+                !!selectedCategory &&
+                editingStep !== 1 &&
+                !isPreSelectionAnimating
+              }
+              collapsedContent={
+                <CollapsedStepSummary
+                  selectionType={t('service')}
+                  selection={getCategoryName(selectedCategory!)}
+                  onEdit={() => handleEditStep(1)}
+                  id="step-1-heading"
+                />
+              }
+              expandedContent={
+                <SimpleCategorySelector
+                  selectedCategory={selectedCategory}
+                  onCategorySelect={handleCategorySelect}
+                  isPreSelectionAnimating={isPreSelectionAnimating}
+                />
+              }
+            />
           </div>
 
           {/* Step 2: Stylist */}
-          {selectedCategory && editingStep !== 1 && (
+          {selectedCategory && editingStep !== 1 && !isPreSelectionAnimating && (
             <div
               ref={stylistSectionRef}
               className="outline-none"
@@ -459,79 +498,102 @@ Please confirm availability. Thank you!`;
               aria-labelledby="step-2-heading"
               aria-current={currentStep === 2 ? 'step' : undefined}
             >
-              {currentStep > 2 && selectedStylist && editingStep !== 2 ? (
-                <CollapsedStepSummary
-                  selectionType={t('stylist')}
-                  selection={selectedStylist ? selectedStylist.name : 'No preference (Quick Book)'}
-                  onEdit={() => handleEditStep(2)}
-                  id="step-2-heading"
-                />
-              ) : (
-                <div className="animate-slide-in-bottom">
-                  <StylistSelector
-                    selectedServices={[]} // Pass empty array for category-based booking
-                    selectedCategory={selectedCategory} // NEW: Pass category for category-based booking
-                    selectedStylist={selectedStylist}
-                    onStylistSelect={handleStylistSelect}
+              <AnimatedStepContainer
+                isCollapsed={
+                  currentStep > 2 && !!selectedStylist && editingStep !== 2 && !isStylistAnimating
+                }
+                collapsedContent={
+                  <CollapsedStepSummary
+                    selectionType={t('stylist')}
+                    selection={
+                      selectedStylist ? selectedStylist.name : 'No preference (Quick Book)'
+                    }
+                    onEdit={() => handleEditStep(2)}
+                    id="step-2-heading"
                   />
-                </div>
-              )}
+                }
+                expandedContent={
+                  <div className="animate-slide-in-bottom">
+                    <StylistSelector
+                      selectedServices={[]}
+                      selectedCategory={selectedCategory}
+                      selectedStylist={selectedStylist}
+                      onStylistSelect={handleStylistSelect}
+                      isAnimatingSelection={isStylistAnimating}
+                    />
+                  </div>
+                }
+              />
             </div>
           )}
 
           {/* Step 3: Date & Time */}
-          {selectedStylist && selectedCategory && editingStep !== 1 && editingStep !== 2 && (
-            <div
-              ref={dateTimeSectionRef}
-              className="outline-none"
-              role="group"
-              aria-labelledby="step-3-heading"
-              aria-current={currentStep === 3 ? 'step' : undefined}
-            >
-              {currentStep > 3 && selectedTime && editingStep !== 3 ? (
-                <CollapsedStepSummary
-                  selectionType={t('dateAndTime')}
-                  selection={`${formatDisplayDate(selectedDate)}, ${formatTimeDisplay(selectedTime)}`}
-                  duration={`${totalDuration} min`}
-                  onEdit={() => handleEditStep(3)}
-                  id="step-3-heading"
+          {selectedStylist &&
+            selectedCategory &&
+            editingStep !== 1 &&
+            editingStep !== 2 &&
+            !isStylistAnimating && (
+              <div
+                ref={dateTimeSectionRef}
+                className="outline-none"
+                role="group"
+                aria-labelledby="step-3-heading"
+                aria-current={currentStep === 3 ? 'step' : undefined}
+              >
+                <AnimatedStepContainer
+                  isCollapsed={
+                    currentStep > 3 && !!selectedTime && editingStep !== 3 && !isTimeAnimating
+                  }
+                  collapsedContent={
+                    <CollapsedStepSummary
+                      selectionType={t('dateAndTime')}
+                      selection={`${formatDisplayDate(selectedDate)}, ${formatTimeDisplay(selectedTime || '')}`}
+                      onEdit={() => handleEditStep(3)}
+                      id="step-3-heading"
+                    />
+                  }
+                  expandedContent={
+                    <div className="animate-slide-in-bottom">
+                      <CalendlyStyleDateTimePicker
+                        selectedDate={selectedDate}
+                        onDateChange={setSelectedDate}
+                        selectedTime={selectedTime}
+                        onTimeSelect={handleTimeSelect}
+                        totalDuration={totalDuration}
+                        selectedStylist={selectedStylist}
+                        isAnimatingSelection={isTimeAnimating}
+                      />
+                    </div>
+                  }
                 />
-              ) : (
-                <div className="animate-slide-in-bottom">
-                  <CalendlyStyleDateTimePicker
-                    selectedDate={selectedDate}
-                    onDateChange={setSelectedDate}
-                    selectedTime={selectedTime}
-                    onTimeSelect={handleTimeSelect}
-                    totalDuration={totalDuration}
-                    selectedStylist={selectedStylist}
-                  />
-                </div>
-              )}
-            </div>
-          )}
+              </div>
+            )}
 
           {/* Step 4: Confirmation */}
-          {selectedTime && editingStep !== 1 && editingStep !== 2 && editingStep !== 3 && (
-            <div
-              ref={confirmationSectionRef}
-              className="outline-none animate-scale-in"
-              role="group"
-              aria-labelledby="step-4-heading"
-              aria-current={currentStep === 4 ? 'step' : undefined}
-            >
-              <ConfirmationForm
-                onConfirm={handleConfirmBooking}
-                isSubmitting={isSubmitting}
-                selectedCategory={selectedCategory}
-                selectedServices={[]}
-                selectedStylist={selectedStylist}
-                selectedDate={selectedDate}
-                selectedTime={selectedTime}
-                totalDuration={totalDuration}
-              />
-            </div>
-          )}
+          {selectedTime &&
+            editingStep !== 1 &&
+            editingStep !== 2 &&
+            editingStep !== 3 &&
+            !isTimeAnimating && (
+              <div
+                ref={confirmationSectionRef}
+                className="outline-none animate-scale-in"
+                role="group"
+                aria-labelledby="step-4-heading"
+                aria-current={currentStep === 4 ? 'step' : undefined}
+              >
+                <ConfirmationForm
+                  onConfirm={handleConfirmBooking}
+                  isSubmitting={isSubmitting}
+                  selectedCategory={selectedCategory}
+                  selectedServices={[]}
+                  selectedStylist={selectedStylist}
+                  selectedDate={selectedDate}
+                  selectedTime={selectedTime}
+                  totalDuration={totalDuration}
+                />
+              </div>
+            )}
         </div>
         {/* To buffer sticky summary on mobile */}
         <div className={`${currentStep === 4 ? 'pb-4' : 'pb-16'}`}></div>

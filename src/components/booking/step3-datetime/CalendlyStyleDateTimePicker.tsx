@@ -17,6 +17,7 @@ interface CalendlyStyleDateTimePickerProps {
   onTimeSelect: (time: string | null) => void;
   totalDuration: number;
   selectedStylist: Stylist | null;
+  isAnimatingSelection?: boolean; // Pulse animation when time slot is selected
 }
 
 export default function CalendlyStyleDateTimePicker({
@@ -26,6 +27,7 @@ export default function CalendlyStyleDateTimePicker({
   onTimeSelect,
   totalDuration,
   selectedStylist,
+  isAnimatingSelection = false,
 }: CalendlyStyleDateTimePickerProps) {
   const { currentMonth, daysInMonth, goToPreviousMonth, goToNextMonth } = useCalendar(selectedDate);
   const timeSlotsRef = useRef<HTMLDivElement>(null);
@@ -58,8 +60,8 @@ export default function CalendlyStyleDateTimePicker({
   };
 
   return (
-    <div className="mt-8" id="date-time-picker">
-      <h2 className="text-2xl font-semibold mb-6 text-gray-800">3. Select Date & Time</h2>
+    <div id="date-time-picker">
+      <h2 className="text-xl font-semibold mb-4 text-gray-800">3. Select Date & Time</h2>
 
       {/* ARIA Live Region for Screen Readers */}
       <div aria-live="polite" aria-atomic="true" className="sr-only">
@@ -86,6 +88,7 @@ export default function CalendlyStyleDateTimePicker({
           daysInMonth={daysInMonth}
           onPreviousMonth={goToPreviousMonth}
           onNextMonth={goToNextMonth}
+          isAnimatingSelection={isAnimatingSelection}
         />
       </div>
 
@@ -118,6 +121,7 @@ export default function CalendlyStyleDateTimePicker({
               selectedTime={selectedTime}
               onTimeSelect={onTimeSelect}
               loading={showLoader}
+              isAnimatingSelection={isAnimatingSelection}
             />
           </div>
 

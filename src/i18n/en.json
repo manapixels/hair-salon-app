@@ -128,7 +128,9 @@
     "service": "Service",
     "dateAndTime": "Date and Time",
     "bookingInProgress": "Booking in Progress",
-    "confirmYourAppointment": "Confirm Your Appointment"
+    "confirmYourAppointment": "Confirm Your Appointment",
+    "preSelectedBanner": "We've pre-selected {categoryName} for you based on your selection.",
+    "dismissBanner": "Dismiss"
   },
   "Layout": {
     "header": {

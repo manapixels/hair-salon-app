@@ -10,11 +10,13 @@ import { useTranslations } from 'next-intl';
 interface SimpleCategorySelectorProps {
   selectedCategory: ServiceCategory | null;
   onCategorySelect: (category: ServiceCategory) => void;
+  isPreSelectionAnimating?: boolean;
 }
 
 export const SimpleCategorySelector: React.FC<SimpleCategorySelectorProps> = ({
   selectedCategory,
   onCategorySelect,
+  isPreSelectionAnimating = false,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const { bookingCategories } = useBookingModal();
@@ -44,6 +46,7 @@ export const SimpleCategorySelector: React.FC<SimpleCategorySelectorProps> = ({
           <CategoryCard
             category={category}
             isSelected={selectedCategory?.id === category.id}
+            isAnimatingSelection={isPreSelectionAnimating && selectedCategory?.id === category.id}
             onClick={() => onCategorySelect(category)}
             key={category.id}
           />

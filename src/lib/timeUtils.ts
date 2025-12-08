@@ -207,9 +207,20 @@ export function formatShortDate(date: Date | string): string {
 }
 
 export const formatTimeDisplay = (time: string) => {
+  // Guard against null, undefined, or empty string
+  if (!time || time.trim() === '') {
+    return '';
+  }
+
   const [hours, minutes] = time.split(':');
   const date = new Date();
   date.setHours(parseInt(hours), parseInt(minutes));
+
+  // Guard against invalid date
+  if (isNaN(date.getTime())) {
+    return '';
+  }
+
   return format(date, 'h:mm a').toLowerCase();
 };
 

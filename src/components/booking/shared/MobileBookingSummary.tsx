@@ -89,8 +89,7 @@ export const MobileBookingSummary = memo<MobileBookingSummaryProps>(
       >
         {/* Screen reader announcement for updates */}
         <div className="sr-only" aria-live="polite" role="status">
-          {t('stepOf', { current: currentStep, total: totalSteps })}. {t('est')} {t('duration')}{' '}
-          {formatDuration(totalDuration)}
+          {t('stepOf', { current: currentStep, total: totalSteps })}
         </div>
 
         <div className="px-4 max-w-md mx-auto">
@@ -105,12 +104,6 @@ export const MobileBookingSummary = memo<MobileBookingSummaryProps>(
                 <span className="text-base font-semibold text-gray-900">
                   {t('categorySelected')}
                 </span>
-                {!isCompact && (
-                  <span className="text-sm text-gray-500 flex items-center gap-1">
-                    <Clock className="inline-block w-3 h-3" /> {formatDuration(totalDuration)}{' '}
-                    {t('est')}
-                  </span>
-                )}
               </div>
             </div>
 

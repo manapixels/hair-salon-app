@@ -129,7 +129,9 @@
     "service": "服务",
     "dateAndTime": "日期和时间",
     "bookingInProgress": "正在预约",
-    "confirmYourAppointment": "确认您的预约"
+    "confirmYourAppointment": "确认您的预约",
+    "preSelectedBanner": "我们根据您的选择已为您预选了 {categoryName}。",
+    "dismissBanner": "关闭"
   },
   "Layout": {
     "header": {

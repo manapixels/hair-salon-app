@@ -1,7 +1,7 @@
 import React from 'react';
 import { User, Calendar, Clock, X, Scissors } from 'lucide-react';
 import { Service, Stylist, ServiceCategory } from '@/types';
-import { formatShortDate, formatTimeDisplay } from '@/lib/timeUtils';
+import { formatShortDate, formatTimeDisplay, formatDuration } from '@/lib/timeUtils';
 import { useTranslations } from 'next-intl';
 
 interface BookingConfirmationSummaryProps {
@@ -39,7 +39,7 @@ export const BookingConfirmationSummary: React.FC<BookingConfirmationSummaryProp
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-6">
       <div className="divide-y divide-gray-50">
         {/* Service/Category */}
-        <div className="flex items-center gap-3 p-4 bg-gray-50/50">
+        <div className="flex items-center gap-3 px-4 py-2.5 bg-gray-50/50">
           <Scissors className="w-5 h-5 text-gray-500" />
           <div className="text-sm">
             <span className="text-gray-500 mr-2">
@@ -50,7 +50,7 @@ export const BookingConfirmationSummary: React.FC<BookingConfirmationSummaryProp
         </div>
 
         {/* Stylist */}
-        <div className="flex items-center gap-3 p-4 bg-gray-50/50">
+        <div className="flex items-center gap-3 px-4 py-2.5 bg-gray-50/50">
           <User className="w-5 h-5 text-gray-500" />
           <div className="text-sm">
             <span className="text-gray-500 mr-2">{t('with')}</span>
@@ -61,7 +61,7 @@ export const BookingConfirmationSummary: React.FC<BookingConfirmationSummaryProp
         </div>
 
         {/* Date & Time */}
-        <div className="flex items-center gap-3 p-4 bg-gray-50/50">
+        <div className="flex items-center gap-3 px-4 py-2.5 bg-gray-50/50">
           <Calendar className="w-5 h-5 text-gray-500" />
           <div className="text-sm">
             <span className="text-gray-500 mr-2">{t('when')}</span>
@@ -72,13 +72,11 @@ export const BookingConfirmationSummary: React.FC<BookingConfirmationSummaryProp
         </div>
 
         {/* Duration */}
-        <div className="flex items-center gap-3 p-4 bg-gray-50/50">
+        <div className="flex items-center gap-3 px-4 py-2.5 bg-gray-50/50">
           <Clock className="w-5 h-5 text-gray-500" />
           <div className="text-sm">
             <span className="text-gray-500 mr-2">{t('duration')}</span>
-            <span className="font-medium text-gray-900">
-              {totalDuration} {t('minutes')}
-            </span>
+            <span className="font-medium text-gray-900">{formatDuration(totalDuration)}</span>
           </div>
         </div>
       </div>

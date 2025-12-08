@@ -3,26 +3,14 @@ export const StylistCardSkeleton: React.FC<{ count?: number }> = ({ count = 3 })
     <>
       {Array.from({ length: count }).map((_, i) => (
         <div key={i} className="p-4 border rounded-lg bg-white animate-pulse">
-          {/* Avatar + Name */}
-          <div className="flex items-center mb-3">
-            <div className="w-12 h-12 bg-gray-200 rounded-full mr-3" />
-            <div className="flex-1 space-y-2">
-              <div className="h-4 bg-gray-200 rounded w-3/4" />
-              <div className="h-3 bg-gray-200 rounded w-1/2" />
+          {/* Avatar + Name - matches StylistSelector card layout */}
+          <div className="flex items-center">
+            <div className="w-12 h-12 bg-gray-200 rounded-full mr-4 shrink-0" />
+            <div className="overflow-hidden flex-1">
+              <div className="flex items-center justify-between">
+                <div className="h-5 bg-gray-200 rounded w-24" />
+              </div>
             </div>
-          </div>
-
-          {/* Bio */}
-          <div className="space-y-2 mb-2">
-            <div className="h-3 bg-gray-200 rounded" />
-            <div className="h-3 bg-gray-200 rounded w-5/6" />
-          </div>
-
-          {/* Specialty tags */}
-          <div className="flex gap-1">
-            <div className="h-6 w-16 bg-gray-200 rounded" />
-            <div className="h-6 w-20 bg-gray-200 rounded" />
-            <div className="h-6 w-14 bg-gray-200 rounded" />
           </div>
         </div>
       ))}

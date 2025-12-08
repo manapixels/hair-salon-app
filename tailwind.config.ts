@@ -144,6 +144,14 @@ const config: Config = {
             transform: 'scale(1)',
           },
         },
+        'pulse-selection': {
+          '0%, 100%': {
+            boxShadow: '0 0 0 0 hsl(var(--primary) / 0.3)',
+          },
+          '50%': {
+            boxShadow: '0 0 0 6px hsl(var(--primary) / 0)',
+          },
+        },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
@@ -152,6 +160,7 @@ const config: Config = {
         'slide-in-top': 'slide-in-top 0.3s ease-out',
         'fade-in': 'fade-in 0.3s ease-out',
         'scale-in': 'scale-in 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+        'pulse-selection': 'pulse-selection 0.4s ease-in-out',
       },
     },
     variants: {

@@ -13,6 +13,7 @@ interface TimeSlotListProps {
   selectedTime: string | null;
   onTimeSelect: (time: string) => void;
   loading?: boolean;
+  isAnimatingSelection?: boolean;
 }
 
 const SunIcon = () => (
@@ -43,6 +44,7 @@ interface TimeSlotGroupProps {
   slots: TimeSlot[];
   selectedTime: string | null;
   onTimeSelect: (time: string) => void;
+  isAnimatingSelection?: boolean;
 }
 
 const TimeSlotGroup: React.FC<TimeSlotGroupProps> = ({
@@ -51,6 +53,7 @@ const TimeSlotGroup: React.FC<TimeSlotGroupProps> = ({
   slots,
   selectedTime,
   onTimeSelect,
+  isAnimatingSelection = false,
 }) => {
   if (slots.length === 0) return null;
 
@@ -80,10 +83,11 @@ const TimeSlotGroup: React.FC<TimeSlotGroupProps> = ({
                 ${available ? 'active-scale' : ''}
                 ${
                   isSelected
-                    ? 'border-primary bg-primary shadow-md'
+                    ? 'border-primary bg-primary text-white shadow-md'
                     : 'border-gray-200 text-gray-900 hover:border-primary hover:bg-primary/10 hover:shadow-sm'
                 }
                 ${!available ? 'opacity-50 cursor-not-allowed hover:border-gray-200 hover:bg-transparent hover:shadow-none' : 'cursor-pointer'}
+                ${isSelected && isAnimatingSelection ? 'animate-pulse-selection motion-reduce:animate-none' : ''}
               `}
             >
               <div className="flex items-center justify-between">
@@ -111,6 +115,7 @@ export const TimeSlotList: React.FC<TimeSlotListProps> = ({
   selectedTime,
   onTimeSelect,
   loading = false,
+  isAnimatingSelection = false,
 }) => {
   const grouped = useMemo(() => groupSlotsByPeriod(slots), [slots]);
 
@@ -154,6 +159,7 @@ export const TimeSlotList: React.FC<TimeSlotListProps> = ({
         slots={grouped.morning}
         selectedTime={selectedTime}
         onTimeSelect={onTimeSelect}
+        isAnimatingSelection={isAnimatingSelection}
       />
 
       <TimeSlotGroup
@@ -162,6 +168,7 @@ export const TimeSlotList: React.FC<TimeSlotListProps> = ({
         slots={grouped.afternoon}
         selectedTime={selectedTime}
         onTimeSelect={onTimeSelect}
+        isAnimatingSelection={isAnimatingSelection}
       />
 
       <TimeSlotGroup
@@ -170,6 +177,7 @@ export const TimeSlotList: React.FC<TimeSlotListProps> = ({
         slots={grouped.evening}
         selectedTime={selectedTime}
         onTimeSelect={onTimeSelect}
+        isAnimatingSelection={isAnimatingSelection}
       />
     </div>
   );
