@@ -1084,5 +1084,20 @@
       "verifyingAccess": "正在验证管理员权限...",
       "loading": "正在加载..."
     }
+  },
+  "StylistDashboard": {
+    "welcome": "欢迎回来，{name}！",
+    "subtitle": "管理您的日程和设置。",
+    "profileTitle": "个人资料",
+    "displayName": "显示名称",
+    "role": "角色",
+    "calendarTitle": "谷歌日历",
+    "connected": "已连接",
+    "connectedDescription": "您的预约将自动同步到您的谷歌日历。",
+    "disconnect": "断开谷歌日历",
+    "disconnecting": "正在断开...",
+    "notConnected": "未连接",
+    "notConnectedDescription": "连接您的谷歌日历，自动同步分配给您的预约。",
+    "connectGoogle": "连接谷歌日历"
   }
 }

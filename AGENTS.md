@@ -1137,4 +1137,26 @@ When creating a new page or component, ask:
 
 ---
 
+## 📅 Stylist Google Calendar Sync
+
+Stylists can connect their personal Google Calendar to automatically sync appointments assigned to them.
+
+### Key Files
+
+- **OAuth Routes**: `src/app/api/auth/google/connect|callback|disconnect/route.ts`
+- **Calendar Logic**: `src/lib/google.ts` (per-stylist OAuth + fallback to salon calendar)
+- **Database**: `src/db/schema.ts` - `stylists` table includes Google OAuth token fields
+- **Dashboard**: `src/components/views/StylistDashboard.tsx`
+- **API**: `src/app/api/stylists/me/route.ts`
+
+### Required Environment Variables
+
+```
+GOOGLE_OAUTH_CLIENT_ID=...
+GOOGLE_OAUTH_CLIENT_SECRET=...
+GOOGLE_OAUTH_REDIRECT_URI=https://yourdomain.com/api/auth/google/callback
+```
+
+---
+
 **Production-ready AI agent system with natural language booking, automated retention, and multi-channel messaging.**

@@ -1092,5 +1092,20 @@
       "verifyingAccess": "Verifying admin access...",
       "loading": "Loading..."
     }
+  },
+  "StylistDashboard": {
+    "welcome": "Welcome back, {name}!",
+    "subtitle": "Manage your schedule and settings.",
+    "profileTitle": "Your Profile",
+    "displayName": "Display Name",
+    "role": "Role",
+    "calendarTitle": "Google Calendar",
+    "connected": "Connected",
+    "connectedDescription": "Your appointments will automatically sync to your Google Calendar.",
+    "disconnect": "Disconnect Google Calendar",
+    "disconnecting": "Disconnecting...",
+    "notConnected": "Not Connected",
+    "notConnectedDescription": "Connect your Google Calendar to automatically sync appointments assigned to you.",
+    "connectGoogle": "Connect Google Calendar"
   }
 }

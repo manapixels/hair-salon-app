@@ -1045,6 +1045,11 @@ export const getStylists = async (): Promise<Stylist[]> => {
         stylist.blockedDates && Array.isArray(stylist.blockedDates)
           ? (stylist.blockedDates as string[])
           : [],
+      googleAccessToken: stylist.googleAccessToken ?? undefined,
+      googleRefreshToken: stylist.googleRefreshToken ?? undefined,
+      googleTokenExpiry: stylist.googleTokenExpiry ?? undefined,
+      googleCalendarId: stylist.googleCalendarId ?? undefined,
+      googleEmail: stylist.googleEmail ?? undefined,
     };
   });
 };
@@ -1088,6 +1093,11 @@ export const getStylistById = async (id: string): Promise<Stylist | null> => {
       stylist.blockedDates && Array.isArray(stylist.blockedDates)
         ? (stylist.blockedDates as string[])
         : [],
+    googleAccessToken: stylist.googleAccessToken ?? undefined,
+    googleRefreshToken: stylist.googleRefreshToken ?? undefined,
+    googleTokenExpiry: stylist.googleTokenExpiry ?? undefined,
+    googleCalendarId: stylist.googleCalendarId ?? undefined,
+    googleEmail: stylist.googleEmail ?? undefined,
   };
 };
 
@@ -1145,6 +1155,11 @@ export const createStylist = async (stylistData: {
       newStylist.blockedDates && Array.isArray(newStylist.blockedDates)
         ? (newStylist.blockedDates as string[])
         : [],
+    googleAccessToken: newStylist.googleAccessToken ?? undefined,
+    googleRefreshToken: newStylist.googleRefreshToken ?? undefined,
+    googleTokenExpiry: newStylist.googleTokenExpiry ?? undefined,
+    googleCalendarId: newStylist.googleCalendarId ?? undefined,
+    googleEmail: newStylist.googleEmail ?? undefined,
   };
 };
 
@@ -1203,6 +1218,11 @@ export const updateStylist = async (
       updatedStylist.blockedDates && Array.isArray(updatedStylist.blockedDates)
         ? (updatedStylist.blockedDates as string[])
         : [],
+    googleAccessToken: updatedStylist.googleAccessToken ?? undefined,
+    googleRefreshToken: updatedStylist.googleRefreshToken ?? undefined,
+    googleTokenExpiry: updatedStylist.googleTokenExpiry ?? undefined,
+    googleCalendarId: updatedStylist.googleCalendarId ?? undefined,
+    googleEmail: updatedStylist.googleEmail ?? undefined,
   };
 };
 
@@ -1212,6 +1232,105 @@ export const deleteStylist = async (id: string): Promise<void> => {
     .update(schema.stylists)
     .set({ isActive: false, updatedAt: new Date() })
     .where(eq(schema.stylists.id, id));
+};
+
+/**
+ * Get stylist profile by linked user ID
+ */
+export const getStylistByUserId = async (userId: string): Promise<Stylist | null> => {
+  const db = await getDb();
+  const result = await db
+    .select()
+    .from(schema.stylists)
+    .where(eq(schema.stylists.userId, userId))
+    .limit(1);
+  const stylist = result[0];
+
+  if (!stylist) return null;
+
+  const allCategories = await db
+    .select()
+    .from(schema.serviceCategories)
+    .orderBy(asc(schema.serviceCategories.sortOrder));
+
+  let workingHours = getDefaultWorkingHours();
+  if (
+    stylist.workingHours &&
+    typeof stylist.workingHours === 'object' &&
+    !Array.isArray(stylist.workingHours)
+  ) {
+    workingHours = stylist.workingHours as any;
+  }
+
+  const specialtyCategoryIds = Array.isArray(stylist.specialties)
+    ? (stylist.specialties as string[])
+    : [];
+
+  return {
+    ...stylist,
+    email: stylist.email ?? undefined,
+    bio: stylist.bio ?? undefined,
+    avatar: stylist.avatar ?? undefined,
+    specialties: specialtyCategoryIds
+      .map(categoryId => allCategories.find(c => c.id === categoryId))
+      .filter(Boolean)
+      .map(cat => ({ ...cat!, items: [] })) as ServiceCategory[],
+    workingHours,
+    blockedDates:
+      stylist.blockedDates && Array.isArray(stylist.blockedDates)
+        ? (stylist.blockedDates as string[])
+        : [],
+    googleAccessToken: stylist.googleAccessToken ?? undefined,
+    googleRefreshToken: stylist.googleRefreshToken ?? undefined,
+    googleTokenExpiry: stylist.googleTokenExpiry ?? undefined,
+    googleCalendarId: stylist.googleCalendarId ?? undefined,
+    googleEmail: stylist.googleEmail ?? undefined,
+  };
+};
+
+/**
+ * Update Google OAuth tokens for a stylist
+ */
+export const updateStylistGoogleTokens = async (
+  stylistId: string,
+  tokens: {
+    googleAccessToken: string;
+    googleRefreshToken: string;
+    googleTokenExpiry: Date;
+    googleCalendarId: string;
+    googleEmail: string;
+  },
+): Promise<void> => {
+  const db = await getDb();
+  await db
+    .update(schema.stylists)
+    .set({
+      googleAccessToken: tokens.googleAccessToken,
+      googleRefreshToken: tokens.googleRefreshToken,
+      googleTokenExpiry: tokens.googleTokenExpiry,
+      googleCalendarId: tokens.googleCalendarId,
+      googleEmail: tokens.googleEmail,
+      updatedAt: new Date(),
+    })
+    .where(eq(schema.stylists.id, stylistId));
+};
+
+/**
+ * Clear Google OAuth tokens for a stylist (disconnect)
+ */
+export const clearStylistGoogleTokens = async (stylistId: string): Promise<void> => {
+  const db = await getDb();
+  await db
+    .update(schema.stylists)
+    .set({
+      googleAccessToken: null,
+      googleRefreshToken: null,
+      googleTokenExpiry: null,
+      googleCalendarId: null,
+      googleEmail: null,
+      updatedAt: new Date(),
+    })
+    .where(eq(schema.stylists.id, stylistId));
 };
 
 export const getStylistsForCategory = async (categoryId: string): Promise<Stylist[]> => {

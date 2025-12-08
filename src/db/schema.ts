@@ -144,6 +144,12 @@ export const stylists = pgTable('stylists', {
   userId: text('userId')
     .unique()
     .references(() => users.id, { onDelete: 'set null' }),
+  // Google Calendar OAuth fields
+  googleAccessToken: text('googleAccessToken'),
+  googleRefreshToken: text('googleRefreshToken'),
+  googleTokenExpiry: timestamp('googleTokenExpiry'),
+  googleCalendarId: text('googleCalendarId'), // Usually 'primary'
+  googleEmail: text('googleEmail'), // Connected Google account email
   createdAt: timestamp('createdAt').defaultNow().notNull(),
   updatedAt: timestamp('updatedAt').defaultNow().notNull(),
 });

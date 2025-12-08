@@ -102,6 +102,12 @@ export interface Stylist {
   // Supports both legacy string[] and enhanced BlockedPeriod[] format
   blockedDates: string[] | BlockedPeriod[];
   isActive: boolean;
+  // Google Calendar OAuth fields
+  googleAccessToken?: string;
+  googleRefreshToken?: string;
+  googleTokenExpiry?: Date;
+  googleCalendarId?: string;
+  googleEmail?: string;
   createdAt: Date;
   updatedAt: Date;
 }
