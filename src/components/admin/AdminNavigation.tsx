@@ -1,7 +1,7 @@
 'use client';
 
 import { usePathname, useRouter } from 'next/navigation';
-import { useLocale } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import {
   Calendar,
   Clock,
@@ -60,91 +60,93 @@ export default function AdminNavigation({
   const router = useRouter();
   const locale = useLocale();
 
+  const t = useTranslations('AdminNavigation');
+
   const basePath = `/${locale}/admin`;
 
   const navigationGroups: NavigationGroup[] = [
     {
-      label: 'Quick Glance',
+      label: t('sections.quickGlance'),
       items: [
         {
           id: 'home',
-          label: 'Dashboard',
+          label: t('items.dashboard'),
           icon: <LayoutDashboard className="w-5 h-5" />,
           href: basePath,
         },
       ],
     },
     {
-      label: 'Bookings',
+      label: t('sections.bookings'),
       items: [
         {
           id: 'appointments',
-          label: 'Appointments',
+          label: t('items.appointments'),
           icon: <Calendar className="w-5 h-5" />,
           href: `${basePath}/appointments`,
           badge: badges.appointments,
         },
         {
           id: 'availability',
-          label: 'Availability',
+          label: t('items.availability'),
           icon: <Clock className="w-5 h-5" />,
           href: `${basePath}/availability`,
         },
       ],
     },
     {
-      label: 'Team',
+      label: t('sections.team'),
       items: [
         {
           id: 'stylists',
-          label: 'Stylists',
+          label: t('items.stylists'),
           icon: <Users className="w-5 h-5" />,
           href: `${basePath}/stylists`,
         },
       ],
     },
     {
-      label: 'Support',
+      label: t('sections.support'),
       items: [
         {
           id: 'chat',
-          label: 'Chat Management',
+          label: t('items.chat'),
           icon: <MessageSquare className="w-5 h-5" />,
           href: `${basePath}/chat`,
           badge: badges.chat,
         },
         {
           id: 'knowledge-base',
-          label: 'Knowledge Base',
+          label: t('items.knowledgeBase'),
           icon: <BookOpen className="w-5 h-5" />,
           href: `${basePath}/knowledge-base`,
         },
       ],
     },
     {
-      label: 'Settings',
+      label: t('sections.settings'),
       items: [
         {
           id: 'settings-business',
-          label: 'Business Info',
+          label: t('items.businessInfo'),
           icon: <Building2 className="w-5 h-5" />,
           href: `${basePath}/settings/business`,
         },
         {
           id: 'settings-hours',
-          label: 'Operating Hours',
+          label: t('items.operatingHours'),
           icon: <CalendarClock className="w-5 h-5" />,
           href: `${basePath}/settings/hours`,
         },
         {
           id: 'settings-closures',
-          label: 'Closures',
+          label: t('items.closures'),
           icon: <XCircle className="w-5 h-5" />,
           href: `${basePath}/settings/closures`,
         },
         {
           id: 'settings-services',
-          label: 'Services & Pricing',
+          label: t('items.services'),
           icon: <Scissors className="w-5 h-5" />,
           href: `${basePath}/settings/services`,
         },

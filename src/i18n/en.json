@@ -207,6 +207,27 @@
       "sunday": "Sunday"
     }
   },
+  "AdminNavigation": {
+    "sections": {
+      "quickGlance": "Quick Glance",
+      "bookings": "Bookings",
+      "team": "Team",
+      "support": "Support",
+      "settings": "Settings"
+    },
+    "items": {
+      "dashboard": "Dashboard",
+      "appointments": "Appointments",
+      "availability": "Availability",
+      "stylists": "Stylists",
+      "chat": "Chat Management",
+      "knowledgeBase": "Knowledge Base",
+      "businessInfo": "Business Info",
+      "operatingHours": "Operating Hours",
+      "closures": "Closures",
+      "services": "Services & Pricing"
+    }
+  },
   "Services": {
     "HairColouring": {
       "meta": {
