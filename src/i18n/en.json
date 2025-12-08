@@ -56,7 +56,22 @@
     "close": "Close",
     "loadingTelegram": "Loading Telegram login...",
     "retry": "Retry",
-    "termsAgreement": "By logging in, you agree to our terms of service and privacy policy."
+    "termsAgreement": "By logging in, you agree to our terms of service and privacy policy.",
+    "back": "Back",
+    "telegramError": "Telegram bot not configured",
+    "telegramManualSearch": "If the button doesn't work, search for <bold>@{botUsername}</bold> in Telegram.",
+    "changeNumber": "Change Number",
+    "resendCode": "Resend code",
+    "sendingCode": "Sending code...",
+    "verifyCode": "Verify Code",
+    "enterVerificationCode": "Enter Verification Code",
+    "codeSentTo": "We sent a 6-digit code to <bold>{phoneNumber}</bold> via WhatsApp.",
+    "verificationCode": "Verification Code",
+    "loginWithTelegram": "Login with Telegram",
+    "telegramOpenInstructions": "📱 Opening Telegram... Click \"Start\" in the bot chat to complete login.",
+    "loginCancelled": "Login cancelled. Please try again if you want to log in.",
+    "loginTimedOut": "Login timed out. Please try again.",
+    "loginError": "Failed to initiate login. Please try again."
   },
   "ServicesPopup": {
     "title": "Our Services",

@@ -15,28 +15,35 @@ import {
 } from '@/components/ui/dialog';
 import { WhatsAppIcon, TelegramIcon } from '@/lib/icons';
 import { Button } from '@/components/ui/button';
+import { ArrowLeft } from 'lucide-react';
 
 interface OAuthLoginModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
+type LoginView = 'selection' | 'whatsapp' | 'telegram';
+
 export default function OAuthLoginModal({ isOpen, onClose }: OAuthLoginModalProps) {
   const t = useTranslations('OAuthLoginModal');
+  const [view, setView] = useState<LoginView>('selection');
+
+  // Telegram specific state
   const [telegramBotUsername, setTelegramBotUsername] = useState<string | null>(null);
-  const [showTelegramWidget, setShowTelegramWidget] = useState(false);
-  const [showWhatsAppOTP, setShowWhatsAppOTP] = useState(false);
   const [loadingTelegram, setLoadingTelegram] = useState(false);
   const [telegramError, setTelegramError] = useState<string | null>(null);
 
+  // Reset view when modal opens/closes
   useEffect(() => {
     if (!isOpen) {
-      setShowTelegramWidget(false);
-      setShowWhatsAppOTP(false);
-      return;
+      const timer = setTimeout(() => setView('selection'), 300); // Reset after transition
+      return () => clearTimeout(timer);
     }
+  }, [isOpen]);
 
-    if (!telegramBotUsername && !loadingTelegram) {
+  // Fetch Telegram bot info when entering Telegram view or if missing
+  useEffect(() => {
+    if (isOpen && !telegramBotUsername && !loadingTelegram) {
       setLoadingTelegram(true);
       setTelegramError(null);
 
@@ -56,7 +63,6 @@ export default function OAuthLoginModal({ isOpen, onClose }: OAuthLoginModalProp
           console.error('Failed to fetch Telegram bot info:', err);
           const errorMsg = err instanceof Error ? err.message : 'Failed to load Telegram login';
           setTelegramError(errorMsg);
-          toast.error(errorMsg);
         })
         .finally(() => {
           setLoadingTelegram(false);
@@ -64,105 +70,97 @@ export default function OAuthLoginModal({ isOpen, onClose }: OAuthLoginModalProp
     }
   }, [isOpen, telegramBotUsername, loadingTelegram]);
 
-  const handleWhatsAppLogin = () => {
-    setShowWhatsAppOTP(true);
+  const handleBack = () => {
+    setView('selection');
   };
 
-  const handleTelegramLogin = () => {
-    setShowTelegramWidget(previous => !previous);
-  };
+  const renderSelectionView = () => (
+    <div className="space-y-4">
+      <p className="text-center text-sm text-gray-600">{t('chooseProvider')}</p>
+
+      <Button
+        onClick={() => setView('whatsapp')}
+        className="w-full h-12 bg-[#25D366] text-white hover:bg-[#1ebe5d] text-base font-medium"
+      >
+        <WhatsAppIcon className="h-6 w-6 mr-3" />
+        {t('continueWithWhatsApp')}
+      </Button>
+
+      <Button
+        onClick={() => setView('telegram')}
+        disabled={loadingTelegram || !!telegramError}
+        className="w-full h-12 bg-[#0088cc] text-white hover:bg-[#007ab8] disabled:bg-[#8ccae8] text-base font-medium"
+      >
+        <TelegramIcon className="h-6 w-6 mr-3" />
+        {t('continueWithTelegram')}
+      </Button>
+
+      {telegramError && (
+        <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-center">
+          <p className="text-sm text-red-700">{telegramError}</p>
+        </div>
+      )}
+    </div>
+  );
+
+  const renderTelegramView = () => (
+    <div className="space-y-6">
+      <button
+        onClick={handleBack}
+        className="flex items-center text-sm text-gray-600 hover:text-gray-900 transition-colors -ml-1"
+      >
+        <ArrowLeft className="h-4 w-4 mr-1" />
+        {t('back')}
+      </button>
+
+      <div className="rounded-xl border border-blue-100 bg-blue-50 p-5">
+        <h3 className="text-base font-semibold text-blue-900 mb-2">{t('telegramReady')}</h3>
+        <p className="text-sm text-blue-700 mb-6 leading-relaxed">{t('telegramInstructions')}</p>
+
+        <div className="flex justify-center">
+          {loadingTelegram ? (
+            <p className="text-sm text-blue-600 animate-pulse">{t('loadingTelegram')}</p>
+          ) : telegramBotUsername ? (
+            <TelegramLoginWidget
+              botUsername={telegramBotUsername}
+              buttonSize="large"
+              className="w-full flex justify-center"
+            />
+          ) : (
+            <p className="text-sm text-red-600">{t('telegramError')}</p>
+          )}
+        </div>
+      </div>
+
+      <div className="text-center">
+        <p className="text-xs text-gray-500">
+          {t.rich('telegramManualSearch', {
+            botUsername: telegramBotUsername || 'hair_salon_app_bot',
+            bold: chunks => <strong>{chunks}</strong>,
+          })}
+        </p>
+      </div>
+    </div>
+  );
+
   return (
     <Dialog open={isOpen} onOpenChange={open => (!open ? onClose() : undefined)}>
-      <DialogContent className="max-w-lg space-y-6">
-        <DialogHeader className="flex flex-row items-start justify-between space-y-0">
-          <div>
-            <DialogTitle>{t('title')}</DialogTitle>
-            <DialogDescription>{t('description')}</DialogDescription>
-          </div>
+      <DialogContent className="max-w-md p-6">
+        <DialogHeader className="mb-4">
+          <DialogTitle className="text-xl text-center">{t('title')}</DialogTitle>
+          <DialogDescription className="text-center mt-2">{t('description')}</DialogDescription>
         </DialogHeader>
 
-        {showWhatsAppOTP ? (
-          <WhatsAppOTPLogin onSuccess={onClose} onBack={() => setShowWhatsAppOTP(false)} />
-        ) : (
-          <div className="space-y-4">
-            <p className="text-center text-sm text-gray-600">{t('chooseProvider')}</p>
+        {view === 'selection' && renderSelectionView()}
 
-            <Button
-              onClick={handleWhatsAppLogin}
-              className="w-full border border-[#1ebe5d] bg-[#25D366] text-white hover:bg-[#1ebe5d]"
-            >
-              <WhatsAppIcon className="h-5 w-5 mr-2" />
-              {t('continueWithWhatsApp')}
-            </Button>
+        {view === 'whatsapp' && <WhatsAppOTPLogin onSuccess={onClose} onBack={handleBack} />}
 
-            <Button
-              onClick={handleTelegramLogin}
-              disabled={!telegramBotUsername || !!telegramError || loadingTelegram}
-              className="w-full bg-[#0088cc] text-white hover:bg-[#007ab8] disabled:bg-[#8ccae8]"
-            >
-              <TelegramIcon className="h-5 w-5 mr-2" />
-              {showTelegramWidget ? t('hideTelegram') : t('continueWithTelegram')}
-            </Button>
+        {view === 'telegram' && renderTelegramView()}
 
-            {showTelegramWidget && (
-              <div className="rounded-xl border border-blue-100 bg-blue-50 p-5">
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <h3 className="text-sm font-semibold text-blue-800">{t('telegramReady')}</h3>
-                    <p className="mt-1 text-sm text-blue-700">{t('telegramInstructions')}</p>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    className="h-8 px-3 text-xs text-blue-700 hover:text-blue-800 hover:bg-blue-100"
-                    onClick={() => setShowTelegramWidget(false)}
-                  >
-                    {t('close')}
-                  </Button>
-                </div>
-
-                <div className="mt-4 flex justify-center">
-                  {telegramBotUsername ? (
-                    <TelegramLoginWidget
-                      botUsername={telegramBotUsername}
-                      buttonSize="large"
-                      className="flex justify-center"
-                    />
-                  ) : (
-                    <p className="text-sm text-blue-700">{t('loadingTelegram')}</p>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {telegramError && (
-              <div className="rounded-lg border border-red-200 bg-red-50 p-3">
-                <p className="flex items-center gap-2 text-sm text-red-700">
-                  <svg className="h-4 w-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                    <path
-                      fillRule="evenodd"
-                      d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                  <span>{telegramError}</span>
-                </p>
-                <Button
-                  variant="ghost"
-                  className="mt-2 h-8 px-3 text-sm text-red-600 hover:text-red-700 hover:bg-red-100"
-                  onClick={() => {
-                    setTelegramError(null);
-                    setTelegramBotUsername(null);
-                  }}
-                >
-                  {t('retry')}
-                </Button>
-              </div>
-            )}
-          </div>
-        )}
-
-        <div className="border-t border-gray-200 pt-4 text-center">
-          <p className="text-sm text-gray-500">{t('termsAgreement')}</p>
+        <div className="mt-6 border-t border-gray-100 pt-4 text-center">
+          <p className="text-xs text-gray-400 max-w-xs mx-auto text-balance">
+            {t('termsAgreement')}
+          </p>
         </div>
       </DialogContent>
     </Dialog>

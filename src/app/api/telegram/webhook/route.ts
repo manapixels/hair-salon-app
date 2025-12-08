@@ -322,11 +322,20 @@ async function handleLoginCommand(
 
 Click the button below to complete your login:
 
-[🔐 Complete Login](${loginUrl})
-
 This link will expire in 10 minutes for security.`;
 
-    await sendTelegramReply(chatId, message);
+    const keyboard = {
+      inline_keyboard: [
+        [
+          {
+            text: '🔐 Complete Login',
+            url: loginUrl,
+          },
+        ],
+      ],
+    };
+
+    await sendTelegramReply(chatId, message, keyboard);
 
     console.log('[LOGIN-WEBHOOK] SUCCESS: Login flow completed');
 

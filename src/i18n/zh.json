@@ -56,7 +56,22 @@
     "close": "关闭",
     "loadingTelegram": "正在加载 Telegram 登录...",
     "retry": "重试",
-    "termsAgreement": "登录即表示您同意我们的服务条款和隐私政策。"
+    "termsAgreement": "登录即表示您同意我们的服务条款和隐私政策。",
+    "back": "返回",
+    "telegramError": "Telegram 机器人未配置",
+    "telegramManualSearch": "如果按钮无法使用，请在 Telegram 中搜索 <bold>@{botUsername}</bold>。",
+    "changeNumber": "更换号码",
+    "resendCode": "重新发送代码",
+    "sendingCode": "正在发送代码...",
+    "verifyCode": "验证代码",
+    "enterVerificationCode": "输入验证码",
+    "codeSentTo": "我们已通过 WhatsApp 向 <bold>{phoneNumber}</bold> 发送了 6 位验证码。",
+    "verificationCode": "验证码",
+    "loginWithTelegram": "使用 Telegram 登录",
+    "telegramOpenInstructions": "📱 正在打开 Telegram... 在机器人聊天中点击“Start”以完成登录。",
+    "loginCancelled": "登录已取消。如果想登录，请重试。",
+    "loginTimedOut": "登录超时。请重试。",
+    "loginError": "无法发起登录。请重试。"
   },
   "ServicesPopup": {
     "title": "我们的服务",

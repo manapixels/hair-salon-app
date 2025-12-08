@@ -6,6 +6,8 @@ import PhoneInput from 'react-phone-number-input';
 import 'react-phone-number-input/style.css';
 import { LoadingButton } from '../feedback/loaders/LoadingButton';
 import { LoadingSpinner } from '../feedback/loaders/LoadingSpinner';
+import { ArrowLeft } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 interface WhatsAppOTPLoginProps {
   onSuccess: () => void;
@@ -13,6 +15,7 @@ interface WhatsAppOTPLoginProps {
 }
 
 export default function WhatsAppOTPLogin({ onSuccess, onBack }: WhatsAppOTPLoginProps) {
+  const t = useTranslations('OAuthLoginModal');
   const [step, setStep] = useState<'phone' | 'otp'>('phone');
   const [phoneNumber, setPhoneNumber] = useState<string>('');
   const [otp, setOtp] = useState('');
@@ -157,8 +160,16 @@ export default function WhatsAppOTPLogin({ onSuccess, onBack }: WhatsAppOTPLogin
 
   if (step === 'phone') {
     return (
-      <div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Log in with WhatsApp</h3>
+      <div className="space-y-4">
+        <button
+          onClick={onBack}
+          className="flex items-center text-sm text-gray-600 hover:text-gray-900 transition-colors -ml-1"
+        >
+          <ArrowLeft className="h-4 w-4 mr-1" />
+          {t('back')}
+        </button>
+
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('continueWithWhatsApp')}</h3>
 
         <form onSubmit={handlePhoneSubmit} className="space-y-4">
           <div>
@@ -221,36 +232,39 @@ export default function WhatsAppOTPLogin({ onSuccess, onBack }: WhatsAppOTPLogin
             type="submit"
             disabled={!phoneNumber || checkingUser}
             loading={loading}
-            loadingText="Sending code..."
+            loadingText={t('sendingCode')}
             className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-medium py-2 px-4 rounded-lg transition-colors"
           >
-            Send Verification Code
+            {t('sendingCode').replace('...', '')}
           </LoadingButton>
-
-          <button
-            type="button"
-            onClick={onBack}
-            className="w-full text-gray-600 hover:text-gray-800 text-sm"
-          >
-            ← Back to login options
-          </button>
         </form>
       </div>
     );
   }
 
   return (
-    <div>
-      <h3 className="text-lg font-semibold text-gray-900 mb-4">Enter Verification Code</h3>
+    <div className="space-y-4">
+      <button
+        onClick={() => setStep('phone')}
+        className="flex items-center text-sm text-gray-600 hover:text-gray-900 transition-colors -ml-1"
+      >
+        <ArrowLeft className="h-4 w-4 mr-1" />
+        {t('changeNumber')}
+      </button>
+
+      <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('enterVerificationCode')}</h3>
 
       <p className="text-sm text-gray-600 mb-4">
-        We sent a 6-digit code to <strong>{phoneNumber}</strong> via WhatsApp.
+        {t.rich('codeSentTo', {
+          phoneNumber: phoneNumber,
+          bold: chunks => <strong>{chunks}</strong>,
+        })}
       </p>
 
       <form onSubmit={handleOTPSubmit} className="space-y-4">
         <div>
           <label htmlFor="otp" className="block text-sm font-medium text-gray-700 mb-2">
-            Verification Code
+            {t('verificationCode')}
           </label>
           <input
             id="otp"
@@ -280,21 +294,13 @@ export default function WhatsAppOTPLogin({ onSuccess, onBack }: WhatsAppOTPLogin
           type="submit"
           disabled={otp.length !== 6}
           loading={loading}
-          loadingText="Verifying..."
+          loadingText={t('verifyCode')}
           className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-medium py-2 px-4 rounded-lg transition-colors"
         >
-          Verify Code
+          {t('verifyCode')}
         </LoadingButton>
 
         <div className="space-y-2">
-          <button
-            type="button"
-            onClick={() => setStep('phone')}
-            className="w-full text-gray-600 hover:text-gray-800 text-sm"
-          >
-            ← Change phone number
-          </button>
-
           <button
             type="button"
             onClick={async () => {
@@ -306,7 +312,7 @@ export default function WhatsAppOTPLogin({ onSuccess, onBack }: WhatsAppOTPLogin
             disabled={loading}
             className="w-full text-green-600 hover:text-green-700 text-sm"
           >
-            Resend code
+            {t('resendCode')}
           </button>
         </div>
       </form>
