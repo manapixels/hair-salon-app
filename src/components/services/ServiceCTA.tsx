@@ -18,7 +18,7 @@ export function ServiceCTA({ title, description, serviceName, serviceId }: Servi
         <h2 className="text-2xl md:text-4xl font-bold mb-4 md:mb-6">{title}</h2>
         <p className="text-base md:text-xl mb-6 md:mb-8 text-stone-300">{description}</p>
         <button
-          onClick={() => openModal({ preSelectedServiceId: serviceId })}
+          onClick={() => openModal({ preSelectedCategoryId: serviceId })}
           className="min-h-touch-lg bg-white text-stone-900 px-10 py-4 rounded-full hover:bg-stone-100 active-scale transition-all duration-300 text-base md:text-lg font-semibold"
         >
           Book {serviceName}

@@ -40,6 +40,7 @@ export default function HomePage() {
     const links = bookingCategories
       .filter(c => c.isFeatured)
       .map(c => ({
+        id: c.id,
         slug: c.slug,
         title: c.title,
         short_title: c.shortTitle || c.title,
@@ -148,7 +149,7 @@ export default function HomePage() {
           <div className="flex items-center justify-center w-16 h-16 rounded-lg">
             <Search className="w-8 h-8 text-primary" />
           </div>
-          <span className="text-md text-center leading-none text-primary font-semibold">
+          <span className="text-md text-center leading-[1.1] text-primary font-medium">
             {t('findByConcern')}
           </span>
         </button>
@@ -170,18 +171,27 @@ export default function HomePage() {
                       sizes="64px"
                     />
                   </div>
-                  <span className="text-md text-center leading-none text-primary flex-1 flex items-center justify-center w-full">
+                  <span className="text-md text-center leading-[1.1] text-primary font-medium flex-1 flex items-center justify-center w-full">
                     {tNav(`serviceNames.${service.slug}`)}
                   </span>
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent>
                 <DropdownMenuItem asChild>
-                  <Link href={service.href}>{t('learnMore')}</Link>
+                  <Link
+                    href={service.href}
+                    className="justify-center bg-transparent text-primary focus:bg-transparent"
+                  >
+                    {t('learnMore')}
+                  </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem
-                  onSelect={() => openModal({ preSelectedServiceId: serviceId })}
-                  className="bg-gray-900 text-white hover:bg-primary hover:text-white mt-1 justify-center"
+                  onSelect={() =>
+                    openModal({
+                      preSelectedCategoryId: service.id,
+                    })
+                  }
+                  className="bg-primary text-white hover:text-white focus:text-white justify-center"
                 >
                   {t('bookNow')}
                 </DropdownMenuItem>
@@ -217,9 +227,14 @@ export default function HomePage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
             {featuredServices.slice(0, 6).map((service, index) => {
               const serviceLink = serviceLinks.find(s => s.title === service.name);
+              // Use category info from serviceLink (which comes from categories)
+              // fallback to service info (which comes from service items)
               const imageUrl =
                 service.imageUrl || serviceLink?.image || '/background-images/menu-service-bg.png';
+              // Use category slug for href
               const serviceUrl = serviceLink?.href;
+              // Use category ID if available
+              const categoryId = serviceLink?.id || service.categoryId;
 
               return (
                 <div
@@ -255,7 +270,7 @@ export default function HomePage() {
                               </Link>
                             )}
                             <button
-                              onClick={() => openModal({ preSelectedServiceId: service.id })}
+                              onClick={() => openModal({ preSelectedCategoryId: categoryId })}
                               className={`min-h-touch-lg py-3 bg-gray-800 text-white rounded-lg hover:bg-stone-800 active-scale transition-colors duration-200 font-medium text-center ${serviceUrl ? 'flex-1' : 'w-full'}`}
                             >
                               {t('bookNow')}

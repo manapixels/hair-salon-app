@@ -161,6 +161,7 @@ export async function getBookingCategories(): Promise<ServiceCategory[]> {
  * Navigation link interface (for components expecting this format)
  */
 export interface ServiceLink {
+  id: string; // Add ID property
   slug: string;
   title: string;
   short_title: string;
@@ -178,6 +179,7 @@ export async function getNavigationLinks(): Promise<ServiceLink[]> {
   const featured = await getFeaturedCategories();
 
   return featured.map(cat => ({
+    id: cat.id,
     slug: cat.slug,
     title: cat.title,
     short_title: cat.shortTitle || cat.title,

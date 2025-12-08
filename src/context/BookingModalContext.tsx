@@ -5,12 +5,14 @@ import { usePathname } from 'next/navigation';
 import type { ServiceCategory } from '@/types';
 
 interface BookingModalOptions {
-  preSelectedServiceId?: string;
+  preSelectedCategorySlug?: string;
+  preSelectedCategoryId?: string;
 }
 
 interface BookingModalContextType {
   isOpen: boolean;
-  preSelectedServiceId?: string;
+  preSelectedCategorySlug?: string;
+  preSelectedCategoryId?: string;
   bookingCategories: ServiceCategory[];
   openModal: (options?: BookingModalOptions) => void;
   closeModal: () => void;
@@ -28,19 +30,24 @@ export const BookingModalProvider: React.FC<BookingModalProviderProps> = ({
   bookingCategories,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [preSelectedServiceId, setPreSelectedServiceId] = useState<string | undefined>(undefined);
+  const [preSelectedCategorySlug, setPreSelectedCategorySlug] = useState<string | undefined>(
+    undefined,
+  );
+  const [preSelectedCategoryId, setPreSelectedCategoryId] = useState<string | undefined>(undefined);
   const pathname = usePathname();
 
   const openModal = useCallback((options?: BookingModalOptions) => {
     setIsOpen(true);
-    setPreSelectedServiceId(options?.preSelectedServiceId);
+    setPreSelectedCategorySlug(options?.preSelectedCategorySlug);
+    setPreSelectedCategoryId(options?.preSelectedCategoryId);
   }, []);
 
   const closeModal = useCallback(() => {
     setIsOpen(false);
     // Reset pre-selected service after modal closes
     setTimeout(() => {
-      setPreSelectedServiceId(undefined);
+      setPreSelectedCategorySlug(undefined);
+      setPreSelectedCategoryId(undefined);
     }, 300); // Delay to allow for exit animation
   }, []);
 
@@ -54,7 +61,8 @@ export const BookingModalProvider: React.FC<BookingModalProviderProps> = ({
 
   const value = {
     isOpen,
-    preSelectedServiceId,
+    preSelectedCategorySlug,
+    preSelectedCategoryId,
     bookingCategories,
     openModal,
     closeModal,

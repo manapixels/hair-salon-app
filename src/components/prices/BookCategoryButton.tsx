@@ -21,7 +21,9 @@ export function BookCategoryButton({
     <Button
       size="lg"
       className={className}
-      onClick={() => openModal(categorySlug ? { preSelectedServiceId: categorySlug } : undefined)}
+      onClick={() =>
+        openModal(categorySlug ? { preSelectedCategorySlug: categorySlug } : undefined)
+      }
     >
       <Calendar className="h-4 w-4 mr-2" />
       {label}

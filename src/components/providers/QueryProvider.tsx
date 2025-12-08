@@ -1,7 +1,5 @@
 'use client';
 
-import { QueryClientProvider } from '@tanstack/react-query';
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { createIDBPersister, MAX_PERSIST_AGE } from '@/lib/queryPersister';
 import { getQueryClient } from '@/lib/queryClient';
@@ -29,9 +27,6 @@ export function QueryProvider({ children }: { children: ReactNode }) {
       }}
     >
       {children}
-      {process.env.NODE_ENV === 'development' && (
-        <ReactQueryDevtools initialIsOpen={false} position="bottom" />
-      )}
     </PersistQueryClientProvider>
   );
 }

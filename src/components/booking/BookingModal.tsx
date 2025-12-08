@@ -26,7 +26,7 @@ import {
  * Uses Drawer for mobile and Dialog for desktop responsive behavior
  */
 export function BookingModal() {
-  const { isOpen, preSelectedServiceId, closeModal } = useBookingModal();
+  const { isOpen, preSelectedCategorySlug, closeModal } = useBookingModal();
   const bookingFormRef = useRef<HTMLDivElement>(null);
   const [currentStep, setCurrentStep] = useState(1);
   const isMobile = useIsMobile();
@@ -64,7 +64,8 @@ export function BookingModal() {
   const content = (
     <div ref={bookingFormRef} className="max-h-[95vh] overflow-y-auto">
       <BookingForm
-        preSelectedServiceId={preSelectedServiceId}
+        preSelectedCategorySlug={preSelectedCategorySlug}
+        preSelectedCategoryId={useBookingModal().preSelectedCategoryId}
         disableAutoScroll={true}
         onStepChange={setCurrentStep}
       />

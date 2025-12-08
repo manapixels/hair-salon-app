@@ -42,13 +42,15 @@ const CalendlyStyleDateTimePicker = dynamic(
 );
 
 interface BookingFormProps {
-  preSelectedServiceId?: string;
+  preSelectedCategorySlug?: string;
+  preSelectedCategoryId?: string;
   disableAutoScroll?: boolean;
   onStepChange?: (step: number) => void;
 }
 
 const BookingForm: React.FC<BookingFormProps> = ({
-  preSelectedServiceId,
+  preSelectedCategorySlug,
+  preSelectedCategoryId,
   disableAutoScroll,
   onStepChange,
 }) => {
@@ -122,9 +124,25 @@ const BookingForm: React.FC<BookingFormProps> = ({
   // Auto-select category when pre-selected service ID (actually slug) is provided
   // Maps service detail page slugs to booking categories
   useEffect(() => {
-    if (preSelectedServiceId && !selectedCategory) {
-      // preSelectedServiceId is actually a slug like 'hair-colouring' from navigation.ts
-      const category = bookingCategories.find(c => c.slug === preSelectedServiceId);
+    // Priority to explicit category ID from options
+    if (preSelectedCategoryId && !selectedCategory) {
+      const category = bookingCategories.find(c => c.id === preSelectedCategoryId);
+      if (category) {
+        setSelectedCategory(category);
+        if (!disableAutoScroll) {
+          setTimeout(() => {
+            const element = document.getElementById('service-selector');
+            if (element) {
+              element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+          }, 500);
+        }
+      }
+    }
+    // Fallback to service slug mapping
+    else if (preSelectedCategorySlug && !selectedCategory) {
+      // preSelectedCategorySlug is a slug like 'hair-colouring' from navigation.ts
+      const category = bookingCategories.find(c => c.slug === preSelectedCategorySlug);
       if (category) {
         setSelectedCategory(category);
 
@@ -141,7 +159,13 @@ const BookingForm: React.FC<BookingFormProps> = ({
         }
       }
     }
-  }, [preSelectedServiceId, selectedCategory, disableAutoScroll, bookingCategories]);
+  }, [
+    preSelectedCategorySlug,
+    preSelectedCategoryId,
+    selectedCategory,
+    disableAutoScroll,
+    bookingCategories,
+  ]);
 
   // Smart reset logic: only reset when necessary
   useEffect(() => {

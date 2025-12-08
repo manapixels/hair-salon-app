@@ -334,7 +334,9 @@ export function FindByConcernModal({ isOpen, onClose, serviceLinks }: FindByConc
                             onClick={() => {
                               onClose();
                               setTimeout(() => {
-                                openBookingModal({});
+                                openBookingModal({
+                                  preSelectedCategoryId: category.id,
+                                });
                               }, 300);
                             }}
                           >

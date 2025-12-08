@@ -132,7 +132,7 @@ export const StylistSelector: React.FC<StylistSelectorProps> = ({
                           alt={stylist.name}
                           width={52}
                           height={52}
-                          className="w-13 h-13 rounded-full mr-4 object-cover"
+                          className="aspect-square rounded-full mr-4 object-cover"
                         />
                       ) : (
                         <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mr-4 shrink-0"></div>
