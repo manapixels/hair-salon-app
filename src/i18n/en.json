@@ -71,7 +71,9 @@
     "telegramOpenInstructions": "📱 Opening Telegram... Click \"Start\" in the bot chat to complete login.",
     "loginCancelled": "Login cancelled. Please try again if you want to log in.",
     "loginTimedOut": "Login timed out. Please try again.",
-    "loginError": "Failed to initiate login. Please try again."
+    "loginError": "Failed to initiate login. Please try again.",
+    "waitingForTelegramLogin": "Waiting for you to complete login in Telegram...",
+    "loginSuccessful": "Login successful!"
   },
   "ServicesPopup": {
     "title": "Our Services",

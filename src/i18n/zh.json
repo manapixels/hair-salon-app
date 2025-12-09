@@ -71,7 +71,9 @@
     "telegramOpenInstructions": "📱 正在打开 Telegram... 在机器人聊天中点击“Start”以完成登录。",
     "loginCancelled": "登录已取消。如果想登录，请重试。",
     "loginTimedOut": "登录超时。请重试。",
-    "loginError": "无法发起登录。请重试。"
+    "loginError": "无法发起登录。请重试。",
+    "waitingForTelegramLogin": "等待您在 Telegram 中完成登录...",
+    "loginSuccessful": "登录成功！"
   },
   "ServicesPopup": {
     "title": "我们的服务",

@@ -207,6 +207,8 @@ export const loginTokens = pgTable(
     token: text('token').notNull().unique(),
     userId: text('userId').references(() => users.id, { onDelete: 'cascade' }),
     expiresAt: timestamp('expiresAt').notNull(),
+    // Status tracks the login flow: PENDING -> COMPLETED (by Telegram browser) -> Deleted (by original browser)
+    status: text('status').default('PENDING').notNull(),
     createdAt: timestamp('createdAt').defaultNow().notNull(),
   },
   table => ({

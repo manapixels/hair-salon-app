@@ -256,6 +256,17 @@ node scripts/setup-telegram-webhook.js
 See ../telegram/TELEGRAM_TESTING_GUIDE.md
 ```
 
+### **Telegram Login (Cross-Browser)**
+
+Login uses polling to ensure cookies are set in the **original browser**, not Telegram's in-app browser:
+
+1. Original browser generates token → opens Telegram deep link
+2. Original browser polls `check-login-status` every 2s
+3. User completes login in Telegram → `verify-login` marks token `COMPLETED`
+4. Original browser detects completion → calls `claim-session` to set cookie
+
+**Key files**: `src/app/api/auth/telegram/` (check-login-status, claim-session, verify-login, start-login), `TelegramLoginWidget.tsx`
+
 ---
 
 ## 🗣️ 3. WhatsApp Chat (`src/components/WhatsAppChat.tsx`)

@@ -1,0 +1,1 @@
+ALTER TABLE "LoginToken" ADD COLUMN "status" text DEFAULT 'PENDING' NOT NULL;

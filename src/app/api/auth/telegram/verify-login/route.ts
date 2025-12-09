@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { setSessionCookie } from '@/lib/secureSession';
 import { findUserById } from '@/lib/database';
 import { getDb } from '@/db';
 import * as schema from '@/db/schema';
@@ -126,23 +125,73 @@ export async function GET(request: NextRequest) {
       authProvider: user.authProvider,
     });
 
-    const userForSession = {
-      ...user,
-      role: user.role as 'CUSTOMER' | 'ADMIN',
-      authProvider: (user.authProvider as 'email' | 'whatsapp' | 'telegram') ?? undefined,
-      telegramId: user.telegramId ?? undefined,
-      whatsappPhone: user.whatsappPhone ?? undefined,
-      avatar: user.avatar ?? undefined,
-    };
+    // Mark the token as COMPLETED instead of setting cookie here
+    // The original browser will poll for this status and claim the session
+    console.log('[VERIFY-LOGIN] Marking token as COMPLETED...');
+    await db
+      .update(schema.loginTokens)
+      .set({ status: 'COMPLETED' })
+      .where(eq(schema.loginTokens.id, tokenData.id));
 
-    console.log('[VERIFY-LOGIN] Setting session cookie...');
-    await setSessionCookie(userForSession);
+    console.log('[VERIFY-LOGIN] SUCCESS: Token marked as COMPLETED, returning success page');
 
-    console.log('[VERIFY-LOGIN] Deleting used token...');
-    await db.delete(schema.loginTokens).where(eq(schema.loginTokens.id, tokenData.id));
+    // Return a success HTML page for Telegram's browser
+    // The original browser is polling and will detect the COMPLETED status
+    const successHtml = `<!DOCTYPE html>
+<html>
+<head>
+  <title>Login Complete</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      text-align: center;
+      padding: 20px;
+    }
+    .container {
+      background: rgba(255,255,255,0.1);
+      backdrop-filter: blur(10px);
+      padding: 40px;
+      border-radius: 16px;
+      max-width: 400px;
+    }
+    .checkmark {
+      font-size: 64px;
+      margin-bottom: 20px;
+    }
+    h1 {
+      font-size: 24px;
+      margin: 0 0 16px 0;
+    }
+    p {
+      font-size: 16px;
+      opacity: 0.9;
+      margin: 0;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="checkmark">✅</div>
+    <h1>Login Complete!</h1>
+    <p>You can now close this window and return to your browser. You should be logged in automatically.</p>
+  </div>
+</body>
+</html>`;
 
-    console.log('[VERIFY-LOGIN] SUCCESS: Redirecting to app with login=success');
-    return NextResponse.redirect(`${process.env.NEXTAUTH_URL}/?login=success`);
+    return new NextResponse(successHtml, {
+      status: 200,
+      headers: { 'Content-Type': 'text/html' },
+    });
   } catch (error) {
     console.error('[VERIFY-LOGIN] EXCEPTION during verification:', error);
     console.error('[VERIFY-LOGIN] Error details:', {
