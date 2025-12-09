@@ -56,6 +56,87 @@ export async function sendWhatsAppMessage(to: string, text: string): Promise<boo
 }
 
 /**
+ * Sends a WhatsApp OTP using Meta's authentication template
+ * This is required for initiating messages to users who haven't messaged first
+ */
+export async function sendWhatsAppOTP(
+  to: string,
+  otp: string,
+  templateName: string = 'otp_verification',
+  languageCode: string = 'en',
+): Promise<boolean> {
+  const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
+  const accessToken = process.env.WHATSAPP_ACCESS_TOKEN;
+
+  if (!phoneNumberId || !accessToken) {
+    console.warn('WhatsApp credentials not configured, simulating OTP send');
+    console.log(`[WhatsApp OTP Simulation] To: ${to}, OTP: ${otp}`);
+    return false;
+  }
+
+  const url = `https://graph.facebook.com/v19.0/${phoneNumberId}/messages`;
+
+  // Authentication template payload
+  const payload = {
+    messaging_product: 'whatsapp',
+    to: to,
+    type: 'template',
+    template: {
+      name: templateName,
+      language: {
+        code: languageCode,
+      },
+      components: [
+        {
+          type: 'body',
+          parameters: [
+            {
+              type: 'text',
+              text: otp,
+            },
+          ],
+        },
+        // OTP button component - Meta auto-fills the code
+        {
+          type: 'button',
+          sub_type: 'url',
+          index: '0',
+          parameters: [
+            {
+              type: 'text',
+              text: otp,
+            },
+          ],
+        },
+      ],
+    },
+  };
+
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      const errorData = (await response.json()) as any;
+      console.error('Failed to send WhatsApp OTP:', JSON.stringify(errorData, null, 2));
+      return false;
+    }
+
+    console.log(`✅ WhatsApp OTP sent to ${to}`);
+    return true;
+  } catch (error) {
+    console.error('Exception when sending WhatsApp OTP:', error);
+    return false;
+  }
+}
+
+/**
  * Sends a Telegram message using Bot API
  */
 export async function sendTelegramMessage(chatId: number, text: string): Promise<boolean> {

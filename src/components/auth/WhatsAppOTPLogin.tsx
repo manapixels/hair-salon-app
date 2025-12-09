@@ -115,8 +115,12 @@ export default function WhatsAppOTPLogin({ onSuccess, onBack }: WhatsAppOTPLogin
     }
   };
 
-  const handleOTPSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleOTPSubmit = async (e?: React.FormEvent, otpValue?: string) => {
+    e?.preventDefault();
+    const otpToVerify = otpValue || otp;
+
+    if (otpToVerify.length !== 6) return;
+
     setLoading(true);
     setError('');
 
@@ -124,7 +128,7 @@ export default function WhatsAppOTPLogin({ onSuccess, onBack }: WhatsAppOTPLogin
       const response = await fetch('/api/auth/whatsapp/verify-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phoneNumber, otp, name }),
+        body: JSON.stringify({ phoneNumber, otp: otpToVerify, name }),
       });
 
       const data = (await response.json()) as { error?: string };
@@ -143,6 +147,17 @@ export default function WhatsAppOTPLogin({ onSuccess, onBack }: WhatsAppOTPLogin
       toast.error(errorMsg);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Handle OTP input change with auto-submit on 6 digits
+  const handleOtpChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/\D/g, '').slice(0, 6);
+    setOtp(value);
+
+    // Auto-submit when 6 digits are entered
+    if (value.length === 6) {
+      handleOTPSubmit(undefined, value);
     }
   };
 
@@ -270,13 +285,14 @@ export default function WhatsAppOTPLogin({ onSuccess, onBack }: WhatsAppOTPLogin
             id="otp"
             type="text"
             value={otp}
-            onChange={e => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+            onChange={handleOtpChange}
             placeholder="123456"
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-center text-lg tracking-wider"
             maxLength={6}
             required
             disabled={loading}
             autoComplete="one-time-code"
+            autoFocus
           />
 
           {/* Countdown timer */}

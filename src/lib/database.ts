@@ -213,6 +213,7 @@ export const createUserFromOAuth = async (userData: Omit<User, 'id' | 'role'>): 
       telegramId: userData.telegramId,
       whatsappPhone: userData.whatsappPhone,
       avatar: userData.avatar,
+      updatedAt: new Date(),
     })
     .returning();
 

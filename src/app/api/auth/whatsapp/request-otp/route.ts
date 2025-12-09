@@ -36,15 +36,14 @@ export async function POST(request: NextRequest) {
     globalThis.otpStore = globalThis.otpStore || new Map();
     globalThis.otpStore.set(phoneNumber, otpData);
 
-    // Send OTP via WhatsApp
+    // OTP message (free-form text - works within 24-hour messaging window)
     const message = `🔐 Your Signature Trims verification code is: *${otp}*
 
-This code expires in 10 minutes. Don't share this code with anyone.
-
-If you didn't request this code, please ignore this message.`;
+This code expires in 10 minutes. Don't share this code with anyone.`;
 
     try {
       const messageSent = await sendWhatsAppMessage(phoneNumber, message);
+      console.log('📱 WhatsApp OTP send result:', messageSent);
 
       // Production: Fail if WhatsApp doesn't work
       if (!messageSent && process.env.NODE_ENV === 'production') {
