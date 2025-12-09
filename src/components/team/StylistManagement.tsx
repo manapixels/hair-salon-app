@@ -830,10 +830,10 @@ function StylistModal({
                             d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                           />
                         </svg>
-                        Uploading...
+                        {t('uploadingPhoto')}
                       </>
                     ) : (
-                      <>Upload Photo</>
+                      <>{t('uploadPhoto')}</>
                     )}
                   </Button>
                   {formData.avatar && (
@@ -844,18 +844,18 @@ function StylistModal({
                       onClick={() => setFormData(prev => ({ ...prev, avatar: '' }))}
                       className="text-red-600 hover:text-red-700 hover:bg-red-50"
                     >
-                      Remove
+                      {t('remove')}
                     </Button>
                   )}
                 </div>
-                <p className="text-xs text-gray-500 mt-1">JPEG, PNG, WebP or GIF. Max 5MB.</p>
+                <p className="text-xs text-gray-500 mt-1">{t('fileFormatHint')}</p>
               </div>
             </div>
           </div>
 
           <div>
             <label htmlFor="stylist-bio" className="block text-sm font-medium text-gray-900 mb-2">
-              Bio
+              {t('bio')}
             </label>
             <Textarea
               id="stylist-bio"
@@ -864,14 +864,14 @@ function StylistModal({
                 setFormData(prev => ({ ...prev, bio: e.target.value }))
               }
               rows={3}
-              placeholder="Brief description of the stylist's experience and style"
+              placeholder={t('bioPlaceholder')}
             />
           </div>
 
           <div>
             <div className="flex items-center justify-between mb-2">
               <label className="block text-sm font-medium text-gray-900">
-                Specialties (Service Categories) *
+                {t('specialtiesLabel')} *
               </label>
               <button
                 type="button"
@@ -889,8 +889,8 @@ function StylistModal({
               >
                 {availableCategories.length > 0 &&
                 availableCategories.every(cat => formData.specialtyCategoryIds.includes(cat.id))
-                  ? 'Deselect All'
-                  : 'Select All'}
+                  ? t('deselectAll')
+                  : t('selectAll')}
               </button>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 border border-gray-200 rounded-md p-3">
@@ -928,11 +928,9 @@ function StylistModal({
           <div>
             <label className="block text-sm font-medium text-gray-900 mb-2">
               <Clock className="inline-block w-4 h-4 mr-1" />
-              Working Hours
+              {t('workingHours')}
             </label>
-            <p className="text-xs text-gray-500 mb-2">
-              Default hours match salon schedule. Adjust as needed for this stylist.
-            </p>
+            <p className="text-xs text-gray-500 mb-2">{t('workingHoursDesc')}</p>
             <div className="border border-gray-200 rounded-md p-3 space-y-2">
               {daysOfWeek.map(day => {
                 const hours = formData.workingHours[day];
@@ -966,7 +964,7 @@ function StylistModal({
                             </option>
                           ))}
                         </select>
-                        <span className="text-gray-500">to</span>
+                        <span className="text-gray-500">{t('to')}</span>
                         <select
                           value={hours.end}
                           onChange={e => updateWorkingHours(day, 'end', e.target.value)}
@@ -980,7 +978,7 @@ function StylistModal({
                         </select>
                       </div>
                     ) : (
-                      <span className="text-sm text-gray-400 italic">Day off</span>
+                      <span className="text-sm text-gray-400 italic">{t('dayOff')}</span>
                     )}
                   </div>
                 );
@@ -990,7 +988,7 @@ function StylistModal({
 
           <div className="flex gap-3 pt-4">
             <Button type="button" onClick={onClose} variant="outline" className="flex-1">
-              Cancel
+              {t('cancel')}
             </Button>
             <Button
               type="submit"
@@ -1019,12 +1017,12 @@ function StylistModal({
                       d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                     ></path>
                   </svg>
-                  {stylist ? 'Updating...' : 'Creating...'}
+                  {stylist ? t('updating') : t('creating')}
                 </span>
               ) : stylist ? (
-                'Update Stylist'
+                t('updateStylist')
               ) : (
-                'Create Stylist'
+                t('createStylist')
               )}
             </Button>
           </div>
