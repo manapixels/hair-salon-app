@@ -1115,13 +1115,9 @@ export const createStylist = async (stylistData: {
   const db = await getDb();
   const defaultHours = getDefaultWorkingHours();
 
-  if (stylistData.userId) {
-    await db
-      .update(schema.users)
-      .set({ role: 'STYLIST', updatedAt: new Date() })
-      .where(eq(schema.users.id, stylistData.userId));
-  }
-
+  // Insert stylist record FIRST, then update user role if successful
+  // This prevents inconsistent state where user role is STYLIST but no stylist record exists
+  const now = new Date();
   const result = await db
     .insert(schema.stylists)
     .values({
@@ -1133,8 +1129,18 @@ export const createStylist = async (stylistData: {
       workingHours: stylistData.workingHours || defaultHours,
       blockedDates: stylistData.blockedDates || [],
       userId: stylistData.userId,
+      createdAt: now,
+      updatedAt: now,
     })
     .returning();
+
+  // Only update user role AFTER stylist record is successfully created
+  if (stylistData.userId) {
+    await db
+      .update(schema.users)
+      .set({ role: 'STYLIST', updatedAt: new Date() })
+      .where(eq(schema.users.id, stylistData.userId));
+  }
 
   const newStylist = result[0];
   const allCategories = await db

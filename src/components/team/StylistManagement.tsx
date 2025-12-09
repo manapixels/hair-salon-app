@@ -639,7 +639,7 @@ function StylistModal({
         </DialogHeader>
 
         {error && (
-          <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+          <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded break-words overflow-hidden max-w-full">
             {error}
           </div>
         )}
