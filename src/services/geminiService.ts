@@ -260,8 +260,26 @@ export const handleWhatsAppMessage = async (
   bookingContext?: {
     services?: string[];
     stylistId?: string;
+    stylistName?: string;
     date?: string;
     time?: string;
+    // Category-based booking fields
+    categoryId?: string;
+    categoryName?: string;
+    priceNote?: string;
+    // Conversational flow state
+    awaitingInput?:
+      | 'category'
+      | 'date'
+      | 'time'
+      | 'stylist'
+      | 'confirmation'
+      | 'email'
+      | 'appointment_select';
+    customerName?: string;
+    customerEmail?: string;
+    pendingAction?: 'cancel' | 'reschedule' | 'view';
+    appointmentId?: string;
   } | null,
   userPattern?: {
     favoriteService?: string;
@@ -302,26 +320,27 @@ export const handleWhatsAppMessage = async (
 
     // Convert booking context to intent parser format
     // Include user context for booking creation
-    // Cast to access all stored fields including those from intent parser
-    const storedContext = bookingContext as Record<string, any> | undefined;
-    const intentParserContext = storedContext
+    const intentParserContext = bookingContext
       ? {
-          categoryId: storedContext.categoryId || storedContext.services?.[0],
-          categoryName: storedContext.categoryName,
-          date: storedContext.date,
-          time: storedContext.time,
-          stylistId: storedContext.stylistId,
-          stylistName: storedContext.stylistName,
-          customerName: storedContext.customerName || userContext?.name,
-          customerEmail: storedContext.customerEmail || userContext?.email,
+          categoryId: bookingContext.categoryId || bookingContext.services?.[0],
+          categoryName: bookingContext.categoryName,
+          priceNote: bookingContext.priceNote,
+          date: bookingContext.date,
+          time: bookingContext.time,
+          stylistId: bookingContext.stylistId,
+          stylistName: bookingContext.stylistName,
+          customerName: bookingContext.customerName || userContext?.name,
+          customerEmail: bookingContext.customerEmail || userContext?.email,
           // Use stored awaitingInput if present, otherwise derive from booking state
           awaitingInput:
-            storedContext.awaitingInput ||
-            (storedContext.services?.[0] && storedContext.date && storedContext.time
+            bookingContext.awaitingInput ||
+            ((bookingContext.categoryId || bookingContext.services?.[0]) &&
+            bookingContext.date &&
+            bookingContext.time
               ? 'confirmation'
               : undefined),
-          pendingAction: storedContext.pendingAction,
-          appointmentId: storedContext.appointmentId,
+          pendingAction: bookingContext.pendingAction,
+          appointmentId: bookingContext.appointmentId,
         }
       : userContext
         ? {
