@@ -14,7 +14,7 @@ interface BottomNavItemProps {
   variant?: 'default' | 'primary';
   className?: string;
   isOpen?: boolean;
-  isAdmin?: boolean;
+  roleLabel?: string;
 }
 
 export default function BottomNavItem({
@@ -27,7 +27,7 @@ export default function BottomNavItem({
   variant = 'default',
   className = '',
   isOpen = false,
-  isAdmin = false,
+  roleLabel,
 }: BottomNavItemProps) {
   const isPrimary = variant === 'primary';
 
@@ -101,9 +101,9 @@ export default function BottomNavItem({
       {/* Label or Admin Badge */}
       {!isPrimary && (
         <div className="mt-1 flex items-center justify-center h-[16px]">
-          {isAdmin ? (
+          {roleLabel ? (
             <span className="bg-gray-800 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full shadow-sm">
-              Admin
+              {roleLabel}
             </span>
           ) : (
             <span

@@ -10,6 +10,7 @@ import {
   ChevronRight,
   LogIn,
   Loader2,
+  CalendarDays,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
@@ -106,7 +107,11 @@ export default function AccountPopup({ isOpen, onClose }: AccountPopupProps) {
                         <p className="font-semibold text-gray-900 text-lg">{user.name}</p>
                         <p className="text-sm text-gray-500">{user.email}</p>
                         <span className="mt-1 inline-block rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">
-                          {user.role === 'ADMIN' ? 'Admin' : 'Customer'}
+                          {user.role === 'ADMIN'
+                            ? 'Admin'
+                            : user.role === 'STYLIST'
+                              ? 'Stylist'
+                              : 'Customer'}
                         </span>
                       </div>
                     </div>
@@ -140,6 +145,24 @@ export default function AccountPopup({ isOpen, onClose }: AccountPopupProps) {
                               <Shield className="w-5 h-5" />
                             </div>
                             <span className="font-medium text-gray-900">{t('adminPanel')}</span>
+                          </div>
+                          <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-gray-600" />
+                        </Link>
+                      )}
+
+                      {user.role === 'STYLIST' && (
+                        <Link
+                          href="/dashboard"
+                          onClick={onClose}
+                          className="flex items-center justify-between p-4 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors group"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="p-2 bg-indigo-100 rounded-lg text-indigo-600">
+                              <CalendarDays className="w-5 h-5" />
+                            </div>
+                            <span className="font-medium text-gray-900">
+                              {t('stylistDashboard')}
+                            </span>
                           </div>
                           <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-gray-600" />
                         </Link>

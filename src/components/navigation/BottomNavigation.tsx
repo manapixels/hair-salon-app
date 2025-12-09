@@ -139,7 +139,9 @@ export default function BottomNavigation({ serviceLinks }: BottomNavigationProps
               label={user ? t('account') : t('login')}
               active={activeTab === 'dashboard'}
               isOpen={showAccountDropdown}
-              isAdmin={user?.role === 'ADMIN'}
+              roleLabel={
+                user?.role === 'ADMIN' ? 'Admin' : user?.role === 'STYLIST' ? 'Stylist' : undefined
+              }
               onClick={toggleAccount}
             />
           </div>
