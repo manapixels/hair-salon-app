@@ -45,6 +45,11 @@
     "logInSignUp": "Log In / Sign Up",
     "loginPrompt": "Log in to manage your appointments and view your history."
   },
+  "LoginComplete": {
+    "title": "Login Complete",
+    "heading": "Login Complete!",
+    "message": "You can now close this window and return to your browser. You should be logged in automatically."
+  },
   "OAuthLoginModal": {
     "title": "Log In",
     "description": "Choose your preferred messaging platform to continue to Signature Trims.",

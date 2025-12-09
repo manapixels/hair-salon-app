@@ -238,10 +238,22 @@ async function handleLoginCommand(
     return false;
   }
 
-  const loginToken = startParam.substring(6);
+  // Parse the start parameter - can be "login_<token>" or "login_<locale>_<token>"
+  const parts = startParam.substring(6).split('_');
+  let locale: string | null = null;
+  let loginToken: string;
+
+  // Check if first part is a supported locale (2-letter code)
+  if (parts.length >= 2 && parts[0].length === 2 && ['en', 'zh'].includes(parts[0])) {
+    locale = parts[0];
+    loginToken = parts.slice(1).join('_');
+  } else {
+    loginToken = parts.join('_');
+  }
 
   console.log('[LOGIN-WEBHOOK] Starting login command handler');
   console.log('[LOGIN-WEBHOOK] ChatId:', chatId);
+  console.log('[LOGIN-WEBHOOK] Locale:', locale);
   console.log('[LOGIN-WEBHOOK] Token (redacted):', loginToken.substring(0, 10) + '...');
 
   try {
@@ -317,7 +329,9 @@ async function handleLoginCommand(
 
     console.log('[LOGIN-WEBHOOK] Sending complete login link to user...');
 
-    const loginUrl = `${process.env.NEXTAUTH_URL}/api/auth/telegram/verify-login?token=${loginToken}`;
+    // Build verify-login URL with locale if available
+    const localeParam = locale ? `&locale=${locale}` : '';
+    const loginUrl = `${process.env.NEXTAUTH_URL}/api/auth/telegram/verify-login?token=${loginToken}${localeParam}`;
     const message = `🎉 *Welcome to Signature Trims!*
 
 Click the button below to complete your login:

@@ -7,6 +7,17 @@ import { lt } from 'drizzle-orm';
 export async function POST(request: NextRequest) {
   console.log('[START-LOGIN] Generating new login token...');
 
+  // Parse locale from request body
+  let locale: string | null = null;
+  try {
+    const body = (await request.json()) as { locale?: string };
+    locale = body?.locale || null;
+  } catch {
+    // No body or invalid JSON, that's fine
+  }
+
+  console.log('[START-LOGIN] Locale:', locale);
+
   try {
     const db = await getDb();
     const token = randomBytes(32).toString('base64url');
@@ -36,6 +47,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       token,
+      locale, // Return locale so TelegramLoginWidget can encode it in the deep link
       expiresAt: expiresAt.toISOString(),
     });
   } catch (error) {

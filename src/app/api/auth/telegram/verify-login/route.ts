@@ -4,11 +4,31 @@ import { getDb } from '@/db';
 import * as schema from '@/db/schema';
 import { eq } from 'drizzle-orm';
 
+// Import translations from centralized i18n files
+import enMessages from '@/i18n/en.json';
+import zhMessages from '@/i18n/zh.json';
+
+type SupportedLocale = 'en' | 'zh';
+
+const translations: Record<SupportedLocale, { title: string; heading: string; message: string }> = {
+  en: enMessages.LoginComplete,
+  zh: zhMessages.LoginComplete,
+};
+
+function getTranslation(locale: string | null) {
+  if (locale && locale in translations) {
+    return translations[locale as SupportedLocale];
+  }
+  return translations.en; // Default to English
+}
+
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const sessionToken = searchParams.get('token');
+  const locale = searchParams.get('locale');
 
   console.log('[VERIFY-LOGIN] Starting verification process');
+  console.log('[VERIFY-LOGIN] Locale:', locale);
 
   // Check if this is Telegram's link preview bot
   const userAgent = request.headers.get('user-agent') || '';
@@ -135,12 +155,15 @@ export async function GET(request: NextRequest) {
 
     console.log('[VERIFY-LOGIN] SUCCESS: Token marked as COMPLETED, returning success page');
 
+    // Get localized text
+    const t = getTranslation(locale);
+
     // Return a success HTML page for Telegram's browser
     // The original browser is polling and will detect the COMPLETED status
     const successHtml = `<!DOCTYPE html>
-<html>
+<html lang="${locale || 'en'}">
 <head>
-  <title>Login Complete</title>
+  <title>${t.title}</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body {
@@ -151,39 +174,61 @@ export async function GET(request: NextRequest) {
       justify-content: center;
       min-height: 100vh;
       margin: 0;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
+      background: linear-gradient(135deg, #f5f0e6 0%, #e8dfc9 50%, #d4c5a9 100%);
+      color: #1a1a1a;
       text-align: center;
       padding: 20px;
     }
     .container {
-      background: rgba(255,255,255,0.1);
-      backdrop-filter: blur(10px);
-      padding: 40px;
-      border-radius: 16px;
+      background: rgba(255,255,255,0.85);
+      backdrop-filter: blur(12px);
+      padding: 48px 40px;
+      border-radius: 20px;
       max-width: 400px;
+      box-shadow: 0 8px 32px rgba(122, 100, 0, 0.15), 0 2px 8px rgba(0,0,0,0.05);
+      border: 1px solid rgba(122, 100, 0, 0.1);
     }
     .checkmark {
-      font-size: 64px;
-      margin-bottom: 20px;
+      width: 72px;
+      height: 72px;
+      background: linear-gradient(135deg, #7A6400 0%, #9a8000 100%);
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 24px;
+      box-shadow: 0 4px 16px rgba(122, 100, 0, 0.25);
+    }
+    .checkmark svg {
+      width: 40px;
+      height: 40px;
+      stroke: white;
+      stroke-width: 3;
+      fill: none;
     }
     h1 {
       font-size: 24px;
-      margin: 0 0 16px 0;
+      font-weight: 600;
+      margin: 0 0 12px 0;
+      color: #1a1a1a;
     }
     p {
-      font-size: 16px;
-      opacity: 0.9;
+      font-size: 15px;
+      color: #666;
       margin: 0;
-      line-height: 1.5;
+      line-height: 1.6;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <div class="checkmark">✅</div>
-    <h1>Login Complete!</h1>
-    <p>You can now close this window and return to your browser. You should be logged in automatically.</p>
+    <div class="checkmark">
+      <svg viewBox="0 0 24 24">
+        <polyline points="20 6 9 17 4 12"></polyline>
+      </svg>
+    </div>
+    <h1>${t.heading}</h1>
+    <p>${t.message}</p>
   </div>
 </body>
 </html>`;

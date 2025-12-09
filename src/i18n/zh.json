@@ -45,6 +45,11 @@
     "logInSignUp": "登录 / 注册",
     "loginPrompt": "登录以管理您的预约并查看历史记录。"
   },
+  "LoginComplete": {
+    "title": "登录完成",
+    "heading": "登录成功！",
+    "message": "您现在可以关闭此窗口并返回浏览器。您应该已自动登录。"
+  },
   "OAuthLoginModal": {
     "title": "登录",
     "description": "选择您偏好的通讯平台继续访问 Signature Trims。",

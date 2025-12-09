@@ -187,7 +187,7 @@ export default function AppHeader({ view, onViewChange, serviceLinks }: AppHeade
 
                 {/* Full Width Mega Menu Overlay */}
                 <div
-                  className={`fixed left-0 top-[73px] w-screen bg-primary text-white transition-all duration-300 ease-in-out z-50 shadow-2xl border-t border-primary ${isMegaMenuOpen ? 'opacity-100 visible' : 'opacity-0 invisible'}`}
+                  className={`fixed left-0 top-[73px] w-full bg-primary text-white transition-all duration-300 ease-in-out z-50 shadow-2xl border-t border-primary ${isMegaMenuOpen ? 'opacity-100 visible' : 'opacity-0 invisible'}`}
                   onMouseLeave={() => setIsMegaMenuOpen(false)}
                 >
                   <div className="mx-auto">
@@ -265,12 +265,24 @@ export default function AppHeader({ view, onViewChange, serviceLinks }: AppHeade
               )}
               {user?.role === 'ADMIN' && (
                 <Button
-                  variant={activeView === 'admin' ? 'default' : 'secondary'}
+                  variant={activeView === 'admin' ? 'default' : 'outline'}
                   size="default"
+                  className="bg-primary-50 hover:bg-primary-100"
                   onClick={() => handleNavigation('admin', '/admin')}
                 >
                   <Shield className="h-4 w-4" aria-hidden="true" />
                   {tAccount('adminPanel')}
+                </Button>
+              )}
+              {user?.role === 'STYLIST' && (
+                <Button
+                  variant={activeView === 'dashboard' ? 'default' : 'outline'}
+                  size="default"
+                  className="bg-primary-50 hover:bg-primary-100"
+                  onClick={() => handleNavigation('dashboard', '/dashboard')}
+                >
+                  <User className="h-4 w-4" aria-hidden="true" />
+                  {tAccount('stylistDashboard')}
                 </Button>
               )}
             </div>
@@ -308,7 +320,11 @@ export default function AppHeader({ view, onViewChange, serviceLinks }: AppHeade
                     <p className="text-sm font-semibold text-gray-900">{user.name}</p>
                     <p className="text-xs text-gray-500">{user.email}</p>
                     <span className="mt-1.5 inline-block rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">
-                      {user.role === 'ADMIN' ? 'Admin' : 'Customer'}
+                      {user.role === 'ADMIN'
+                        ? 'Admin'
+                        : user.role === 'STYLIST'
+                          ? 'Stylist'
+                          : 'Customer'}
                     </span>
                   </div>
 

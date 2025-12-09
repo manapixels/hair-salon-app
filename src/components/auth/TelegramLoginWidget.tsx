@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { toast } from 'sonner';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 
 interface TelegramLoginWidgetProps {
   botUsername: string;
@@ -16,6 +16,7 @@ const TelegramLoginWidget: React.FC<TelegramLoginWidgetProps> = ({
   className = '',
 }) => {
   const t = useTranslations('OAuthLoginModal');
+  const locale = useLocale();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
@@ -112,23 +113,28 @@ const TelegramLoginWidget: React.FC<TelegramLoginWidgetProps> = ({
     );
 
     try {
-      // Generate login token
+      // Generate login token with locale
       const response = await fetch('/api/auth/telegram/start-login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
+        body: JSON.stringify({ locale }),
       });
 
       if (!response.ok) {
         throw new Error('Failed to generate login token');
       }
 
-      const { token } = (await response.json()) as { token: string };
+      const { token, locale: returnedLocale } = (await response.json()) as {
+        token: string;
+        locale?: string;
+      };
       loginTokenRef.current = token;
 
-      // Create deep link to Telegram bot
-      const telegramDeepLink = `https://t.me/${botUsername}?start=login_${token}`;
+      // Create deep link to Telegram bot - include locale in the start parameter
+      const startParam = returnedLocale ? `login_${returnedLocale}_${token}` : `login_${token}`;
+      const telegramDeepLink = `https://t.me/${botUsername}?start=${startParam}`;
 
       // Open Telegram in new window/tab
       popupWindowRef.current = window.open(telegramDeepLink, '_blank');
