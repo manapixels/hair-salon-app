@@ -96,7 +96,7 @@ export default function CustomerDashboard() {
     setAppointmentToReschedule(null);
   };
 
-  if (!user) {
+  if (!user && !isLoading) {
     return (
       <div className="text-center py-12">
         <div className="text-gray-600">Please log in to view your dashboard</div>
@@ -108,17 +108,17 @@ export default function CustomerDashboard() {
     <div className="max-w-7xl mx-auto">
       <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
         <div className="flex items-center space-x-6">
-          {user.avatar && (
+          {user?.avatar && (
             <Image
-              src={user.avatar}
-              alt={user.name}
+              src={user?.avatar}
+              alt={user?.name}
               width={80}
               height={80}
               className="w-20 h-20 rounded-full object-cover ring-4 ring-primary/20"
             />
           )}
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Welcome back, {user.name}!</h1>
+            <h1 className="text-3xl font-bold text-gray-900">Welcome back, {user?.name}!</h1>
             <p className="text-gray-600 mt-1">
               Here you can manage your appointments and profile settings.
             </p>
@@ -187,7 +187,7 @@ export default function CustomerDashboard() {
                   </div>
                 ) : (
                   <div className="flex items-center justify-between">
-                    <div className="text-gray-900 font-medium text-lg">{user.name}</div>
+                    <div className="text-gray-900 font-medium text-lg">{user?.name}</div>
                     <Button variant="ghost" size="sm" onClick={handleNameEdit}>
                       <Edit className="h-4 w-4" aria-hidden="true" />
                       Edit
@@ -201,21 +201,21 @@ export default function CustomerDashboard() {
                   Connected Account
                 </label>
                 <div className="flex items-center space-x-2">
-                  {user.authProvider === 'whatsapp' && (
+                  {user?.authProvider === 'whatsapp' && (
                     <>
                       <WhatsAppIcon className="h-5 w-5 text-green-600" />
                       <span className="text-gray-900 font-medium">WhatsApp</span>
-                      {user.whatsappPhone && (
-                        <span className="text-sm text-gray-600">({user.whatsappPhone})</span>
+                      {user?.whatsappPhone && (
+                        <span className="text-sm text-gray-600">({user?.whatsappPhone})</span>
                       )}
                     </>
                   )}
-                  {user.authProvider === 'telegram' && (
+                  {user?.authProvider === 'telegram' && (
                     <>
                       <TelegramIcon className="h-5 w-5 text-blue-600" />
                       <span className="text-gray-900 font-medium">Telegram</span>
-                      {user.telegramId && (
-                        <span className="text-sm text-gray-600">(ID: {user.telegramId})</span>
+                      {user?.telegramId && (
+                        <span className="text-sm text-gray-600">(ID: {user?.telegramId})</span>
                       )}
                     </>
                   )}
@@ -229,7 +229,7 @@ export default function CustomerDashboard() {
                 <div className="text-sm text-gray-600">
                   You will receive appointment updates via{' '}
                   <span className="font-semibold">
-                    {user.authProvider === 'whatsapp' ? 'WhatsApp' : 'Telegram'}
+                    {user?.authProvider === 'whatsapp' ? 'WhatsApp' : 'Telegram'}
                   </span>
                 </div>
               </div>

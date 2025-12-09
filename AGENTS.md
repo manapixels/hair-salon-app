@@ -1157,7 +1157,7 @@ Stylists can connect their personal Google Calendar to automatically sync appoin
 - **OAuth Routes**: `src/app/api/auth/google/connect|callback|disconnect/route.ts`
 - **Calendar Logic**: `src/lib/google.ts` (per-stylist OAuth + fallback to salon calendar)
 - **Database**: `src/db/schema.ts` - `stylists` table includes Google OAuth token fields
-- **Dashboard**: `src/components/views/StylistDashboard.tsx`
+- **Dashboard**: `src/components/views/StylistDashboard.tsx` - Includes Profile Management (Name Edit) & Calendar Sync
 - **API**: `src/app/api/stylists/me/route.ts`
 
 ### Required Environment Variables
