@@ -239,7 +239,7 @@ const CATEGORY_KEYWORDS: Record<string, string[]> = {
   ],
   'keratin-treatment': [
     'keratin',
-    'treatment',
+    'keratin treatment',
     'smoothing',
     'rebonding',
     'straightening',
@@ -429,40 +429,66 @@ async function matchCategory(message: string): Promise<{
 }> {
   const lower = message.toLowerCase();
   const allCategories = await getAllCategories();
-  const matches: ServiceCategory[] = [];
 
-  // Check each category's keywords
+  // Track matches with their longest matching keyword
+  const matchesWithScore: Array<{ category: ServiceCategory; matchLength: number }> = [];
+
+  // Check each category's keywords and track the longest match
   for (const [slug, keywords] of Object.entries(CATEGORY_KEYWORDS)) {
+    let longestMatch = 0;
     for (const keyword of keywords) {
-      if (lower.includes(keyword)) {
-        const category = allCategories.find(c => c.slug === slug);
-        if (category && !matches.find(m => m.id === category.id)) {
-          matches.push(category);
-        }
-        break;
+      if (lower.includes(keyword) && keyword.length > longestMatch) {
+        longestMatch = keyword.length;
+      }
+    }
+    if (longestMatch > 0) {
+      const category = allCategories.find(c => c.slug === slug);
+      if (category) {
+        matchesWithScore.push({ category, matchLength: longestMatch });
       }
     }
   }
 
-  // Also check direct category title matches
+  // Also check direct category title matches (these are high priority)
   for (const category of allCategories) {
-    if (
-      lower.includes(category.title.toLowerCase()) ||
-      (category.shortTitle && lower.includes(category.shortTitle.toLowerCase()))
-    ) {
-      if (!matches.find(m => m.id === category.id)) {
-        matches.push(category);
+    const titleMatch = lower.includes(category.title.toLowerCase());
+    const shortTitleMatch =
+      category.shortTitle && lower.includes(category.shortTitle.toLowerCase());
+    if (titleMatch || shortTitleMatch) {
+      const matchLen = titleMatch ? category.title.length : category.shortTitle?.length || 0;
+      const existing = matchesWithScore.find(m => m.category.id === category.id);
+      if (existing) {
+        existing.matchLength = Math.max(existing.matchLength, matchLen);
+      } else {
+        matchesWithScore.push({ category, matchLength: matchLen });
       }
     }
   }
 
-  if (matches.length === 1) {
-    return { category: matches[0], ambiguous: [] };
-  } else if (matches.length > 1) {
-    return { category: null, ambiguous: matches };
+  if (matchesWithScore.length === 0) {
+    return { category: null, ambiguous: [] };
   }
 
-  return { category: null, ambiguous: [] };
+  if (matchesWithScore.length === 1) {
+    return { category: matchesWithScore[0].category, ambiguous: [] };
+  }
+
+  // Multiple matches - check if one is clearly more specific (longer match)
+  // Sort by match length descending
+  matchesWithScore.sort((a, b) => b.matchLength - a.matchLength);
+
+  // If the best match is significantly longer than the second best, use it
+  // "scalp treatment" (15 chars) vs "treatment" (9 chars) -> scalp wins
+  const best = matchesWithScore[0];
+  const secondBest = matchesWithScore[1];
+
+  // If best match is at least 3 characters longer, it's clearly more specific
+  if (best.matchLength >= secondBest.matchLength + 3) {
+    return { category: best.category, ambiguous: [] };
+  }
+
+  // Matches are similarly specific - return as ambiguous
+  return { category: null, ambiguous: matchesWithScore.map(m => m.category) };
 }
 
 /**
@@ -878,20 +904,33 @@ Just chat naturally! For example:
   if (parsed.type === 'book' || currentContext?.awaitingInput === 'category') {
     // If category was detected
     if (parsed.category) {
+      // Merge parsed values with stored context - prioritize newly parsed values
+      const effectiveDate = parsed.date?.parsed
+        ? parsed.date.parsed.toISOString().split('T')[0]
+        : currentContext?.date;
+      const effectiveTime = parsed.time?.parsed || currentContext?.time;
+      const effectiveStylistId = parsed.stylistId || currentContext?.stylistId;
+      const effectiveStylistName = parsed.stylistName || currentContext?.stylistName;
+
       // Build service line with stylist if available
       let serviceLine = `✂️ ${parsed.category.name}`;
       if (parsed.category.priceNote) {
         serviceLine += ` (${parsed.category.priceNote})`;
       }
-      if (parsed.stylistName) {
-        serviceLine += ` with ${parsed.stylistName}`;
+      if (effectiveStylistName) {
+        serviceLine += ` with ${effectiveStylistName}`;
       }
 
-      if (parsed.date?.parsed && parsed.time?.parsed) {
+      if (effectiveDate && effectiveTime) {
         // Full booking info provided - show confirmation summary
         // Use 📋 (not ✅) to indicate pending, not confirmed
-        let confirmText = `📋 *Ready to Book:*\n${serviceLine}\n📅 ${parsed.date.formatted} at ${parsed.time.formatted}\n\n👉 *Reply 'yes' to confirm*`;
-        if (!parsed.stylistName && parsed.stylist !== 'any') {
+        const dateForFormatting = parsed.date?.formatted || formatDate(new Date(effectiveDate));
+        const timeForFormatting =
+          parsed.time?.formatted ||
+          formatTime(parseInt(effectiveTime.split(':')[0]), parseInt(effectiveTime.split(':')[1]));
+
+        let confirmText = `📋 *Ready to Book:*\n${serviceLine}\n📅 ${dateForFormatting} at ${timeForFormatting}\n\n👉 *Reply 'yes' to confirm*`;
+        if (!effectiveStylistName && parsed.stylist !== 'any') {
           // No stylist specified and not "any" - note this
           confirmText += '\n_(Stylist assigned based on availability)_';
         }
@@ -902,21 +941,25 @@ Just chat naturally! For example:
             categoryId: parsed.category.id,
             categoryName: parsed.category.name,
             priceNote: parsed.category.priceNote,
-            date: parsed.date.parsed.toISOString().split('T')[0],
-            time: parsed.time.parsed,
-            stylistId: parsed.stylistId,
+            date: effectiveDate,
+            time: effectiveTime,
+            stylistId: effectiveStylistId,
+            stylistName: effectiveStylistName,
             awaitingInput: 'confirmation',
           },
         };
-      } else if (parsed.date?.parsed) {
+      } else if (effectiveDate) {
         // Has date but not time
+        const dateForFormatting = parsed.date?.formatted || formatDate(new Date(effectiveDate));
         return {
-          text: `📋 *Almost there:*\n${serviceLine}\n📅 ${parsed.date.formatted}\n\nWhat time works for you? (e.g. "2pm" or "afternoon")`,
+          text: `📋 *Almost there:*\n${serviceLine}\n📅 ${dateForFormatting}\n\nWhat time works for you? (e.g. "2pm" or "afternoon")`,
           updatedContext: {
             categoryId: parsed.category.id,
             categoryName: parsed.category.name,
             priceNote: parsed.category.priceNote,
-            date: parsed.date.parsed.toISOString().split('T')[0],
+            date: effectiveDate,
+            stylistId: effectiveStylistId,
+            stylistName: effectiveStylistName,
             awaitingInput: 'time',
           },
         };
@@ -928,17 +971,28 @@ Just chat naturally! For example:
             categoryId: parsed.category.id,
             categoryName: parsed.category.name,
             priceNote: parsed.category.priceNote,
+            stylistId: effectiveStylistId,
+            stylistName: effectiveStylistName,
             awaitingInput: 'date',
           },
         };
       }
     }
 
-    // Ambiguous category
+    // Ambiguous category - preserve any date/time/stylist info already parsed
     if (parsed.ambiguousCategories && parsed.ambiguousCategories.length > 0) {
       return {
         text: `We have a few options:\n\n${parsed.ambiguousCategories.map(c => `• *${c.title}* ${formatPriceNote(c) ? `(${formatPriceNote(c)})` : ''}`).join('\n')}\n\nWhich one are you interested in?`,
-        updatedContext: { awaitingInput: 'category' },
+        updatedContext: {
+          awaitingInput: 'category',
+          // Preserve date/time/stylist from the original message so they're not lost
+          date: parsed.date?.parsed
+            ? parsed.date.parsed.toISOString().split('T')[0]
+            : currentContext?.date,
+          time: parsed.time?.parsed || currentContext?.time,
+          stylistId: parsed.stylistId || currentContext?.stylistId,
+          stylistName: parsed.stylistName || currentContext?.stylistName,
+        },
       };
     }
 
