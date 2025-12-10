@@ -1159,6 +1159,8 @@
     "disconnecting": "正在断开...",
     "notConnected": "未连接",
     "notConnectedDescription": "连接您的谷歌日历，自动同步分配给您的预约。",
-    "connectGoogle": "连接谷歌日历"
+    "connectGoogle": "连接谷歌日历",
+    "upcomingAppointments": "您的预约",
+    "noAppointments": "暂无预约安排。"
   }
 }

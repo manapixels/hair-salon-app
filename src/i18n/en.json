@@ -1167,6 +1167,8 @@
     "disconnecting": "Disconnecting...",
     "notConnected": "Not Connected",
     "notConnectedDescription": "Connect your Google Calendar to automatically sync appointments assigned to you.",
-    "connectGoogle": "Connect Google Calendar"
+    "connectGoogle": "Connect Google Calendar",
+    "upcomingAppointments": "Your Upcoming Appointments",
+    "noAppointments": "No upcoming appointments scheduled."
   }
 }

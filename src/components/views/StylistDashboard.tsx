@@ -7,6 +7,7 @@ import { useAuth } from '@/hooks/queries';
 import { LoadingSpinner } from '../feedback/loaders/LoadingSpinner';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import type { Appointment } from '@/types';
 import {
   InputGroup,
   InputGroupAddon,
@@ -18,7 +19,8 @@ import { Edit, Check, X, Spinner } from '@/lib/icons';
 import { toast } from 'sonner';
 import { useTranslations } from 'next-intl';
 import { Badge } from '../ui/badge';
-import { CheckIcon } from 'lucide-react';
+import { CheckIcon, CalendarDays } from 'lucide-react';
+import { formatDisplayDate, formatTime12Hour } from '@/lib/timeUtils';
 
 interface StylistProfile {
   id: string;
@@ -39,6 +41,10 @@ export default function StylistDashboard() {
   const [newName, setNewName] = useState('');
 
   const updateProfileMutation = useUpdateProfile();
+
+  // Appointments state
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [appointmentsLoading, setAppointmentsLoading] = useState(true);
 
   const handleNameEdit = () => {
     setNewName(user?.name || '');
@@ -105,6 +111,27 @@ export default function StylistDashboard() {
 
     if (user) {
       fetchStylistProfile();
+    }
+  }, [user]);
+
+  // Fetch stylist's appointments
+  useEffect(() => {
+    const fetchAppointments = async () => {
+      try {
+        const response = await fetch('/api/stylists/me/appointments');
+        if (response.ok) {
+          const data: Appointment[] = await response.json();
+          setAppointments(data);
+        }
+      } catch (error) {
+        console.error('Failed to fetch appointments:', error);
+      } finally {
+        setAppointmentsLoading(false);
+      }
+    };
+
+    if (user) {
+      fetchAppointments();
     }
   }, [user]);
 
@@ -328,6 +355,60 @@ export default function StylistDashboard() {
             </CardContent>
           </Card>
         </div>
+      </div>
+
+      {/* Appointments Section */}
+      <div className="mt-8">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <CalendarDays className="h-5 w-5" />
+              {t('upcomingAppointments')}
+            </CardTitle>
+            <Badge variant="secondary">{appointments.length}</Badge>
+          </CardHeader>
+          <CardContent>
+            {appointmentsLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <LoadingSpinner size="sm" message="Loading appointments..." />
+              </div>
+            ) : appointments.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                <CalendarDays className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+                <p>{t('noAppointments')}</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {appointments.map(appointment => (
+                  <div
+                    key={appointment.id}
+                    className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors"
+                  >
+                    <div className="flex justify-between items-start mb-2">
+                      <div>
+                        <p className="font-semibold text-gray-900">
+                          {formatDisplayDate(appointment.date)}
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          {formatTime12Hour(appointment.time)} · {appointment.totalDuration} min
+                        </p>
+                      </div>
+                      <Badge variant="outline">${appointment.totalPrice}</Badge>
+                    </div>
+                    <div className="text-sm">
+                      <p className="text-gray-900 font-medium">{appointment.customerName}</p>
+                      <p className="text-gray-500">
+                        {appointment.category?.title ||
+                          appointment.services.map(s => s.name).join(', ') ||
+                          'Service'}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
