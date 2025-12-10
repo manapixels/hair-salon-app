@@ -22,6 +22,7 @@ import type { ServiceLink } from '@/lib/categories';
 import OAuthLoginModal from '../auth/OAuthLoginModal';
 import { LanguageSwitcher } from '../common/LanguageSwitcher';
 import { useTranslations } from 'next-intl';
+import { useBookingModal } from '@/context/BookingModalContext';
 
 type View = 'booking' | 'admin' | 'dashboard' | 'services';
 
@@ -50,6 +51,7 @@ export default function AppHeader({ view, onViewChange, serviceLinks }: AppHeade
   const t = useTranslations('Layout.header');
   const tAccount = useTranslations('AccountPopup');
   const { user, logout } = useAuth();
+  const { openModal } = useBookingModal();
   const router = useRouter();
   const pathname = usePathname();
   const [appointmentCount, setAppointmentCount] = useState(0);
@@ -245,7 +247,7 @@ export default function AppHeader({ view, onViewChange, serviceLinks }: AppHeade
                 variant="outline"
                 size="default"
                 className="border-primary/50 bg-white/80 backdrop-blur-xs text-primary"
-                onClick={() => handleNavigation('booking', '/')}
+                onClick={() => openModal()}
               >
                 <Calendar className="h-4 w-4" aria-hidden="true" />
                 {t('bookNow')}
