@@ -110,16 +110,11 @@ export function cleanupRateLimitStore(): number {
  */
 export function resetRateLimit(identifier: string): void {
   delete rateLimitStore[identifier];
-  console.log(`[Rate Limit] Reset rate limit for ${identifier}`);
 }
 
-// Run cleanup every 5 minutes
 setInterval(
   () => {
-    const cleaned = cleanupRateLimitStore();
-    if (cleaned > 0) {
-      console.log(`[Rate Limit] Cleaned up ${cleaned} old entries`);
-    }
+    cleanupRateLimitStore();
   },
   5 * 60 * 1000,
 );

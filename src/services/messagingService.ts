@@ -15,7 +15,6 @@ export async function sendWhatsAppMessage(to: string, text: string): Promise<boo
 
   if (!phoneNumberId || !accessToken) {
     console.warn('WhatsApp credentials not configured, simulating message send');
-    console.log(`[WhatsApp Simulation] To: ${to}, Message: ${text}`);
     return false;
   }
 
@@ -47,7 +46,6 @@ export async function sendWhatsAppMessage(to: string, text: string): Promise<boo
       return false;
     }
 
-    console.log(`✅ WhatsApp confirmation sent to ${to}`);
     return true;
   } catch (error) {
     console.error('Exception when sending WhatsApp message:', error);
@@ -70,7 +68,6 @@ export async function sendWhatsAppOTP(
 
   if (!phoneNumberId || !accessToken) {
     console.warn('WhatsApp credentials not configured, simulating OTP send');
-    console.log(`[WhatsApp OTP Simulation] To: ${to}, OTP: ${otp}`);
     return false;
   }
 
@@ -128,7 +125,6 @@ export async function sendWhatsAppOTP(
       return false;
     }
 
-    console.log(`✅ WhatsApp OTP sent to ${to}`);
     return true;
   } catch (error) {
     console.error('Exception when sending WhatsApp OTP:', error);
@@ -144,7 +140,6 @@ export async function sendTelegramMessage(chatId: number, text: string): Promise
 
   if (!botToken) {
     console.warn('Telegram bot token not configured, simulating message send');
-    console.log(`[Telegram Simulation] Chat ID: ${chatId}, Message: ${text}`);
     return false;
   }
 
@@ -171,7 +166,6 @@ export async function sendTelegramMessage(chatId: number, text: string): Promise
       return false;
     }
 
-    console.log(`✅ Telegram confirmation sent to chat ${chatId}`);
     return true;
   } catch (error) {
     console.error('Exception when sending Telegram message:', error);
@@ -191,7 +185,6 @@ export async function sendTelegramMessageWithKeyboard(
 
   if (!botToken) {
     console.warn('Telegram bot token not configured, simulating message send with keyboard');
-    console.log(`[Telegram Simulation] Chat ID: ${chatId}, Message: ${text}`);
     return false;
   }
 
@@ -222,7 +215,6 @@ export async function sendTelegramMessageWithKeyboard(
       return false;
     }
 
-    console.log(`✅ Telegram message with keyboard sent to chat ${chatId}`);
     return true;
   } catch (error) {
     console.error('Exception when sending Telegram message with keyboard:', error);
@@ -304,9 +296,7 @@ export async function sendAppointmentConfirmation(
   appointment: Appointment,
   messageType: 'confirmation' | 'reminder' | 'cancellation' | 'reschedule' = 'confirmation',
 ): Promise<boolean> {
-  // If no user or user has no messaging info, skip notification
   if (!user || (!user.whatsappPhone && !user.telegramId)) {
-    console.log('No messaging contact info available for user, skipping notification');
     return false;
   }
 
@@ -331,7 +321,6 @@ export async function sendAppointmentConfirmation(
     return await sendTelegramMessage(user.telegramId, message);
   }
 
-  console.log('No messaging method available for user');
   return false;
 }
 

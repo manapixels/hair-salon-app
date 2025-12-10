@@ -362,19 +362,11 @@ export const handleWhatsAppMessage = async (
       'reschedule',
     ];
     if (parsed.confidence >= 0.7 && handledIntents.includes(parsed.type)) {
-      console.log(
-        `[IntentParser] Handling "${parsed.type}" intent (confidence: ${parsed.confidence})`,
-      );
       const response = await generateFallbackResponse(userInput, intentParserContext);
 
-      // If intent parser returns null, it's signaling to fall through to Gemini
       if (response === null) {
-        console.log(`[IntentParser] Complex request, falling through to Gemini`);
         // Fall through to Gemini below
       } else {
-        // Log for analytics
-        console.log(`[IntentParser] Response generated deterministically`);
-
         return {
           text: response.text,
           bookingDetails: response.updatedContext
@@ -402,9 +394,6 @@ export const handleWhatsAppMessage = async (
     }
 
     // Low confidence or unhandled intent - fall through to Gemini AI
-    console.log(
-      `[IntentParser] Low confidence (${parsed.confidence}) or unhandled intent "${parsed.type}", falling back to Gemini`,
-    );
   } catch (intentParserError) {
     console.error('[IntentParser] Error, falling back to Gemini:', intentParserError);
   }
@@ -1185,9 +1174,6 @@ ${servicesListString}
     console.error('Error calling Gemini API:', error);
 
     // Use deterministic fallback when Gemini fails or times out
-    const isTimeout = error?.message === 'GEMINI_TIMEOUT';
-    console.log(`[Fallback] Using intent parser fallback. Timeout: ${isTimeout}`);
-
     try {
       // Build current booking context for fallback
       const currentBookingContext: BookingContextUpdate | undefined = bookingContext
@@ -1220,9 +1206,6 @@ ${servicesListString}
         text: "Sorry, I'm having trouble right now. You can try:\n\n• /book - Book an appointment\n• /services - See our services\n• /appointments - View your bookings\n\nOr try again in a moment!",
       };
     }
-  } finally {
-    // Log the full trajectory
-    console.log(`[Trajectory] ${JSON.stringify(logEntry, null, 2)}`);
   }
 };
 

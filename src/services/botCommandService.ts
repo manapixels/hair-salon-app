@@ -618,10 +618,6 @@ export async function handleCallbackQuery(
     // Push this step to navigation history
     pushStep(userId, 'multi_service_option', newContext);
 
-    console.log('[SERVICE SELECT] UserId:', userId);
-    console.log('[SERVICE SELECT] Stored service:', service.name);
-    console.log('[SERVICE SELECT] Preserved message ID:', existingContext?.currentStepMessageId);
-
     // Get available stylists
     const stylists = await getStylists();
     const activeStylists = stylists.filter(s => s.isActive);
@@ -867,9 +863,6 @@ ${context.services.map(s => `• ${s}`).join('\n')}
 
     // Get context BEFORE updating it
     const context = getBookingContext(userId);
-    console.log('[STYLIST SELECT] UserId:', userId);
-    console.log('[STYLIST SELECT] Context before update:', JSON.stringify(context));
-    console.log('[STYLIST SELECT] Current message ID:', context?.currentStepMessageId);
 
     if (stylistSelection === 'any') {
       // No preference - don't store stylist ID
@@ -898,7 +891,6 @@ ${context.services.map(s => `• ${s}`).join('\n')}
     }
 
     const serviceName = context?.services?.[0] || 'selected service';
-    console.log('[STYLIST SELECT] Service name:', serviceName);
 
     // Push date selection step to history
     pushStep(userId, 'date_selection', {
@@ -1122,9 +1114,6 @@ _Tip: Use arrows to browse weeks ahead_`,
   if (callbackData.startsWith('pick_date_')) {
     const dateStr = callbackData.replace('pick_date_', '');
     const context = getBookingContext(userId);
-
-    console.log('[DATE SELECT] UserId:', userId);
-    console.log('[DATE SELECT] Selected date:', dateStr);
 
     if (!context?.services || !context.services[0]) {
       return createErrorResponse('context_lost');
@@ -1380,9 +1369,6 @@ Choose a quick suggestion or go back:`,
     const timeStr = callbackData.replace('pick_time_', '');
     const context = getBookingContext(userId);
 
-    console.log('[TIME SELECT] UserId:', userId);
-    console.log('[TIME SELECT] Selected time:', timeStr);
-
     if (!context?.services || !context.services[0] || !context.date) {
       return createErrorResponse('context_lost');
     }
@@ -1474,9 +1460,6 @@ You can start a new booking anytime with /book`,
   // Handle final booking confirmation
   if (callbackData === 'confirm_booking_final') {
     const context = getBookingContext(userId);
-
-    console.log('[CONFIRM BOOKING] UserId:', userId);
-    console.log('[CONFIRM BOOKING] Context:', JSON.stringify(context));
 
     if (!context?.services || !context.services[0] || !context.date || !context.time) {
       return {
@@ -1599,7 +1582,6 @@ Please try again or contact us directly.`,
   // Handle appointment view/selection
   if (callbackData.startsWith('view_apt_')) {
     const aptId = callbackData.replace('view_apt_', '');
-    console.log('[VIEW APPOINTMENT] Appointment ID:', aptId, 'User:', userId);
 
     try {
       // Fetch the specific appointment
@@ -1672,7 +1654,6 @@ Please try again or contact us directly.`,
 
   if (callbackData.startsWith('confirm_cancel_')) {
     const aptId = callbackData.replace('confirm_cancel_', '');
-    console.log('[CONFIRM CANCEL] Appointment ID:', aptId, 'User:', userId);
 
     try {
       // Fetch appointment details before deleting (for confirmation message)
@@ -1770,7 +1751,6 @@ Please try again or contact us directly.`,
   // Handle reminder confirmation buttons
   if (callbackData.startsWith('confirm_reminder_')) {
     const aptId = callbackData.replace('confirm_reminder_', '');
-    console.log('[CONFIRM REMINDER] Appointment ID:', aptId, 'User:', userId);
     return {
       text: `✅ *Thank You!*\n\nYour appointment is confirmed. We look forward to seeing you!\n\nIf you need to make any changes, you can use /reschedule or /cancel commands.`,
       parseMode: 'Markdown',
@@ -1788,7 +1768,6 @@ Please try again or contact us directly.`,
 
   if (callbackData.startsWith('reschedule_reminder_')) {
     const aptId = callbackData.replace('reschedule_reminder_', '');
-    console.log('[RESCHEDULE REMINDER] Appointment ID:', aptId, 'User:', userId);
     return {
       text: `🔄 *Reschedule Appointment*\n\nNo problem! Please tell me your preferred new date and time.\n\nFor example: "January 20th at 3:00 PM"`,
       parseMode: 'Markdown',
@@ -1798,7 +1777,6 @@ Please try again or contact us directly.`,
 
   if (callbackData.startsWith('cancel_reminder_')) {
     const aptId = callbackData.replace('cancel_reminder_', '');
-    console.log('[CANCEL REMINDER] Appointment ID:', aptId, 'User:', userId);
     return {
       text: `⚠️ *Cancel Appointment*\n\nAre you sure you want to cancel this appointment?\n\nThis action cannot be undone.`,
       parseMode: 'Markdown',
