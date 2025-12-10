@@ -19,6 +19,12 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -29,9 +35,9 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Refresh } from '@/lib/icons';
-import { CircleUserRound, Earth, User } from 'lucide-react';
+import { CircleUserRound, Earth, User, MoreHorizontal } from 'lucide-react';
 import TelegramIcon from '@/components/icons/telegram';
-import WhatsappIcon from '@/components/icons/whatsapp';
+import AppointmentCard from '@/components/appointments/AppointmentCard';
 import { useTranslations, useFormatter } from 'next-intl';
 
 export default function AppointmentsPage() {
@@ -284,65 +290,33 @@ export default function AppointmentsPage() {
         ) : (
           <div className="bg-white border border-border rounded-lg divide-y divide-border">
             {paginatedAppointments.map(appointment => (
-              <div key={appointment.id} className="p-4">
-                <div className="flex items-start justify-between mb-2">
-                  <div>
-                    <p className="font-medium mb-0.5">{appointment.category?.title}</p>
-                    <div className="flex items-center gap-0.5 text-sm">
-                      with <span className="font-medium">{appointment.customerName}</span>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-medium">{formatDate(appointment.date)}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {formatTime(appointment.time)} ({appointment.totalDuration}m)
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <Badge variant="outline" className="gap-1 text-xs font-normal">
-                        {'Booked with '}
-                        {appointment.bookingSource === 'TELEGRAM' && (
-                          <div className="flex items-center gap-1">
-                            <TelegramIcon width={14} height={14} />
-                            Telegram
-                          </div>
-                        )}
-                        {appointment.bookingSource === 'WHATSAPP' && (
-                          <div className="flex items-center gap-1">
-                            <WhatsappIcon width={14} height={14} />
-                            WhatsApp
-                          </div>
-                        )}
-                        {(appointment.bookingSource === 'WEB' || !appointment.bookingSource) && (
-                          <div className="flex items-center gap-1">
-                            <Earth className="w-3.5 h-3.5" />
-                            Web
-                          </div>
-                        )}
-                      </Badge>
-                    </div>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleEditAppointment(appointment)}
-                    >
-                      {t('edit')}
-                    </Button>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => handleCancelAppointment(appointment)}
-                    >
-                      {t('cancel')}
-                    </Button>
-                  </div>
-                </div>
-              </div>
+              <AppointmentCard
+                key={appointment.id}
+                appointment={appointment}
+                layout="row"
+                showSource={true}
+                actions={
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" className="h-8 w-8 p-0">
+                        <span className="sr-only">Open menu</span>
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => handleEditAppointment(appointment)}>
+                        {t('edit')}
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => handleCancelAppointment(appointment)}
+                        className="text-destructive focus:text-destructive"
+                      >
+                        {t('cancel')}
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                }
+              />
             ))}
           </div>
         )}

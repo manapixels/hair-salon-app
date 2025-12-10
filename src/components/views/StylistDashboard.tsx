@@ -20,7 +20,7 @@ import { toast } from 'sonner';
 import { useTranslations } from 'next-intl';
 import { Badge } from '../ui/badge';
 import { CheckIcon, CalendarDays } from 'lucide-react';
-import { formatDisplayDate, formatTime12Hour } from '@/lib/timeUtils';
+import AppointmentCard from '@/components/appointments/AppointmentCard';
 
 interface StylistProfile {
   id: string;
@@ -380,30 +380,13 @@ export default function StylistDashboard() {
             ) : (
               <div className="space-y-3">
                 {appointments.map(appointment => (
-                  <div
+                  <AppointmentCard
                     key={appointment.id}
-                    className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors"
-                  >
-                    <div className="flex justify-between items-start mb-2">
-                      <div>
-                        <p className="font-semibold text-gray-900">
-                          {formatDisplayDate(appointment.date)}
-                        </p>
-                        <p className="text-sm text-gray-600">
-                          {formatTime12Hour(appointment.time)} · {appointment.totalDuration} min
-                        </p>
-                      </div>
-                      <Badge variant="outline">${appointment.totalPrice}</Badge>
-                    </div>
-                    <div className="text-sm">
-                      <p className="text-gray-900 font-medium">{appointment.customerName}</p>
-                      <p className="text-gray-500">
-                        {appointment.category?.title ||
-                          appointment.services.map(s => s.name).join(', ') ||
-                          'Service'}
-                      </p>
-                    </div>
-                  </div>
+                    appointment={appointment}
+                    layout="card"
+                    showPrice={true}
+                    showSource={false}
+                  />
                 ))}
               </div>
             )}

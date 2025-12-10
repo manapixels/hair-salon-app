@@ -16,6 +16,7 @@ import { Button } from '@/components/ui/button';
 import { CancelAppointmentDialog } from '@/components/booking/shared';
 import { Edit, Delete, WhatsAppIcon, TelegramIcon } from '@/lib/icons';
 import { Spinner } from '../ui/spinner';
+import AppointmentCard from '@/components/appointments/AppointmentCard';
 
 export default function CustomerDashboard() {
   const { user } = useAuth();
@@ -290,45 +291,16 @@ export default function CustomerDashboard() {
             ) : (
               <div className="space-y-6">
                 {appointments.map(appointment => (
-                  <div
+                  <AppointmentCard
                     key={appointment.id}
-                    className="border border-gray-200 rounded-xl p-5 hover:shadow-md transition-shadow"
-                  >
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-3 mb-3">
-                          <span className="font-bold text-gray-900 text-lg">
-                            {formatDisplayDate(appointment.date)}
-                          </span>
-                          <span className="text-gray-600 font-semibold">at {appointment.time}</span>
-                        </div>
-
-                        <div className="mb-3">
-                          <span className="text-sm font-medium text-gray-600">Services: </span>
-                          <span className="text-gray-800 font-semibold">
-                            {Array.isArray(appointment.services)
-                              ? appointment.services.map((s: any) => s.name).join(', ')
-                              : 'Services not available'}
-                          </span>
-                        </div>
-
-                        {appointment.stylistId && (
-                          <div className="mb-3">
-                            <span className="text-sm font-medium text-gray-600">Stylist: </span>
-                            <span className="text-gray-800 font-semibold">
-                              {appointment.stylist?.name || 'Assigned stylist'}
-                            </span>
-                          </div>
-                        )}
-
-                        <div className="flex items-center space-x-6 text-sm">
-                          <span className="text-gray-600 font-medium">
-                            {appointment.totalDuration} min
-                          </span>
-                          <span className="text-gray-600 font-bold">${appointment.totalPrice}</span>
-                        </div>
-                      </div>
-
+                    appointment={appointment}
+                    layout="card"
+                    showPrice={true}
+                    showSource={false}
+                    showStylist={true}
+                    hideCustomer={true}
+                    className="hover:shadow-md border-gray-200"
+                    actions={
                       <div className="flex flex-col space-y-2 items-end">
                         <Button
                           variant="ghost"
@@ -353,8 +325,8 @@ export default function CustomerDashboard() {
                           Cancel
                         </Button>
                       </div>
-                    </div>
-                  </div>
+                    }
+                  />
                 ))}
               </div>
             )}
