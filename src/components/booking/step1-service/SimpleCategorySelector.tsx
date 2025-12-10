@@ -40,7 +40,7 @@ export const SimpleCategorySelector: React.FC<SimpleCategorySelectorProps> = ({
         ref={containerRef}
         role="radiogroup"
         aria-label={t('serviceCategories')}
-        className="max-w-2xl grid grid-cols-3 gap-4 md:gap-8 bg-white p-4"
+        className="max-w-2xl grid grid-cols-3 md:grid-cols-6 gap-4 bg-white p-4"
       >
         {bookingCategories.map((category, index) => (
           <CategoryCard

@@ -20,7 +20,7 @@ import {
   StylistSelectorLoading,
   DateTimePickerLoading,
   CollapsedStepSummary,
-  MobileBookingSummary,
+  BookingSummary,
   AnimatedStepContainer,
 } from './shared';
 
@@ -450,16 +450,7 @@ Please confirm availability. Thank you!`;
   }
 
   return (
-    <div className="relative pb-24 lg:pb-0">
-      {/* Step Indicator - Moved to BookingModal header */}
-      {/* <div className="mb-8">
-        <SimpleStepIndicator
-          currentStep={currentStep}
-          totalSteps={4}
-          stepLabels={['Services', 'Stylist', 'Date & Time', 'Confirm']}
-        />
-      </div> */}
-
+    <div className="relative sm:p-6 pb-24 sm:pb-0  lg:pb-0">
       {/* Screen reader announcements */}
       <div role="status" aria-live="polite" aria-atomic="true" className="sr-only">
         {currentStep === 1 && 'Step 1 of 4: Select Services'}
@@ -613,8 +604,8 @@ Please confirm availability. Thank you!`;
         <div className={`${currentStep === 4 ? 'pb-4' : 'pb-16'}`}></div>
       </div>
 
-      {/* Mobile Sticky Summary */}
-      <MobileBookingSummary
+      {/* Sticky Booking Summary */}
+      <BookingSummary
         totalDuration={totalDuration}
         currentStep={currentStep}
         totalSteps={4}

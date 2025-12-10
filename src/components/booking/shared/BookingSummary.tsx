@@ -3,14 +3,14 @@
 import React, { useState, useEffect, memo } from 'react';
 import { useTranslations } from 'next-intl';
 
-interface MobileBookingSummaryProps {
+interface BookingSummaryProps {
   totalDuration: number;
   currentStep: number;
   totalSteps: number;
   onNext: () => void;
 }
 
-export const MobileBookingSummary = memo<MobileBookingSummaryProps>(
+export const BookingSummary = memo<BookingSummaryProps>(
   ({ totalDuration, currentStep, totalSteps, onNext }) => {
     const t = useTranslations('BookingForm');
     const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
@@ -68,8 +68,6 @@ export const MobileBookingSummary = memo<MobileBookingSummaryProps>(
         border-t border-gray-200
         shadow-lg transition-all duration-300 ease-in-out
         pb-safe-bottom
-        ${isCompact ? 'py-2' : 'py-4'}
-        lg:hidden
       `}
       >
         {/* Screen reader announcement for updates */}
@@ -77,7 +75,7 @@ export const MobileBookingSummary = memo<MobileBookingSummaryProps>(
           {t('stepOf', { current: currentStep, total: totalSteps })}
         </div>
 
-        <div className="px-4 max-w-md mx-auto">
+        <div className={`px-4 md:px-6 mx-auto ${isCompact ? 'py-2' : 'py-4'}`}>
           <div className="flex items-center justify-between gap-4">
             <div className="flex-1">
               {!isCompact && (
@@ -98,4 +96,4 @@ export const MobileBookingSummary = memo<MobileBookingSummaryProps>(
   },
 );
 
-MobileBookingSummary.displayName = 'MobileBookingSummary';
+BookingSummary.displayName = 'BookingSummary';
