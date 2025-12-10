@@ -22,7 +22,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { formatTime12Hour, getMinDateForInput } from '@/lib/timeUtils';
+
 import { useIsMobile } from '@/hooks/useMediaQuery';
 import {
   Drawer,
@@ -32,11 +32,11 @@ import {
   DrawerDescription,
 } from '@/components/ui/drawer';
 import { Loader2 } from 'lucide-react';
-import { useAvailability } from '@/hooks/queries/useAvailability';
 import { useStylists } from '@/hooks/queries/useStylists';
-import { LoadingSpinner } from '@/components/feedback/loaders/LoadingSpinner';
+import { DateTimePicker } from './step3-datetime';
 import { cn } from '@/lib/utils';
 import { Separator } from '../ui/separator';
+import { BookingConfirmationSummary } from './step4-confirmation/BookingConfirmationSummary';
 
 interface EditAppointmentModalProps {
   isOpen: boolean;
@@ -95,14 +95,6 @@ export default function EditAppointmentModal({
     enabled: isOpen,
   });
 
-  // Fetch availability based on date, stylist, and duration
-  const { data: availableSlots = [], isLoading: slotsLoading } = useAvailability({
-    date: formData.date ? new Date(formData.date) : new Date(),
-    stylistId: formData.stylistId || undefined,
-    duration: totalDuration,
-    enabled: isOpen && !!formData.date,
-  });
-
   // Fetch categories and services
   useEffect(() => {
     if (!isOpen) return;
@@ -142,12 +134,6 @@ export default function EditAppointmentModal({
   }, [appointment]);
 
   // Reset time when date or stylist changes (availability may differ)
-  useEffect(() => {
-    // Only reset if the current time is not in available slots
-    if (formData.time && availableSlots.length > 0 && !availableSlots.includes(formData.time)) {
-      setFormData(prev => ({ ...prev, time: '' }));
-    }
-  }, [formData.date, formData.stylistId, availableSlots, formData.time]);
 
   const handleServiceToggle = (service: Service) => {
     setFormData(prev => {
@@ -324,82 +310,31 @@ export default function EditAppointmentModal({
 
         {/* Date & Time Section */}
         <section className="space-y-4">
-          <div>
-            <Label htmlFor="date">Date *</Label>
-            <Input
-              id="date"
-              type="date"
-              value={formData.date}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                setFormData(prev => ({ ...prev, date: e.target.value, time: '' }))
-              }
-              min={getMinDateForInput()}
-              className="mt-1 min-h-touch-lg"
-              required
-            />
-          </div>
-
-          <div>
-            <Label>Available Times *</Label>
-            {slotsLoading ? (
-              <div className="py-6 text-center">
-                <LoadingSpinner size="sm" message="Loading times..." />
-              </div>
-            ) : availableSlots.length === 0 ? (
-              <div className="py-6 text-center">
-                <p className="text-sm text-gray-500">
-                  {formData.date ? 'No available times for this date' : 'Select a date first'}
-                </p>
-              </div>
-            ) : (
-              <div className="mt-2 grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-5">
-                {availableSlots.map(slot => {
-                  const isSelected = formData.time === slot;
-                  return (
-                    <Button
-                      key={slot}
-                      type="button"
-                      variant={isSelected ? 'default' : 'secondary'}
-                      className={cn(
-                        'min-h-touch-lg h-auto px-2 py-2 text-sm font-medium',
-                        isSelected && 'ring-2 ring-primary ring-offset-2',
-                      )}
-                      onClick={() => setFormData(prev => ({ ...prev, time: slot }))}
-                    >
-                      {formatTime12Hour(slot)}
-                    </Button>
-                  );
-                })}
-              </div>
-            )}
-          </div>
+          <DateTimePicker
+            selectedDate={formData.date ? new Date(formData.date) : new Date()}
+            onDateChange={date =>
+              setFormData(prev => ({
+                ...prev,
+                date: format(date, 'yyyy-MM-dd'),
+                time: '',
+              }))
+            }
+            selectedTime={formData.time || null}
+            onTimeSelect={time => setFormData(prev => ({ ...prev, time: time || '' }))}
+            totalDuration={totalDuration}
+            selectedStylist={stylists.find(s => s.id === formData.stylistId) || null}
+          />
         </section>
 
         {/* Summary */}
-        {(formData.services.length > 0 || (bookingMode === 'category' && formData.categoryId)) && (
-          <section className="rounded-lg border border-gray-200 bg-gray-50 p-4">
-            <h3 className="mb-3 text-sm font-semibold text-gray-900">Appointment Summary</h3>
-            <dl className="space-y-2 text-sm">
-              {formData.stylistId && (
-                <div className="flex justify-between">
-                  <dt className="text-gray-600">Stylist</dt>
-                  <dd className="font-medium text-gray-900">
-                    {stylists.find(s => s.id === formData.stylistId)?.name || 'Unknown'}
-                  </dd>
-                </div>
-              )}
-              <div className="flex justify-between">
-                <dt className="text-gray-600">Duration</dt>
-                <dd className="font-medium text-gray-900">{summaryDuration} minutes</dd>
-              </div>
-              <div className="flex justify-between">
-                <dt className="text-gray-600">Date & Time</dt>
-                <dd className="font-medium text-gray-900">
-                  {formData.date} {formatTime12Hour(formData.time)}
-                </dd>
-              </div>
-            </dl>
-          </section>
+        {formData.date && formData.time && (
+          <BookingConfirmationSummary
+            selectedCategory={categories.find(c => c.id === formData.categoryId) || null}
+            selectedStylist={stylists.find(s => s.id === formData.stylistId) || null}
+            selectedDate={new Date(formData.date)}
+            selectedTime={formData.time}
+            totalDuration={summaryDuration}
+          />
         )}
 
         {/* Actions */}
@@ -449,7 +384,7 @@ export default function EditAppointmentModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={open => !open && onClose()}>
-      <DialogContent className="max-h-[90vh] w-full max-w-lg overflow-y-auto">
+      <DialogContent className="max-h-[85vh] w-full max-w-3xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Edit Appointment</DialogTitle>
           <DialogDescription>

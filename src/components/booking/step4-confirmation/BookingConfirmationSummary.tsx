@@ -1,5 +1,5 @@
 import React from 'react';
-import { User, Calendar, Clock, X, Scissors } from 'lucide-react';
+import { User, Calendar, Clock, Scissors } from 'lucide-react';
 import { Stylist, ServiceCategory } from '@/types';
 import { getDurationParts } from '@/lib/timeUtils';
 import { useTranslations, useFormatter } from 'next-intl';

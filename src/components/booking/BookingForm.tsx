@@ -33,13 +33,10 @@ const StylistSelector = dynamic(
   },
 );
 
-const CalendlyStyleDateTimePicker = dynamic(
-  () => import('./step3-datetime/CalendlyStyleDateTimePicker'),
-  {
-    loading: DateTimePickerLoading,
-    ssr: false,
-  },
-);
+const DateTimePicker = dynamic(() => import('./step3-datetime/DateTimePicker'), {
+  loading: DateTimePickerLoading,
+  ssr: false,
+});
 
 interface BookingFormProps {
   preSelectedCategorySlug?: string;
@@ -560,7 +557,8 @@ Please confirm availability. Thank you!`;
                   }
                   expandedContent={
                     <div className="animate-slide-in-bottom">
-                      <CalendlyStyleDateTimePicker
+                      <h2 className="text-xl font-semibold mb-4 text-gray-800">{t('step3')}</h2>
+                      <DateTimePicker
                         selectedDate={selectedDate}
                         onDateChange={setSelectedDate}
                         selectedTime={selectedTime}

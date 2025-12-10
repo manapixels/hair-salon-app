@@ -10,7 +10,7 @@ import { useAvailability } from '@/hooks/queries';
 import type { TimeSlot, Stylist } from '@/types';
 import { useTranslations, useFormatter } from 'next-intl';
 
-interface CalendlyStyleDateTimePickerProps {
+interface DateTimePickerProps {
   selectedDate: Date;
   onDateChange: (date: Date) => void;
   selectedTime: string | null;
@@ -20,7 +20,7 @@ interface CalendlyStyleDateTimePickerProps {
   isAnimatingSelection?: boolean; // Pulse animation when time slot is selected
 }
 
-export default function CalendlyStyleDateTimePicker({
+export default function DateTimePicker({
   selectedDate,
   onDateChange,
   selectedTime,
@@ -28,7 +28,7 @@ export default function CalendlyStyleDateTimePicker({
   totalDuration,
   selectedStylist,
   isAnimatingSelection = false,
-}: CalendlyStyleDateTimePickerProps) {
+}: DateTimePickerProps) {
   const { currentMonth, daysInMonth, goToPreviousMonth, goToNextMonth } = useCalendar(selectedDate);
   const timeSlotsRef = useRef<HTMLDivElement>(null);
   const t = useTranslations('BookingForm');
@@ -63,8 +63,6 @@ export default function CalendlyStyleDateTimePicker({
 
   return (
     <div id="date-time-picker">
-      <h2 className="text-xl font-semibold mb-4 text-gray-800">{t('step3')}</h2>
-
       {/* ARIA Live Region for Screen Readers */}
       <div aria-live="polite" aria-atomic="true" className="sr-only">
         {showLoader && t('findingTimes')}
