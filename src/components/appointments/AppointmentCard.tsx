@@ -1,6 +1,6 @@
 'use client';
 
-import { useFormatter } from 'next-intl';
+import { useFormatter, useTranslations } from 'next-intl';
 import { Badge } from '@/components/ui/badge';
 import { Earth } from 'lucide-react';
 import TelegramIcon from '@/components/icons/telegram';
@@ -30,6 +30,7 @@ export default function AppointmentCard({
   onClick,
 }: AppointmentCardProps) {
   const format = useFormatter();
+  const t = useTranslations('AppointmentCard');
 
   // Format time as single string (e.g., "2:30 PM")
   const formatTimeSimple = (time: string) => {
@@ -45,14 +46,14 @@ export default function AppointmentCard({
         return (
           <>
             <TelegramIcon width={14} height={14} />
-            Telegram
+            {t('telegram')}
           </>
         );
       case 'WHATSAPP':
         return (
           <>
             <WhatsappIcon width={14} height={14} />
-            WhatsApp
+            {t('whatsapp')}
           </>
         );
       case 'WEB':
@@ -60,7 +61,7 @@ export default function AppointmentCard({
         return (
           <>
             <Earth className="w-3.5 h-3.5" />
-            Web
+            {t('web')}
           </>
         );
     }
@@ -87,14 +88,14 @@ export default function AppointmentCard({
           <p className="font-medium text-foreground">{appointment?.category?.title}</p>
           <p className="text-sm text-muted-foreground">
             {!hideCustomer && appointment.customerName}
-            {!hideCustomer && showStylist && appointment?.stylist?.name && ' with '}
+            {!hideCustomer && showStylist && appointment?.stylist?.name && ` ${t('with')} `}
             {showStylist && appointment?.stylist?.name}
           </p>
 
           <div className="flex items-center gap-2 mt-1">
             {showSource && (
               <Badge variant="outline" className="gap-1 text-xs font-normal">
-                Booked with {getSourceIcon(appointment.bookingSource)}
+                {t('bookedWith')} {getSourceIcon(appointment.bookingSource)}
               </Badge>
             )}
           </div>

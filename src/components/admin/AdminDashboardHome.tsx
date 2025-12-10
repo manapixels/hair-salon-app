@@ -207,20 +207,20 @@ export default function AdminDashboardHome({
                       <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="icon" className="h-8 w-8">
                           <MoreVertical className="h-4 w-4" />
-                          <span className="sr-only">Open menu</span>
+                          <span className="sr-only">{t('openMenu')}</span>
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem onClick={() => handleEditAppointment(appointment)}>
                           <Edit className="mr-2 h-4 w-4" />
-                          Edit
+                          {t('edit')}
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={() => handleCancelAppointment(appointment.id)}
                           className="text-red-600 focus:text-red-600"
                         >
                           <X className="mr-2 h-4 w-4" />
-                          Cancel
+                          {t('cancel')}
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>

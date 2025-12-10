@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
+import { useTranslations } from 'next-intl';
 import type { Appointment, Service, ServiceCategory, Stylist } from '@/types';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
@@ -66,6 +67,7 @@ export default function EditAppointmentModal({
   appointment,
   onSave,
 }: EditAppointmentModalProps) {
+  const t = useTranslations('EditAppointmentModal');
   const [formData, setFormData] = useState<FormData>({
     customerName: '',
     customerEmail: '',
@@ -178,28 +180,28 @@ export default function EditAppointmentModal({
     setError('');
 
     if (!formData.date || !formData.time) {
-      const errorMsg = 'Please select a date and time';
+      const errorMsg = t('selectDateAndTime');
       setError(errorMsg);
       toast.error(errorMsg);
       return;
     }
 
     if (bookingMode === 'service' && formData.services.length === 0) {
-      const errorMsg = 'Please select at least one service';
+      const errorMsg = t('selectService');
       setError(errorMsg);
       toast.error(errorMsg);
       return;
     }
 
     if (bookingMode === 'category' && !formData.categoryId) {
-      const errorMsg = 'Please select a service category';
+      const errorMsg = t('selectCategory');
       setError(errorMsg);
       toast.error(errorMsg);
       return;
     }
 
     setIsSubmitting(true);
-    const toastId = toast.loading('Updating appointment...');
+    const toastId = toast.loading(t('updating'));
 
     try {
       const { totalPrice, totalDuration } = calculateTotals();
@@ -224,10 +226,10 @@ export default function EditAppointmentModal({
       }
 
       await onSave(updateData);
-      toast.success('Appointment updated successfully!', { id: toastId });
+      toast.success(t('updateSuccess'), { id: toastId });
       onClose();
     } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : 'Failed to update appointment';
+      const errorMsg = err instanceof Error ? err.message : t('updateFailed');
       setError(errorMsg);
       toast.error(errorMsg, { id: toastId });
     } finally {
@@ -265,11 +267,11 @@ export default function EditAppointmentModal({
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Customer Details Section (Read-only) */}
         <section className="space-y-4">
-          <h3 className="text-sm font-semibold text-gray-900">Customer Details</h3>
+          <h3 className="text-sm font-semibold text-gray-900">{t('customerDetails')}</h3>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
               <Label htmlFor="customerName" className="text-muted-foreground">
-                Account
+                {t('account')}
               </Label>
               <Input
                 id="customerName"
@@ -284,7 +286,7 @@ export default function EditAppointmentModal({
 
         {/* Stylist Section */}
         <section className="space-y-2">
-          <Label htmlFor="stylist">Stylist</Label>
+          <Label htmlFor="stylist">{t('stylist')}</Label>
           <Select
             value={formData.stylistId || 'none'}
             onValueChange={value =>
@@ -293,10 +295,10 @@ export default function EditAppointmentModal({
             disabled={stylistsLoading}
           >
             <SelectTrigger id="stylist" className="min-h-touch-lg">
-              <SelectValue placeholder={stylistsLoading ? 'Loading...' : 'No preference'} />
+              <SelectValue placeholder={stylistsLoading ? t('loading') : t('noPreference')} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="none">No preference</SelectItem>
+              <SelectItem value="none">{t('noPreference')}</SelectItem>
               {stylists.map((stylist: Stylist) => (
                 <SelectItem key={stylist.id} value={stylist.id}>
                   {stylist.name}
@@ -346,7 +348,7 @@ export default function EditAppointmentModal({
             onClick={onClose}
             disabled={isSubmitting}
           >
-            Cancel
+            {t('cancel')}
           </Button>
           <Button
             type="submit"
@@ -359,7 +361,7 @@ export default function EditAppointmentModal({
             }
           >
             {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Update Appointment
+            {t('updateAppointment')}
           </Button>
         </div>
       </form>
@@ -371,10 +373,8 @@ export default function EditAppointmentModal({
       <Drawer open={isOpen} onOpenChange={open => !open && onClose()} modal={false}>
         <DrawerContent className="max-h-[90vh]">
           <DrawerHeader className="border-b border-gray-200">
-            <DrawerTitle>Edit Appointment</DrawerTitle>
-            <DrawerDescription>
-              Update appointment details, services, and scheduled time.
-            </DrawerDescription>
+            <DrawerTitle>{t('title')}</DrawerTitle>
+            <DrawerDescription>{t('description')}</DrawerDescription>
           </DrawerHeader>
           <div className="overflow-y-auto">{content}</div>
         </DrawerContent>
@@ -386,10 +386,8 @@ export default function EditAppointmentModal({
     <Dialog open={isOpen} onOpenChange={open => !open && onClose()}>
       <DialogContent className="max-h-[85vh] w-full max-w-3xl overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Edit Appointment</DialogTitle>
-          <DialogDescription>
-            Update appointment details, services, and scheduled time.
-          </DialogDescription>
+          <DialogTitle>{t('title')}</DialogTitle>
+          <DialogDescription>{t('description')}</DialogDescription>
         </DialogHeader>
         {content}
       </DialogContent>

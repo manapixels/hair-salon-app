@@ -11,6 +11,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
+import { useTranslations } from 'next-intl';
 
 interface CancelAppointmentDialogProps {
   open: boolean;
@@ -27,26 +28,26 @@ export function CancelAppointmentDialog({
   onConfirm,
   isLoading = false,
 }: CancelAppointmentDialogProps) {
+  const t = useTranslations('CancelAppointmentDialog');
+
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Cancel Appointment</AlertDialogTitle>
+          <AlertDialogTitle>{t('title')}</AlertDialogTitle>
           <AlertDialogDescription>
-            {customerName
-              ? `Are you sure you want to cancel the appointment for ${customerName}?`
-              : 'Are you sure you want to cancel this appointment?'}
+            {customerName ? t('confirmWithName', { name: customerName }) : t('confirmGeneric')}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel asChild>
             <Button variant="secondary" size="sm" disabled={isLoading}>
-              No, keep it
+              {t('no')}
             </Button>
           </AlertDialogCancel>
           <AlertDialogAction asChild>
             <Button variant="destructive" size="sm" onClick={onConfirm} disabled={isLoading}>
-              {isLoading ? 'Cancelling...' : 'Yes, cancel it'}
+              {isLoading ? t('cancelling') : t('yes')}
             </Button>
           </AlertDialogAction>
         </AlertDialogFooter>

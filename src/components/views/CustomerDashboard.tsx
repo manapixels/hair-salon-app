@@ -17,8 +17,10 @@ import { CancelAppointmentDialog } from '@/components/booking/shared';
 import { Edit, Delete, WhatsAppIcon, TelegramIcon } from '@/lib/icons';
 import { Spinner } from '../ui/spinner';
 import AppointmentCard from '@/components/appointments/AppointmentCard';
+import { useTranslations } from 'next-intl';
 
 export default function CustomerDashboard() {
+  const t = useTranslations('CustomerDashboard');
   const { user } = useAuth();
 
   // Use React Query hooks
@@ -115,7 +117,7 @@ export default function CustomerDashboard() {
   if (!user && !isLoading) {
     return (
       <div className="text-center py-12">
-        <div className="text-gray-600">Please log in to view your dashboard</div>
+        <div className="text-gray-600">{t('pleaseLogIn')}</div>
       </div>
     );
   }
@@ -134,10 +136,10 @@ export default function CustomerDashboard() {
             />
           )}
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Welcome back, {user?.name}!</h1>
-            <p className="text-gray-600 mt-1">
-              Here you can manage your appointments and profile settings.
-            </p>
+            <h1 className="text-3xl font-bold text-gray-900">
+              {t('welcome', { name: user?.name || '' })}
+            </h1>
+            <p className="text-gray-600 mt-1">{t('subtitle')}</p>
           </div>
         </div>
       </div>
@@ -146,41 +148,41 @@ export default function CustomerDashboard() {
         {/* Profile Section */}
         <div className="lg:col-span-1">
           <div className="bg-white rounded-2xl shadow-lg p-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-6">Your Profile</h2>
+            <h2 className="text-xl font-bold text-gray-900 mb-6">{t('yourProfile')}</h2>
 
             {/* User Pattern / "The Usual" */}
             <div className="mb-8 p-4 bg-primary/5 rounded-xl border border-primary/10">
               <h3 className="text-sm font-semibold text-primary mb-3 uppercase tracking-wider">
-                Your Usual
+                {t('yourUsual')}
               </h3>
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Favorite Service</span>
+                  <span className="text-gray-600">{t('favoriteService')}</span>
                   <span className="font-medium text-gray-900">
-                    {userPattern?.favoriteService || 'Not enough data yet'}
+                    {userPattern?.favoriteService || t('notEnoughData')}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Favorite Stylist</span>
+                  <span className="text-gray-600">{t('favoriteStylist')}</span>
                   <span className="font-medium text-gray-900">
-                    {userPattern?.favoriteStylistId || 'Not enough data yet'}
+                    {userPattern?.favoriteStylistId || t('notEnoughData')}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Typical Time</span>
+                  <span className="text-gray-600">{t('typicalTime')}</span>
                   <span className="font-medium text-gray-900">
-                    {userPattern?.typicalTime || 'Not enough data yet'}
+                    {userPattern?.typicalTime || t('notEnoughData')}
                   </span>
                 </div>
               </div>
-              <p className="text-xs text-gray-500 mt-3 italic">
-                Tip: You can ask the AI to &quot;book the usual&quot;!
-              </p>
+              <p className="text-xs text-gray-500 mt-3 italic">{t('usualTip')}</p>
             </div>
 
             <div className="space-y-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Display Name</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {t('displayName')}
+                </label>
                 {isEditingName ? (
                   <div className="space-y-2">
                     <Input
@@ -189,15 +191,15 @@ export default function CustomerDashboard() {
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                         setNewName(e.target.value)
                       }
-                      placeholder="Enter your display name"
+                      placeholder={t('enterDisplayName')}
                       maxLength={50}
                     />
                     <div className="flex space-x-2">
                       <Button variant="default" size="sm" onClick={handleNameSave}>
-                        Save
+                        {t('save')}
                       </Button>
                       <Button variant="outline" size="sm" onClick={handleNameCancel}>
-                        Cancel
+                        {t('cancel')}
                       </Button>
                     </div>
                   </div>
@@ -206,7 +208,7 @@ export default function CustomerDashboard() {
                     <div className="text-gray-900 font-medium text-lg">{user?.name}</div>
                     <Button variant="ghost" size="sm" onClick={handleNameEdit}>
                       <Edit className="h-4 w-4" aria-hidden="true" />
-                      Edit
+                      {t('edit')}
                     </Button>
                   </div>
                 )}
@@ -214,13 +216,13 @@ export default function CustomerDashboard() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Connected Account
+                  {t('connectedAccount')}
                 </label>
                 <div className="flex items-center space-x-2">
                   {user?.authProvider === 'whatsapp' && (
                     <>
                       <WhatsAppIcon className="h-5 w-5 text-green-600" />
-                      <span className="text-gray-900 font-medium">WhatsApp</span>
+                      <span className="text-gray-900 font-medium">{t('whatsapp')}</span>
                       {user?.whatsappPhone && (
                         <span className="text-sm text-gray-600">({user?.whatsappPhone})</span>
                       )}
@@ -229,7 +231,7 @@ export default function CustomerDashboard() {
                   {user?.authProvider === 'telegram' && (
                     <>
                       <TelegramIcon className="h-5 w-5 text-blue-600" />
-                      <span className="text-gray-900 font-medium">Telegram</span>
+                      <span className="text-gray-900 font-medium">{t('telegram')}</span>
                       {user?.telegramId && (
                         <span className="text-sm text-gray-600">(ID: {user?.telegramId})</span>
                       )}
@@ -240,12 +242,12 @@ export default function CustomerDashboard() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Contact Preferences
+                  {t('contactPreferences')}
                 </label>
                 <div className="text-sm text-gray-600">
-                  You will receive appointment updates via{' '}
+                  {t('contactPreferencesDesc')}{' '}
                   <span className="font-semibold">
-                    {user?.authProvider === 'whatsapp' ? 'WhatsApp' : 'Telegram'}
+                    {user?.authProvider === 'whatsapp' ? t('whatsapp') : t('telegram')}
                   </span>
                 </div>
               </div>
@@ -256,16 +258,16 @@ export default function CustomerDashboard() {
         {/* Appointments Section */}
         <div className="lg:col-span-2">
           <div className="bg-white rounded-2xl shadow-lg p-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-6">Your Appointments</h2>
+            <h2 className="text-xl font-bold text-gray-900 mb-6">{t('yourAppointments')}</h2>
 
             {showLoader ? (
               <div className="flex flex-col items-center justify-center py-12 space-y-3">
-                <LoadingSpinner size="lg" message="Loading your appointments..." />
+                <LoadingSpinner size="lg" message={t('loadingAppointments')} />
               </div>
             ) : error ? (
               <ErrorState
-                title="Failed to Load Appointments"
-                message={error instanceof Error ? error.message : 'Unable to load appointments'}
+                title={t('failedToLoad')}
+                message={error instanceof Error ? error.message : t('unableToLoad')}
                 onRetry={() => refetch()}
               />
             ) : appointments.length === 0 ? (
@@ -285,8 +287,8 @@ export default function CustomerDashboard() {
                     />
                   </svg>
                 }
-                title="No appointments found"
-                description="Ready for a new look? Book your first appointment to get started!"
+                title={t('noAppointmentsTitle')}
+                description={t('noAppointmentsDesc')}
               />
             ) : (
               <div className="space-y-6">
@@ -306,7 +308,7 @@ export default function CustomerDashboard() {
                           onClick={() => handleEditAppointment(appointment.id)}
                         >
                           <Edit className="h-4 w-4" aria-hidden="true" />
-                          Edit
+                          {t('edit')}
                         </Button>
                         <Button
                           variant="ghost"
@@ -320,7 +322,7 @@ export default function CustomerDashboard() {
                           ) : (
                             <Delete className="h-4 w-4" aria-hidden="true" />
                           )}
-                          Cancel
+                          {t('cancel')}
                         </Button>
                       </div>
                     }

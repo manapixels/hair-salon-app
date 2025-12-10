@@ -1059,7 +1059,10 @@
       "updatePrices": "Update Prices",
       "servicesPricing": "Services & pricing",
       "addClosure": "Add Closure",
-      "holidaysClosures": "Holidays & closures"
+      "holidaysClosures": "Holidays & closures",
+      "edit": "Edit",
+      "cancel": "Cancel",
+      "openMenu": "Open menu"
     },
     "Appointments": {
       "title": "Appointments",
@@ -1207,6 +1210,70 @@
     "notConnectedDescription": "Connect your Google Calendar to automatically sync appointments assigned to you.",
     "connectGoogle": "Connect Google Calendar",
     "upcomingAppointments": "Your Upcoming Appointments",
-    "noAppointments": "No upcoming appointments scheduled."
+    "noAppointments": "No upcoming appointments scheduled.",
+    "loadingProfile": "Loading your profile...",
+    "pleaseLogIn": "Please log in to view your dashboard",
+    "loadingAppointments": "Loading appointments...",
+    "enterDisplayName": "Enter your display name"
+  },
+  "AppointmentCard": {
+    "bookedWith": "Booked with",
+    "telegram": "Telegram",
+    "whatsapp": "WhatsApp",
+    "web": "Web",
+    "with": "with"
+  },
+  "EditAppointmentModal": {
+    "title": "Edit Appointment",
+    "description": "Update appointment details, services, and scheduled time.",
+    "customerDetails": "Customer Details",
+    "account": "Account",
+    "stylist": "Stylist",
+    "noPreference": "No preference",
+    "loading": "Loading...",
+    "cancel": "Cancel",
+    "updateAppointment": "Update Appointment",
+    "updating": "Updating appointment...",
+    "updateSuccess": "Appointment updated successfully!",
+    "selectDateAndTime": "Please select a date and time",
+    "selectService": "Please select at least one service",
+    "selectCategory": "Please select a service category",
+    "updateFailed": "Failed to update appointment"
+  },
+  "CancelAppointmentDialog": {
+    "title": "Cancel Appointment",
+    "confirmWithName": "Are you sure you want to cancel the appointment for {name}?",
+    "confirmGeneric": "Are you sure you want to cancel this appointment?",
+    "no": "No, keep it",
+    "yes": "Yes, cancel it",
+    "cancelling": "Cancelling..."
+  },
+  "CustomerDashboard": {
+    "welcome": "Welcome back, {name}!",
+    "subtitle": "Here you can manage your appointments and profile settings.",
+    "pleaseLogIn": "Please log in to view your dashboard",
+    "yourProfile": "Your Profile",
+    "yourUsual": "Your Usual",
+    "favoriteService": "Favorite Service",
+    "favoriteStylist": "Favorite Stylist",
+    "typicalTime": "Typical Time",
+    "notEnoughData": "Not enough data yet",
+    "usualTip": "Tip: You can ask the AI to \"book the usual\"!",
+    "displayName": "Display Name",
+    "enterDisplayName": "Enter your display name",
+    "save": "Save",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "connectedAccount": "Connected Account",
+    "whatsapp": "WhatsApp",
+    "telegram": "Telegram",
+    "contactPreferences": "Contact Preferences",
+    "contactPreferencesDesc": "You will receive appointment updates via",
+    "yourAppointments": "Your Appointments",
+    "loadingAppointments": "Loading your appointments...",
+    "failedToLoad": "Failed to Load Appointments",
+    "unableToLoad": "Unable to load appointments",
+    "noAppointmentsTitle": "No appointments found",
+    "noAppointmentsDesc": "Ready for a new look? Book your first appointment to get started!"
   }
 }

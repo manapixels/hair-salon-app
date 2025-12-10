@@ -1051,7 +1051,10 @@
       "updatePrices": "更新价格",
       "servicesPricing": "服务与定价",
       "addClosure": "添加停业",
-      "holidaysClosures": "假期与停业"
+      "holidaysClosures": "假期与停业",
+      "edit": "编辑",
+      "cancel": "取消",
+      "openMenu": "打开菜单"
     },
     "Appointments": {
       "title": "预约管理",
@@ -1199,6 +1202,70 @@
     "notConnectedDescription": "连接您的谷歌日历，自动同步分配给您的预约。",
     "connectGoogle": "连接谷歌日历",
     "upcomingAppointments": "您的预约",
-    "noAppointments": "暂无预约安排。"
+    "noAppointments": "暂无预约安排。",
+    "loadingProfile": "正在加载您的资料...",
+    "pleaseLogIn": "请登录以查看您的仪表板",
+    "loadingAppointments": "正在加载预约...",
+    "enterDisplayName": "输入您的显示名称"
+  },
+  "AppointmentCard": {
+    "bookedWith": "预约方式",
+    "telegram": "Telegram",
+    "whatsapp": "WhatsApp",
+    "web": "网页",
+    "with": "发型师"
+  },
+  "EditAppointmentModal": {
+    "title": "编辑预约",
+    "description": "更新预约详情、服务和预定时间。",
+    "customerDetails": "客户信息",
+    "account": "账户",
+    "stylist": "发型师",
+    "noPreference": "无偏好",
+    "loading": "加载中...",
+    "cancel": "取消",
+    "updateAppointment": "更新预约",
+    "updating": "正在更新预约...",
+    "updateSuccess": "预约更新成功！",
+    "selectDateAndTime": "请选择日期和时间",
+    "selectService": "请至少选择一项服务",
+    "selectCategory": "请选择服务类别",
+    "updateFailed": "更新预约失败"
+  },
+  "CancelAppointmentDialog": {
+    "title": "取消预约",
+    "confirmWithName": "您确定要取消 {name} 的预约吗？",
+    "confirmGeneric": "您确定要取消此预约吗？",
+    "no": "不，保留",
+    "yes": "是，取消",
+    "cancelling": "正在取消..."
+  },
+  "CustomerDashboard": {
+    "welcome": "欢迎回来，{name}！",
+    "subtitle": "在这里您可以管理预约和个人设置。",
+    "pleaseLogIn": "请登录以查看您的仪表板",
+    "yourProfile": "个人资料",
+    "yourUsual": "您的常规选择",
+    "favoriteService": "常用服务",
+    "favoriteStylist": "常用发型师",
+    "typicalTime": "常用时间",
+    "notEnoughData": "数据不足",
+    "usualTip": "提示：您可以让AI「预约老样子」！",
+    "displayName": "显示名称",
+    "enterDisplayName": "输入您的显示名称",
+    "save": "保存",
+    "cancel": "取消",
+    "edit": "编辑",
+    "connectedAccount": "关联账户",
+    "whatsapp": "WhatsApp",
+    "telegram": "Telegram",
+    "contactPreferences": "联系偏好",
+    "contactPreferencesDesc": "您将通过以下方式收到预约更新",
+    "yourAppointments": "您的预约",
+    "loadingAppointments": "正在加载您的预约...",
+    "failedToLoad": "加载预约失败",
+    "unableToLoad": "无法加载预约",
+    "noAppointmentsTitle": "暂无预约",
+    "noAppointmentsDesc": "想换个造型？现在预约您的第一次服务吧！"
   }
 }

@@ -167,7 +167,7 @@ export default function StylistDashboard() {
   if (!user && !loading) {
     return (
       <div className="text-center py-12">
-        <div className="text-gray-600">Please log in to view your dashboard</div>
+        <div className="text-gray-600">{t('pleaseLogIn')}</div>
       </div>
     );
   }
@@ -175,7 +175,7 @@ export default function StylistDashboard() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <LoadingSpinner size="lg" message="Loading your profile..." />
+        <LoadingSpinner size="lg" message={t('loadingProfile')} />
       </div>
     );
   }
@@ -225,7 +225,7 @@ export default function StylistDashboard() {
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                         setNewName(e.target.value)
                       }
-                      placeholder="Enter your display name"
+                      placeholder={t('enterDisplayName')}
                       maxLength={50}
                       className="text-gray-900 font-medium text-lg pl-0"
                     />
@@ -371,7 +371,7 @@ export default function StylistDashboard() {
           <CardContent>
             {appointmentsLoading ? (
               <div className="flex items-center justify-center py-8">
-                <LoadingSpinner size="sm" message="Loading appointments..." />
+                <LoadingSpinner size="sm" message={t('loadingAppointments')} />
               </div>
             ) : appointments.length === 0 ? (
               <div className="text-center py-8 text-gray-500">
