@@ -410,6 +410,9 @@ export const retentionMessageTypeEnum = pgEnum('RetentionMessageType', [
   'REBOOKING_NUDGE',
   'WIN_BACK',
 ]);
+
+export const bookingSourceEnum = pgEnum('BookingSource', ['WEB', 'TELEGRAM', 'WHATSAPP']);
+// Used in appointments table to track booking origin
 ```
 
 ---

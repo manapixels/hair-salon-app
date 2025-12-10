@@ -766,6 +766,7 @@ ${servicesListString}
             customerName: args?.customerName as string,
             customerEmail: args?.customerEmail as string,
             stylistId: args?.stylistId as string | undefined, // Pass stylist ID
+            bookingSource: 'WHATSAPP',
           });
 
           // Sync to Google Calendar

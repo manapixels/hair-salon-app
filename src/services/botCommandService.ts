@@ -1502,6 +1502,7 @@ Please make sure you're logged in and try again with /book`,
         customerName: user.name,
         customerEmail: user.email,
         userId: user.id,
+        bookingSource: 'TELEGRAM',
       });
 
       // Clear booking context and step history
@@ -2167,6 +2168,7 @@ No previous step found. Let's start fresh!`,
           customerName: bookingContext.customerName,
           customerEmail: bookingContext.customerEmail,
           stylistId: bookingContext.stylistId,
+          bookingSource: 'TELEGRAM',
         });
 
         const { formatDisplayDate } = await import('@/lib/timeUtils');

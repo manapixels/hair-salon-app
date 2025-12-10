@@ -8,6 +8,7 @@ import type {
   CreateAppointmentInput,
   StylistSummary,
   BlockedPeriod,
+  BookingSource,
 } from '../types';
 import { getDb } from '../db';
 import * as schema from '../db/schema';
@@ -801,6 +802,7 @@ export const bookNewAppointment = async (
         customerEmail: appointmentData.customerEmail,
         calendarEventId: null,
         userId: appointmentData.userId,
+        bookingSource: appointmentData.bookingSource || 'WEB',
         createdAt: new Date(),
         updatedAt: new Date(),
       })
@@ -827,6 +829,7 @@ export const bookNewAppointment = async (
     calendarEventId: newAppointment.calendarEventId ?? undefined,
     categoryId: newAppointment.categoryId ?? undefined,
     estimatedDuration: newAppointment.estimatedDuration ?? undefined,
+    bookingSource: newAppointment.bookingSource,
   };
 };
 

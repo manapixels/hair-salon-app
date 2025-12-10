@@ -2,6 +2,7 @@ CREATE TYPE "public"."AppointmentStatus" AS ENUM('SCHEDULED', 'COMPLETED', 'CANC
 CREATE TYPE "public"."RetentionMessageType" AS ENUM('FEEDBACK_REQUEST', 'REBOOKING_NUDGE', 'WIN_BACK');--> statement-breakpoint
 CREATE TYPE "public"."Role" AS ENUM('CUSTOMER', 'STYLIST', 'ADMIN');--> statement-breakpoint
 CREATE TYPE "public"."TagCategory" AS ENUM('CONCERN', 'OUTCOME', 'HAIR_TYPE');--> statement-breakpoint
+CREATE TYPE "public"."BookingSource" AS ENUM('WEB', 'TELEGRAM', 'WHATSAPP');--> statement-breakpoint
 CREATE TABLE "admin_settings" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"weeklySchedule" json DEFAULT '{"monday":{"isOpen":true,"openingTime":"11:00","closingTime":"19:00"},"tuesday":{"isOpen":false,"openingTime":"11:00","closingTime":"19:00"},"wednesday":{"isOpen":true,"openingTime":"11:00","closingTime":"19:00"},"thursday":{"isOpen":true,"openingTime":"11:00","closingTime":"19:00"},"friday":{"isOpen":true,"openingTime":"11:00","closingTime":"19:00"},"saturday":{"isOpen":true,"openingTime":"11:00","closingTime":"19:00"},"sunday":{"isOpen":true,"openingTime":"11:00","closingTime":"19:00"}}'::json NOT NULL,
@@ -30,6 +31,7 @@ CREATE TABLE "appointments" (
 	"status" "AppointmentStatus" DEFAULT 'SCHEDULED' NOT NULL,
 	"completedAt" timestamp,
 	"feedbackSent" boolean DEFAULT false NOT NULL,
+	"bookingSource" "BookingSource" DEFAULT 'WEB' NOT NULL,
 	"createdAt" timestamp DEFAULT now() NOT NULL,
 	"updatedAt" timestamp DEFAULT now() NOT NULL
 );

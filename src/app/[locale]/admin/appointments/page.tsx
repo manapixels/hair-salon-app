@@ -10,6 +10,7 @@ import EditAppointmentModal from '@/components/booking/EditAppointmentModal';
 import type { Appointment } from '@/types';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import {
   Select,
   SelectContent,
@@ -28,6 +29,9 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Refresh } from '@/lib/icons';
+import { CircleUserRound, Earth, User } from 'lucide-react';
+import TelegramIcon from '@/components/icons/telegram';
+import WhatsappIcon from '@/components/icons/whatsapp';
 import { useTranslations, useFormatter } from 'next-intl';
 
 export default function AppointmentsPage() {
@@ -283,8 +287,10 @@ export default function AppointmentsPage() {
               <div key={appointment.id} className="p-4">
                 <div className="flex items-start justify-between mb-2">
                   <div>
-                    <p className="font-medium">{appointment.customerName}</p>
-                    <p className="text-sm text-muted-foreground">{appointment.customerEmail}</p>
+                    <p className="font-medium mb-0.5">{appointment.category?.title}</p>
+                    <div className="flex items-center gap-0.5 text-sm">
+                      with <span className="font-medium">{appointment.customerName}</span>
+                    </div>
                   </div>
                   <div className="text-right">
                     <p className="font-medium">{formatDate(appointment.date)}</p>
@@ -295,8 +301,29 @@ export default function AppointmentsPage() {
                 </div>
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm">{appointment.services.map(s => s.name).join(', ')}</p>
-                    <p className="text-sm font-semibold">${appointment.totalPrice}</p>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline" className="gap-1 text-xs font-normal">
+                        {'Booked with '}
+                        {appointment.bookingSource === 'TELEGRAM' && (
+                          <div className="flex items-center gap-1">
+                            <TelegramIcon width={14} height={14} />
+                            Telegram
+                          </div>
+                        )}
+                        {appointment.bookingSource === 'WHATSAPP' && (
+                          <div className="flex items-center gap-1">
+                            <WhatsappIcon width={14} height={14} />
+                            WhatsApp
+                          </div>
+                        )}
+                        {(appointment.bookingSource === 'WEB' || !appointment.bookingSource) && (
+                          <div className="flex items-center gap-1">
+                            <Earth className="w-3.5 h-3.5" />
+                            Web
+                          </div>
+                        )}
+                      </Badge>
+                    </div>
                   </div>
                   <div className="flex gap-2">
                     <Button

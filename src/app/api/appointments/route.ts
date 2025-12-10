@@ -75,6 +75,7 @@ export async function POST(request: NextRequest) {
       customerName,
       customerEmail,
       userId: existingUser?.id, // Link to user if they have an account
+      bookingSource: 'WEB' as const,
       // Category-based fields (optional)
       categoryId,
       estimatedDuration,

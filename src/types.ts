@@ -112,6 +112,8 @@ export interface Stylist {
   updatedAt: Date;
 }
 
+export type BookingSource = 'WEB' | 'TELEGRAM' | 'WHATSAPP';
+
 export interface Appointment {
   id: string;
   date: Date;
@@ -135,6 +137,7 @@ export interface Appointment {
   calendarEventId?: string | null; // Google Calendar event ID
   userId?: string | null; // User who booked the appointment
   user?: User; // Populated user data (for reminders)
+  bookingSource?: BookingSource; // WEB, TELEGRAM, WHATSAPP
   createdAt: Date;
   updatedAt: Date;
 }

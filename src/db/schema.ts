@@ -32,6 +32,7 @@ export const retentionMessageTypeEnum = pgEnum('RetentionMessageType', [
   'WIN_BACK',
 ]);
 export const tagCategoryEnum = pgEnum('TagCategory', ['CONCERN', 'OUTCOME', 'HAIR_TYPE']);
+export const bookingSourceEnum = pgEnum('BookingSource', ['WEB', 'TELEGRAM', 'WHATSAPP']);
 
 // ============================================
 // TABLES
@@ -174,6 +175,7 @@ export const appointments = pgTable('appointments', {
   status: appointmentStatusEnum('status').default('SCHEDULED').notNull(),
   completedAt: timestamp('completedAt'),
   feedbackSent: boolean('feedbackSent').default(false).notNull(),
+  bookingSource: bookingSourceEnum('bookingSource').default('WEB').notNull(),
   createdAt: timestamp('createdAt').defaultNow().notNull(),
   updatedAt: timestamp('updatedAt').defaultNow().notNull(),
 });

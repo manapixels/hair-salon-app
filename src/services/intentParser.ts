@@ -824,6 +824,7 @@ export async function generateFallbackResponse(
           customerName: currentContext.customerName || 'Guest',
           customerEmail: currentContext.customerEmail || '',
           stylistId: currentContext.stylistId,
+          bookingSource: 'WHATSAPP',
         });
 
         // Format success message
