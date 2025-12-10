@@ -50,9 +50,7 @@ export default async function RootLayout({
 
   return (
     <html lang={locale} suppressHydrationWarning>
-      <head>
-        <link rel="icon" type="image/svg+xml" href="/logo.svg" />
-      </head>
+      <head></head>
       <body>
         <QueryProvider>
           <NextIntlClientProvider messages={messages}>
