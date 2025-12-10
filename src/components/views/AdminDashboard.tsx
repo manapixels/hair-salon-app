@@ -3,6 +3,7 @@ import { toast } from 'sonner';
 import { useBooking } from '@/context/BookingContext';
 import type { Appointment } from '@/types';
 import EditAppointmentModal from '../booking/EditAppointmentModal';
+import { CancelAppointmentDialog } from '../booking/shared';
 import StylistManagement from '../team/StylistManagement';
 import AvailabilityModeToggle, {
   type AvailabilityMode,
@@ -1653,9 +1654,9 @@ const AdminDashboard: React.FC = () => {
                                   </td>
                                   <td className="px-4 py-4 whitespace-nowrap text-sm font-medium">
                                     <div className="flex space-x-4">
-                                      <button
+                                      <Button
                                         onClick={() => handleEditAppointment(appointment)}
-                                        className="text-primary hover:text-primary transition-colors"
+                                        variant="default"
                                         title="Edit appointment"
                                       >
                                         <svg
@@ -1671,11 +1672,11 @@ const AdminDashboard: React.FC = () => {
                                             clipRule="evenodd"
                                           />
                                         </svg>
-                                      </button>
-                                      <button
+                                      </Button>
+                                      <Button
                                         onClick={() => handleCancelAppointment(appointment)}
-                                        className="text-red-600 hover:text-red-900 transition-colors"
                                         title="Cancel appointment"
+                                        variant="destructive"
                                       >
                                         <svg
                                           className="h-5 w-5"
@@ -1689,7 +1690,7 @@ const AdminDashboard: React.FC = () => {
                                             clipRule="evenodd"
                                           />
                                         </svg>
-                                      </button>
+                                      </Button>
                                       {(() => {
                                         const status = (appointment as any).status || 'SCHEDULED';
                                         const completedAt = (appointment as any).completedAt;
@@ -1861,31 +1862,12 @@ const AdminDashboard: React.FC = () => {
         />
 
         {/* Cancel Appointment Dialog */}
-        <AlertDialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
-          <AlertDialogContent className="fixed left-[50%] top-[50%] max-h-[85vh] w-[90vw] max-w-[500px] translate-x-[-50%] translate-y-[-50%] rounded-none bg-white p-6  border border-gray-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%]">
-            <AlertDialogHeader>
-              <AlertDialogTitle className="text-lg font-semibold text-gray-900 mb-2">
-                Cancel Appointment
-              </AlertDialogTitle>
-              <AlertDialogDescription className="text-sm text-gray-600 mb-4">
-                Are you sure you want to cancel the appointment for{' '}
-                {appointmentToCancel?.customerName}?
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel asChild>
-                <Button variant="secondary" size="sm">
-                  No
-                </Button>
-              </AlertDialogCancel>
-              <AlertDialogAction asChild>
-                <Button variant="destructive" size="sm" onClick={confirmCancelAppointment}>
-                  Yes, Cancel
-                </Button>
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+        <CancelAppointmentDialog
+          open={cancelDialogOpen}
+          onOpenChange={setCancelDialogOpen}
+          customerName={appointmentToCancel?.customerName}
+          onConfirm={confirmCancelAppointment}
+        />
 
         {/* No-Show Dialog */}
         <AlertDialog open={noShowDialogOpen} onOpenChange={setNoShowDialogOpen}>

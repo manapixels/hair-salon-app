@@ -13,7 +13,7 @@ import { formatDisplayDate } from '@/lib/timeUtils';
 import type { Appointment } from '@/types';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import * as AlertDialog from '@radix-ui/react-alert-dialog';
+import { CancelAppointmentDialog } from '@/components/booking/shared';
 import { Edit, Calendar, Delete, WhatsAppIcon, TelegramIcon } from '@/lib/icons';
 import { Spinner } from '../ui/spinner';
 
@@ -358,31 +358,12 @@ export default function CustomerDashboard() {
       )}
 
       {/* Cancel Appointment Dialog */}
-      <AlertDialog.Root open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
-        <AlertDialog.Portal>
-          <AlertDialog.Overlay className="fixed inset-0 bg-black/50 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
-          <AlertDialog.Content className="fixed left-[50%] top-[50%] max-h-[85vh] w-[90vw] max-w-[500px] translate-x-[-50%] translate-y-[-50%] rounded-lg bg-white p-6 shadow-lg border border-gray-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%]">
-            <AlertDialog.Title className="text-lg font-semibold text-gray-900 mb-2">
-              Cancel Appointment
-            </AlertDialog.Title>
-            <AlertDialog.Description className="text-sm text-gray-600 mb-4">
-              Are you sure you want to cancel this appointment?
-            </AlertDialog.Description>
-            <div className="flex gap-3 justify-end">
-              <AlertDialog.Cancel asChild>
-                <Button variant="secondary" size="sm">
-                  No, keep it
-                </Button>
-              </AlertDialog.Cancel>
-              <AlertDialog.Action asChild>
-                <Button variant="destructive" size="sm" onClick={confirmCancelAppointment}>
-                  Yes, cancel it
-                </Button>
-              </AlertDialog.Action>
-            </div>
-          </AlertDialog.Content>
-        </AlertDialog.Portal>
-      </AlertDialog.Root>
+      <CancelAppointmentDialog
+        open={cancelDialogOpen}
+        onOpenChange={setCancelDialogOpen}
+        onConfirm={confirmCancelAppointment}
+        isLoading={cancelAppointmentMutation.isPending}
+      />
     </div>
   );
 }
