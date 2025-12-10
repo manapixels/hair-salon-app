@@ -84,7 +84,13 @@ async function initializeDatabase() {
 initializeDatabase();
 
 // --- HELPERS ---
-const dateToKey = (date: Date) => date.toISOString().split('T')[0];
+// Use local timezone for date key to prevent date shifting across timezones
+const dateToKey = (date: Date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
 
 const generateTimeSlots = (start: string, end: string): string[] => {
   const slots: string[] = [];
@@ -631,25 +637,40 @@ export const getStylistAvailability = async (date: Date, stylistId: string): Pro
       const db = await getDb();
       const dateObj = new Date(dateKeyParam + 'T12:00:00.000Z');
       const dayOfWeek = dateObj.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
+      console.log(`[StylistAvail] Date: ${dateKeyParam}, Day: ${dayOfWeek}`);
 
       const stylist = await getStylistById(stylistIdParam);
-      if (!stylist || !stylist.isActive) return [];
+      if (!stylist || !stylist.isActive) {
+        console.log(`[StylistAvail] Stylist not found or inactive`);
+        return [];
+      }
 
       // Check if date is blocked
       const isDateBlocked = stylist.blockedDates?.some(d => {
         const dateStr = typeof d === 'string' ? d : d.date;
         return dateStr === dateKeyParam;
       });
-      if (isDateBlocked) return [];
+      if (isDateBlocked) {
+        console.log(`[StylistAvail] Date is blocked for stylist`);
+        return [];
+      }
 
       if (!stylist.workingHours || typeof stylist.workingHours !== 'object') {
+        console.log(`[StylistAvail] No working hours, falling back to general availability`);
         return await getAvailability(dateObj);
       }
 
       const workingHours = stylist.workingHours[dayOfWeek as keyof typeof stylist.workingHours];
-      if (!workingHours || !workingHours.isWorking) return [];
+      console.log(`[StylistAvail] Working hours for ${dayOfWeek}:`, workingHours);
+      if (!workingHours || !workingHours.isWorking) {
+        console.log(`[StylistAvail] Stylist not working on ${dayOfWeek}`);
+        return [];
+      }
 
       const stylistSlots = generateTimeSlots(workingHours.start, workingHours.end);
+      console.log(
+        `[StylistAvail] Generated ${stylistSlots.length} slots from ${workingHours.start} to ${workingHours.end}`,
+      );
 
       // Get stylist appointments
       const stylistAppointments = await db
@@ -676,7 +697,11 @@ export const getStylistAvailability = async (date: Date, stylistId: string): Pro
       const settings = await getAdminSettings();
       const blockedByAdmin = new Set<string>(settings.blockedSlots[dateKeyParam] || []);
 
-      return stylistSlots.filter(slot => !bookedSlots.has(slot) && !blockedByAdmin.has(slot));
+      const finalSlots = stylistSlots.filter(
+        slot => !bookedSlots.has(slot) && !blockedByAdmin.has(slot),
+      );
+      console.log(`[StylistAvail] Final slots after filtering: ${finalSlots.length}`);
+      return finalSlots;
     },
     ['stylist-availability', dateKey, stylistId],
     {
@@ -689,7 +714,11 @@ export const getStylistAvailability = async (date: Date, stylistId: string): Pro
     },
   );
 
-  return getCachedStylistAvailability(dateKey, stylistId);
+  const result = await getCachedStylistAvailability(dateKey, stylistId);
+  console.log(
+    `[StylistAvail] FINAL: dateKey=${dateKey}, stylistId=${stylistId}, slots=${result.length}`,
+  );
+  return result;
 };
 
 // --- BOOKING ---
@@ -698,6 +727,13 @@ export const bookNewAppointment = async (
   appointmentData: CreateAppointmentInput,
 ): Promise<Appointment> => {
   const db = await getDb();
+
+  console.log(
+    `[Booking] Input date: ${appointmentData.date}, stylistId: ${appointmentData.stylistId}`,
+  );
+  console.log(
+    `[Booking] Date type: ${typeof appointmentData.date}, Date ISO: ${appointmentData.date instanceof Date ? appointmentData.date.toISOString() : 'not a Date'}`,
+  );
 
   const availableSlots = appointmentData.stylistId
     ? await getStylistAvailability(appointmentData.date, appointmentData.stylistId)
@@ -731,32 +767,50 @@ export const bookNewAppointment = async (
   }
 
   const numSlotsRequired = Math.ceil(totalDuration / 30);
+  console.log(
+    `[Booking] Duration: ${totalDuration}min, numSlotsRequired: ${numSlotsRequired}, time: ${appointmentData.time}`,
+  );
+  console.log(`[Booking] Available slots:`, availableSlots);
 
   for (let i = 0; i < numSlotsRequired; i++) {
     const slotToCheck = new Date(`1970-01-01T${appointmentData.time}:00`);
     slotToCheck.setMinutes(slotToCheck.getMinutes() + i * 30);
     const timeString = slotToCheck.toTimeString().substring(0, 5);
+    console.log(
+      `[Booking] Checking slot ${i + 1}/${numSlotsRequired}: ${timeString}, available: ${availableSlots.includes(timeString)}`,
+    );
     if (!availableSlots.includes(timeString)) {
       throw new Error('Booking conflict. Not enough consecutive slots available.');
     }
   }
 
-  const result = await db
-    .insert(schema.appointments)
-    .values({
-      date: appointmentData.date,
-      time: appointmentData.time,
-      services: appointmentData.services as any,
-      stylistId: appointmentData.stylistId,
-      customerName: appointmentData.customerName,
-      customerEmail: appointmentData.customerEmail,
-      userId: appointmentData.userId,
-      totalPrice,
-      totalDuration,
-      categoryId: appointmentData.categoryId,
-      estimatedDuration: appointmentData.estimatedDuration,
-    })
-    .returning();
+  let result;
+  try {
+    result = await db
+      .insert(schema.appointments)
+      .values({
+        date: appointmentData.date,
+        time: appointmentData.time,
+        categoryId: appointmentData.categoryId,
+        estimatedDuration: appointmentData.estimatedDuration,
+        services: appointmentData.services as any,
+        totalPrice,
+        totalDuration,
+        stylistId: appointmentData.stylistId,
+        customerName: appointmentData.customerName,
+        customerEmail: appointmentData.customerEmail,
+        calendarEventId: null,
+        userId: appointmentData.userId,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .returning();
+  } catch (dbError: any) {
+    console.error('[Booking] Database insert error:', dbError);
+    console.error('[Booking] Error message:', dbError.message);
+    console.error('[Booking] Error cause:', dbError.cause);
+    throw dbError;
+  }
 
   const newAppointment = result[0];
 

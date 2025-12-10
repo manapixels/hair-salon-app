@@ -106,6 +106,10 @@ The `getAvailability` and `getStylistAvailability` functions use `unstable_cache
 
 Cache is automatically revalidated in `bookNewAppointment()` and `cancelAppointment()` via `revalidateAvailability()`.
 
+### **Duration-Based Filtering**
+
+The `/api/availability` endpoint accepts an optional `duration` parameter (in minutes). When provided, the API filters out time slots that don't have enough consecutive 30-minute blocks to accommodate the service. This prevents users from selecting times that would fail at booking due to insufficient time before closing or another appointment.
+
 ### **Critical Notes for Developers**
 
 ⚠️ **Use `getDb()` for database access** - Always import from `@/db`, never instantiate clients directly

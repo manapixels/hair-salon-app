@@ -72,6 +72,7 @@ CREATE TABLE "LoginToken" (
 	"userId" text,
 	"expiresAt" timestamp NOT NULL,
 	"createdAt" timestamp DEFAULT now() NOT NULL,
+	"status" text DEFAULT 'PENDING' NOT NULL
 	CONSTRAINT "LoginToken_token_unique" UNIQUE("token")
 );
 --> statement-breakpoint

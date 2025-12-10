@@ -615,21 +615,10 @@ Please confirm availability. Thank you!`;
 
       {/* Mobile Sticky Summary */}
       <MobileBookingSummary
-        totalPrice={totalPrice}
         totalDuration={totalDuration}
         currentStep={currentStep}
         totalSteps={4}
         onNext={handleNextStep}
-        nextLabel={
-          currentStep === 1
-            ? t('chooseStylist')
-            : currentStep === 2
-              ? t('selectTime')
-              : currentStep === 3
-                ? t('confirm')
-                : t('bookNow')
-        }
-        isSubmitting={isSubmitting}
       />
     </div>
   );

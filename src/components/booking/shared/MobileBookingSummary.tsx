@@ -1,31 +1,17 @@
 'use client';
 
 import React, { useState, useEffect, memo } from 'react';
-import { Button } from '@/components/ui/button';
-import { Spinner } from '@/components/ui/spinner';
 import { useTranslations } from 'next-intl';
-import { Clock } from 'lucide-react';
 
 interface MobileBookingSummaryProps {
-  totalPrice: number;
   totalDuration: number;
   currentStep: number;
   totalSteps: number;
   onNext: () => void;
-  nextLabel: string;
-  isSubmitting?: boolean;
 }
 
 export const MobileBookingSummary = memo<MobileBookingSummaryProps>(
-  ({
-    totalPrice,
-    totalDuration,
-    currentStep,
-    totalSteps,
-    onNext,
-    nextLabel,
-    isSubmitting = false,
-  }) => {
+  ({ totalDuration, currentStep, totalSteps, onNext }) => {
     const t = useTranslations('BookingForm');
     const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
     const [isCompact, setIsCompact] = useState(false);
@@ -105,17 +91,6 @@ export const MobileBookingSummary = memo<MobileBookingSummaryProps>(
                 </span>
               </div>
             </div>
-
-            <Button
-              onClick={onNext}
-              variant="default"
-              size="lg"
-              disabled={isSubmitting}
-              className="shadow-md"
-            >
-              {isSubmitting && <Spinner className="mr-2" />}
-              {nextLabel}
-            </Button>
           </div>
         </div>
       </div>
