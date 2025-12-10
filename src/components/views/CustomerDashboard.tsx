@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Image from 'next/image';
 import { useAuth, useUserAppointments, useUserPattern } from '@/hooks/queries';
 import { useCancelAppointment, useUpdateProfile } from '@/hooks/mutations';
-import RescheduleModal from '../booking/RescheduleModal';
+import EditAppointmentModal from '../booking/EditAppointmentModal';
 import { LoadingSpinner } from '../feedback/loaders/LoadingSpinner';
 import { ErrorState } from '../feedback/ErrorState';
 import { EmptyState } from '../feedback/EmptyState';
@@ -14,7 +14,7 @@ import type { Appointment } from '@/types';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { CancelAppointmentDialog } from '@/components/booking/shared';
-import { Edit, Calendar, Delete, WhatsAppIcon, TelegramIcon } from '@/lib/icons';
+import { Edit, Delete, WhatsAppIcon, TelegramIcon } from '@/lib/icons';
 import { Spinner } from '../ui/spinner';
 
 export default function CustomerDashboard() {
@@ -29,8 +29,8 @@ export default function CustomerDashboard() {
   const showLoader = useDelayedLoading(isLoading);
   const [isEditingName, setIsEditingName] = useState(false);
   const [newName, setNewName] = useState('');
-  const [rescheduleModalOpen, setRescheduleModalOpen] = useState(false);
-  const [appointmentToReschedule, setAppointmentToReschedule] = useState<Appointment | null>(null);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [appointmentToEdit, setAppointmentToEdit] = useState<Appointment | null>(null);
 
   // AlertDialog states
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
@@ -78,22 +78,37 @@ export default function CustomerDashboard() {
     );
   };
 
-  const handleRescheduleAppointment = (appointmentId: string) => {
+  const handleEditAppointment = (appointmentId: string) => {
     const appointment = appointments.find(apt => apt.id === appointmentId);
     if (appointment) {
-      setAppointmentToReschedule(appointment);
-      setRescheduleModalOpen(true);
+      setAppointmentToEdit(appointment);
+      setEditModalOpen(true);
     }
   };
 
-  const handleRescheduleSuccess = () => {
-    // React Query will automatically refetch due to invalidation in the mutation
-    // No manual refetch needed
+  const handleSaveAppointment = async (updatedData: Partial<Appointment>) => {
+    if (!appointmentToEdit) return;
+
+    const response = await fetch('/api/appointments/edit', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        id: appointmentToEdit.id,
+        ...updatedData,
+      }),
+    });
+
+    if (!response.ok) {
+      const error = (await response.json()) as any;
+      throw new Error(error.message || 'Failed to update appointment');
+    }
+
+    await refetch();
   };
 
-  const handleRescheduleClose = () => {
-    setRescheduleModalOpen(false);
-    setAppointmentToReschedule(null);
+  const handleEditClose = () => {
+    setEditModalOpen(false);
+    setAppointmentToEdit(null);
   };
 
   if (!user && !isLoading) {
@@ -318,10 +333,10 @@ export default function CustomerDashboard() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => handleRescheduleAppointment(appointment.id)}
+                          onClick={() => handleEditAppointment(appointment.id)}
                         >
-                          <Calendar className="h-4 w-4" aria-hidden="true" />
-                          Reschedule
+                          <Edit className="h-4 w-4" aria-hidden="true" />
+                          Edit
                         </Button>
                         <Button
                           variant="ghost"
@@ -347,15 +362,13 @@ export default function CustomerDashboard() {
         </div>
       </div>
 
-      {/* Reschedule Modal */}
-      {appointmentToReschedule && (
-        <RescheduleModal
-          appointment={appointmentToReschedule}
-          isOpen={rescheduleModalOpen}
-          onClose={handleRescheduleClose}
-          onSuccess={handleRescheduleSuccess}
-        />
-      )}
+      {/* Edit Appointment Modal */}
+      <EditAppointmentModal
+        isOpen={editModalOpen}
+        onClose={handleEditClose}
+        appointment={appointmentToEdit}
+        onSave={handleSaveAppointment}
+      />
 
       {/* Cancel Appointment Dialog */}
       <CancelAppointmentDialog

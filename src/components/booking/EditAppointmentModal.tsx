@@ -36,6 +36,7 @@ import { useAvailability } from '@/hooks/queries/useAvailability';
 import { useStylists } from '@/hooks/queries/useStylists';
 import { LoadingSpinner } from '@/components/feedback/loaders/LoadingSpinner';
 import { cn } from '@/lib/utils';
+import { Separator } from '../ui/separator';
 
 interface EditAppointmentModalProps {
   isOpen: boolean;
@@ -190,8 +191,8 @@ export default function EditAppointmentModal({
     e.preventDefault();
     setError('');
 
-    if (!formData.customerName || !formData.customerEmail || !formData.date || !formData.time) {
-      const errorMsg = 'Please fill in all required fields';
+    if (!formData.date || !formData.time) {
+      const errorMsg = 'Please select a date and time';
       setError(errorMsg);
       toast.error(errorMsg);
       return;
@@ -218,8 +219,6 @@ export default function EditAppointmentModal({
       const { totalPrice, totalDuration } = calculateTotals();
 
       const updateData: Partial<Appointment> = {
-        customerName: formData.customerName,
-        customerEmail: formData.customerEmail,
         date: new Date(formData.date),
         time: formData.time,
         stylistId: formData.stylistId,
@@ -278,34 +277,20 @@ export default function EditAppointmentModal({
       )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Customer Details Section */}
+        {/* Customer Details Section (Read-only) */}
         <section className="space-y-4">
           <h3 className="text-sm font-semibold text-gray-900">Customer Details</h3>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
-              <Label htmlFor="customerName">Name *</Label>
+              <Label htmlFor="customerName" className="text-muted-foreground">
+                Account
+              </Label>
               <Input
                 id="customerName"
                 type="text"
                 value={formData.customerName}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  setFormData(prev => ({ ...prev, customerName: e.target.value }))
-                }
-                className="mt-1"
-                required
-              />
-            </div>
-            <div>
-              <Label htmlFor="customerEmail">Email *</Label>
-              <Input
-                id="customerEmail"
-                type="email"
-                value={formData.customerEmail}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  setFormData(prev => ({ ...prev, customerEmail: e.target.value }))
-                }
-                className="mt-1"
-                required
+                disabled
+                className="mt-1 bg-muted cursor-not-allowed"
               />
             </div>
           </div>
@@ -335,9 +320,10 @@ export default function EditAppointmentModal({
           </Select>
         </section>
 
+        <Separator />
+
         {/* Date & Time Section */}
         <section className="space-y-4">
-          <h3 className="text-sm font-semibold text-gray-900">Date & Time</h3>
           <div>
             <Label htmlFor="date">Date *</Label>
             <Input
@@ -389,115 +375,6 @@ export default function EditAppointmentModal({
           </div>
         </section>
 
-        {/* Booking Mode Toggle */}
-        <section className="space-y-4">
-          <div className="flex items-center gap-4">
-            <h3 className="text-sm font-semibold text-gray-900">Booking Type</h3>
-            <div className="flex rounded-lg border border-gray-200 p-1">
-              <button
-                type="button"
-                onClick={() => setBookingMode('category')}
-                className={cn(
-                  'rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
-                  bookingMode === 'category'
-                    ? 'bg-primary text-white'
-                    : 'text-gray-600 hover:bg-gray-100',
-                )}
-              >
-                Category
-              </button>
-              <button
-                type="button"
-                onClick={() => setBookingMode('service')}
-                className={cn(
-                  'rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
-                  bookingMode === 'service'
-                    ? 'bg-primary text-white'
-                    : 'text-gray-600 hover:bg-gray-100',
-                )}
-              >
-                Services
-              </button>
-            </div>
-          </div>
-
-          {/* Category Selection */}
-          {bookingMode === 'category' && (
-            <div className="space-y-2">
-              <Label htmlFor="category">Service Category *</Label>
-              <Select value={formData.categoryId || ''} onValueChange={handleCategoryChange}>
-                <SelectTrigger id="category" className="min-h-touch-lg">
-                  <SelectValue placeholder="Select a category" />
-                </SelectTrigger>
-                <SelectContent>
-                  {categories.map(category => (
-                    <SelectItem key={category.id} value={category.id}>
-                      {category.title}
-                      {category.estimatedDuration && (
-                        <span className="ml-2 text-gray-500">
-                          (~{category.estimatedDuration} min)
-                        </span>
-                      )}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {selectedCategory && (
-                <p className="text-sm text-gray-500">
-                  Estimated duration: {selectedCategory.estimatedDuration || 60} minutes
-                </p>
-              )}
-            </div>
-          )}
-
-          {/* Service Selection */}
-          {bookingMode === 'service' && (
-            <div className="space-y-2">
-              <Label>Services *</Label>
-              <div className="max-h-64 overflow-y-auto rounded-lg border border-gray-200">
-                {Object.entries(servicesByCategory).map(([categoryId, { category, services }]) => (
-                  <div key={categoryId} className="border-b border-gray-100 last:border-b-0">
-                    <div className="bg-gray-50 px-4 py-2">
-                      <h4 className="text-sm font-medium text-gray-700">{category.title}</h4>
-                    </div>
-                    <div className="space-y-1 p-2">
-                      {services.map(service => {
-                        const isSelected = formData.services.some(s => s.id === service.id);
-                        const checkboxId = `service-${service.id}`;
-
-                        return (
-                          <div
-                            key={service.id}
-                            className={cn(
-                              'flex items-center gap-3 rounded-lg border p-3 transition-colors cursor-pointer',
-                              isSelected
-                                ? 'border-primary bg-primary/10'
-                                : 'border-transparent hover:bg-gray-50',
-                            )}
-                            onClick={() => handleServiceToggle(service)}
-                          >
-                            <Checkbox
-                              id={checkboxId}
-                              checked={isSelected}
-                              onCheckedChange={() => handleServiceToggle(service)}
-                            />
-                            <div className="flex-1 min-w-0">
-                              <p className="font-medium text-gray-900">{service.name}</p>
-                              <p className="text-xs text-gray-500">
-                                {service.duration} min · ${service.basePrice}
-                              </p>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </section>
-
         {/* Summary */}
         {(formData.services.length > 0 || (bookingMode === 'category' && formData.categoryId)) && (
           <section className="rounded-lg border border-gray-200 bg-gray-50 p-4">
@@ -515,17 +392,12 @@ export default function EditAppointmentModal({
                 <dt className="text-gray-600">Duration</dt>
                 <dd className="font-medium text-gray-900">{summaryDuration} minutes</dd>
               </div>
-              {bookingMode === 'service' && totalPrice > 0 && (
-                <div className="flex justify-between">
-                  <dt className="text-gray-600">Total Price</dt>
-                  <dd className="font-medium text-gray-900">${totalPrice}</dd>
-                </div>
-              )}
-              {bookingMode === 'category' && (
-                <p className="text-xs text-gray-500 italic">
-                  Final price will be determined at appointment
-                </p>
-              )}
+              <div className="flex justify-between">
+                <dt className="text-gray-600">Date & Time</dt>
+                <dd className="font-medium text-gray-900">
+                  {formData.date} {formatTime12Hour(formData.time)}
+                </dd>
+              </div>
             </dl>
           </section>
         )}
