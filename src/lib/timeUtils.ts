@@ -60,6 +60,19 @@ export function getDurationParts(minutes: number): { hours: number; mins: number
 }
 
 /**
+ * Format duration in human-readable format
+ * @param minutes - Duration in minutes
+ * @returns Formatted string like "2h 30m", "45m", or "1h"
+ */
+export function formatDuration(minutes: number): string {
+  const hours = Math.floor(minutes / 60);
+  const mins = minutes % 60;
+  if (hours === 0) return `${mins}m`;
+  if (mins === 0) return `${hours}h`;
+  return `${hours}h ${mins}m`;
+}
+
+/**
  * Convert 24-hour time format to 12-hour format with lowercase am/pm
  * @param time - Time string in HH:MM format (e.g., "15:00", "09:30")
  * @returns Time in 12-hour format with lowercase am/pm (e.g., "3pm", "9:30am")

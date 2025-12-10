@@ -294,8 +294,6 @@ export default function CustomerDashboard() {
                   <AppointmentCard
                     key={appointment.id}
                     appointment={appointment}
-                    layout="card"
-                    showPrice={true}
                     showSource={false}
                     showStylist={true}
                     hideCustomer={true}

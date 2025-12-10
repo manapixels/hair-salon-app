@@ -1,15 +1,9 @@
-'use client';
-
+import { getAppointments } from '@/lib/database';
 import AdminDashboardHome from '@/components/admin/AdminDashboardHome';
-import { useBooking } from '@/context/BookingContext';
-import { useEffect } from 'react';
 
-export default function AdminPage() {
-  const { appointments, fetchAndSetAppointments } = useBooking();
-
-  useEffect(() => {
-    fetchAndSetAppointments();
-  }, [fetchAndSetAppointments]);
+export default async function AdminPage() {
+  // Fetch appointments directly on the server
+  const appointments = await getAppointments();
 
   return <AdminDashboardHome appointments={appointments} flaggedChatCount={0} />;
 }

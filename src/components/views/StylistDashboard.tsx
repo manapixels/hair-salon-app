@@ -21,6 +21,7 @@ import { useTranslations } from 'next-intl';
 import { Badge } from '../ui/badge';
 import { CheckIcon, CalendarDays } from 'lucide-react';
 import AppointmentCard from '@/components/appointments/AppointmentCard';
+import { formatShortDate } from '@/lib/timeUtils';
 
 interface StylistProfile {
   id: string;
@@ -378,16 +379,38 @@ export default function StylistDashboard() {
                 <p>{t('noAppointments')}</p>
               </div>
             ) : (
-              <div className="space-y-3">
-                {appointments.map(appointment => (
-                  <AppointmentCard
-                    key={appointment.id}
-                    appointment={appointment}
-                    layout="card"
-                    showPrice={true}
-                    showSource={false}
-                  />
-                ))}
+              <div className="space-y-6">
+                {/* Group appointments by date */}
+                {Object.entries(
+                  appointments.reduce(
+                    (groups, appointment) => {
+                      const dateKey = new Date(appointment.date).toDateString();
+                      if (!groups[dateKey]) {
+                        groups[dateKey] = [];
+                      }
+                      groups[dateKey].push(appointment);
+                      return groups;
+                    },
+                    {} as Record<string, Appointment[]>,
+                  ),
+                )
+                  .sort(([a], [b]) => new Date(a).getTime() - new Date(b).getTime())
+                  .map(([dateKey, dateAppointments]) => (
+                    <div key={dateKey}>
+                      <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3 px-1">
+                        {formatShortDate(new Date(dateKey))}
+                      </h3>
+                      <div className="bg-white border border-border rounded-lg divide-y divide-border">
+                        {dateAppointments.map(appointment => (
+                          <AppointmentCard
+                            key={appointment.id}
+                            appointment={appointment}
+                            showSource={false}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  ))}
               </div>
             )}
           </CardContent>

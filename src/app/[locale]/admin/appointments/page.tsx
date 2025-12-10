@@ -36,6 +36,7 @@ import { CircleUserRound, Earth, User, MoreHorizontal } from 'lucide-react';
 import TelegramIcon from '@/components/icons/telegram';
 import AppointmentCard from '@/components/appointments/AppointmentCard';
 import { useTranslations, useFormatter } from 'next-intl';
+import { formatShortDate } from '@/lib/timeUtils';
 
 export default function AppointmentsPage() {
   const { appointments, fetchAndSetAppointments } = useBooking();
@@ -274,36 +275,60 @@ export default function AppointmentsPage() {
           <p className="text-muted-foreground">{t('noAppointmentsFound')}</p>
         </div>
       ) : (
-        <div className="bg-white border border-border rounded-lg divide-y divide-border">
-          {paginatedAppointments.map(appointment => (
-            <AppointmentCard
-              key={appointment.id}
-              appointment={appointment}
-              layout="row"
-              showSource={true}
-              actions={
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="h-8 w-8 p-0">
-                      <span className="sr-only">Open menu</span>
-                      <MoreHorizontal className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => handleEditAppointment(appointment)}>
-                      {t('edit')}
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => handleCancelAppointment(appointment)}
-                      className="text-destructive focus:text-destructive"
-                    >
-                      {t('cancel')}
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              }
-            />
-          ))}
+        <div className="space-y-6">
+          {/* Group appointments by date */}
+          {Object.entries(
+            paginatedAppointments.reduce(
+              (groups, appointment) => {
+                const dateKey = new Date(appointment.date).toDateString();
+                if (!groups[dateKey]) {
+                  groups[dateKey] = [];
+                }
+                groups[dateKey].push(appointment);
+                return groups;
+              },
+              {} as Record<string, Appointment[]>,
+            ),
+          )
+            .sort(([a], [b]) => new Date(a).getTime() - new Date(b).getTime())
+            .map(([dateKey, dateAppointments]) => (
+              <div key={dateKey}>
+                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3 px-1">
+                  {formatShortDate(new Date(dateKey))}
+                </h3>
+                <div className="bg-white border border-border rounded-lg divide-y divide-border">
+                  {dateAppointments.map(appointment => (
+                    <AppointmentCard
+                      key={appointment.id}
+                      appointment={appointment}
+                      showSource={true}
+                      showStylist={true}
+                      actions={
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="h-8 w-8 p-0">
+                              <span className="sr-only">Open menu</span>
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => handleEditAppointment(appointment)}>
+                              {t('edit')}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => handleCancelAppointment(appointment)}
+                              className="text-destructive focus:text-destructive"
+                            >
+                              {t('cancel')}
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      }
+                    />
+                  ))}
+                </div>
+              </div>
+            ))}
         </div>
       )}
 
