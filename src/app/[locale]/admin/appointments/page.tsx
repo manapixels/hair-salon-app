@@ -1,9 +1,6 @@
 'use client';
 
-import { useAuth } from '@/context/AuthContext';
-import { useRouter } from 'next/navigation';
 import { useEffect, useState, useMemo } from 'react';
-import AdminLayout from '@/components/admin/AdminLayout';
 import { useBooking } from '@/context/BookingContext';
 import { LoadingSpinner } from '@/components/feedback/loaders/LoadingSpinner';
 import EditAppointmentModal from '@/components/booking/EditAppointmentModal';
@@ -41,9 +38,7 @@ import AppointmentCard from '@/components/appointments/AppointmentCard';
 import { useTranslations, useFormatter } from 'next-intl';
 
 export default function AppointmentsPage() {
-  const { user, isLoading: authLoading } = useAuth();
   const { appointments, fetchAndSetAppointments } = useBooking();
-  const router = useRouter();
   const t = useTranslations('Admin.Appointments');
   const format = useFormatter();
 
@@ -72,12 +67,6 @@ export default function AppointmentsPage() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const [appointmentToCancel, setAppointmentToCancel] = useState<Appointment | null>(null);
-
-  useEffect(() => {
-    if (!authLoading && (!user || user.role !== 'ADMIN')) {
-      router.push('/');
-    }
-  }, [user, authLoading, router]);
 
   useEffect(() => {
     const loadData = async () => {
@@ -211,143 +200,139 @@ export default function AppointmentsPage() {
     setSelectedAppointment(null);
   };
 
-  if (authLoading) {
+  if (appointmentsLoading) {
     return (
-      <div className="min-h-screen bg-muted flex items-center justify-center">
-        <LoadingSpinner size="lg" message={t('loading')} />
+      <div className="flex items-center justify-center py-12">
+        <LoadingSpinner size="md" message={t('loading')} />
       </div>
     );
   }
 
-  if (!user || user.role !== 'ADMIN') return null;
-
   return (
-    <AdminLayout title={t('title')}>
-      <div className="space-y-6">
-        {/* Header Row */}
-        <div className="flex flex-wrap justify-between items-center gap-4">
-          <div>
-            <p className="text-sm text-muted-foreground">
-              {t('showing', {
-                start: startIndex + 1,
-                end: Math.min(startIndex + itemsPerPage, sortedAppointments.length),
-                total: sortedAppointments.length,
-              })}
-            </p>
-          </div>
-          <Button variant="outline" size="sm" onClick={handleRefresh} disabled={isRefreshing}>
-            <Refresh className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-            {t('refresh')}
-          </Button>
+    <div className="space-y-6">
+      {/* Header Row */}
+      <div className="flex flex-wrap justify-between items-center gap-4">
+        <div>
+          <p className="text-sm text-muted-foreground">
+            {t('showing', {
+              start: startIndex + 1,
+              end: Math.min(startIndex + itemsPerPage, sortedAppointments.length),
+              total: sortedAppointments.length,
+            })}
+          </p>
         </div>
-
-        {/* Filters */}
-        <div className="p-4 bg-white border border-border rounded-lg">
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="flex-1">
-              <input
-                type="text"
-                placeholder={t('searchPlaceholder')}
-                value={searchTerm}
-                onChange={e => setSearchTerm(e.target.value)}
-                className="w-full px-3 py-2 border border-border rounded-md text-sm"
-              />
-            </div>
-            <Select value={dateFilter} onValueChange={v => setDateFilter(v as any)}>
-              <SelectTrigger className="w-full sm:w-[140px]">
-                <SelectValue placeholder={t('datePlaceholder')} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{t('allDates')}</SelectItem>
-                <SelectItem value="today">{t('today')}</SelectItem>
-                <SelectItem value="week">{t('thisWeek')}</SelectItem>
-                <SelectItem value="month">{t('thisMonth')}</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={statusFilter} onValueChange={v => setStatusFilter(v as any)}>
-              <SelectTrigger className="w-full sm:w-[140px]">
-                <SelectValue placeholder={t('statusPlaceholder')} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{t('allStatus')}</SelectItem>
-                <SelectItem value="today">{t('today')}</SelectItem>
-                <SelectItem value="upcoming">{t('upcoming')}</SelectItem>
-                <SelectItem value="past">{t('past')}</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-
-        {/* Appointments List */}
-        {appointmentsLoading ? (
-          <div className="p-8 text-center">
-            <LoadingSpinner size="md" message={t('loading')} />
-          </div>
-        ) : paginatedAppointments.length === 0 ? (
-          <div className="bg-white border border-border rounded-lg p-12 text-center">
-            <p className="text-muted-foreground">{t('noAppointmentsFound')}</p>
-          </div>
-        ) : (
-          <div className="bg-white border border-border rounded-lg divide-y divide-border">
-            {paginatedAppointments.map(appointment => (
-              <AppointmentCard
-                key={appointment.id}
-                appointment={appointment}
-                layout="row"
-                showSource={true}
-                actions={
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" className="h-8 w-8 p-0">
-                        <span className="sr-only">Open menu</span>
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => handleEditAppointment(appointment)}>
-                        {t('edit')}
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => handleCancelAppointment(appointment)}
-                        className="text-destructive focus:text-destructive"
-                      >
-                        {t('cancel')}
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                }
-              />
-            ))}
-          </div>
-        )}
-
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="flex items-center justify-between">
-            <p className="text-sm text-muted-foreground">
-              {t('pageIndicator', { current: currentPage, total: totalPages })}
-            </p>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={currentPage === 1}
-                onClick={() => setCurrentPage(p => p - 1)}
-              >
-                {t('previous')}
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={currentPage === totalPages}
-                onClick={() => setCurrentPage(p => p + 1)}
-              >
-                {t('next')}
-              </Button>
-            </div>
-          </div>
-        )}
+        <Button variant="outline" size="sm" onClick={handleRefresh} disabled={isRefreshing}>
+          <Refresh className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+          {t('refresh')}
+        </Button>
       </div>
+
+      {/* Filters */}
+      <div className="p-4 bg-white border border-border rounded-lg">
+        <div className="flex flex-col sm:flex-row gap-4">
+          <div className="flex-1">
+            <input
+              type="text"
+              placeholder={t('searchPlaceholder')}
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              className="w-full px-3 py-2 border border-border rounded-md text-sm"
+            />
+          </div>
+          <Select value={dateFilter} onValueChange={v => setDateFilter(v as any)}>
+            <SelectTrigger className="w-full sm:w-[140px]">
+              <SelectValue placeholder={t('datePlaceholder')} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{t('allDates')}</SelectItem>
+              <SelectItem value="today">{t('today')}</SelectItem>
+              <SelectItem value="week">{t('thisWeek')}</SelectItem>
+              <SelectItem value="month">{t('thisMonth')}</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={statusFilter} onValueChange={v => setStatusFilter(v as any)}>
+            <SelectTrigger className="w-full sm:w-[140px]">
+              <SelectValue placeholder={t('statusPlaceholder')} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{t('allStatus')}</SelectItem>
+              <SelectItem value="today">{t('today')}</SelectItem>
+              <SelectItem value="upcoming">{t('upcoming')}</SelectItem>
+              <SelectItem value="past">{t('past')}</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      {/* Appointments List */}
+      {appointmentsLoading ? (
+        <div className="p-8 text-center">
+          <LoadingSpinner size="md" message={t('loading')} />
+        </div>
+      ) : paginatedAppointments.length === 0 ? (
+        <div className="bg-white border border-border rounded-lg p-12 text-center">
+          <p className="text-muted-foreground">{t('noAppointmentsFound')}</p>
+        </div>
+      ) : (
+        <div className="bg-white border border-border rounded-lg divide-y divide-border">
+          {paginatedAppointments.map(appointment => (
+            <AppointmentCard
+              key={appointment.id}
+              appointment={appointment}
+              layout="row"
+              showSource={true}
+              actions={
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="h-8 w-8 p-0">
+                      <span className="sr-only">Open menu</span>
+                      <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => handleEditAppointment(appointment)}>
+                      {t('edit')}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => handleCancelAppointment(appointment)}
+                      className="text-destructive focus:text-destructive"
+                    >
+                      {t('cancel')}
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              }
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between">
+          <p className="text-sm text-muted-foreground">
+            {t('pageIndicator', { current: currentPage, total: totalPages })}
+          </p>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage(p => p - 1)}
+            >
+              {t('previous')}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage(p => p + 1)}
+            >
+              {t('next')}
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* Modals */}
       <EditAppointmentModal
@@ -376,6 +361,6 @@ export default function AppointmentsPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </AdminLayout>
+    </div>
   );
 }

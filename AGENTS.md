@@ -1202,4 +1202,44 @@ Admin-only page to view and manage customers with aggregated statistics.
 
 ---
 
+## 🎛️ Admin Layout Architecture
+
+Admin pages use a shared layout pattern for consistent auth handling and persistent navigation.
+
+### Key Files
+
+- **Shared Layout**: `src/app/[locale]/admin/layout.tsx` - Handles auth check once, renders `AdminLayout` component
+- **Layout Component**: `src/components/admin/AdminLayout.tsx` - Sidebar navigation, responsive design
+- **Navigation**: `src/components/admin/AdminNavigation.tsx` - Client-side routing between admin pages
+
+### Architecture
+
+```
+layout.tsx (auth check + AdminLayout wrapper)
+  └── page.tsx (individual page content only)
+```
+
+Each admin page (`/admin/**/page.tsx`) renders only its content - auth and layout are handled by the shared `layout.tsx`. This prevents:
+
+- Duplicate auth checks on navigation
+- Page refresh effect when switching admin pages
+- Re-rendering the sidebar on every navigation
+
+### Admin Pages (10 total)
+
+| Route                      | File                         |
+| -------------------------- | ---------------------------- |
+| `/admin`                   | `page.tsx` - Dashboard home  |
+| `/admin/appointments`      | `appointments/page.tsx`      |
+| `/admin/availability`      | `availability/page.tsx`      |
+| `/admin/stylists`          | `stylists/page.tsx`          |
+| `/admin/customers`         | `customers/page.tsx`         |
+| `/admin/chat`              | `chat/page.tsx`              |
+| `/admin/settings/business` | `settings/business/page.tsx` |
+| `/admin/settings/hours`    | `settings/hours/page.tsx`    |
+| `/admin/settings/closures` | `settings/closures/page.tsx` |
+| `/admin/settings/services` | `settings/services/page.tsx` |
+
+---
+
 **Production-ready AI agent system with natural language booking, automated retention, and multi-channel messaging.**

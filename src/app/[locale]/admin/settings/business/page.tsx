@@ -1,9 +1,7 @@
 'use client';
 
-import { useAuth } from '@/context/AuthContext';
-import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import AdminLayout from '@/components/admin/AdminLayout';
+import { useRouter } from 'next/navigation';
 import { useBooking } from '@/context/BookingContext';
 import { LoadingSpinner } from '@/components/feedback/loaders/LoadingSpinner';
 import BusinessSettings from '@/components/admin/settings/salon/BusinessSettings';
@@ -11,7 +9,6 @@ import { LoadingButton } from '@/components/feedback/loaders/LoadingButton';
 import { toast } from 'sonner';
 
 export default function SettingsBusinessPage() {
-  const { user, isLoading: authLoading } = useAuth();
   const { adminSettings, fetchAndSetAdminSettings, saveAdminSettings } = useBooking();
   const router = useRouter();
 
@@ -20,12 +17,6 @@ export default function SettingsBusinessPage() {
   const [businessName, setBusinessName] = useState('');
   const [businessAddress, setBusinessAddress] = useState('');
   const [businessPhone, setBusinessPhone] = useState('');
-
-  useEffect(() => {
-    if (!authLoading && (!user || user.role !== 'ADMIN')) {
-      router.push('/');
-    }
-  }, [user, authLoading, router]);
 
   useEffect(() => {
     const loadData = async () => {
@@ -70,36 +61,32 @@ export default function SettingsBusinessPage() {
     }
   };
 
-  if (authLoading || loading) {
+  if (loading) {
     return (
-      <div className="min-h-screen bg-muted flex items-center justify-center">
-        <LoadingSpinner size="lg" message="Loading settings..." />
+      <div className="flex items-center justify-center py-12">
+        <LoadingSpinner size="md" message="Loading settings..." />
       </div>
     );
   }
 
-  if (!user || user.role !== 'ADMIN') return null;
-
   return (
-    <AdminLayout title="Business Info">
-      <div className="max-w-2xl">
-        <BusinessSettings
-          businessName={businessName}
-          businessAddress={businessAddress}
-          businessPhone={businessPhone}
-          onChange={handleFieldChange}
-        />
-        <div className="mt-8 pt-6 border-t border-border flex justify-end">
-          <LoadingButton
-            loading={isSaving}
-            loadingText="Saving..."
-            onClick={handleSave}
-            className="px-6 py-2 bg-primary text-white rounded-md font-medium hover:bg-primary/90"
-          >
-            Save Changes
-          </LoadingButton>
-        </div>
+    <div className="max-w-2xl">
+      <BusinessSettings
+        businessName={businessName}
+        businessAddress={businessAddress}
+        businessPhone={businessPhone}
+        onChange={handleFieldChange}
+      />
+      <div className="mt-8 pt-6 border-t border-border flex justify-end">
+        <LoadingButton
+          loading={isSaving}
+          loadingText="Saving..."
+          onClick={handleSave}
+          className="px-6 py-2 bg-primary text-white rounded-md font-medium hover:bg-primary/90"
+        >
+          Save Changes
+        </LoadingButton>
       </div>
-    </AdminLayout>
+    </div>
   );
 }
