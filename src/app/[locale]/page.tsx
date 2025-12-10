@@ -118,7 +118,7 @@ export default function HomePage() {
         {/* Right Image */}
         <div className="absolute top-0 left-0 sm:relative w-full lg:w-1/2 h-full sm:h-[40vh] md:h-[50vh] lg:h-auto">
           <Image
-            src="/may-with-customer.jpg"
+            src="/images/may-with-customer.jpg"
             alt="May with her customer"
             fill
             className="opacity-70 sm:opacity-100 absolute inset-0 w-full h-full object-cover"
@@ -221,7 +221,8 @@ export default function HomePage() {
               .filter(c => c.isFeatured)
               .slice(0, 6)
               .map((category, index) => {
-                const imageUrl = category.imageUrl || '/background-images/menu-service-bg.png';
+                const imageUrl =
+                  category.imageUrl || '/images/background-images/menu-service-bg.png';
                 const serviceUrl = `/services/${category.slug}`;
                 const categoryId = category.id;
 

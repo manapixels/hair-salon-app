@@ -35,7 +35,7 @@ export default async function HairPermPage() {
     <div className="bg-white min-h-screen">
       {/* Hero Section */}
       <ServiceHero
-        backgroundImage="/background-images/hair-perm.jpg"
+        backgroundImage="/images/background-images/hair-perm.jpg"
         badge={{ text: t('hero.badge'), color: 'amber' }}
         headline={t('hero.headline')}
         subheading={t('hero.subheading')}

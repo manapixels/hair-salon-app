@@ -20,7 +20,7 @@ export default function TeamCard() {
           {/* Image Section */}
           <div className="relative w-4/5 md:w-2/5 min-h-[300px] sm:min-h-[400px] mx-auto">
             <Image
-              src="/may.jpg"
+              src="/images/may.jpg"
               alt="May"
               fill
               className="object-cover rounded-2xl sm:rounded-none"

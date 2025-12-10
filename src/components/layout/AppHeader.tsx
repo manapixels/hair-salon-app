@@ -198,7 +198,7 @@ export default function AppHeader({ view, onViewChange, serviceLinks }: AppHeade
                       <div className="col-span-7 flex items-center justify-center gap-8">
                         <div className="relative w-full h-full transition-transform duration-500">
                           <Image
-                            src="/background-images/menu-service-bg.png"
+                            src="/images/background-images/menu-service-bg.png"
                             alt="Hime Cut"
                             fill
                             className="object-cover opacity-80 group-hover/img:opacity-100 transition-opacity rounded-lg"

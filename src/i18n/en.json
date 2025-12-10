@@ -261,42 +261,42 @@
         {
           "title": "Full Head Colour",
           "description": "Complete colour application from roots to ends. Perfect for dramatic changes or refreshing faded colour throughout.",
-          "image": "/colour-types/full-head-colour.png"
+          "image": "/images/colour-types/full-head-colour.png"
         },
         {
           "title": "Creative Colours",
           "description": "Bold, creative colours including pastels, vivids, and unique shades. Express your personality with standout colour.",
-          "image": "/colour-types/creative-colours.png"
+          "image": "/images/colour-types/creative-colours.png"
         },
         {
           "title": "Airtouch",
           "description": "Seamless blending using air for the most natural-looking blonde.",
-          "image": "/colour-types/airtouch.png"
+          "image": "/images/colour-types/airtouch.png"
         },
         {
           "title": "Ombré Colour",
           "description": "Gradual transition from darker roots to lighter ends. Creates a modern, dimensional look with built-in grow-out.",
-          "image": "/colour-types/ombre.png"
+          "image": "/images/colour-types/ombre.png"
         },
         {
           "title": "Highlights",
           "description": "Add dimension and brightness with strategically placed lighter strands.",
-          "image": "/colour-types/highlights.png"
+          "image": "/images/colour-types/highlights.png"
         },
         {
           "title": "Blondes & Silvers",
           "description": "Expert bleaching and toning for the perfect platinum or cool silver.",
-          "image": "/colour-types/blondes-and-silvers.png"
+          "image": "/images/colour-types/blondes-and-silvers.png"
         },
         {
           "title": "Gray Blending",
           "description": "Strategic colour placement that softens gray coverage for a natural, low-maintenance look with dimension.",
-          "image": "/colour-types/gray-blending.png"
+          "image": "/images/colour-types/gray-blending.png"
         },
         {
           "title": "Root Touch-Up",
           "description": "Colours only new growth (1-2 inches at roots). Ideal for maintaining your existing colour between full applications.",
-          "image": "/colour-types/root-touch-up.png"
+          "image": "/images/colour-types/root-touch-up.png"
         }
       ],
       "process": {
@@ -414,32 +414,32 @@
         {
           "title": "Regular Perm",
           "description": "A traditional wave technique that creates distinct, defined curls from root to tip, offering lasting texture and volume.",
-          "image": "/perm-types/regular-perm.png"
+          "image": "/images/perm-types/regular-perm.png"
         },
         {
           "title": "Digital Perm",
           "description": "A heat-activated styling method that produces soft, natural-looking waves which become more defined when dry, mimicking a salon blowout.",
-          "image": "/perm-types/digital-perm.png"
+          "image": "/images/perm-types/digital-perm.png"
         },
         {
           "title": "Iron Roots Perm",
           "description": "Focuses on lifting the roots to add height and body to flat hair without curling the mid-lengths or ends.",
-          "image": "/perm-types/iron-roots-perm.png"
+          "image": "/images/perm-types/iron-roots-perm.png"
         },
         {
           "title": "Fringe Perm",
           "description": "Targeted styling exclusively for the bangs to create a soft curve and volume, improving face-framing and simplifying daily styling.",
-          "image": "/perm-types/fringe-perm.png"
+          "image": "/images/perm-types/fringe-perm.png"
         },
         {
           "title": "Down Perm",
           "description": "A smoothing treatment designed to relax and flatten stubborn, puffy hair on the sides or back to create a slimmer silhouette.",
-          "image": "/perm-types/down-perm.png"
+          "image": "/images/perm-types/down-perm.png"
         },
         {
           "title": "Men's Perm",
           "description": "Adds movement, volume, and texture to shorter styles, ranging from subtle waves to defined curls for easier manageability.",
-          "image": "/perm-types/mens-perm.png"
+          "image": "/images/perm-types/mens-perm.png"
         }
       ],
       "process": {
@@ -562,17 +562,17 @@
         {
           "title": "Hair Rebonding",
           "description": "Ultra-straight finish with smoothness for a sleek, polished look.",
-          "image": "/rebond-types/hair-rebonding.png"
+          "image": "/images/rebond-types/hair-rebonding.png"
         },
         {
           "title": "Roots Rebonding",
           "description": "Targeted straightening for newly grown, wavy roots without over-processing the rest of your hair.",
-          "image": "/rebond-types/roots-rebonding.png"
+          "image": "/images/rebond-types/roots-rebonding.png"
         },
         {
           "title": "Fringe Rebonding",
           "description": "Specialized straightening for your bangs. Achieve face-framing fringe while maintaining natural texture in the rest of your hair for a stylish look with minimal commitment.",
-          "image": "/rebond-types/fringe-rebonding.png"
+          "image": "/images/rebond-types/fringe-rebonding.png"
         }
       ],
       "process": {
@@ -1092,7 +1092,9 @@
       "refreshed": "Appointments refreshed",
       "cancelled": "Appointment cancelled",
       "cancelFailed": "Failed to cancel appointment",
-      "cancelling": "Cancelling appointment..."
+      "cancelling": "Cancelling appointment...",
+      "openMenu": "Open menu",
+      "failedToUpdate": "Failed to update appointment"
     },
     "Customers": {
       "title": "Customers",

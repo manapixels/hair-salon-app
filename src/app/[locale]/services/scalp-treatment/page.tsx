@@ -84,7 +84,7 @@ export default async function ScalpTreatmentPage() {
     <div className="bg-white min-h-screen">
       {/* Hero Section */}
       <ServiceHero
-        backgroundImage="/background-images/scalp-treatment.png"
+        backgroundImage="/images/background-images/scalp-treatment.png"
         badge={{ text: t('hero.badge'), color: 'blue' }}
         headline={t('hero.headline')}
         subheading={t('hero.subheading')}

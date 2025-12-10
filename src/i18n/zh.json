@@ -261,42 +261,42 @@
         {
           "title": "全头染色",
           "description": "从发根到发尾全面上色。最适合戏剧性改变或刷新全头褪色效果。",
-          "image": "/colour-types/full-head-colour.png"
+          "image": "/images/colour-types/full-head-colour.png"
         },
         {
           "title": "创意色彩",
           "description": "大胆创意色彩，包括粉彩、鲜艳色和独特色调。用出众的色彩表达您的个性。",
-          "image": "/colour-types/creative-colours.png"
+          "image": "/images/colour-types/creative-colours.png"
         },
         {
           "title": "Airtouch",
           "description": "使用空气无缝融合，打造最自然的金发效果。",
-          "image": "/colour-types/airtouch.png"
+          "image": "/images/colour-types/airtouch.png"
         },
         {
           "title": "渐变染色",
           "description": "从深色发根渐变至浅色发尾。打造现代立体造型，自带长发效果。",
-          "image": "/colour-types/ombre.png"
+          "image": "/images/colour-types/ombre.png"
         },
         {
           "title": "挑染",
           "description": "通过策略性地放置浅色发束，增添层次感和亮度。",
-          "image": "/colour-types/highlights.png"
+          "image": "/images/colour-types/highlights.png"
         },
         {
           "title": "金发与银发",
           "description": "专业漂色和调色，打造完美的铂金或冷银色。",
-          "image": "/colour-types/blondes-and-silvers.png"
+          "image": "/images/colour-types/blondes-and-silvers.png"
         },
         {
           "title": "白发融合",
           "description": "策略性的染色布局，柔化白发覆盖效果，打造自然低维护的立体造型。",
-          "image": "/colour-types/gray-blending.png"
+          "image": "/images/colour-types/gray-blending.png"
         },
         {
           "title": "发根补染",
           "description": "仅为发根的新长部分（通常1-2英寸）上色。最适合在全头染色之间保持现有发色。",
-          "image": "/colour-types/root-touch-up.png"
+          "image": "/images/colour-types/root-touch-up.png"
         }
       ],
       "process": {
@@ -414,32 +414,32 @@
         {
           "title": "常规烫发",
           "description": "传统波浪技术，从发根到发尾打造明确定义的卷发，提供持久的质感和蓬松度。",
-          "image": "/perm-types/regular-perm.png"
+          "image": "/images/perm-types/regular-perm.png"
         },
         {
           "title": "数码烫",
           "description": "热激活造型方法，打造柔软自然的波浪，干发时更明显，模仿沙龙吹风效果。",
-          "image": "/perm-types/digital-perm.png"
+          "image": "/images/perm-types/digital-perm.png"
         },
         {
           "title": "发根烫",
           "description": "专注于提升发根以增加高度和蓬松度，不卷发中段或发尾，适合扁塌头发。",
-          "image": "/perm-types/iron-roots-perm.png"
+          "image": "/images/perm-types/iron-roots-perm.png"
         },
         {
           "title": "刘海烫",
           "description": "专门为刘海造型，打造柔和的弧度和蓬松感，改善脸部轮廓并简化日常造型。",
-          "image": "/perm-types/fringe-perm.png"
+          "image": "/images/perm-types/fringe-perm.png"
         },
         {
           "title": "下压烫",
           "description": "顺滑护理，旨在放松和抚平两侧或后部顽固蓬松的头发，打造更纤瘦的轮廓。",
-          "image": "/perm-types/down-perm.png"
+          "image": "/images/perm-types/down-perm.png"
         },
         {
           "title": "男士烫发",
           "description": "为短发增添动感、蓬松度和质感，从微妙波浪到明确卷发，更易打理。",
-          "image": "/perm-types/mens-perm.png"
+          "image": "/images/perm-types/mens-perm.png"
         }
       ],
       "process": {
@@ -562,17 +562,17 @@
         {
           "title": "头发拉直",
           "description": "超级笔直、针状笔直效果，带高光泽度。最大化顺滑，打造光滑精致造型。",
-          "image": "/rebond-types/hair-rebonding.png"
+          "image": "/images/rebond-types/hair-rebonding.png"
         },
         {
           "title": "发根拉直",
           "description": "针对新长的波浪发根进行定向拉直，不会过度处理头发其余部分。",
-          "image": "/rebond-types/roots-rebonding.png"
+          "image": "/images/rebond-types/roots-rebonding.png"
         },
         {
           "title": "刘海拉直",
           "description": "专门为刘海拉直。打造衬托脸型的刘海，同时保持头发其余部分的自然质感，呈现时尚造型，承诺最小。",
-          "image": "/rebond-types/fringe-rebonding.png"
+          "image": "/images/rebond-types/fringe-rebonding.png"
         }
       ],
       "process": {
@@ -1084,7 +1084,9 @@
       "refreshed": "预约已刷新",
       "cancelled": "预约已取消",
       "cancelFailed": "取消预约失败",
-      "cancelling": "正在取消预约..."
+      "cancelling": "正在取消预约...",
+      "openMenu": "打开菜单",
+      "failedToUpdate": "更新预约失败"
     },
     "Customers": {
       "title": "客户管理",

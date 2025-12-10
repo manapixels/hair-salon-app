@@ -38,7 +38,7 @@ export default async function HairRebondingPage() {
     <div className="bg-white min-h-screen">
       {/* Hero Section */}
       <ServiceHero
-        backgroundImage="/background-images/hair-rebonding.jpg"
+        backgroundImage="/images/background-images/hair-rebonding.jpg"
         badge={{ text: t('hero.badge'), color: 'teal' }}
         headline={t('hero.headline')}
         subheading={t('hero.subheading')}

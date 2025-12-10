@@ -37,7 +37,7 @@ export default async function HairColouringPage() {
     <div className="bg-white min-h-screen">
       {/* Hero Section */}
       <ServiceHero
-        backgroundImage="/background-images/hair-colouring.jpg"
+        backgroundImage="/images/background-images/hair-colouring.jpg"
         badge={{ text: t('hero.badge'), color: 'mint' }}
         headline={t('hero.headline')}
         subheading={t('hero.subheading')}

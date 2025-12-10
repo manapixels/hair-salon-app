@@ -50,6 +50,12 @@ Added i18n localization support for admin appointments and dashboard components,
 
 - Localized: loading states, login prompt, display name placeholder
 
+#### `src/app/[locale]/admin/appointments/page.tsx`
+
+- Added `useTranslations('Admin.Appointments')` hooks where missing
+- Localized: "Open menu" (sr-only), and error messages "Failed to cancel", "Failed to update appointment" which were previously hardcoded.
+- Ensured all dropdown actions use localized strings.
+
 #### `src/components/admin/AdminDashboardHome.tsx`
 
 - Localized: dropdown menu items ("Edit", "Cancel", "Open menu")

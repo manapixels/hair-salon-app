@@ -79,7 +79,7 @@ export default async function KeratinTreatmentPage() {
     <div className="bg-white min-h-screen">
       {/* Hero Section */}
       <ServiceHero
-        backgroundImage="/background-images/keratin-treatment.png"
+        backgroundImage="/images/background-images/keratin-treatment.png"
         badge={{ text: t('hero.badge'), color: 'rose' }}
         headline={t('hero.headline')}
         subheading={t('hero.subheading')}

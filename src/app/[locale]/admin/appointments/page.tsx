@@ -174,7 +174,7 @@ export default function AppointmentsPage() {
           time: appointmentToCancel.time,
         }),
       });
-      if (!response.ok) throw new Error('Failed to cancel');
+      if (!response.ok) throw new Error(t('cancelFailed'));
       await fetchAndSetAppointments();
       toast.success(t('cancelled'), { id: toastId });
     } catch {
@@ -194,7 +194,7 @@ export default function AppointmentsPage() {
     });
     if (!response.ok) {
       const errorData = (await response.json()) as { message?: string };
-      throw new Error(errorData.message || 'Failed to update');
+      throw new Error(errorData.message || t('failedToUpdate'));
     }
     await fetchAndSetAppointments();
     setEditModalOpen(false);
@@ -307,7 +307,7 @@ export default function AppointmentsPage() {
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button variant="ghost" className="h-8 w-8 p-0">
-                              <span className="sr-only">Open menu</span>
+                              <span className="sr-only">{t('openMenu')}</span>
                               <MoreHorizontal className="h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>
