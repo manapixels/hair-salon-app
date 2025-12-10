@@ -1179,4 +1179,27 @@ GOOGLE_OAUTH_REDIRECT_URI=https://yourdomain.com/api/auth/google/callback
 
 ---
 
+## 👥 Admin Customer Management
+
+Admin-only page to view and manage customers with aggregated statistics.
+
+### Key Files
+
+- **Page**: `src/app/[locale]/admin/customers/page.tsx` - Responsive table (desktop) + cards (mobile)
+- **API**: `src/app/api/admin/customers/route.ts` - Fetches customers with stats (visits, status, next appointment, preferred stylist)
+- **Components**: `src/components/admin/customers/CustomerCard.tsx` - Mobile card component
+- **Types**: `src/types.ts` - `CustomerWithStats`, `CustomerStatus`
+- **Navigation**: Added to `AdminNavigation.tsx` under **Customers** section
+
+### Features
+
+- **Status Badges**: NEW, ACTIVE, AT_RISK, CHURNED (calculated from visit patterns)
+- **Contact Method Badge**: Telegram/WhatsApp/Email based on `authProvider`
+- **Next Appointment**: Highlighted display with date, time, and stylist
+- **Preferred Stylist**: Most frequently booked stylist
+- **Filters**: Status tabs, search by name/email/phone
+- **Pagination**: 25/50/100 items per page
+
+---
+
 **Production-ready AI agent system with natural language booking, automated retention, and multi-channel messaging.**

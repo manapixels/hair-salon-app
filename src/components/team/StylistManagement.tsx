@@ -25,15 +25,25 @@ import { Plus, User, Edit, Delete, Clock } from '@/lib/icons';
 
 interface StylistManagementProps {
   onClose?: () => void;
+  showAddModal?: boolean;
+  setShowAddModal?: (show: boolean) => void;
 }
 
-export default function StylistManagement({ onClose }: StylistManagementProps) {
+export default function StylistManagement({
+  onClose,
+  showAddModal: externalShowAddModal,
+  setShowAddModal: externalSetShowAddModal,
+}: StylistManagementProps) {
   const t = useTranslations('Admin.Stylists');
   const [stylists, setStylists] = useState<Stylist[]>([]);
   const [availableCategories, setAvailableCategories] = useState<ServiceCategory[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [showAddModal, setShowAddModal] = useState(false);
+  const [internalShowAddModal, setInternalShowAddModal] = useState(false);
   const [editingStylist, setEditingStylist] = useState<Stylist | null>(null);
+
+  // Use external state if provided, otherwise use internal state
+  const showAddModal = externalShowAddModal ?? internalShowAddModal;
+  const setShowAddModal = externalSetShowAddModal ?? setInternalShowAddModal;
 
   // AlertDialog states
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -130,17 +140,20 @@ export default function StylistManagement({ onClose }: StylistManagementProps) {
   return (
     <>
       <div>
-        <div className="flex justify-end items-center mb-6">
-          <div className="flex space-x-3">
-            <button
-              onClick={() => setShowAddModal(true)}
-              className="bg-primary text-white px-4 py-2 rounded-md hover:bg-primary-700 transition-colors flex items-center"
-            >
-              <Plus className="h-4 w-4 sm:mr-2" aria-hidden="true" />
-              <span>{t('addStylist')}</span>
-            </button>
+        {/* Only show internal button if no external control provided */}
+        {!externalSetShowAddModal && (
+          <div className="flex justify-end items-center mb-6">
+            <div className="flex space-x-3">
+              <button
+                onClick={() => setShowAddModal(true)}
+                className="bg-primary text-white px-4 py-2 rounded-md hover:bg-primary-700 transition-colors flex items-center"
+              >
+                <Plus className="h-4 w-4 sm:mr-2" aria-hidden="true" />
+                <span>{t('addStylist')}</span>
+              </button>
+            </div>
           </div>
-        </div>
+        )}
 
         {stylists.length === 0 ? (
           <div className="bg-white p-8 rounded-lg text-center">

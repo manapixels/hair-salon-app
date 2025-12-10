@@ -9,6 +9,7 @@ import AdminNavigation from './AdminNavigation';
 interface AdminLayoutProps {
   children: React.ReactNode;
   title?: string;
+  headerAction?: React.ReactNode;
   showBackButton?: boolean;
   badges?: {
     appointments?: number;
@@ -19,6 +20,7 @@ interface AdminLayoutProps {
 export default function AdminLayout({
   children,
   title,
+  headerAction,
   showBackButton = false,
   badges = {},
 }: AdminLayoutProps) {
@@ -102,8 +104,9 @@ export default function AdminLayout({
         <main className="flex-1">
           {/* Desktop Header */}
           <header className="hidden lg:block sticky top-0 z-30 bg-muted/80 backdrop-blur-sm border-b border-border">
-            <div className="px-6 py-4">
+            <div className="px-6 py-4 flex items-center justify-between">
               <h2 className="text-2xl font-serif font-light text-foreground">{derivedTitle}</h2>
+              {headerAction && <div>{headerAction}</div>}
             </div>
           </header>
 

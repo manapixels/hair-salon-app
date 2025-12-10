@@ -214,3 +214,32 @@ export interface TelegramAuthData {
   auth_date: number;
   hash: string;
 }
+
+// Customer status based on visit patterns
+export type CustomerStatus = 'NEW' | 'ACTIVE' | 'AT_RISK' | 'CHURNED';
+
+// CustomerWithStats extends base user data with computed statistics for admin view
+export interface CustomerWithStats {
+  // Base user fields from users table
+  id: string;
+  name: string;
+  email: string;
+  avatar?: string;
+  authProvider?: 'email' | 'whatsapp' | 'telegram';
+  telegramId?: number;
+  whatsappPhone?: string;
+  totalVisits: number;
+  lastVisitDate?: Date;
+  createdAt: Date;
+
+  // Computed fields for admin customer list
+  nextAppointment?: {
+    id: string;
+    date: Date;
+    time: string;
+    categoryTitle?: string;
+    stylistName?: string;
+  };
+  preferredStylist?: StylistSummary;
+  status: CustomerStatus;
+}

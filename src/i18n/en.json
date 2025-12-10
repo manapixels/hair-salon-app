@@ -219,7 +219,7 @@
     "sections": {
       "quickGlance": "Quick Glance",
       "bookings": "Bookings",
-      "team": "Team",
+      "people": "People",
       "support": "Support",
       "settings": "Settings"
     },
@@ -228,6 +228,7 @@
       "appointments": "Appointments",
       "availability": "Availability",
       "stylists": "Stylists",
+      "customers": "Customers",
       "chat": "Chat Management",
       "knowledgeBase": "Knowledge Base",
       "businessInfo": "Business Info",
@@ -1089,6 +1090,43 @@
       "cancelled": "Appointment cancelled",
       "cancelFailed": "Failed to cancel appointment",
       "cancelling": "Cancelling appointment..."
+    },
+    "Customers": {
+      "title": "Customers",
+      "loading": "Loading customers...",
+      "showing": "Showing {start}-{end} of {total} customers",
+      "refresh": "Refresh",
+      "refreshed": "Customers refreshed",
+      "fetchError": "Failed to load customers",
+      "searchPlaceholder": "Search by name, email, or phone...",
+      "noCustomers": "No customers found",
+      "noUpcomingAppointment": "No upcoming appointment",
+      "nextAppointment": "Next Appointment",
+      "service": "Service",
+      "visits": "visits",
+      "never": "Never",
+      "perPage": "per page",
+      "previous": "Previous",
+      "next": "Next",
+      "viewDetails": "View Details",
+      "bookAppointment": "Book Appointment",
+      "contact": "Contact",
+      "status": {
+        "all": "All",
+        "new": "New",
+        "active": "Active",
+        "at_risk": "At Risk",
+        "churned": "Churned"
+      },
+      "columns": {
+        "customer": "Customer",
+        "status": "Status",
+        "contact": "Contact",
+        "nextAppointment": "Next Appt",
+        "visits": "Visits",
+        "lastVisit": "Last Visit",
+        "stylist": "Preferred Stylist"
+      }
     },
     "Stylists": {
       "title": "Stylists",

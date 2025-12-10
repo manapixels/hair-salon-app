@@ -6,6 +6,7 @@ import {
   Calendar,
   Clock,
   Users,
+  UserCircle,
   MessageSquare,
   BookOpen,
   Building2,
@@ -22,6 +23,7 @@ export type AdminSection =
   | 'appointments'
   | 'availability'
   | 'stylists'
+  | 'customers'
   | 'chat'
   | 'knowledge-base'
   | 'settings-business'
@@ -95,13 +97,19 @@ export default function AdminNavigation({
       ],
     },
     {
-      label: t('sections.team'),
+      label: t('sections.people'),
       items: [
         {
           id: 'stylists',
           label: t('items.stylists'),
           icon: <Users className="w-5 h-5" />,
           href: `${basePath}/stylists`,
+        },
+        {
+          id: 'customers',
+          label: t('items.customers'),
+          icon: <UserCircle className="w-5 h-5" />,
+          href: `${basePath}/customers`,
         },
       ],
     },
