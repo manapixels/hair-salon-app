@@ -817,14 +817,60 @@ export const bookNewAppointment = async (
   const dateKey = dateToKey(appointmentData.date);
   revalidateAvailability(dateKey, appointmentData.stylistId);
 
+  // Fetch category and stylist data if available
+  let category = undefined;
+  if (newAppointment.categoryId) {
+    const categoryResult = await db
+      .select()
+      .from(schema.serviceCategories)
+      .where(eq(schema.serviceCategories.id, newAppointment.categoryId))
+      .limit(1);
+    const cat = categoryResult[0];
+    if (cat) {
+      category = {
+        ...cat,
+        shortTitle: cat.shortTitle ?? undefined,
+        description: cat.description ?? undefined,
+        icon: cat.icon ?? undefined,
+        priceRangeMin: cat.priceRangeMin ?? undefined,
+        priceRangeMax: cat.priceRangeMax ?? undefined,
+        priceNote: cat.priceNote ?? undefined,
+        estimatedDuration: cat.estimatedDuration ?? undefined,
+        isFeatured: cat.isFeatured ?? undefined,
+        imageUrl: cat.imageUrl ?? undefined,
+        illustrationUrl: cat.illustrationUrl ?? undefined,
+        items: [],
+      };
+    }
+  }
+
+  let stylist = undefined;
+  if (newAppointment.stylistId) {
+    const stylistResult = await db
+      .select()
+      .from(schema.stylists)
+      .where(eq(schema.stylists.id, newAppointment.stylistId))
+      .limit(1);
+    const sty = stylistResult[0];
+    if (sty) {
+      stylist = {
+        id: sty.id,
+        name: sty.name,
+        email: sty.email ?? undefined,
+      };
+    }
+  }
+
   return {
     ...newAppointment,
     services: Array.isArray(newAppointment.services)
       ? (newAppointment.services as unknown as Service[])
       : [],
     stylistId: newAppointment.stylistId ?? undefined,
+    stylist,
     calendarEventId: newAppointment.calendarEventId ?? undefined,
     categoryId: newAppointment.categoryId ?? undefined,
+    category,
     estimatedDuration: newAppointment.estimatedDuration ?? undefined,
     bookingSource: newAppointment.bookingSource,
   };
