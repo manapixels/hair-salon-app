@@ -271,7 +271,6 @@ export const getServices = unstable_cache(
       .where(eq(schema.services.isActive, true));
     return services.map(s => ({
       ...s,
-      subtitle: s.subtitle ?? undefined,
       description: s.description ?? undefined,
       maxPrice: s.maxPrice ?? undefined,
       imageUrl: s.imageUrl ?? undefined,
@@ -315,7 +314,6 @@ export const getServiceCategories = unstable_cache(
         .filter(s => s.categoryId === cat.id)
         .map(s => ({
           ...s,
-          subtitle: s.subtitle ?? undefined,
           description: s.description ?? undefined,
           maxPrice: s.maxPrice ?? undefined,
           imageUrl: s.imageUrl ?? undefined,
@@ -370,7 +368,6 @@ export async function getServiceById(id: string): Promise<Service | null> {
 
       return {
         ...service,
-        subtitle: service.subtitle ?? undefined,
         description: service.description ?? undefined,
         maxPrice: service.maxPrice ?? undefined,
         imageUrl: service.imageUrl ?? undefined,

@@ -27,7 +27,6 @@ export async function updateService(
 
     const updateData: Record<string, any> = { updatedAt: new Date() };
     if (updates.name !== undefined) updateData.name = updates.name;
-    if (updates.subtitle !== undefined) updateData.subtitle = updates.subtitle;
     if (updates.description !== undefined) updateData.description = updates.description;
     if (updates.price !== undefined) updateData.price = updates.price;
     if (updates.basePrice !== undefined) updateData.basePrice = updates.basePrice;
@@ -112,7 +111,6 @@ export async function createService(data: {
   price: string;
   basePrice: number;
   duration: number;
-  subtitle?: string;
   description?: string;
   maxPrice?: number;
 }) {
@@ -127,7 +125,6 @@ export async function createService(data: {
         price: data.price,
         basePrice: data.basePrice,
         duration: data.duration,
-        subtitle: data.subtitle,
         description: data.description,
         maxPrice: data.maxPrice,
         isActive: true,

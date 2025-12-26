@@ -92,7 +92,6 @@ export const services = pgTable('services', {
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
   name: text('name').notNull(),
-  subtitle: text('subtitle'),
   description: text('description'),
   price: text('price').notNull(),
   basePrice: integer('basePrice').notNull(),

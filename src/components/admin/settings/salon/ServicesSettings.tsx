@@ -225,7 +225,6 @@ function ServiceForm({
 }) {
   const [formData, setFormData] = useState({
     name: service.name,
-    subtitle: service.subtitle || '',
     description: service.description || '',
     price: service.price,
     basePrice: service.basePrice,
@@ -241,24 +240,13 @@ function ServiceForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="name">Service Name</Label>
-          <Input
-            id="name"
-            value={formData.name}
-            onChange={e => setFormData({ ...formData, name: e.target.value })}
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="subtitle">Subtitle</Label>
-          <Input
-            id="subtitle"
-            value={formData.subtitle}
-            onChange={e => setFormData({ ...formData, subtitle: e.target.value })}
-            placeholder="Short tagline"
-          />
-        </div>
+      <div className="space-y-2">
+        <Label htmlFor="name">Service Name</Label>
+        <Input
+          id="name"
+          value={formData.name}
+          onChange={e => setFormData({ ...formData, name: e.target.value })}
+        />
       </div>
 
       <div className="space-y-2">

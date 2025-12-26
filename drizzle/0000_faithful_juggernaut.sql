@@ -146,7 +146,6 @@ CREATE TABLE "service_tags" (
 CREATE TABLE "services" (
 	"id" text PRIMARY KEY NOT NULL,
 	"name" text NOT NULL,
-	"subtitle" text,
 	"description" text,
 	"price" text NOT NULL,
 	"basePrice" integer NOT NULL,

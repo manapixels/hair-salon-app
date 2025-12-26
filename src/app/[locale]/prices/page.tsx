@@ -83,7 +83,7 @@ export default async function PricesPage() {
                             {service.name}
                           </TableCell>
                           <TableCell className="text-gray-600 text-sm">
-                            {service.subtitle || service.description || '—'}
+                            {service.description || '—'}
                           </TableCell>
                           <TableCell className="text-right font-medium text-gray-900">
                             {service.price}

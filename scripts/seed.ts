@@ -40,7 +40,6 @@ const services = pgTable('services', {
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
   name: text('name').notNull(),
-  subtitle: text('subtitle'),
   description: text('description'),
   price: text('price').notNull(),
   basePrice: integer('basePrice').notNull(),
@@ -124,7 +123,7 @@ const CATEGORIES = [
     items: [
       {
         name: "Women's Haircut",
-        subtitle: 'Classic cut tailored for women',
+        description: 'Classic cut tailored for women',
         price: '$40',
         basePrice: 40,
         duration: 45,
@@ -141,7 +140,7 @@ const CATEGORIES = [
       },
       {
         name: "Men's Haircut",
-        subtitle: 'Precision cut tailored for men',
+        description: 'Precision cut tailored for men',
         price: '$30',
         basePrice: 30,
         duration: 45,
@@ -158,7 +157,7 @@ const CATEGORIES = [
       },
       {
         name: "Kids' Haircut (Boys)",
-        subtitle: 'For children 12 and under',
+        description: 'For children 12 and under',
         price: '$20',
         basePrice: 20,
         duration: 30,
@@ -167,7 +166,7 @@ const CATEGORIES = [
       },
       {
         name: "Kids' Haircut (Girls)",
-        subtitle: 'For children 12 and under',
+        description: 'For children 12 and under',
         price: '$25',
         basePrice: 25,
         duration: 45,
@@ -183,7 +182,7 @@ const CATEGORIES = [
       },
       {
         name: 'Fringe Trim',
-        subtitle: 'Perfect shape-up for your bangs or fringe',
+        description: 'Perfect shape-up for your bangs or fringe',
         price: '$10',
         basePrice: 10,
         duration: 15,
@@ -191,7 +190,7 @@ const CATEGORIES = [
       },
       {
         name: 'Hair Straightening',
-        subtitle: 'Professional heat styling for temporarily straightened hair',
+        description: 'Professional heat styling for temporarily straightened hair',
         price: '$10',
         basePrice: 10,
         duration: 15,
@@ -199,7 +198,7 @@ const CATEGORIES = [
       },
       {
         name: 'Special Occasion Styling',
-        subtitle: 'Elegant updos and special styling for weddings, parties, and events',
+        description: 'Elegant updos and special styling for weddings, parties, and events',
         price: 'From $50',
         basePrice: 50,
         maxPrice: 100,
@@ -225,7 +224,7 @@ const CATEGORIES = [
     items: [
       {
         name: "Men's Full Head Colouring",
-        subtitle: 'Premium less-ammonia formulas from Japan',
+        description: 'Premium less-ammonia formulas from Japan',
         price: '$80',
         basePrice: 80,
         duration: 120,
@@ -244,7 +243,7 @@ const CATEGORIES = [
       },
       {
         name: "Women's Full Head Colouring",
-        subtitle: 'Premium less-ammonia formulas from Japan',
+        description: 'Premium less-ammonia formulas from Japan',
         price: 'From $95',
         basePrice: 95,
         maxPrice: 150,
@@ -264,7 +263,8 @@ const CATEGORIES = [
       },
       {
         name: 'Root Touch-Up',
-        subtitle: 'Precise color application for roots using gentle, low-ammonia Japanese formula',
+        description:
+          'Precise color application for roots using gentle, low-ammonia Japanese formula',
         price: 'From $70',
         basePrice: 70,
         maxPrice: 105,
@@ -283,8 +283,8 @@ const CATEGORIES = [
       },
       {
         name: 'Highlight',
-        subtitle: 'Dimensional color accents',
-        description: 'Strategic highlighting for natural-looking dimension and brightness',
+        description:
+          'Dimensional color accents. Strategic highlighting for natural-looking dimension and brightness',
         price: 'From $115',
         basePrice: 115,
         maxPrice: 190,
@@ -293,8 +293,8 @@ const CATEGORIES = [
       },
       {
         name: 'Premium Highlighting',
-        subtitle: 'Advanced highlighting technique',
-        description: 'Specialized highlighting service for Caucasian or thick hair textures',
+        description:
+          'Advanced highlighting technique. Specialized highlighting service for Caucasian or thick hair textures',
         price: 'From $135',
         basePrice: 135,
         maxPrice: 200,
@@ -303,9 +303,8 @@ const CATEGORIES = [
       },
       {
         name: 'Bleaching Service',
-        subtitle: 'Lightening for bold transformations',
         description:
-          'Professional bleaching for platinum, pastel, or vibrant color transformations',
+          'Lightening for bold transformations. Professional bleaching for platinum, pastel, or vibrant color transformations',
         price: 'From $85',
         basePrice: 85,
         maxPrice: 180,
@@ -331,7 +330,7 @@ const CATEGORIES = [
     items: [
       {
         name: 'Hair Rebonding',
-        subtitle:
+        description:
           'Achieve sleek, pin-straight hair. Eliminate frizz completely and enjoy smooth, glossy hair with minimal daily styling',
         price: 'From $200',
         basePrice: 200,
@@ -362,7 +361,7 @@ const CATEGORIES = [
       },
       {
         name: 'Root Rebonding',
-        subtitle: 'Straighten new growth to match previously rebonded hair',
+        description: 'Straighten new growth to match previously rebonded hair',
         price: 'From $150',
         basePrice: 150,
         maxPrice: 230,
@@ -371,7 +370,7 @@ const CATEGORIES = [
       },
       {
         name: 'Fringe Rebonding',
-        subtitle: 'Smooth, straight fringe for a polished look',
+        description: 'Smooth, straight fringe for a polished look',
         price: 'From $70',
         basePrice: 70,
         maxPrice: 90,
@@ -397,7 +396,7 @@ const CATEGORIES = [
     items: [
       {
         name: 'Scalp Treatment',
-        subtitle: 'Cleanse, balance, and nourish your scalp for optimal hair health',
+        description: 'Cleanse, balance, and nourish your scalp for optimal hair health',
         price: '$55',
         basePrice: 55,
         duration: 60,
@@ -406,7 +405,7 @@ const CATEGORIES = [
       },
       {
         name: 'Scalp Therapy for peeling, hair loss, oily scalp, or dandruff',
-        subtitle: 'Specialized scalp treatment using formulas from Paris',
+        description: 'Specialized scalp treatment using formulas from Paris',
         price: '$95',
         basePrice: 95,
         duration: 75,
@@ -441,9 +440,8 @@ const CATEGORIES = [
     items: [
       {
         name: 'Essential Hair Treatment',
-        subtitle: 'Nourishing hair care',
         description:
-          'Restorative treatment to hydrate and strengthen normal to mildly damaged hair',
+          'Nourishing hair care. Restorative treatment to hydrate and strengthen normal to mildly damaged hair',
         price: 'From $35',
         basePrice: 35,
         maxPrice: 55,
@@ -452,7 +450,7 @@ const CATEGORIES = [
       },
       {
         name: 'Shiseido Treatment',
-        subtitle: 'Premium Japanese treatment system for deep repair and lasting smoothness',
+        description: 'Premium Japanese treatment system for deep repair and lasting smoothness',
         price: 'From $105',
         basePrice: 105,
         maxPrice: 180,
@@ -468,7 +466,7 @@ const CATEGORIES = [
       },
       {
         name: 'Mucota Treatment',
-        subtitle:
+        description:
           'Premium Japanese treatment for severely damaged hair - intensive repair and reconstruction',
         price: 'From $150',
         basePrice: 150,
@@ -485,7 +483,7 @@ const CATEGORIES = [
       },
       {
         name: 'K-Gloss Keratin Treatment',
-        subtitle: 'Frizz control smoothing using USA formula',
+        description: 'Frizz control smoothing using USA formula',
         price: 'From $220',
         basePrice: 220,
         maxPrice: 300,
@@ -504,7 +502,7 @@ const CATEGORIES = [
       },
       {
         name: 'Tiboli Keratin Treatment',
-        subtitle: 'Premium smoothing and shine using USA formula',
+        description: 'Premium smoothing and shine using USA formula',
         price: 'From $280',
         basePrice: 280,
         maxPrice: 350,
@@ -537,8 +535,8 @@ const CATEGORIES = [
     items: [
       {
         name: 'Classic Perm',
-        subtitle: 'Traditional curls and waves',
-        description: 'Beautiful, bouncy curls using premium Korean formula for lasting results',
+        description:
+          'Traditional curls and waves. Beautiful, bouncy curls using premium Korean formula for lasting results',
         price: 'From $150',
         basePrice: 150,
         maxPrice: 180,
@@ -548,8 +546,8 @@ const CATEGORIES = [
       },
       {
         name: 'Digital Perm',
-        subtitle: 'Traditional curls and waves',
-        description: 'Beautiful, bouncy curls using premium Korean formula for lasting results',
+        description:
+          'Traditional curls and waves. Beautiful, bouncy curls using premium Korean formula for lasting results',
         price: 'From $200',
         basePrice: 200,
         maxPrice: 300,
@@ -558,7 +556,7 @@ const CATEGORIES = [
       },
       {
         name: 'Iron Root Perm',
-        subtitle: 'Lift and volume at roots for fuller-looking hair',
+        description: 'Lift and volume at roots for fuller-looking hair',
         price: 'From $150',
         basePrice: 150,
         maxPrice: 180,
@@ -574,7 +572,7 @@ const CATEGORIES = [
       },
       {
         name: 'Fringe Perm',
-        subtitle: 'Soft curl and volume for fringe',
+        description: 'Soft curl and volume for fringe',
         price: 'From $70',
         basePrice: 70,
         duration: 60,
@@ -582,7 +580,7 @@ const CATEGORIES = [
       },
       {
         name: 'Down Perm',
-        subtitle: 'Smooths and tames unruly sides for a polished look',
+        description: 'Smooths and tames unruly sides for a polished look',
         price: 'From $70',
         basePrice: 70,
         duration: 60,
@@ -650,7 +648,6 @@ async function main() {
         .insert(services)
         .values({
           name: item.name,
-          subtitle: item.subtitle,
           description: (item as any).description,
           price: item.price,
           basePrice: item.basePrice,

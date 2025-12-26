@@ -33,7 +33,6 @@ export interface ServiceTagRelation {
 export interface Service {
   id: string;
   name: string;
-  subtitle?: string;
   description?: string;
   price: string;
   basePrice: number;

@@ -358,7 +358,7 @@ export function FindByConcernModal({ isOpen, onClose, serviceLinks }: FindByConc
                                   {service.name}
                                 </TableCell>
                                 <TableCell className="text-xs text-muted-foreground">
-                                  {service.subtitle || service.description || '—'}
+                                  {service.description || '—'}
                                 </TableCell>
                                 <TableCell className="text-right text-sm font-semibold text-primary">
                                   {service.price}
