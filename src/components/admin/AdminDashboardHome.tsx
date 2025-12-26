@@ -243,7 +243,7 @@ export default function AdminDashboardHome({
             />
             <QuickActionCard
               href={`${basePath}/stylists`}
-              title={t('addStylist')}
+              title={t('manageStylist')}
               description={t('manageTeam')}
               icon={<TrendingUp className="w-5 h-5" />}
             />
