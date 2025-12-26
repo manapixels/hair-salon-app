@@ -200,7 +200,7 @@ export const knowledgeBase = pgTable(
 
 // Login Tokens
 export const loginTokens = pgTable(
-  'LoginToken',
+  'login_tokens',
   {
     id: text('id')
       .primaryKey()
@@ -213,7 +213,7 @@ export const loginTokens = pgTable(
     createdAt: timestamp('createdAt').defaultNow().notNull(),
   },
   table => ({
-    userIdIdx: index('logintoken_userId_idx').on(table.userId),
+    userIdIdx: index('login_tokens_userId_idx').on(table.userId),
   }),
 );
 

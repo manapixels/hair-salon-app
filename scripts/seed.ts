@@ -219,7 +219,7 @@ const CATEGORIES = [
     priceRangeMax: 200,
     sortOrder: 2,
     isFeatured: true,
-    imageUrl: '/background-images/hair-colouring.jpg',
+    imageUrl: '/images/background-images/hair-colouring.jpg',
     illustrationUrl: '/images/illustrations/hair-colouring.png',
     items: [
       {
@@ -228,7 +228,7 @@ const CATEGORIES = [
         price: '$80',
         basePrice: 80,
         duration: 120,
-        imageUrl: '/background-images/hair-colouring.jpg',
+        imageUrl: '/images/background-images/hair-colouring.jpg',
         serviceTags: ['gray-hair', 'dull-hair', 'color-change'],
         addons: [
           {
@@ -248,7 +248,7 @@ const CATEGORIES = [
         basePrice: 95,
         maxPrice: 150,
         duration: 120,
-        imageUrl: '/background-images/hair-colouring.jpg',
+        imageUrl: '/images/background-images/hair-colouring.jpg',
         serviceTags: ['gray-hair', 'dull-hair', 'color-change'],
         addons: [
           {
@@ -325,7 +325,7 @@ const CATEGORIES = [
     priceRangeMax: 300,
     sortOrder: 3,
     isFeatured: true,
-    imageUrl: '/background-images/hair-rebonding.jpg',
+    imageUrl: '/images/background-images/hair-rebonding.jpg',
     illustrationUrl: '/images/illustrations/hair-rebonding.png',
     items: [
       {
@@ -336,7 +336,7 @@ const CATEGORIES = [
         basePrice: 200,
         maxPrice: 300,
         duration: 180,
-        imageUrl: '/background-images/hair-rebonding.jpg',
+        imageUrl: '/images/background-images/hair-rebonding.jpg',
         serviceTags: [
           'frizzy-hair',
           'naturally-curly',
@@ -391,7 +391,7 @@ const CATEGORIES = [
     priceRangeMax: 95,
     sortOrder: 4,
     isFeatured: true,
-    imageUrl: '/background-images/scalp-treatment.png',
+    imageUrl: '/images/background-images/scalp-treatment.png',
     illustrationUrl: '/images/illustrations/scalp-treatment.png',
     items: [
       {
@@ -400,7 +400,7 @@ const CATEGORIES = [
         price: '$55',
         basePrice: 55,
         duration: 60,
-        imageUrl: '/background-images/scalp-treatment.png',
+        imageUrl: '/images/background-images/scalp-treatment.png',
         serviceTags: ['oily-scalp', 'dry-hair', 'clean-scalp', 'healthy-hair'],
       },
       {
@@ -435,7 +435,7 @@ const CATEGORIES = [
     priceRangeMax: 350,
     sortOrder: 5,
     isFeatured: true,
-    imageUrl: '/background-images/keratin-treatment.png',
+    imageUrl: '/images/background-images/keratin-treatment.png',
     illustrationUrl: '/images/illustrations/keratin-treatment.png',
     items: [
       {
@@ -488,7 +488,7 @@ const CATEGORIES = [
         basePrice: 220,
         maxPrice: 300,
         duration: 120,
-        imageUrl: '/background-images/keratin-treatment.png',
+        imageUrl: '/images/background-images/keratin-treatment.png',
         serviceTags: [
           'frizzy-hair',
           'unruly-hair',
@@ -530,7 +530,7 @@ const CATEGORIES = [
     priceRangeMax: 300,
     sortOrder: 6,
     isFeatured: true,
-    imageUrl: '/background-images/hair-perm.jpg',
+    imageUrl: '/images/background-images/hair-perm.jpg',
     illustrationUrl: '/images/illustrations/hair-perm.png',
     items: [
       {
@@ -541,7 +541,7 @@ const CATEGORIES = [
         basePrice: 150,
         maxPrice: 180,
         duration: 150,
-        imageUrl: '/background-images/hair-perm.jpg',
+        imageUrl: '/images/background-images/hair-perm.jpg',
         serviceTags: ['flat-hair', 'curly-hair', 'add-volume', 'long-lasting'],
       },
       {
@@ -614,6 +614,8 @@ async function main() {
         description: tag.description,
         iconName: tag.iconName,
         sortOrder: tag.sortOrder,
+        createdAt: new Date(),
+        updatedAt: new Date(),
       })
       .returning({ id: serviceTags.id });
     createdTags[tag.slug] = result[0];
@@ -638,6 +640,8 @@ async function main() {
         isFeatured: (category as any).isFeatured ?? false,
         imageUrl: (category as any).imageUrl,
         illustrationUrl: (category as any).illustrationUrl,
+        createdAt: new Date(),
+        updatedAt: new Date(),
       })
       .returning({ id: serviceCategories.id });
 
@@ -654,8 +658,9 @@ async function main() {
           maxPrice: (item as any).maxPrice,
           duration: item.duration,
           imageUrl: (item as any).imageUrl,
-          tags: (item as any).tags || [],
           categoryId: createdCategory.id,
+          createdAt: new Date(),
+          updatedAt: new Date(),
         })
         .returning({ id: services.id });
 
@@ -681,13 +686,14 @@ async function main() {
           await db.insert(serviceAddons).values({
             name: addon.name,
             description: addon.description || null,
-            benefits: addon.benefits || [],
             price: addon.price || `+$${addon.basePrice}`,
             basePrice: addon.basePrice,
             duration: addon.duration ?? 0,
             isRecommended: addon.isRecommended ?? false,
             isPopular: addon.isPopular ?? false,
             serviceId: service.id,
+            createdAt: new Date(),
+            updatedAt: new Date(),
           });
         }
       }
