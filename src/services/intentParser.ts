@@ -635,6 +635,17 @@ function parseNaturalDate(text: string): {
     };
   }
 
+  // Check for "yesterday" (for proper error handling)
+  if (lower.includes('yesterday')) {
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    return {
+      raw: 'yesterday',
+      parsed: yesterday,
+      formatted: formatDate(yesterday),
+    };
+  }
+
   // Check for day names: "next monday", "this friday", "monday"
   for (let i = 0; i < DAYS.length; i++) {
     const day = DAYS[i];
@@ -1391,6 +1402,23 @@ Just chat naturally! For example:
       } else if (effectiveDate) {
         // Has date but not time
         const dateForFormatting = parsed.date?.formatted || formatDate(new Date(effectiveDate));
+        const requestedDate = new Date(effectiveDate);
+
+        // VALIDATION: Check if date is in the past
+        if (isPastDate(requestedDate)) {
+          return {
+            text: `❌ *Sorry, ${dateForFormatting} is in the past.*\n\nPlease choose a date from today onwards. When would you like to book?`,
+            updatedContext: {
+              categoryId: parsed.category.id,
+              categoryName: parsed.category.name,
+              priceNote: parsed.category.priceNote,
+              stylistId: effectiveStylistId,
+              stylistName: effectiveStylistName,
+              awaitingInput: 'date',
+            },
+          };
+        }
+
         return {
           text: `📋 *Almost there:*\n${serviceLine}\n📅 ${dateForFormatting}\n\nWhat time works for you? (e.g. "2pm" or "afternoon")`,
           updatedContext: {

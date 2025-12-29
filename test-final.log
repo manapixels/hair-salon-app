@@ -1,0 +1,350 @@
+﻿
+============================================================
+INTENT PARSER COMPREHENSIVE TEST SUITE
+============================================================
+
+============================================================
+STATELESS TESTS (parseMessage)
+============================================================
+
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  PASS: Book haircut
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  PASS: Full booking
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  PASS: Can I get
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  PASS: Date+time
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  PASS: Simple PM
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  PASS: Time w/ mins
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  PASS: Highlights
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  PASS: Keratin
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  PASS: Perm
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  PASS: Scalp
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  PASS: Balayage
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  PASS: 10am
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  PASS: 24-hour
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  PASS: With minutes
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  PASS: 2 NOT time
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  PASS: 15 NOT time
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  PASS: Yes
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  PASS: Sounds good
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  PASS: Time+confirm
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  PASS: Works for me
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  PASS: Perfect
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  PASS: Book it
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  PASS: Let's do it
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  PASS: Cancel
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  PASS: Need cancel
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  PASS: Delete
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  PASS: Reschedule
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  PASS: Change
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  PASS: Move
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  PASS: Show my
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  PASS: When is my
+[Drizzle] Using Neon HTTP (development)
+  PASS: Do I have
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  PASS: Check my
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  PASS: Services
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  PASS: How much
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  PASS: Hours
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  PASS: When open
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  PASS: Help
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  PASS: What can
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  PASS: Hi
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  PASS: Hello
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  PASS: Good morning
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  PASS: Don't want
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  PASS: Never mind
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  PASS: No thanks
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  PASS: Changed mind
+
+============================================================
+MULTI-STEP FLOW TESTS
+============================================================
+
+--- Complete Booking Flow ---
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  PASS: Greeting prompts for service
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  PASS: Service selected → asks for date
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  PASS: Date provided → asks for time
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  PASS: Time provided → confirmation
+
+--- One-Shot Complete Booking ---
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  ERROR: All info → straight to confirmation
+
+--- Category Only Flow ---
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  PASS: Category only → asks for date
+
+--- Compound Confirmation ---
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+[Booking] Input date: Thu Jan 15 2026 08:00:00 GMT+0800 (Singapore Standard Time), stylistId: undefined
+[Booking] Date type: object, Date ISO: 2026-01-15T00:00:00.000Z
+node.exe : [IntentParser] Booking 
+creation failed: Error: Invariant: 
+incrementalCache missing in 
+unstable_cache async 
+dateKeyParam=>{const 
+db=await(0,import_db.getDb)();const 
+settings=await getAdminSettings();const 
+fullDayClosure=settings.specialClosures.
+find(closure=>closure.date===dateKeyPara
+m&&closure.isFullDay);if(fullDayClosure)
+return[];const dateObj=new Date(dateKeyP
+aram+"T12:00:00.000Z");const dayOfWeek=d
+ateObj.toLocaleDateString("en-US",{weekd
+ay:"long"}).toLowerCase();const daySched
+ule=settings.weeklySchedule[dayOfWeek];i
+f(!daySchedule||!daySchedule.isOpen)retu
+rn[];const allSlots=generateTimeSlots(da
+ySchedule.openingTime,daySchedule.closin
+gTime);const appointments=await db.selec
+t().from(schema.appointments).where((0,i
+mport_drizzle_orm.and)((0,import_drizzle
+_orm.gte)(schema.appointments.date,new D
+ate(dateKeyParam+"T00:00:00.000Z")),(0,i
+mport_drizzle_orm.lt)(schema.appointment
+s.date,new Date(dateKeyParam+"T23:59:59.
+999Z"))));const bookedSlots=new 
+Set;appointments.forEach(app=>{let 
+appTime=new 
+Date(`1970-01-01T${app.time}:00`);const 
+numSlots=Math.ceil(app.totalDuration/30)
+;for(let i=0;i<numSlots;i++){bookedSlots
+.add(appTime.toTimeString().substring(0,
+5));appTime.setMinutes(appTime.getMinute
+s()+30)}});const blockedByAdmin=new Set(
+settings.blockedSlots[dateKeyParam]||[])
+;return allSlots.filter(slot=>!bookedSlo
+ts.has(slot)&&!blockedByAdmin.has(slot))
+}
+At C:\Program Files\nodejs\npx.ps1:29 
+char:3
++   & $NODE_EXE $NPX_CLI_JS $args
++   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecif 
+   ied: ([IntentParser] ...min.has(slo  
+  t))}:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCom 
+   mandError
+ 
+    at cachedCb (C:\Users\zheny\Download
+s\Dev\hair-salon-app\node_modules\next\s
+rc\server\web\spec-extension\unstable-ca
+che.ts:102:13)
+    at getAvailability (C:\Users\zheny\D
+ownloads\Dev\hair-salon-app\src\lib\data
+base.ts:627:10)
+    at bookNewAppointment (C:\Users\zhen
+y\Downloads\Dev\hair-salon-app\src\lib\d
+atabase.ts:738:13)
+    at async generateFallbackResponse (C
+:\Users\zheny\Downloads\Dev\hair-salon-a
+pp\src\services\intentParser.ts:1070:29)
+    at async runFlowTests (C:\Users\zhen
+y\Downloads\Dev\hair-salon-app\src\tests
+\intent-parser-test-cases.ts:508:26)
+    at async main (C:\Users\zheny\Downlo
+ads\Dev\hair-salon-app\src\tests\intent-
+parser-test-cases.ts:569:17)
+  PASS: Time + confirmation phrase → processes
+
+--- Past Date Error Recovery ---
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  PASS: Past date → helpful error
+
+--- Outside Business Hours ---
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  PASS: Late time → suggests earlier
+
+--- Cancel Flow - No Email ---
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  PASS: Cancel without email → asks for email
+
+--- Reschedule Flow - No Email ---
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  PASS: Reschedule without email → asks for email
+
+--- Services Inquiry ---
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  PASS: Services list shown
+
+--- Hours Inquiry ---
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  PASS: Hours shown
+
+--- Help Command ---
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  PASS: Help menu shown
+
+============================================================
+ERROR RECOVERY TESTS
+============================================================
+
+--- Too Early Time ---
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  PASS: 5am → too early, suggests opening time
+
+--- Category + Time, No Date ---
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  PASS: Missing date → asks for date
+
+--- Time Only Input ---
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  PASS: Time without date → asks when to interpret
+
+============================================================
+EDGE CASE TESTS
+============================================================
+
+--- Short Non-Actionable ---
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  PASS: Non-actionable → offers help
+
+--- Multiple Services Mentioned ---
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  PASS: Multiple services → handled
+
+============================================================
+SUMMARY
+============================================================
+Stateless:      46/46
+Flows:          13/14
+Error Recovery: 3/3
+Edge Cases:     2/2
+----------------------------------------
+TOTAL:          64/65 (98.5%)
+
+FAILED TESTS:
+  - [One-Shot Complete Booking] All info → straight to confirmation: ERROR
