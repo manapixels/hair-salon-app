@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef, useCallback } from 'react';
 import { useBooking } from '@/context/BookingContext';
 import { LoadingSpinner } from '@/components/feedback/loaders/LoadingSpinner';
 import EditAppointmentModal from '@/components/booking/EditAppointmentModal';
@@ -15,11 +15,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
 } from '@/components/ui/dropdown-menu';
 import {
   AlertDialog,
@@ -32,7 +37,14 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Refresh } from '@/lib/icons';
-import { CircleUserRound, Earth, User, MoreHorizontal } from 'lucide-react';
+import {
+  CircleUserRound,
+  Earth,
+  User,
+  MoreHorizontal,
+  SlidersHorizontal,
+  Check,
+} from 'lucide-react';
 import TelegramIcon from '@/components/icons/telegram';
 import AppointmentCard from '@/components/appointments/AppointmentCard';
 import { useTranslations, useFormatter } from 'next-intl';
@@ -61,7 +73,7 @@ export default function AppointmentsPage() {
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [dateFilter, setDateFilter] = useState<'all' | 'today' | 'week' | 'month'>('all');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'upcoming' | 'past' | 'today'>('all');
+  const [activeTab, setActiveTab] = useState<'upcoming' | 'past'>('upcoming');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(25);
   const [selectedAppointments, setSelectedAppointments] = useState<Set<string>>(new Set());
@@ -119,25 +131,90 @@ export default function AppointmentsPage() {
         if (aptDate < startOfMonth || aptDate > endOfMonth) return false;
       }
 
-      if (statusFilter === 'today') {
-        const aptDate = new Date(appointment.date);
-        if (aptDate < startOfToday || aptDate > endOfToday) return false;
-      } else if (statusFilter === 'upcoming') {
-        if (new Date(appointment.date) <= endOfToday) return false;
-      } else if (statusFilter === 'past') {
+      // Filter by active tab (upcoming vs past)
+      if (activeTab === 'upcoming') {
+        // Include today and future appointments
+        if (new Date(appointment.date) < startOfToday) return false;
+      } else if (activeTab === 'past') {
+        // Only past appointments (before today)
         if (new Date(appointment.date) >= startOfToday) return false;
       }
 
       return true;
     });
-  }, [appointments, searchTerm, dateFilter, statusFilter]);
+  }, [appointments, searchTerm, dateFilter, activeTab]);
 
-  // Sorted appointments
+  // Sorted appointments - upcoming: chronological, past: reverse chronological
   const sortedAppointments = useMemo(() => {
-    return [...filteredAppointments].sort(
-      (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
-    );
-  }, [filteredAppointments]);
+    return [...filteredAppointments].sort((a, b) => {
+      const dateA = new Date(a.date).getTime();
+      const dateB = new Date(b.date).getTime();
+      // For past appointments, show most recent first
+      if (activeTab === 'past') {
+        return dateB - dateA;
+      }
+      // For upcoming, show soonest first
+      return dateA - dateB;
+    });
+  }, [filteredAppointments, activeTab]);
+
+  // Count appointments by tab (independent of active tab, but respecting search/date filters)
+  const { upcomingCount, pastCount } = useMemo(() => {
+    const today = new Date();
+    const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+
+    // Apply search and date filters only (not tab filter)
+    const baseFiltered = (Array.isArray(appointments) ? appointments : []).filter(appointment => {
+      if (searchTerm) {
+        const term = searchTerm.toLowerCase();
+        const matchesSearch =
+          appointment.customerName.toLowerCase().includes(term) ||
+          appointment.customerEmail.toLowerCase().includes(term) ||
+          appointment.services.some(s => s.name.toLowerCase().includes(term));
+        if (!matchesSearch) return false;
+      }
+
+      if (dateFilter === 'today') {
+        const aptDate = new Date(appointment.date);
+        const endOfToday = new Date(
+          today.getFullYear(),
+          today.getMonth(),
+          today.getDate(),
+          23,
+          59,
+          59,
+        );
+        if (aptDate < startOfToday || aptDate > endOfToday) return false;
+      } else if (dateFilter === 'week') {
+        const startOfWeek = new Date(today);
+        startOfWeek.setDate(today.getDate() - today.getDay());
+        const endOfWeek = new Date(startOfWeek);
+        endOfWeek.setDate(startOfWeek.getDate() + 6);
+        endOfWeek.setHours(23, 59, 59);
+        const aptDate = new Date(appointment.date);
+        if (aptDate < startOfWeek || aptDate > endOfWeek) return false;
+      } else if (dateFilter === 'month') {
+        const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+        const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0, 23, 59, 59);
+        const aptDate = new Date(appointment.date);
+        if (aptDate < startOfMonth || aptDate > endOfMonth) return false;
+      }
+
+      return true;
+    });
+
+    let upcoming = 0;
+    let past = 0;
+    baseFiltered.forEach(apt => {
+      if (new Date(apt.date) >= startOfToday) {
+        upcoming++;
+      } else {
+        past++;
+      }
+    });
+
+    return { upcomingCount: upcoming, pastCount: past };
+  }, [appointments, searchTerm, dateFilter]);
 
   // Pagination
   const totalPages = Math.ceil(sortedAppointments.length / itemsPerPage);
@@ -211,153 +288,189 @@ export default function AppointmentsPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header Row */}
-      <div className="flex flex-wrap justify-between items-center gap-4">
-        <div>
-          <p className="text-sm text-muted-foreground">
-            {t('showing', {
-              start: startIndex + 1,
-              end: Math.min(startIndex + itemsPerPage, sortedAppointments.length),
-              total: sortedAppointments.length,
-            })}
-          </p>
+      {/* Tabs for Upcoming/Past */}
+      <Tabs
+        value={activeTab}
+        onValueChange={v => {
+          setActiveTab(v as 'upcoming' | 'past');
+          setCurrentPage(1);
+        }}
+      >
+        <div className="flex flex-wrap justify-between items-center gap-4">
+          <TabsList className="w-auto">
+            <TabsTrigger value="upcoming">
+              {t('upcoming')}
+              <span className="ml-1.5 text-xs text-muted-foreground">{upcomingCount}</span>
+            </TabsTrigger>
+            <TabsTrigger value="past">
+              {t('past')}
+              <span className="ml-1.5 text-xs text-muted-foreground">{pastCount}</span>
+            </TabsTrigger>
+          </TabsList>
+          <Button variant="outline" size="sm" onClick={handleRefresh} disabled={isRefreshing}>
+            <Refresh className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+            {t('refresh')}
+          </Button>
         </div>
-        <Button variant="outline" size="sm" onClick={handleRefresh} disabled={isRefreshing}>
-          <Refresh className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-          {t('refresh')}
-        </Button>
-      </div>
 
-      {/* Filters */}
-      <div className="p-4 bg-white border border-border rounded-lg">
-        <div className="flex flex-col sm:flex-row gap-4">
+        {/* Filters */}
+        <div className="flex gap-2 my-4">
+          {/* Search - always visible */}
           <div className="flex-1">
             <input
               type="text"
               placeholder={t('searchPlaceholder')}
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
-              className="w-full px-3 py-2 border border-border rounded-md text-sm"
+              className="w-full px-3 py-2 border border-border rounded-md text-sm bg-white"
             />
           </div>
-          <Select value={dateFilter} onValueChange={v => setDateFilter(v as any)}>
-            <SelectTrigger className="w-full sm:w-[140px]">
-              <SelectValue placeholder={t('datePlaceholder')} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{t('allDates')}</SelectItem>
-              <SelectItem value="today">{t('today')}</SelectItem>
-              <SelectItem value="week">{t('thisWeek')}</SelectItem>
-              <SelectItem value="month">{t('thisMonth')}</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select value={statusFilter} onValueChange={v => setStatusFilter(v as any)}>
-            <SelectTrigger className="w-full sm:w-[140px]">
-              <SelectValue placeholder={t('statusPlaceholder')} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{t('allStatus')}</SelectItem>
-              <SelectItem value="today">{t('today')}</SelectItem>
-              <SelectItem value="upcoming">{t('upcoming')}</SelectItem>
-              <SelectItem value="past">{t('past')}</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
 
-      {/* Appointments List */}
-      {appointmentsLoading ? (
-        <div className="p-8 text-center">
-          <LoadingSpinner size="md" message={t('loading')} />
-        </div>
-      ) : paginatedAppointments.length === 0 ? (
-        <div className="bg-white border border-border rounded-lg p-12 text-center">
-          <p className="text-muted-foreground">{t('noAppointmentsFound')}</p>
-        </div>
-      ) : (
-        <div className="space-y-6">
-          {/* Group appointments by date */}
-          {Object.entries(
-            paginatedAppointments.reduce(
-              (groups, appointment) => {
-                const dateKey = new Date(appointment.date).toDateString();
-                if (!groups[dateKey]) {
-                  groups[dateKey] = [];
-                }
-                groups[dateKey].push(appointment);
-                return groups;
-              },
-              {} as Record<string, Appointment[]>,
-            ),
-          )
-            .sort(([a], [b]) => new Date(a).getTime() - new Date(b).getTime())
-            .map(([dateKey, dateAppointments]) => (
-              <div key={dateKey}>
-                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3 px-1">
-                  {formatShortDate(new Date(dateKey))}
-                </h3>
-                <div className="bg-white border border-border rounded-lg divide-y divide-border">
-                  {dateAppointments.map(appointment => (
-                    <AppointmentCard
-                      key={appointment.id}
-                      appointment={appointment}
-                      showSource={true}
-                      showStylist={true}
-                      actions={
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" className="h-8 w-8 p-0">
-                              <span className="sr-only">{t('openMenu')}</span>
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => handleEditAppointment(appointment)}>
-                              {t('edit')}
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() => handleCancelAppointment(appointment)}
-                              className="text-destructive focus:text-destructive"
-                            >
-                              {t('cancel')}
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      }
-                    />
-                  ))}
-                </div>
-              </div>
-            ))}
-        </div>
-      )}
+          {/* Mobile: Filter dropdown */}
+          <div className="sm:hidden">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="icon" className="relative">
+                  <SlidersHorizontal className="h-4 w-4" />
+                  {dateFilter !== 'all' && (
+                    <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-primary" />
+                  )}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuLabel>{t('datePlaceholder')}</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuRadioGroup
+                  value={dateFilter}
+                  onValueChange={v => setDateFilter(v as 'all' | 'today' | 'week' | 'month')}
+                >
+                  <DropdownMenuRadioItem value="all">{t('allDates')}</DropdownMenuRadioItem>
+                  <DropdownMenuRadioItem value="today">{t('today')}</DropdownMenuRadioItem>
+                  <DropdownMenuRadioItem value="week">{t('thisWeek')}</DropdownMenuRadioItem>
+                  <DropdownMenuRadioItem value="month">{t('thisMonth')}</DropdownMenuRadioItem>
+                </DropdownMenuRadioGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
 
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between">
-          <p className="text-sm text-muted-foreground">
-            {t('pageIndicator', { current: currentPage, total: totalPages })}
-          </p>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={currentPage === 1}
-              onClick={() => setCurrentPage(p => p - 1)}
+          {/* Desktop: Inline date filter */}
+          <div className="hidden sm:block">
+            <Select
+              value={dateFilter}
+              onValueChange={v => setDateFilter(v as 'all' | 'today' | 'week' | 'month')}
             >
-              {t('previous')}
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={currentPage === totalPages}
-              onClick={() => setCurrentPage(p => p + 1)}
-            >
-              {t('next')}
-            </Button>
+              <SelectTrigger className="w-[140px]">
+                <SelectValue placeholder={t('datePlaceholder')} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t('allDates')}</SelectItem>
+                <SelectItem value="today">{t('today')}</SelectItem>
+                <SelectItem value="week">{t('thisWeek')}</SelectItem>
+                <SelectItem value="month">{t('thisMonth')}</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
-      )}
+
+        {/* Appointments List */}
+        {appointmentsLoading ? (
+          <div className="p-8 text-center">
+            <LoadingSpinner size="md" message={t('loading')} />
+          </div>
+        ) : paginatedAppointments.length === 0 ? (
+          <div className="bg-white border border-border rounded-lg p-12 text-center">
+            <p className="text-muted-foreground">{t('noAppointmentsFound')}</p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {/* Group appointments by date */}
+            {Object.entries(
+              paginatedAppointments.reduce(
+                (groups, appointment) => {
+                  const dateKey = new Date(appointment.date).toDateString();
+                  if (!groups[dateKey]) {
+                    groups[dateKey] = [];
+                  }
+                  groups[dateKey].push(appointment);
+                  return groups;
+                },
+                {} as Record<string, Appointment[]>,
+              ),
+            )
+              .sort(([a], [b]) => {
+                const timeA = new Date(a).getTime();
+                const timeB = new Date(b).getTime();
+                // For past tab, show most recent dates first
+                return activeTab === 'past' ? timeB - timeA : timeA - timeB;
+              })
+              .map(([dateKey, dateAppointments]) => (
+                <div key={dateKey}>
+                  <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3 px-1">
+                    {formatShortDate(new Date(dateKey))}
+                  </h3>
+                  <div className="bg-white border border-border rounded-lg divide-y divide-border">
+                    {dateAppointments.map(appointment => (
+                      <AppointmentCard
+                        key={appointment.id}
+                        appointment={appointment}
+                        showSource={true}
+                        showStylist={true}
+                        actions={
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" className="h-8 w-8 p-0">
+                                <span className="sr-only">{t('openMenu')}</span>
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => handleEditAppointment(appointment)}>
+                                {t('edit')}
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => handleCancelAppointment(appointment)}
+                                className="text-destructive focus:text-destructive"
+                              >
+                                {t('cancel')}
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        }
+                      />
+                    ))}
+                  </div>
+                </div>
+              ))}
+          </div>
+        )}
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-muted-foreground">
+              {t('pageIndicator', { current: currentPage, total: totalPages })}
+            </p>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage(p => p - 1)}
+              >
+                {t('previous')}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={currentPage === totalPages}
+                onClick={() => setCurrentPage(p => p + 1)}
+              >
+                {t('next')}
+              </Button>
+            </div>
+          </div>
+        )}
+      </Tabs>
 
       {/* Modals */}
       <EditAppointmentModal
