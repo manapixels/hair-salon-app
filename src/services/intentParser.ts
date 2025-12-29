@@ -1204,7 +1204,95 @@ Just chat naturally! For example:
           }
         }
 
-        // Slot IS available - show confirmation
+        // VALIDATION 4: Check if enough CONSECUTIVE slots are available for the service duration
+        // Get the full category to access estimatedDuration
+        const fullCategory = allCategories.find(c => c.id === parsed.category!.id);
+        const serviceDuration = fullCategory?.estimatedDuration || 60; // Default 60 min if not set
+        const numSlotsRequired = Math.ceil(serviceDuration / 30);
+
+        if (numSlotsRequired > 1) {
+          // Check consecutive slots starting from requested time
+          const requiredSlots: string[] = [];
+          const startTime = new Date(`1970-01-01T${effectiveTime}:00`);
+
+          for (let i = 0; i < numSlotsRequired; i++) {
+            const slotTime = new Date(startTime);
+            slotTime.setMinutes(slotTime.getMinutes() + i * 30);
+            requiredSlots.push(slotTime.toTimeString().substring(0, 5));
+          }
+
+          const missingSlots = requiredSlots.filter(slot => !availableSlots.includes(slot));
+
+          if (missingSlots.length > 0) {
+            // Not enough consecutive slots - generate HELPFUL message
+            const durationHours = Math.floor(serviceDuration / 60);
+            const durationMins = serviceDuration % 60;
+            const durationText =
+              durationHours > 0
+                ? durationMins > 0
+                  ? `${durationHours}h ${durationMins}min`
+                  : `${durationHours} hours`
+                : `${durationMins} minutes`;
+
+            // Find alternative times that DO have enough consecutive slots
+            const viableTimes: string[] = [];
+            for (const slot of availableSlots) {
+              // Check if this slot has enough consecutive slots
+              const slotStart = new Date(`1970-01-01T${slot}:00`);
+              let allConsecutiveAvailable = true;
+
+              for (let i = 0; i < numSlotsRequired; i++) {
+                const checkTime = new Date(slotStart);
+                checkTime.setMinutes(checkTime.getMinutes() + i * 30);
+                const checkSlot = checkTime.toTimeString().substring(0, 5);
+                if (!availableSlots.includes(checkSlot)) {
+                  allConsecutiveAvailable = false;
+                  break;
+                }
+              }
+
+              if (allConsecutiveAvailable && viableTimes.length < 3) {
+                viableTimes.push(slot);
+              }
+            }
+
+            if (viableTimes.length > 0) {
+              // Suggest viable alternatives
+              const viableFormatted = viableTimes.map(slot => {
+                const [h, m] = slot.split(':').map(Number);
+                return formatTime(h, m);
+              });
+
+              return {
+                text: `💡 *${parsed.category.name} typically takes ${durationText}.*\n\nStarting at ${timeForFormatting}, we won't have enough time before our next booking or closing.\n\n📅 *Times with enough availability:*\n${viableFormatted.map(t => `• ${t}`).join('\n')}\n\nWould any of these work for you?`,
+                updatedContext: {
+                  categoryId: parsed.category.id,
+                  categoryName: parsed.category.name,
+                  priceNote: parsed.category.priceNote,
+                  date: effectiveDate,
+                  stylistId: effectiveStylistId,
+                  stylistName: effectiveStylistName,
+                  awaitingInput: 'time',
+                },
+              };
+            } else {
+              // No viable times on this date
+              return {
+                text: `💡 *${parsed.category.name} typically takes ${durationText}.*\n\nUnfortunately, ${dateForFormatting} doesn't have enough consecutive availability.\n\nWould you like to try a different date?`,
+                updatedContext: {
+                  categoryId: parsed.category.id,
+                  categoryName: parsed.category.name,
+                  priceNote: parsed.category.priceNote,
+                  stylistId: effectiveStylistId,
+                  stylistName: effectiveStylistName,
+                  awaitingInput: 'date',
+                },
+              };
+            }
+          }
+        }
+
+        // Slot IS available with enough consecutive time - show confirmation
         let confirmText = `📋 *Ready to Book:*\n${serviceLine}\n📅 ${dateForFormatting} at ${timeForFormatting}\n\n👉 *Reply 'yes' to confirm*`;
         if (!effectiveStylistName && parsed.stylist !== 'any') {
           // No stylist specified and not "any" - note this

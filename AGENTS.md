@@ -252,6 +252,12 @@ Confirmation Message (WhatsApp/Telegram)
 - ✅ **Input validation** - Real-time availability checks
 - ✅ **Error recovery** - Clear messages + retry options
 - ✅ **Confirmation steps** - Always confirm before booking/canceling
+- ✅ **Helpful error messages** - CRITICAL UX:
+  1. **Explain the situation** - Tell users WHY something failed
+  2. **Suggest a resolution** - Help users achieve their objective
+  - Bad: "Booking conflict. Not enough consecutive slots."
+  - Good: "Hair perming usually requires 3 hours. Our salon closes at 7pm, is 4pm ok?"
+- ✅ **Pre-validate before confirmation** - Never show "Ready to Book?" if the slot isn't viable
 
 ### **Setup**
 
