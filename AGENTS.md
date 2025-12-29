@@ -261,6 +261,15 @@ Confirmation Message (WhatsApp/Telegram)
 - ✅ **Compound message handling** - Extract embedded info from confirmation phrases
   - Example: "4:30pm sounds good" → Extract time THEN confirm
   - Intent parser detects "sounds good" as confirmation, but also parses "4:30pm"
+- ✅ **Intent priority system** - Specific intents take precedence:
+  - cancel/reschedule (10) > view_appointments (9) > confirmation (8) > book (5) > greeting (3)
+  - Prevents "highlights" matching "hi" as greeting
+- ✅ **Past date validation** - Checks date at all steps, not just final confirmation
+- ✅ **Test suite** (`src/tests/intent-parser-test-cases.ts`) - 65 tests, 100% pass rate
+  - Stateless parsing (46 tests)
+  - Multi-step flows (14 tests)
+  - Error recovery (3 tests)
+  - Edge cases (2 tests)
 
 ### **Setup**
 
