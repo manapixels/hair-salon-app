@@ -1,0 +1,380 @@
+﻿­ƒº¬ Intent Parser Test Suite
+
+================================================================================
+
+­ƒôü Booking Intents
+------------------------------------------------------------
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  Ô£à Direct book request
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  Ô£à Book with date
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  Ô£à Schedule synonym
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  Ô£à Reserve synonym
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  Ô£à Full booking
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  Ô£à Need expression
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  Ô£à Can I get
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  Ô£à Looking for
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  Ô£à Casual get a
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  Ô£à Can you book
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  Ô£à Going to get
+
+­ƒôü Date Parsing
+------------------------------------------------------------
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  Ô£à Today
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  Ô£à Tomorrow
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  Ô£à Next + day name
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  Ô£à Day Month Year
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  Ô£à Month Day, Year
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  ÔØî Full month + ordinal
+     "haircut on January 5th"
+     intent: "book" vs "unknown"
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  Ô£à CRITICAL: Date + time
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  ÔØî Two digit day + month
+     "haircut on 15 march"
+     intent: "book" vs "unknown"
+
+­ƒôü Time Parsing
+------------------------------------------------------------
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  Ô£à Simple PM time
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  Ô£à Simple AM time
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  ÔØî Time with minutes
+     "haircut at 2:30pm"
+     intent: "book" vs "unknown"
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  ÔØî Time with space
+     "come in at 11:45 am"
+     intent: "book" vs "unknown"
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  Ô£à 24-hour format
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  Ô£à CRITICAL: '2' should NOT match as time
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  ÔØî Day number NOT time
+     "haircut on 3 dec 2026"
+     intent: "book" vs "unknown"
+
+­ƒôü Category Matching
+------------------------------------------------------------
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  Ô£à Haircut
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  ÔØî Trim = haircut
+     "just a trim please"
+     intent: "book" vs "unknown"
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  Ô£à Color
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  ÔØî Highlights
+     "highlights please"
+     intent: "book" vs "greeting"
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  ÔØî Balayage
+     "balayage treatment"
+     intent: "book" vs "unknown"
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  ÔØî Keratin
+     "keratin treatment please"
+     intent: "book" vs "unknown"
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  ÔØî Straightening
+     "hair straightening"
+     intent: "book" vs "unknown"
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  Ô£à Perm
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  ÔØî Scalp treatment
+     "scalp treatment"
+     intent: "book" vs "unknown"
+
+­ƒôü Confirmation Phrases
+------------------------------------------------------------
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  Ô£à Simple yes
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  Ô£à Yeah
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  Ô£à Sure
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  Ô£à OK
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  Ô£à Sounds good
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  Ô£à Perfect
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  Ô£à Book it
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  Ô£à CRITICAL: Time + confirmation
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  ÔØî Time + works
+     "2pm works for me"
+     intent: "confirmation" vs "unknown"
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  Ô£à Yes + time
+
+­ƒôü Cancellation Intents
+------------------------------------------------------------
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  Ô£à Direct cancel
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  ÔØî Need to cancel
+     "I need to cancel"
+     intent: "cancel" vs "book"
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  ÔØî Delete booking
+     "delete my booking"
+     intent: "cancel" vs "view_appointments"
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  ÔØî Remove appointment
+     "remove my appointment"
+     intent: "cancel" vs "reschedule"
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  Ô£à Can I cancel
+
+­ƒôü Reschedule Intents
+------------------------------------------------------------
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  ÔØî Direct reschedule
+     "reschedule my appointment"
+     intent: "reschedule" vs "book"
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  ÔØî Change booking
+     "I need to change my booking"
+     intent: "reschedule" vs "view_appointments"
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  Ô£à Move appointment
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  Ô£à Different time
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  Ô£à New time
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  Ô£à Reschedule with info
+
+­ƒôü View Appointments
+------------------------------------------------------------
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  Ô£à Show my
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  Ô£à What are my
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  ÔØî When is my
+     "when is my next appointment?"
+     intent: "view_appointments" vs "book"
+[Drizzle] Using Neon HTTP (development)
+  Ô£à Do I have any
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  Ô£à Check my
+
+­ƒôü Services/Pricing
+------------------------------------------------------------
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  Ô£à What services
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  Ô£à Prices
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  Ô£à How much
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  Ô£à Price list
+
+­ƒôü Hours/Location
+------------------------------------------------------------
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  Ô£à Hours question
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  Ô£à When open
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  Ô£à Location
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  Ô£à Opening hours
+
+­ƒôü Greetings
+------------------------------------------------------------
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  Ô£à Hi
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  Ô£à Hello
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  Ô£à Good morning
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  Ô£à Telegram start
+
+­ƒôü Help Requests
+------------------------------------------------------------
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  Ô£à Help
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  Ô£à What can you
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  Ô£à How do I
+
+­ƒôü Edge Cases
+------------------------------------------------------------
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  Ô£à Negation
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  Ô£à No thanks
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  Ô£à Non-actionable
+[Drizzle] Using Neon HTTP (development)
+[Drizzle] Using Neon HTTP (development)
+  Ô£à Thanks (no intent)
+
+================================================================================
+­ƒôè SUMMARY
+================================================================================
+Total: 80 | Passed: 62 | Failed: 18
+Pass Rate: 77.5%
+
+ÔØî FAILED TESTS SUMMARY:
+  [Date Parsing] "haircut on January 5th"
+    Expected: book / haircut
+    Got: unknown / haircut
+  [Date Parsing] "haircut on 15 march"
+    Expected: book / haircut
+    Got: unknown / haircut
+  [Time Parsing] "haircut at 2:30pm"
+    Expected: book / haircut @ 14:30
+    Got: unknown / haircut @ 14:30
+  [Time Parsing] "come in at 11:45 am"
+    Expected: book @ 11:45
+    Got: unknown @ 11:45
+  [Time Parsing] "haircut on 3 dec 2026"
+    Expected: book / haircut
+    Got: unknown / haircut
+  [Category Matching] "just a trim please"
+    Expected: book / haircut
+    Got: unknown / haircut
+  [Category Matching] "highlights please"
+    Expected: book / hair-colouring
+    Got: greeting / hair-colouring
+  [Category Matching] "balayage treatment"
+    Expected: book / hair-colouring
+    Got: unknown / hair-colouring
+  [Category Matching] "keratin treatment please"
+    Expected: book / keratin-treatment
+    Got: unknown / keratin-treatment
+  [Category Matching] "hair straightening"
+    Expected: book / keratin-treatment
+    Got: unknown / keratin-treatment
+  [Category Matching] "scalp treatment"
+    Expected: book / scalp-treatment
+    Got: unknown / scalp-treatment
+  [Confirmation Phrases] "2pm works for me"
+    Expected: confirmation @ 14:00
+    Got: unknown @ 14:00
+  [Cancellation Intents] "I need to cancel"
+    Expected: cancel
+    Got: book
+  [Cancellation Intents] "delete my booking"
+    Expected: cancel
+    Got: view_appointments
+  [Cancellation Intents] "remove my appointment"
+    Expected: cancel
+    Got: reschedule
+  [Reschedule Intents] "reschedule my appointment"
+    Expected: reschedule
+    Got: book
+  [Reschedule Intents] "I need to change my booking"
+    Expected: reschedule
+    Got: view_appointments
+  [View Appointments] "when is my next appointment?"
+    Expected: view_appointments
+    Got: book

@@ -199,6 +199,9 @@ const INTENT_KEYWORDS: Record<IntentType, string[]> = {
     'go ahead',
     'do it',
     "let's do it",
+    'works for me',
+    'that works',
+    'works',
   ],
   unknown: [],
 };
@@ -443,20 +446,59 @@ async function matchStylist(message: string): Promise<{
  */
 function detectIntent(message: string): { type: IntentType; confidence: number } {
   const lower = message.toLowerCase().trim();
-  let bestMatch: { type: IntentType; confidence: number; matchLength: number } | null = null;
+  let bestMatch: {
+    type: IntentType;
+    confidence: number;
+    matchLength: number;
+    priority: number;
+  } | null = null;
+
+  // Priority order: higher number = check first, wins ties
+  // More specific intents should have higher priority
+  const intentPriority: Record<IntentType, number> = {
+    cancel: 10,
+    reschedule: 10,
+    view_appointments: 9,
+    confirmation: 8,
+    book: 5, // Generic booking is lower priority
+    services: 6,
+    hours: 6,
+    help: 6,
+    greeting: 3, // Greeting is low priority to avoid "hi" in "highlights"
+    unknown: 0,
+  };
 
   // Check each intent type
   for (const [intent, keywords] of Object.entries(INTENT_KEYWORDS)) {
     if (intent === 'unknown') continue;
 
     for (const keyword of keywords) {
-      if (lower.includes(keyword)) {
-        // Found a match. Is it better (longer) than previous?
-        // E.g. "make an appointment" (length 19) > "appointment" (length 11)
-        if (!bestMatch || keyword.length > bestMatch.matchLength) {
-          // Higher confidence for longer keywords
-          const confidence = keyword.length > 6 ? 0.9 : 0.7;
-          bestMatch = { type: intent as IntentType, confidence, matchLength: keyword.length };
+      // Use word boundary regex for short keywords (< 4 chars) to avoid false matches
+      // e.g., "hi" should not match in "highlights"
+      let matches = false;
+      if (keyword.length < 4) {
+        const regex = new RegExp(`\\b${keyword}\\b`, 'i');
+        matches = regex.test(lower);
+      } else {
+        matches = lower.includes(keyword);
+      }
+
+      if (matches) {
+        const priority = intentPriority[intent as IntentType] || 0;
+        const confidence = keyword.length > 6 ? 0.9 : 0.7;
+
+        // Compare: first by priority, then by keyword length
+        if (
+          !bestMatch ||
+          priority > bestMatch.priority ||
+          (priority === bestMatch.priority && keyword.length > bestMatch.matchLength)
+        ) {
+          bestMatch = {
+            type: intent as IntentType,
+            confidence,
+            matchLength: keyword.length,
+            priority,
+          };
         }
       }
     }
@@ -861,9 +903,16 @@ export async function parseMessage(message: string): Promise<ParsedIntent> {
     stylist = stylistMatch.stylistName;
   }
 
+  // Infer booking intent when category is mentioned but no explicit intent
+  // e.g., "keratin treatment" or "highlights please" → implicit booking
+  let finalIntent = intent;
+  if (intent.type === 'unknown' && category && !negation) {
+    finalIntent = { type: 'book', confidence: 0.7 };
+  }
+
   return {
-    type: negation ? 'unknown' : intent.type, // Negation invalidates intent
-    confidence: negation ? 0.2 : intent.confidence,
+    type: negation ? 'unknown' : finalIntent.type, // Negation invalidates intent
+    confidence: negation ? 0.2 : finalIntent.confidence,
     category: category
       ? {
           id: category.id,
