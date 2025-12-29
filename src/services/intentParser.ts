@@ -1252,14 +1252,24 @@ Just chat naturally! For example:
                 }
               }
 
-              if (allConsecutiveAvailable && viableTimes.length < 3) {
+              if (allConsecutiveAvailable) {
+                // Collect ALL viable times first
                 viableTimes.push(slot);
               }
             }
 
+            // Sort by proximity to requested time
+            const targetMins =
+              parseInt(effectiveTime.split(':')[0]) * 60 + parseInt(effectiveTime.split(':')[1]);
+            viableTimes.sort((a, b) => {
+              const aMins = parseInt(a.split(':')[0]) * 60 + parseInt(a.split(':')[1]);
+              const bMins = parseInt(b.split(':')[0]) * 60 + parseInt(b.split(':')[1]);
+              return Math.abs(aMins - targetMins) - Math.abs(bMins - targetMins);
+            });
+
             if (viableTimes.length > 0) {
-              // Suggest viable alternatives
-              const viableFormatted = viableTimes.map(slot => {
+              // Suggest best 3 options
+              const viableFormatted = viableTimes.slice(0, 3).map(slot => {
                 const [h, m] = slot.split(':').map(Number);
                 return formatTime(h, m);
               });
@@ -1686,15 +1696,26 @@ Just chat naturally! For example:
               }
             }
 
-            if (allConsecutiveAvailable && viableTimes.length < 3) {
+            if (allConsecutiveAvailable) {
+              // Collect ALL first
               viableTimes.push(slot);
             }
           }
 
+          // Sort by proximity to requested time
+          const targetMins =
+            parseInt(currentContext.newTime.split(':')[0]) * 60 +
+            parseInt(currentContext.newTime.split(':')[1]);
+          viableTimes.sort((a, b) => {
+            const aMins = parseInt(a.split(':')[0]) * 60 + parseInt(a.split(':')[1]);
+            const bMins = parseInt(b.split(':')[0]) * 60 + parseInt(b.split(':')[1]);
+            return Math.abs(aMins - targetMins) - Math.abs(bMins - targetMins);
+          });
+
           const serviceName = appointmentStub?.category?.title || 'This service';
 
           if (viableTimes.length > 0) {
-            const viableFormatted = viableTimes.map(slot => {
+            const viableFormatted = viableTimes.slice(0, 3).map(slot => {
               const [h, m] = slot.split(':').map(Number);
               return formatTime(h, m);
             });
