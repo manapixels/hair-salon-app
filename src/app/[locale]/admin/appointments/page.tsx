@@ -80,15 +80,61 @@ export default function AppointmentsPage() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const [appointmentToCancel, setAppointmentToCancel] = useState<Appointment | null>(null);
+  const lastFetchTime = useRef<number>(0);
 
+  // Throttled refresh - won't refetch if data was fetched within last 30 seconds
+  const REFRESH_THROTTLE_MS = 30000;
+
+  const refreshAppointments = useCallback(
+    async (showLoadingState = false) => {
+      const now = Date.now();
+      if (now - lastFetchTime.current < REFRESH_THROTTLE_MS) {
+        return; // Skip if recently fetched
+      }
+
+      if (showLoadingState) {
+        setIsRefreshing(true);
+      }
+      await fetchAndSetAppointments();
+      lastFetchTime.current = Date.now();
+      if (showLoadingState) {
+        setIsRefreshing(false);
+      }
+    },
+    [fetchAndSetAppointments],
+  );
+
+  // Initial load
   useEffect(() => {
     const loadData = async () => {
       setAppointmentsLoading(true);
       await fetchAndSetAppointments();
+      lastFetchTime.current = Date.now();
       setAppointmentsLoading(false);
     };
     loadData();
   }, [fetchAndSetAppointments]);
+
+  // Auto-refresh on window focus/visibility change
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        refreshAppointments();
+      }
+    };
+
+    const handleFocus = () => {
+      refreshAppointments();
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleFocus);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, [refreshAppointments]);
 
   // Filtered appointments
   const filteredAppointments = useMemo(() => {
@@ -224,6 +270,7 @@ export default function AppointmentsPage() {
   const handleRefresh = async () => {
     setIsRefreshing(true);
     await fetchAndSetAppointments();
+    lastFetchTime.current = Date.now();
     setIsRefreshing(false);
     toast.success(t('refreshed'));
   };

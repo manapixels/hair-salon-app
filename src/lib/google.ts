@@ -59,7 +59,19 @@ const initializeSalonCalendar = () => {
  * Initialize per-stylist Google Calendar using their OAuth tokens
  */
 const initializeStylistCalendar = async (stylist: Stylist): Promise<any | null> => {
+  console.log(`[GoogleCalendar] Initializing calendar for stylist ${stylist.id} (${stylist.name})`);
+  console.log(`[GoogleCalendar] Token status:`, {
+    hasAccessToken: !!stylist.googleAccessToken,
+    hasRefreshToken: !!stylist.googleRefreshToken,
+    tokenExpiry: stylist.googleTokenExpiry,
+    googleEmail: stylist.googleEmail,
+    calendarId: stylist.googleCalendarId,
+  });
+
   if (!stylist.googleRefreshToken || !stylist.googleAccessToken) {
+    console.warn(
+      `[GoogleCalendar] Missing tokens for stylist ${stylist.id}: refreshToken=${!!stylist.googleRefreshToken}, accessToken=${!!stylist.googleAccessToken}`,
+    );
     return null;
   }
 
@@ -67,7 +79,9 @@ const initializeStylistCalendar = async (stylist: Stylist): Promise<any | null> 
   const clientSecret = process.env.GOOGLE_OAUTH_CLIENT_SECRET;
 
   if (!clientId || !clientSecret) {
-    console.warn('Google OAuth not configured (missing CLIENT_ID or CLIENT_SECRET)');
+    console.warn(
+      `[GoogleCalendar] OAuth not configured: CLIENT_ID=${!!clientId}, CLIENT_SECRET=${!!clientSecret}`,
+    );
     return null;
   }
 
@@ -82,26 +96,52 @@ const initializeStylistCalendar = async (stylist: Stylist): Promise<any | null> 
 
     // Check if token is expired and refresh if needed
     const tokenExpiry = stylist.googleTokenExpiry?.getTime() || 0;
-    if (Date.now() > tokenExpiry - 60000) {
+    const now = Date.now();
+    console.log(
+      `[GoogleCalendar] Token expiry check: now=${new Date(now).toISOString()}, expiry=${new Date(tokenExpiry).toISOString()}, needsRefresh=${now > tokenExpiry - 60000}`,
+    );
+
+    if (now > tokenExpiry - 60000) {
       // Refresh 1 minute before expiry
-      console.log(`Refreshing Google token for stylist ${stylist.id}`);
-      const { credentials } = await oauth2Client.refreshAccessToken();
+      console.log(`[GoogleCalendar] Refreshing token for stylist ${stylist.id}...`);
+      try {
+        const { credentials } = await oauth2Client.refreshAccessToken();
+        console.log(`[GoogleCalendar] Token refreshed successfully for stylist ${stylist.id}`);
 
-      // Update tokens in database
-      await updateStylistGoogleTokens(stylist.id, {
-        googleAccessToken: credentials.access_token!,
-        googleRefreshToken: credentials.refresh_token || stylist.googleRefreshToken,
-        googleTokenExpiry: new Date(credentials.expiry_date!),
-        googleCalendarId: stylist.googleCalendarId || 'primary',
-        googleEmail: stylist.googleEmail || '',
-      });
+        // Update tokens in database
+        await updateStylistGoogleTokens(stylist.id, {
+          googleAccessToken: credentials.access_token!,
+          googleRefreshToken: credentials.refresh_token || stylist.googleRefreshToken,
+          googleTokenExpiry: new Date(credentials.expiry_date!),
+          googleCalendarId: stylist.googleCalendarId || 'primary',
+          googleEmail: stylist.googleEmail || '',
+        });
 
-      oauth2Client.setCredentials(credentials);
+        oauth2Client.setCredentials(credentials);
+      } catch (refreshError: any) {
+        console.error(`[GoogleCalendar] Token refresh FAILED for stylist ${stylist.id}:`, {
+          error: refreshError.message,
+          code: refreshError.code,
+          response: refreshError.response?.data,
+        });
+        // If refresh fails with invalid_grant, the token was revoked
+        if (refreshError.response?.data?.error === 'invalid_grant') {
+          console.error(
+            `[GoogleCalendar] Refresh token was revoked/expired. Stylist needs to reconnect Google Calendar.`,
+          );
+        }
+        return null;
+      }
     }
 
+    console.log(`[GoogleCalendar] Calendar client initialized for stylist ${stylist.id}`);
     return google.calendar({ version: 'v3', auth: oauth2Client });
-  } catch (error) {
-    console.error(`Failed to initialize calendar for stylist ${stylist.id}:`, error);
+  } catch (error: any) {
+    console.error(`[GoogleCalendar] Failed to initialize calendar for stylist ${stylist.id}:`, {
+      error: error.message,
+      code: error.code,
+      stack: error.stack,
+    });
     return null;
   }
 };
@@ -145,52 +185,96 @@ const buildCalendarEvent = (appointment: Appointment) => {
  * @returns The created event ID or null if failed
  */
 export const createCalendarEvent = async (appointment: Appointment): Promise<string | null> => {
-  console.log('Creating Google Calendar event for:', appointment.customerName);
+  console.log(`[GoogleCalendar] Creating event for appointment:`, {
+    customerName: appointment.customerName,
+    stylistId: appointment.stylistId,
+    date: appointment.date,
+    time: appointment.time,
+  });
 
   const event = buildCalendarEvent(appointment);
 
   // Try stylist's personal calendar first
   if (appointment.stylistId) {
+    console.log(
+      `[GoogleCalendar] Attempting stylist calendar for stylistId: ${appointment.stylistId}`,
+    );
     const stylist = await getStylistById(appointment.stylistId);
-    if (stylist?.googleRefreshToken) {
-      const stylistCalendar = await initializeStylistCalendar(stylist);
-      if (stylistCalendar) {
-        try {
-          const calendarId = stylist.googleCalendarId || 'primary';
-          const response = await stylistCalendar.events.insert({
-            calendarId,
-            requestBody: event,
-          });
-          console.log(
-            `Google Calendar event created on stylist ${stylist.name}'s calendar: ${response.data.htmlLink}`,
-          );
-          return response.data.id;
-        } catch (error) {
-          console.error(`Failed to create event on stylist ${stylist.name}'s calendar:`, error);
-          // Fall through to salon calendar
+
+    if (!stylist) {
+      console.warn(`[GoogleCalendar] Stylist not found for ID: ${appointment.stylistId}`);
+    } else {
+      console.log(
+        `[GoogleCalendar] Stylist found: ${stylist.name}, hasRefreshToken: ${!!stylist.googleRefreshToken}`,
+      );
+
+      if (stylist.googleRefreshToken) {
+        const stylistCalendar = await initializeStylistCalendar(stylist);
+        if (stylistCalendar) {
+          try {
+            const calendarId = stylist.googleCalendarId || 'primary';
+            console.log(`[GoogleCalendar] Inserting event to calendar: ${calendarId}`);
+            const response = await stylistCalendar.events.insert({
+              calendarId,
+              requestBody: event,
+            });
+            console.log(
+              `[GoogleCalendar] ✅ Event created on stylist ${stylist.name}'s calendar: ${response.data.htmlLink}`,
+            );
+            return response.data.id;
+          } catch (error: any) {
+            console.error(
+              `[GoogleCalendar] ❌ Failed to create event on stylist ${stylist.name}'s calendar:`,
+              {
+                error: error.message,
+                code: error.code,
+                status: error.response?.status,
+                statusText: error.response?.statusText,
+                data: error.response?.data,
+              },
+            );
+            // Fall through to salon calendar
+          }
+        } else {
+          console.warn(`[GoogleCalendar] Could not initialize stylist calendar (returned null)`);
         }
+      } else {
+        console.warn(
+          `[GoogleCalendar] Stylist ${stylist.name} has no refresh token - calendar not connected`,
+        );
       }
     }
+  } else {
+    console.log(`[GoogleCalendar] No stylistId on appointment, skipping stylist calendar`);
   }
 
   // Fallback to salon-wide calendar
+  console.log(`[GoogleCalendar] Falling back to salon calendar...`);
   const salonCalendarClient = initializeSalonCalendar();
   if (!salonCalendarClient) {
-    console.log('No calendar configured, skipping event creation');
+    console.warn(
+      `[GoogleCalendar] ❌ No salon calendar configured, skipping event creation entirely`,
+    );
     return null;
   }
 
   try {
     const calendarId = process.env.GOOGLE_CALENDAR_ID || 'primary';
+    console.log(`[GoogleCalendar] Inserting event to salon calendar: ${calendarId}`);
     const response = await salonCalendarClient.events.insert({
       calendarId,
       requestBody: { ...event, attendees: [{ email: appointment.customerEmail }] },
     });
 
-    console.log(`Google Calendar event created on salon calendar: ${response.data.htmlLink}`);
+    console.log(`[GoogleCalendar] ✅ Event created on salon calendar: ${response.data.htmlLink}`);
     return response.data.id;
-  } catch (error) {
-    console.error('Error creating Google Calendar event:', error);
+  } catch (error: any) {
+    console.error(`[GoogleCalendar] ❌ Error creating event on salon calendar:`, {
+      error: error.message,
+      code: error.code,
+      status: error.response?.status,
+      data: error.response?.data,
+    });
     return null;
   }
 };

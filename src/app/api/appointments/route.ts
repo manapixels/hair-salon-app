@@ -82,15 +82,26 @@ export async function POST(request: NextRequest) {
     };
 
     const newAppointment = await bookNewAppointment(appointmentData);
+    console.log(
+      `[Appointment] Created appointment ${newAppointment.id} for ${newAppointment.customerName}`,
+    );
 
     // After successfully creating the appointment in our DB,
     // create a corresponding event in Google Calendar.
+    console.log(
+      `[Appointment] Attempting Google Calendar sync for appointment ${newAppointment.id}...`,
+    );
     const calendarEventId = await createCalendarEvent(newAppointment);
 
     // Update the appointment with the calendar event ID if successful
     if (calendarEventId) {
       await updateAppointmentCalendarId(newAppointment.id, calendarEventId);
       newAppointment.calendarEventId = calendarEventId;
+      console.log(`[Appointment] ✅ Calendar event created: ${calendarEventId}`);
+    } else {
+      console.warn(
+        `[Appointment] ⚠️ No calendar event created for appointment ${newAppointment.id}`,
+      );
     }
 
     // Send appointment confirmation via WhatsApp/Telegram
