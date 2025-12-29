@@ -679,8 +679,9 @@ function parseNaturalDate(text: string): {
     const monthShort = monthsShort[m];
 
     // "december 15", "dec 15", "december 15 2026", "dec 15, 2026"
+    // IMPORTANT: \b after day ensures "jan 2026" doesn't match as "jan 20" (partial year match)
     const regex1 = new RegExp(
-      `(${monthFull}|${monthShort})\\s+(\\d{1,2})(?:(?:,?\\s*|\\s+)(\\d{4}))?`,
+      `(${monthFull}|${monthShort})\\s+(\\d{1,2})\\b(?:(?:,?\\s*|\\s+)(\\d{4}))?`,
       'i',
     );
     // "15 december", "15 dec", "15 december 2026", "15 dec 2026"
