@@ -16,6 +16,7 @@ import {
   cancelAppointment,
   rescheduleAppointment,
   getAvailability,
+  findAppointmentById,
 } from '@/lib/database';
 
 // ============================================================================
@@ -1195,7 +1196,7 @@ Just chat naturally! For example:
               };
             } else {
               return {
-                text: `❌ *Sorry, no availability found in the next week.*\n\nPlease try a different week or contact us directly.`,
+                text: `❌ *Sorry, no availability found in the next week.*\n\nPlease try checking a later date or give us a call at (555) 123-4567 for urgent assistance.`,
                 updatedContext: {
                   awaitingInput: 'date',
                 },
@@ -1583,7 +1584,15 @@ Just chat naturally! For example:
       const newDate = new Date(currentContext.newDate);
       const availableSlots = await getAvailability(newDate);
 
-      if (!availableSlots.includes(currentContext.newTime)) {
+      // Get appointment details to know duration
+      const appointmentStub = await findAppointmentById(currentContext.appointmentId);
+      const totalDuration = appointmentStub?.totalDuration || 60; // Default 60 min if not found
+      const numSlotsRequired = Math.ceil(totalDuration / 30);
+
+      // Check if requested time is in available slots
+      const isSlotAvailable = availableSlots.includes(currentContext.newTime);
+
+      if (!isSlotAvailable) {
         // Slot not available - suggest alternatives
         if (availableSlots.length > 0) {
           const suggestedSlots = availableSlots.slice(0, 5).map(slot => {
@@ -1598,14 +1607,115 @@ Just chat naturally! For example:
             },
           };
         } else {
-          return {
-            text: `❌ *Sorry, ${formatDate(newDate)} is fully booked.*\n\nPlease choose a different date for rescheduling.`,
-            updatedContext: {
-              ...currentContext,
-              newDate: undefined,
-              newTime: undefined,
-            },
-          };
+          // No slots available on this date - suggest next available dates
+          const suggestions: { date: Date; formatted: string; slots: string[] }[] = [];
+          for (let i = 1; i <= 7 && suggestions.length < 3; i++) {
+            const nextCheckDate = new Date(newDate);
+            nextCheckDate.setDate(newDate.getDate() + i);
+            const nextSlots = await getAvailability(nextCheckDate);
+            if (nextSlots.length > 0) {
+              suggestions.push({
+                date: nextCheckDate,
+                formatted: formatDate(nextCheckDate),
+                slots: nextSlots.slice(0, 3),
+              });
+            }
+          }
+
+          if (suggestions.length > 0) {
+            return {
+              text: `❌ *Sorry, ${formatDate(newDate)} is fully booked.*\n\n📅 *Next available dates for rescheduling:*\n${suggestions.map(s => `• ${s.formatted} (slots: ${s.slots.map(slot => formatTime(parseInt(slot.split(':')[0]), parseInt(slot.split(':')[1]))).join(', ')})`).join('\n')}\n\nWould you like one of these dates?`,
+              updatedContext: {
+                ...currentContext,
+                newDate: undefined,
+                newTime: undefined,
+              },
+            };
+          } else {
+            return {
+              text: `❌ *Sorry, no availability found in the next week.*\n\nPlease try checking a later date or give us a call at (555) 123-4567 for urgent assistance.`,
+              updatedContext: {
+                ...currentContext,
+                newDate: undefined,
+                newTime: undefined,
+              },
+            };
+          }
+        }
+      }
+
+      // VALIDATION: Check if enough CONSECUTIVE slots are available
+      if (numSlotsRequired > 1) {
+        // Check consecutive slots starting from requested time
+        const requiredSlots: string[] = [];
+        const startTime = new Date(`1970-01-01T${currentContext.newTime}:00`);
+
+        for (let i = 0; i < numSlotsRequired; i++) {
+          const slotTime = new Date(startTime);
+          slotTime.setMinutes(slotTime.getMinutes() + i * 30);
+          requiredSlots.push(slotTime.toTimeString().substring(0, 5));
+        }
+
+        const missingSlots = requiredSlots.filter(slot => !availableSlots.includes(slot));
+
+        if (missingSlots.length > 0) {
+          // Not enough consecutive slots - generate HELPFUL message
+          const durationHours = Math.floor(totalDuration / 60);
+          const durationMins = totalDuration % 60;
+          const durationText =
+            durationHours > 0
+              ? durationMins > 0
+                ? `${durationHours}h ${durationMins}min`
+                : `${durationHours} hours`
+              : `${durationMins} minutes`;
+
+          // Find alternative times that DO have enough consecutive slots
+          const viableTimes: string[] = [];
+          for (const slot of availableSlots) {
+            // Check if this slot has enough consecutive slots
+            const slotStart = new Date(`1970-01-01T${slot}:00`);
+            let allConsecutiveAvailable = true;
+
+            for (let i = 0; i < numSlotsRequired; i++) {
+              const checkTime = new Date(slotStart);
+              checkTime.setMinutes(checkTime.getMinutes() + i * 30);
+              const checkSlot = checkTime.toTimeString().substring(0, 5);
+              if (!availableSlots.includes(checkSlot)) {
+                allConsecutiveAvailable = false;
+                break;
+              }
+            }
+
+            if (allConsecutiveAvailable && viableTimes.length < 3) {
+              viableTimes.push(slot);
+            }
+          }
+
+          const serviceName = appointmentStub?.category?.title || 'This service';
+
+          if (viableTimes.length > 0) {
+            const viableFormatted = viableTimes.map(slot => {
+              const [h, m] = slot.split(':').map(Number);
+              return formatTime(h, m);
+            });
+
+            return {
+              text: `💡 *${serviceName} takes ${durationText}.*\n\nStarting at ${currentContext.newTime}, we won't have enough time before closing/next booking.\n\n📅 *Times with enough availability:*\n${viableFormatted.map(t => `• ${t}`).join('\n')}\n\nWould any of these work?`,
+              updatedContext: {
+                ...currentContext,
+                newTime: undefined,
+              },
+            };
+          } else {
+            return {
+              text: `💡 *${serviceName} takes ${durationText}.*\n\nUnfortunately, ${formatDate(newDate)} doesn't have enough consecutive availability.\n\nWould you like to try a different date?`,
+              updatedContext: {
+                ...currentContext,
+                newDate: undefined,
+                newTime: undefined,
+              },
+            };
+          }
         }
       }
 

@@ -362,25 +362,11 @@ export const handleWhatsAppMessage = async (
       'reschedule',
     ];
 
-    // DEBUG: Log what intentParser returns
-    console.log('[IntentParser Debug]', {
-      type: parsed.type,
-      confidence: parsed.confidence,
-      category: parsed.category?.name,
-      dateRaw: parsed.date?.raw,
-      dateParsed: parsed.date?.parsed?.toISOString(),
-      dateFormatted: parsed.date?.formatted,
-      timeRaw: parsed.time?.raw,
-      timeParsed: parsed.time?.parsed,
-    });
-
     if (parsed.confidence >= 0.7 && handledIntents.includes(parsed.type)) {
-      console.log('[IntentParser] Handling with intentParser, not Gemini');
       const response = await generateFallbackResponse(userInput, intentParserContext);
 
       if (response === null) {
         // Fall through to Gemini below
-        console.log('[IntentParser] Returned null, falling through to Gemini');
       } else {
         return {
           text: response.text,
