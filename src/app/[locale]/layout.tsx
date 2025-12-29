@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { AuthProvider } from '@/context/AuthContext';
 import { BookingProvider } from '@/context/BookingContext';
 import { BookingModalProvider } from '@/context/BookingModalContext';
@@ -13,10 +13,14 @@ import { AppFooter, AppHeader } from '@/components/layout';
 import { BottomNavigation } from '@/components/navigation';
 import { BookingModal } from '@/components/booking';
 
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1.0,
+};
+
 export const metadata: Metadata = {
   title: 'Signature Trims - Salon Booking',
   description: 'Professional hair salon booking system',
-  viewport: 'width=device-width, initial-scale=1.0',
 };
 
 // Auto-configure Telegram bot menu on server startup
