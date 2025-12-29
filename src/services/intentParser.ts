@@ -305,6 +305,57 @@ const TIME_PERIODS: Record<string, { start: string; end: string }> = {
   evening: { start: '17:00', end: '20:00' },
 };
 
+// Default business hours (fallback if settings not available)
+const DEFAULT_BUSINESS_HOURS = {
+  open: '10:00',
+  close: '20:00',
+};
+
+// ============================================================================
+// Validation Helpers
+// ============================================================================
+
+/**
+ * Check if a date is in the past (before today)
+ */
+function isPastDate(date: Date): boolean {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const checkDate = new Date(date);
+  checkDate.setHours(0, 0, 0, 0);
+  return checkDate < today;
+}
+
+/**
+ * Check if a time is within business hours
+ * Returns: { valid: boolean, suggestion?: string }
+ */
+function isWithinBusinessHours(
+  time: string,
+  openTime: string = DEFAULT_BUSINESS_HOURS.open,
+  closeTime: string = DEFAULT_BUSINESS_HOURS.close,
+): { valid: boolean; message?: string } {
+  const [hours] = time.split(':').map(Number);
+  const [openHours] = openTime.split(':').map(Number);
+  const [closeHours] = closeTime.split(':').map(Number);
+
+  if (hours < openHours) {
+    return {
+      valid: false,
+      message: `We open at ${formatTime(openHours, 0)}. Would you like to book at ${openTime} instead?`,
+    };
+  }
+
+  if (hours >= closeHours) {
+    return {
+      valid: false,
+      message: `We close at ${formatTime(closeHours, 0)}. Would you like to book earlier in the day?`,
+    };
+  }
+
+  return { valid: true };
+}
+
 // ============================================================================
 // Negation Detection
 // ============================================================================
@@ -689,6 +740,7 @@ function formatDate(date: Date): string {
 
 /**
  * Parse natural language time expressions
+ * IMPORTANT: Must be strict to avoid matching date numbers like "2" in "2 Jan 2026"
  */
 function parseNaturalTime(text: string): {
   raw: string;
@@ -710,38 +762,68 @@ function parseNaturalTime(text: string): {
     }
   }
 
-  // Check for specific times: "2pm", "2:30pm", "14:00", "2 pm"
-  const timeRegex = /(\d{1,2})(?::(\d{2}))?\s*(am|pm|AM|PM)?/;
-  const match = lower.match(timeRegex);
+  // STRICT time patterns to avoid matching dates:
+  // Pattern 1: "at 2pm", "at 2:30pm", "at 14:00" - requires "at" prefix
+  // Pattern 2: "2pm", "2:30pm" - requires am/pm suffix
+  // Pattern 3: "14:00", "2:30" - requires colon (24-hour or with minutes)
 
-  if (match) {
-    let hours = parseInt(match[1]);
-    const minutes = match[2] ? parseInt(match[2]) : 0;
-    const period = match[3]?.toLowerCase();
+  // Pattern with "at" prefix: "at 2", "at 2pm", "at 14:00"
+  const atTimeRegex = /\bat\s+(\d{1,2})(?::(\d{2}))?\s*(am|pm)?/i;
+  const atMatch = lower.match(atTimeRegex);
+  if (atMatch) {
+    return processTimeMatch(atMatch[1], atMatch[2], atMatch[3], atMatch[0]);
+  }
 
-    // Handle AM/PM
-    if (period === 'pm' && hours < 12) {
-      hours += 12;
-    } else if (period === 'am' && hours === 12) {
-      hours = 0;
+  // Pattern with AM/PM suffix (required): "2pm", "2:30pm", "12 am"
+  const ampmTimeRegex = /\b(\d{1,2})(?::(\d{2}))?\s*(am|pm)\b/i;
+  const ampmMatch = lower.match(ampmTimeRegex);
+  if (ampmMatch) {
+    return processTimeMatch(ampmMatch[1], ampmMatch[2], ampmMatch[3], ampmMatch[0]);
+  }
+
+  // Pattern with colon (24-hour or minutes): "14:00", "2:30"
+  const colonTimeRegex = /\b(\d{1,2}):(\d{2})\b/;
+  const colonMatch = lower.match(colonTimeRegex);
+  if (colonMatch) {
+    // Validate it's a reasonable time (not like "2026" being parsed)
+    const hours = parseInt(colonMatch[1]);
+    if (hours <= 23) {
+      return processTimeMatch(colonMatch[1], colonMatch[2], undefined, colonMatch[0]);
     }
-
-    // If no AM/PM and hours <= 12, assume PM for reasonable salon hours
-    if (!period && hours >= 1 && hours <= 7) {
-      hours += 12;
-    }
-
-    const parsed = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
-    const formatted = formatTime(hours, minutes);
-
-    return {
-      raw: match[0],
-      parsed,
-      formatted,
-    };
   }
 
   return { raw: '', parsed: null, formatted: null };
+}
+
+/**
+ * Helper to process a time match and return parsed result
+ */
+function processTimeMatch(
+  hoursStr: string,
+  minutesStr: string | undefined,
+  period: string | undefined,
+  raw: string,
+): { raw: string; parsed: string; formatted: string } {
+  let hours = parseInt(hoursStr);
+  const minutes = minutesStr ? parseInt(minutesStr) : 0;
+  const periodLower = period?.toLowerCase();
+
+  // Handle AM/PM
+  if (periodLower === 'pm' && hours < 12) {
+    hours += 12;
+  } else if (periodLower === 'am' && hours === 12) {
+    hours = 0;
+  }
+
+  // If no AM/PM and hours 1-7, assume PM for reasonable salon hours
+  if (!period && hours >= 1 && hours <= 7) {
+    hours += 12;
+  }
+
+  const parsed = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+  const formatted = formatTime(hours, minutes);
+
+  return { raw, parsed, formatted };
 }
 
 /**
@@ -813,6 +895,87 @@ export async function generateFallbackResponse(
 ): Promise<ConversationalResponse> {
   const parsed = await parseMessage(message);
   const allCategories = await getAllCategories();
+
+  // HANDLE APPOINTMENT SELECTION BY NUMBER
+  // When user is selecting from a list of appointments (for cancel/reschedule)
+  if (currentContext?.awaitingInput === 'appointment_select' && currentContext?.customerEmail) {
+    // Check for number input: "1", "2", "first", "second", etc.
+    const numberMatch = message.match(
+      /^(\d+)$|^(first|second|third|fourth|fifth|1st|2nd|3rd|4th|5th)$/i,
+    );
+    if (numberMatch) {
+      let selectedIndex: number;
+      const numStr = numberMatch[1] || numberMatch[2]?.toLowerCase();
+
+      const ordinalMap: Record<string, number> = {
+        first: 0,
+        '1st': 0,
+        '1': 0,
+        second: 1,
+        '2nd': 1,
+        '2': 1,
+        third: 2,
+        '3rd': 2,
+        '3': 2,
+        fourth: 3,
+        '4th': 3,
+        '4': 3,
+        fifth: 4,
+        '5th': 4,
+        '5': 4,
+      };
+
+      selectedIndex = ordinalMap[numStr] ?? parseInt(numStr) - 1;
+
+      // Fetch appointments to get the selected one
+      try {
+        const appointments = await findAppointmentsByEmail(currentContext.customerEmail);
+
+        if (selectedIndex >= 0 && selectedIndex < appointments.length) {
+          const apt = appointments[selectedIndex];
+          const date = new Date(apt.date).toLocaleDateString('en-US', {
+            weekday: 'short',
+            month: 'short',
+            day: 'numeric',
+          });
+
+          if (currentContext.pendingAction === 'cancel') {
+            return {
+              text: `🗑️ *Cancel Appointment?*\n\n${apt.category?.title || 'Appointment'}\n📅 ${date} at ${apt.time}\n\n👉 Reply 'yes' to confirm cancellation`,
+              updatedContext: {
+                ...currentContext,
+                appointmentId: apt.id,
+                date: apt.date.toString().split('T')[0],
+                time: apt.time,
+                awaitingInput: 'confirmation',
+              },
+            };
+          } else if (currentContext.pendingAction === 'reschedule') {
+            return {
+              text: `📅 *Reschedule Appointment*\n\n${apt.category?.title || 'Appointment'}\nCurrently: ${date} at ${apt.time}\n\nWhen would you like to reschedule to? (e.g. "next Tuesday at 3pm")`,
+              updatedContext: {
+                ...currentContext,
+                appointmentId: apt.id,
+                date: apt.date.toString().split('T')[0],
+                time: apt.time,
+                awaitingInput: 'date',
+              },
+            };
+          }
+        } else {
+          return {
+            text: `Please enter a valid number between 1 and ${appointments.length}.`,
+            updatedContext: currentContext,
+          };
+        }
+      } catch (error) {
+        console.error('[IntentParser] Error selecting appointment:', error);
+        return {
+          text: `Sorry, I couldn't find your appointments. Please try again.`,
+        };
+      }
+    }
+  }
 
   // Handle confirmation ('yes', 'confirm', etc.)
   if (parsed.type === 'confirmation') {
@@ -934,14 +1097,47 @@ Just chat naturally! For example:
       }
 
       if (effectiveDate && effectiveTime) {
-        // Full booking info provided - CHECK AVAILABILITY FIRST before confirmation
+        // Full booking info provided - VALIDATE before confirmation
         const dateForFormatting = parsed.date?.formatted || formatDate(new Date(effectiveDate));
         const timeForFormatting =
           parsed.time?.formatted ||
           formatTime(parseInt(effectiveTime.split(':')[0]), parseInt(effectiveTime.split(':')[1]));
 
-        // Check if the requested time slot is available
         const requestedDate = new Date(effectiveDate);
+
+        // VALIDATION 1: Check if date is in the past
+        if (isPastDate(requestedDate)) {
+          return {
+            text: `❌ *Sorry, ${dateForFormatting} is in the past.*\n\nPlease choose a date from today onwards. When would you like to book?`,
+            updatedContext: {
+              categoryId: parsed.category.id,
+              categoryName: parsed.category.name,
+              priceNote: parsed.category.priceNote,
+              stylistId: effectiveStylistId,
+              stylistName: effectiveStylistName,
+              awaitingInput: 'date',
+            },
+          };
+        }
+
+        // VALIDATION 2: Check if time is within business hours
+        const hoursCheck = isWithinBusinessHours(effectiveTime);
+        if (!hoursCheck.valid) {
+          return {
+            text: `❌ *Sorry, ${timeForFormatting} is outside our business hours.*\n\n${hoursCheck.message}\n\nOur hours: 10:00 AM - 8:00 PM`,
+            updatedContext: {
+              categoryId: parsed.category.id,
+              categoryName: parsed.category.name,
+              priceNote: parsed.category.priceNote,
+              date: effectiveDate,
+              stylistId: effectiveStylistId,
+              stylistName: effectiveStylistName,
+              awaitingInput: 'time',
+            },
+          };
+        }
+
+        // VALIDATION 3: Check if the requested time slot is available
         const availableSlots = await getAvailability(requestedDate);
 
         // Check if requested time is in available slots
@@ -1294,6 +1490,36 @@ Just chat naturally! For example:
       currentContext?.newTime &&
       email
     ) {
+      // PRE-CHECK AVAILABILITY before rescheduling
+      const newDate = new Date(currentContext.newDate);
+      const availableSlots = await getAvailability(newDate);
+
+      if (!availableSlots.includes(currentContext.newTime)) {
+        // Slot not available - suggest alternatives
+        if (availableSlots.length > 0) {
+          const suggestedSlots = availableSlots.slice(0, 5).map(slot => {
+            const [h, m] = slot.split(':').map(Number);
+            return formatTime(h, m);
+          });
+          return {
+            text: `❌ *Sorry, ${currentContext.newTime} is not available on ${formatDate(newDate)}.*\n\n📅 *Available times:*\n${suggestedSlots.map(t => `• ${t}`).join('\n')}\n\nWhich time would you prefer?`,
+            updatedContext: {
+              ...currentContext,
+              newTime: undefined, // Clear invalid time
+            },
+          };
+        } else {
+          return {
+            text: `❌ *Sorry, ${formatDate(newDate)} is fully booked.*\n\nPlease choose a different date for rescheduling.`,
+            updatedContext: {
+              ...currentContext,
+              newDate: undefined,
+              newTime: undefined,
+            },
+          };
+        }
+      }
+
       try {
         await rescheduleAppointment(
           currentContext.appointmentId,

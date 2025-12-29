@@ -758,6 +758,61 @@ ${servicesListString}
           };
         }
 
+        // PRE-CHECK AVAILABILITY before attempting booking
+        const requestedDate = new Date(args?.date as string);
+        const requestedTime = args?.time as string;
+        const utcDate = new Date(
+          requestedDate.getUTCFullYear(),
+          requestedDate.getUTCMonth(),
+          requestedDate.getUTCDate(),
+        );
+
+        const stylistIdToCheck = args?.stylistId as string | undefined;
+        const availableSlots = stylistIdToCheck
+          ? await getStylistAvailability(utcDate, stylistIdToCheck)
+          : await getAvailability(utcDate);
+
+        // Check if requested time is available
+        if (!availableSlots.includes(requestedTime)) {
+          const formattedDate = formatDisplayDate(utcDate);
+          const formattedTime = formatTime12Hour(requestedTime);
+
+          if (availableSlots.length > 0) {
+            // Some slots available on this date - suggest alternatives
+            const suggestedTimes = availableSlots.slice(0, 5).map(s => formatTime12Hour(s));
+            return {
+              text: `I'm sorry, ${formattedTime} is not available on ${formattedDate}.\n\n📅 *Available times on ${formattedDate}:*\n${suggestedTimes.map(t => `• ${t}`).join('\n')}\n\nWould any of these work for you?`,
+            };
+          } else {
+            // No slots on this date - suggest next available dates
+            const suggestions: string[] = [];
+            for (let i = 1; i <= 7 && suggestions.length < 3; i++) {
+              const nextDate = new Date(utcDate);
+              nextDate.setDate(nextDate.getDate() + i);
+              const nextSlots = await getAvailability(nextDate);
+              if (nextSlots.length > 0) {
+                const topSlots = nextSlots
+                  .slice(0, 3)
+                  .map(s => formatTime12Hour(s))
+                  .join(', ');
+                suggestions.push(`• ${formatDisplayDate(nextDate)}: ${topSlots}`);
+              }
+            }
+
+            if (suggestions.length > 0) {
+              return {
+                text: `I'm sorry, ${formattedDate} is fully booked.\n\n📅 *Next available dates:*\n${suggestions.join('\n')}\n\nWould any of these work for you?`,
+              };
+            } else {
+              const settings = await getAdminSettings();
+              return {
+                text: `I'm sorry, there are no available slots on ${formattedDate} or in the next week. Please try a different date or contact us directly at ${settings.businessPhone}.`,
+              };
+            }
+          }
+        }
+
+        // Slot IS available - proceed with booking
         try {
           const newAppointment = await bookNewAppointment({
             date: new Date(args?.date as string),
