@@ -8,6 +8,13 @@
       "when": 1765200796364,
       "tag": "0000_faithful_juggernaut",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1766973850525,
+      "tag": "0001_conversation_sessions",
+      "breakpoints": true
     }
   ]
 }

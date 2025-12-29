@@ -240,8 +240,11 @@ Confirmation Message (WhatsApp/Telegram)
 ### **State Management**
 
 - Uses `conversationHistory.ts` for multi-step flows
+- **Database-backed**: Conversation context persisted to `conversation_sessions` table
+- Functions are **async**: `getBookingContext()`, `setBookingContext()`, `pushStep()`, etc.
 - Tracks: `userId`, `currentStep`, `selectedServices`, `selectedDate`, `selectedTime`
-- Session timeout: 15 minutes of inactivity
+- Session timeout: 30 minutes of inactivity (sliding window)
+- In-memory cache (30s TTL) for same-request performance
 
 ### **Best Practices**
 

@@ -186,7 +186,7 @@ export async function handleMessagingWithUserContext(
       const chatHistory = getHistory(platformId.toString());
 
       // Get booking context to inject into conversation
-      const bookingContext = getBookingContext(platformId.toString());
+      const bookingContext = await getBookingContext(platformId.toString());
 
       // If we have booking context, inject it into the conversation
       let enhancedChatHistory = [...chatHistory];
@@ -241,7 +241,7 @@ export async function handleMessagingWithUserContext(
 
       // Store booking context if present
       if (response.bookingDetails) {
-        setBookingContext(platformId.toString(), response.bookingDetails);
+        await setBookingContext(platformId.toString(), response.bookingDetails);
       }
 
       return {
@@ -261,7 +261,7 @@ export async function handleMessagingWithUserContext(
   const chatHistory = getHistory(platformId.toString());
 
   // Get booking context to inject into conversation
-  const bookingContext = getBookingContext(platformId.toString());
+  const bookingContext = await getBookingContext(platformId.toString());
 
   // If we have booking context (service/stylist from button clicks), inject it into the conversation
   let enhancedChatHistory = [...chatHistory];
@@ -314,7 +314,7 @@ export async function handleMessagingWithUserContext(
 
   // Store booking context if present
   if (response.bookingDetails) {
-    setBookingContext(platformId.toString(), response.bookingDetails);
+    await setBookingContext(platformId.toString(), response.bookingDetails);
   }
 
   // If no user found and they're asking about appointments, suggest they provide email

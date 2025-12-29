@@ -290,7 +290,7 @@ export async function handleAppointmentsCommand(user: User | null): Promise<Comm
     });
 
     // Check if user has a favorite service (most recent appointment)
-    const context = getBookingContext(user?.email || user?.telegramId?.toString() || '');
+    const context = await getBookingContext(user?.email || user?.telegramId?.toString() || '');
     const hasFavorite = context?.lastServiceBooked && context?.lastStylistBooked;
 
     text += `━━━━━━━━━━━━━━━━━━━━━\n`;
@@ -606,17 +606,17 @@ export async function handleCallbackQuery(
     }
 
     // Store service selection in booking context (preserve currentStepMessageId)
-    const existingContext = getBookingContext(userId);
+    const existingContext = await getBookingContext(userId);
     const newContext = {
       services: [service.name],
       customerName: user?.name,
       customerEmail: user?.email,
       currentStepMessageId: existingContext?.currentStepMessageId, // Preserve message ID
     };
-    setBookingContext(userId, newContext);
+    await setBookingContext(userId, newContext);
 
     // Push this step to navigation history
-    pushStep(userId, 'multi_service_option', newContext);
+    await pushStep(userId, 'multi_service_option', newContext);
 
     // Get available stylists
     const stylists = await getStylists();
@@ -664,7 +664,7 @@ Would you like to add more services or continue?`,
 
   // Handle add another service
   if (callbackData === 'add_another_service') {
-    const context = getBookingContext(userId);
+    const context = await getBookingContext(userId);
     const services = await getServices();
 
     if (!context?.services) {
@@ -733,14 +733,14 @@ ${selectedServiceNames.map(s => `• ${s}`).join('\n')}
       return createErrorResponse('not_found', 'The selected service is no longer available.');
     }
 
-    const context = getBookingContext(userId);
+    const context = await getBookingContext(userId);
     if (!context?.services) {
       return createErrorResponse('context_lost');
     }
 
     // Add to existing services
     const updatedServices = [...context.services, service.name];
-    setBookingContext(userId, {
+    await setBookingContext(userId, {
       ...context,
       services: updatedServices,
       currentStepMessageId: context.currentStepMessageId,
@@ -776,7 +776,7 @@ Would you like to add more?`,
 
   // Handle proceed to stylist selection
   if (callbackData === 'proceed_to_stylist') {
-    const context = getBookingContext(userId);
+    const context = await getBookingContext(userId);
 
     if (!context?.services) {
       return createErrorResponse('context_lost');
@@ -793,7 +793,7 @@ Would you like to add more?`,
     }
 
     // Push stylist selection step to history
-    pushStep(userId, 'stylist_selection', {
+    await pushStep(userId, 'stylist_selection', {
       services: context.services,
       customerName: context.customerName,
       customerEmail: context.customerEmail,
@@ -862,18 +862,18 @@ ${context.services.map(s => `• ${s}`).join('\n')}
     const stylistSelection = callbackData.replace('select_stylist_', '');
 
     // Get context BEFORE updating it
-    const context = getBookingContext(userId);
+    const context = await getBookingContext(userId);
 
     if (stylistSelection === 'any') {
       // No preference - don't store stylist ID
-      setBookingContext(userId, {
+      await setBookingContext(userId, {
         stylistId: undefined,
         services: context?.services, // Preserve services
         currentStepMessageId: context?.currentStepMessageId, // Preserve message ID
       });
     } else {
       // Store selected stylist
-      setBookingContext(userId, {
+      await setBookingContext(userId, {
         stylistId: stylistSelection,
         services: context?.services, // Preserve services
         currentStepMessageId: context?.currentStepMessageId, // Preserve message ID
@@ -893,7 +893,7 @@ ${context.services.map(s => `• ${s}`).join('\n')}
     const serviceName = context?.services?.[0] || 'selected service';
 
     // Push date selection step to history
-    pushStep(userId, 'date_selection', {
+    await pushStep(userId, 'date_selection', {
       services: context?.services,
       stylistId: stylistSelection === 'any' ? undefined : stylistSelection,
       customerName: context?.customerName,
@@ -994,14 +994,14 @@ _Tip: Select from quick picks or choose "Other Date" to enter a future date_`,
   // Handle week navigation
   if (callbackData.startsWith('week_nav_')) {
     const weekOffset = parseInt(callbackData.replace('week_nav_', ''));
-    const context = getBookingContext(userId);
+    const context = await getBookingContext(userId);
 
     if (!context?.services || !context.services[0]) {
       return createErrorResponse('context_lost');
     }
 
     // Store the week offset
-    setBookingContext(userId, {
+    await setBookingContext(userId, {
       ...context,
       currentWeekOffset: weekOffset,
     });
@@ -1090,7 +1090,7 @@ _Tip: Use arrows to browse weeks ahead_`,
   // Handle month navigation
   if (callbackData.startsWith('month_nav_')) {
     const monthOffset = parseInt(callbackData.replace('month_nav_', ''));
-    const context = getBookingContext(userId);
+    const context = await getBookingContext(userId);
 
     if (!context?.services || !context.services[0]) {
       return createErrorResponse('context_lost');
@@ -1113,20 +1113,20 @@ _Tip: Use arrows to browse weeks ahead_`,
   // Handle date selection
   if (callbackData.startsWith('pick_date_')) {
     const dateStr = callbackData.replace('pick_date_', '');
-    const context = getBookingContext(userId);
+    const context = await getBookingContext(userId);
 
     if (!context?.services || !context.services[0]) {
       return createErrorResponse('context_lost');
     }
 
     // Store selected date in context
-    setBookingContext(userId, {
+    await setBookingContext(userId, {
       ...context,
       date: dateStr,
     });
 
     // Push time selection step to history
-    pushStep(userId, 'time_selection', {
+    await pushStep(userId, 'time_selection', {
       services: context?.services,
       stylistId: context?.stylistId,
       date: dateStr,
@@ -1250,7 +1250,7 @@ _Tip: Use arrows to browse weeks ahead_`,
 
   // Handle back to dates button
   if (callbackData === 'back_to_dates') {
-    const context = getBookingContext(userId);
+    const context = await getBookingContext(userId);
 
     if (!context?.services || !context.services[0]) {
       return createErrorResponse('context_lost');
@@ -1310,7 +1310,7 @@ _Tip: Select from quick picks or choose "Other Date" to enter a future date_`,
 
   // Handle custom date entry request
   if (callbackData === 'custom_date_entry') {
-    const context = getBookingContext(userId);
+    const context = await getBookingContext(userId);
 
     if (!context?.services || !context.services[0]) {
       return {
@@ -1326,7 +1326,7 @@ _Tip: Select from quick picks or choose "Other Date" to enter a future date_`,
       : 'any available stylist';
 
     // Set a flag to indicate we're in custom date mode
-    setBookingContext(userId, {
+    await setBookingContext(userId, {
       ...context,
       awaitingCustomDate: true,
     });
@@ -1367,20 +1367,20 @@ Choose a quick suggestion or go back:`,
   // Handle time selection
   if (callbackData.startsWith('pick_time_')) {
     const timeStr = callbackData.replace('pick_time_', '');
-    const context = getBookingContext(userId);
+    const context = await getBookingContext(userId);
 
     if (!context?.services || !context.services[0] || !context.date) {
       return createErrorResponse('context_lost');
     }
 
     // Store selected time in context
-    setBookingContext(userId, {
+    await setBookingContext(userId, {
       ...context,
       time: timeStr,
     });
 
     // Push confirmation step to history
-    pushStep(userId, 'confirmation', {
+    await pushStep(userId, 'confirmation', {
       services: context?.services,
       stylistId: context?.stylistId,
       date: context?.date,
@@ -1438,12 +1438,12 @@ Is this correct?`,
 
   // Handle cancel booking during review
   if (callbackData === 'cancel_booking') {
-    const context = getBookingContext(userId);
+    const context = await getBookingContext(userId);
 
     // Clear booking context and step history
-    clearStepHistory(userId);
+    await clearStepHistory(userId);
     if (context) {
-      setBookingContext(userId, {
+      await setBookingContext(userId, {
         currentStepMessageId: context.currentStepMessageId,
       });
     }
@@ -1459,7 +1459,7 @@ You can start a new booking anytime with /book`,
 
   // Handle final booking confirmation
   if (callbackData === 'confirm_booking_final') {
-    const context = getBookingContext(userId);
+    const context = await getBookingContext(userId);
 
     if (!context?.services || !context.services[0] || !context.date || !context.time) {
       return {
@@ -1507,10 +1507,10 @@ Please make sure you're logged in and try again with /book`,
 
       // Clear booking context and step history
       const messageId = context.currentStepMessageId;
-      clearStepHistory(userId);
-      clearBookingContext(userId);
+      await clearStepHistory(userId);
+      await clearBookingContext(userId);
       if (messageId) {
-        setBookingContext(userId, {
+        await setBookingContext(userId, {
           currentStepMessageId: messageId,
         });
       }
@@ -1713,7 +1713,7 @@ Please try again or contact us directly.`,
 
   // Handle quick rebooking
   if (callbackData === 'quick_rebook') {
-    const context = getBookingContext(userId);
+    const context = await getBookingContext(userId);
 
     if (!context?.lastServiceBooked) {
       return {
@@ -1726,7 +1726,7 @@ Please try again or contact us directly.`,
     }
 
     // Pre-fill service and stylist in context
-    setBookingContext(userId, {
+    await setBookingContext(userId, {
       services: [context.lastServiceBooked],
       stylistId: context.lastStylistBooked,
       customerName: user?.name,
@@ -1858,7 +1858,7 @@ Please try again or contact us directly.`,
 
   // Handle back button navigation
   if (callbackData === 'go_back') {
-    const context = getBookingContext(userId);
+    const context = await getBookingContext(userId);
 
     if (!context?.stepHistory || context.stepHistory.length === 0) {
       // No history, return to start
@@ -1878,7 +1878,7 @@ No previous step found. Let's start fresh!`,
     }
 
     // Pop the last step
-    const previousState = popStep(userId);
+    const previousState = await popStep(userId);
 
     if (!previousState) {
       return createErrorResponse('context_lost');
@@ -1913,12 +1913,12 @@ No previous step found. Let's start fresh!`,
     const dateStr = nextWeek.toISOString().split('T')[0];
 
     // Store date in context and proceed to time selection
-    const context = getBookingContext(userId);
+    const context = await getBookingContext(userId);
     if (!context?.services) {
       return createErrorResponse('context_lost');
     }
 
-    setBookingContext(userId, {
+    await setBookingContext(userId, {
       ...context,
       date: dateStr,
       awaitingCustomDate: false,
@@ -2003,12 +2003,12 @@ No previous step found. Let's start fresh!`,
     nextMonth.setMonth(nextMonth.getMonth() + 1);
     const dateStr = nextMonth.toISOString().split('T')[0];
 
-    const context = getBookingContext(userId);
+    const context = await getBookingContext(userId);
     if (!context?.services) {
       return createErrorResponse('context_lost');
     }
 
-    setBookingContext(userId, {
+    await setBookingContext(userId, {
       ...context,
       date: dateStr,
       awaitingCustomDate: false,
@@ -2110,7 +2110,7 @@ No previous step found. Let's start fresh!`,
       return { ...helpResponse, editPreviousMessage: true };
     case 'confirm_booking':
       // Retrieve booking context
-      const bookingContext = getBookingContext(userId);
+      const bookingContext = await getBookingContext(userId);
 
       if (
         !bookingContext ||
@@ -2175,7 +2175,7 @@ No previous step found. Let's start fresh!`,
         const formattedDate = formatDisplayDate(parsedDate);
 
         // Store favorite booking details for quick rebooking
-        setBookingContext(userId, {
+        await setBookingContext(userId, {
           lastServiceBooked: servicesToBook[0].name, // Primary service
           lastStylistBooked: bookingContext.stylistId,
           lastBookingDate: Date.now(),

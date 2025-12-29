@@ -216,7 +216,7 @@ async function sendCommandResponse(
   // Store message ID for wizard-style editing
   if (sentMessage?.message_id && userId) {
     const { setBookingContext } = await import('@/services/conversationHistory');
-    setBookingContext(userId, { currentStepMessageId: sentMessage.message_id });
+    await setBookingContext(userId, { currentStepMessageId: sentMessage.message_id });
     console.log(
       '[COMMAND RESPONSE] Stored message ID:',
       sentMessage.message_id,
@@ -534,7 +534,7 @@ export async function POST(request: Request) {
 
       // Check if we should edit the previous message or send a new one
       const { getBookingContext } = await import('@/services/conversationHistory');
-      const context = getBookingContext(userId);
+      const context = await getBookingContext(userId);
 
       console.log('[CALLBACK] CallbackData:', callbackData);
       console.log('[CALLBACK] Edit requested:', response.editPreviousMessage);

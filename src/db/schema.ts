@@ -343,6 +343,65 @@ export const serviceTagRelations = pgTable(
   }),
 );
 
+// Conversation Sessions (for Telegram/WhatsApp bot state persistence)
+export const conversationSessions = pgTable(
+  'conversation_sessions',
+  {
+    id: text('id')
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    // User identifier (Telegram chatId or WhatsApp phone)
+    chatId: text('chatId').notNull(),
+    // Platform: 'telegram' or 'whatsapp'
+    platform: text('platform').notNull().default('telegram'),
+    // Booking context stored as JSON
+    context: json('context')
+      .$type<{
+        customerName?: string;
+        customerEmail?: string;
+        categoryId?: string;
+        categoryName?: string;
+        priceNote?: string;
+        services?: string[];
+        stylistId?: string;
+        stylistName?: string;
+        date?: string;
+        time?: string;
+        confirmed?: boolean;
+        awaitingCustomDate?: boolean;
+        awaitingInput?: string;
+        pendingAction?: string;
+        appointmentId?: string;
+        newDate?: string;
+        newTime?: string;
+        lastServiceBooked?: string;
+        lastStylistBooked?: string;
+        lastBookingDate?: number;
+        currentStepMessageId?: number;
+        currentStep?: string;
+        stepHistory?: Array<{
+          step: string;
+          context: Record<string, unknown>;
+          timestamp: number;
+        }>;
+        currentWeekOffset?: number;
+      }>()
+      .notNull()
+      .default({}),
+    // Timestamps for session management
+    lastActivityAt: timestamp('lastActivityAt').defaultNow().notNull(),
+    expiresAt: timestamp('expiresAt').notNull(),
+    createdAt: timestamp('createdAt').defaultNow().notNull(),
+  },
+  table => ({
+    chatPlatformIdx: index('conversation_sessions_chatId_platform_idx').on(
+      table.chatId,
+      table.platform,
+    ),
+    expiresIdx: index('conversation_sessions_expiresAt_idx').on(table.expiresAt),
+  }),
+);
+
 // ============================================
 // RELATIONS (for Drizzle Query API)
 // ============================================

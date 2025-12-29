@@ -269,7 +269,7 @@ async function processWhatsAppMessage(
     }
   }
 
-  const storedOptions = getCommandOptions(userId);
+  const storedOptions = await getCommandOptions(userId);
   const option = resolveCommandOption(storedOptions, trimmedMessage);
 
   if (option) {
