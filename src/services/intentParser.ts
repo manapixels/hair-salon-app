@@ -626,27 +626,37 @@ function parseNaturalDate(text: string): {
     const monthFull = months[m];
     const monthShort = monthsShort[m];
 
-    // "december 15" or "dec 15"
-    const regex1 = new RegExp(`(${monthFull}|${monthShort})\\s+(\\d{1,2})`, 'i');
-    // "15 december" or "15 dec"
-    const regex2 = new RegExp(`(\\d{1,2})\\s+(${monthFull}|${monthShort})`, 'i');
+    // "december 15", "dec 15", "december 15 2026", "dec 15, 2026"
+    const regex1 = new RegExp(
+      `(${monthFull}|${monthShort})\\s+(\\d{1,2})(?:(?:,?\\s*|\\s+)(\\d{4}))?`,
+      'i',
+    );
+    // "15 december", "15 dec", "15 december 2026", "15 dec 2026"
+    const regex2 = new RegExp(
+      `(\\d{1,2})(?:st|nd|rd|th)?\\s+(${monthFull}|${monthShort})(?:(?:,?\\s*|\\s+)(\\d{4}))?`,
+      'i',
+    );
 
     let dayNum: number | null = null;
+    let yearNum: number | null = null;
     let matched = lower.match(regex1);
     if (matched) {
       dayNum = parseInt(matched[2]);
+      yearNum = matched[3] ? parseInt(matched[3]) : null;
     } else {
       matched = lower.match(regex2);
       if (matched) {
         dayNum = parseInt(matched[1]);
+        yearNum = matched[3] ? parseInt(matched[3]) : null;
       }
     }
 
     if (matched && dayNum) {
-      const year = today.getFullYear();
+      // Use explicit year if provided, otherwise current year
+      const year = yearNum || today.getFullYear();
       const date = new Date(year, m, dayNum);
-      // If the date is in the past, assume next year
-      if (date < today) {
+      // If no explicit year and date is in the past, assume next year
+      if (!yearNum && date < today) {
         date.setFullYear(year + 1);
       }
       return {
