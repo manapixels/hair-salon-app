@@ -15,6 +15,7 @@ import {
   findAppointmentsByEmail,
   cancelAppointment,
   rescheduleAppointment,
+  getAvailability,
 } from '@/lib/database';
 
 // ============================================================================
@@ -933,13 +934,80 @@ Just chat naturally! For example:
       }
 
       if (effectiveDate && effectiveTime) {
-        // Full booking info provided - show confirmation summary
-        // Use 📋 (not ✅) to indicate pending, not confirmed
+        // Full booking info provided - CHECK AVAILABILITY FIRST before confirmation
         const dateForFormatting = parsed.date?.formatted || formatDate(new Date(effectiveDate));
         const timeForFormatting =
           parsed.time?.formatted ||
           formatTime(parseInt(effectiveTime.split(':')[0]), parseInt(effectiveTime.split(':')[1]));
 
+        // Check if the requested time slot is available
+        const requestedDate = new Date(effectiveDate);
+        const availableSlots = await getAvailability(requestedDate);
+
+        // Check if requested time is in available slots
+        const isSlotAvailable = availableSlots.includes(effectiveTime);
+
+        if (!isSlotAvailable) {
+          // Slot is NOT available - suggest alternatives instead of asking for confirmation
+          if (availableSlots.length > 0) {
+            // Some slots available on this date
+            const suggestedSlots = availableSlots.slice(0, 5).map(slot => {
+              const [h, m] = slot.split(':').map(Number);
+              return formatTime(h, m);
+            });
+
+            return {
+              text: `❌ *Sorry, ${timeForFormatting} is not available on ${dateForFormatting}.*\n\n📅 *Available times on ${dateForFormatting}:*\n${suggestedSlots.map(t => `• ${t}`).join('\n')}\n\nWould you like one of these times instead? Just say e.g. "${suggestedSlots[0]}"`,
+              updatedContext: {
+                categoryId: parsed.category.id,
+                categoryName: parsed.category.name,
+                priceNote: parsed.category.priceNote,
+                date: effectiveDate,
+                stylistId: effectiveStylistId,
+                stylistName: effectiveStylistName,
+                awaitingInput: 'time',
+              },
+            };
+          } else {
+            // No slots available on this date - suggest next available dates
+            const suggestions: { date: Date; formatted: string; slots: string[] }[] = [];
+            for (let i = 1; i <= 7 && suggestions.length < 3; i++) {
+              const nextDate = new Date(requestedDate);
+              nextDate.setDate(requestedDate.getDate() + i);
+              const nextSlots = await getAvailability(nextDate);
+              if (nextSlots.length > 0) {
+                suggestions.push({
+                  date: nextDate,
+                  formatted: formatDate(nextDate),
+                  slots: nextSlots.slice(0, 3),
+                });
+              }
+            }
+
+            if (suggestions.length > 0) {
+              return {
+                text: `❌ *Sorry, ${dateForFormatting} is fully booked.*\n\n📅 *Next available dates:*\n${suggestions.map(s => `• ${s.formatted} (slots: ${s.slots.map(slot => formatTime(parseInt(slot.split(':')[0]), parseInt(slot.split(':')[1]))).join(', ')})`).join('\n')}\n\nWould you like to book on one of these dates?`,
+                updatedContext: {
+                  categoryId: parsed.category.id,
+                  categoryName: parsed.category.name,
+                  priceNote: parsed.category.priceNote,
+                  stylistId: effectiveStylistId,
+                  stylistName: effectiveStylistName,
+                  awaitingInput: 'date',
+                },
+              };
+            } else {
+              return {
+                text: `❌ *Sorry, no availability found in the next week.*\n\nPlease try a different week or contact us directly.`,
+                updatedContext: {
+                  awaitingInput: 'date',
+                },
+              };
+            }
+          }
+        }
+
+        // Slot IS available - show confirmation
         let confirmText = `📋 *Ready to Book:*\n${serviceLine}\n📅 ${dateForFormatting} at ${timeForFormatting}\n\n👉 *Reply 'yes' to confirm*`;
         if (!effectiveStylistName && parsed.stylist !== 'any') {
           // No stylist specified and not "any" - note this
