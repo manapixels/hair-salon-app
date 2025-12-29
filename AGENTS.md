@@ -258,6 +258,9 @@ Confirmation Message (WhatsApp/Telegram)
   - Bad: "Booking conflict. Not enough consecutive slots."
   - Good: "Hair perming usually requires 3 hours. Our salon closes at 7pm, is 4pm ok?"
 - ✅ **Pre-validate before confirmation** - Never show "Ready to Book?" if the slot isn't viable
+- ✅ **Compound message handling** - Extract embedded info from confirmation phrases
+  - Example: "4:30pm sounds good" → Extract time THEN confirm
+  - Intent parser detects "sounds good" as confirmation, but also parses "4:30pm"
 
 ### **Setup**
 
