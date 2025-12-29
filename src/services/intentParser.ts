@@ -981,36 +981,52 @@ export async function generateFallbackResponse(
 
   // Handle confirmation ('yes', 'confirm', etc.)
   if (parsed.type === 'confirmation') {
+    // If the message ALSO contains a time and we're awaiting time input, extract it first
+    // This handles cases like "4:30pm sounds good" where user confirms AND provides time
+    let effectiveContext = currentContext ? { ...currentContext } : undefined;
+    if (
+      currentContext?.awaitingInput === 'time' &&
+      parsed.time?.parsed &&
+      currentContext?.categoryId &&
+      currentContext?.date
+    ) {
+      effectiveContext = {
+        ...currentContext,
+        time: parsed.time.parsed,
+        awaitingInput: 'confirmation',
+      };
+    }
+
     // Check if we have all required booking info
     const hasBookingInfo =
-      currentContext?.categoryId && currentContext?.date && currentContext?.time;
+      effectiveContext?.categoryId && effectiveContext?.date && effectiveContext?.time;
 
     if (hasBookingInfo) {
       try {
         // Get category info for the booking
-        const category = allCategories.find(c => c.id === currentContext.categoryId);
+        const category = allCategories.find(c => c.id === effectiveContext!.categoryId);
 
         // Create the booking
         const appointment = await bookNewAppointment({
-          date: new Date(currentContext.date!),
-          time: currentContext.time!,
-          categoryId: currentContext.categoryId,
+          date: new Date(effectiveContext!.date!),
+          time: effectiveContext!.time!,
+          categoryId: effectiveContext!.categoryId,
           estimatedDuration: category?.estimatedDuration || 60,
           services: [], // Category-based booking, no individual services
-          customerName: currentContext.customerName || 'Guest',
-          customerEmail: currentContext.customerEmail || '',
-          stylistId: currentContext.stylistId,
+          customerName: effectiveContext!.customerName || 'Guest',
+          customerEmail: effectiveContext!.customerEmail || '',
+          stylistId: effectiveContext!.stylistId,
           bookingSource: 'WHATSAPP',
         });
 
         // Format success message
-        const stylistName = currentContext.stylistName || appointment.stylist?.name;
+        const stylistName = effectiveContext!.stylistName || appointment.stylist?.name;
         let successMsg = `✅ *Booking Confirmed!*\n\n`;
-        successMsg += `✂️ ${currentContext.categoryName || category?.title}`;
+        successMsg += `✂️ ${effectiveContext!.categoryName || category?.title}`;
         if (stylistName) {
           successMsg += ` with ${stylistName}`;
         }
-        successMsg += `\n📅 ${currentContext.date} at ${currentContext.time}`;
+        successMsg += `\n📅 ${effectiveContext!.date} at ${effectiveContext!.time}`;
         successMsg += `\n\n📍 We'll see you then! You'll receive a reminder before your appointment.`;
 
         return {
@@ -1021,7 +1037,7 @@ export async function generateFallbackResponse(
         console.error('[IntentParser] Booking creation failed:', error);
         return {
           text: `Sorry, I couldn't complete your booking: ${error.message || 'Please try again or use our web app to book.'}`,
-          updatedContext: currentContext,
+          updatedContext: effectiveContext,
         };
       }
     } else {

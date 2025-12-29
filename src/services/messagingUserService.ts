@@ -262,6 +262,10 @@ export async function handleMessagingWithUserContext(
 
   // Get booking context to inject into conversation
   const bookingContext = await getBookingContext(platformId.toString());
+  console.log('[DEBUG Context Load]', {
+    platformId,
+    bookingContext: JSON.stringify(bookingContext),
+  });
 
   // If we have booking context (service/stylist from button clicks), inject it into the conversation
   let enhancedChatHistory = [...chatHistory];
@@ -314,7 +318,13 @@ export async function handleMessagingWithUserContext(
 
   // Store booking context if present
   if (response.bookingDetails) {
+    console.log('[DEBUG Context Save]', {
+      platformId,
+      bookingDetails: JSON.stringify(response.bookingDetails),
+    });
     await setBookingContext(platformId.toString(), response.bookingDetails);
+  } else {
+    console.log('[DEBUG Context Save] No bookingDetails in response');
   }
 
   // If no user found and they're asking about appointments, suggest they provide email
