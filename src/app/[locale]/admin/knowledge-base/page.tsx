@@ -6,13 +6,14 @@ import { useEffect } from 'react';
 import AdminLayout from '@/components/admin/AdminLayout';
 import KnowledgeBaseManager from '@/components/admin/KnowledgeBaseManager';
 import { LoadingSpinner } from '@/components/feedback/loaders/LoadingSpinner';
+import { isAdmin } from '@/lib/roleHelpers';
 
 export default function KnowledgeBasePage() {
   const { user, isLoading: authLoading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    if (!authLoading && (!user || user.role !== 'ADMIN')) {
+    if (!authLoading && (!user || !isAdmin(user))) {
       router.push('/');
     }
   }, [user, authLoading, router]);
@@ -25,7 +26,7 @@ export default function KnowledgeBasePage() {
     );
   }
 
-  if (!user || user.role !== 'ADMIN') return null;
+  if (!user || !isAdmin(user)) return null;
 
   return (
     <AdminLayout title="Knowledge Base">

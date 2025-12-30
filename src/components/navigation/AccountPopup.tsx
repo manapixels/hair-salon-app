@@ -20,6 +20,7 @@ import { useState } from 'react';
 import OAuthLoginModal from '../auth/OAuthLoginModal';
 import { LanguageSwitcher } from '../common/LanguageSwitcher';
 import { useTranslations } from 'next-intl';
+import { isAdmin, isStylist, isCustomer, getPrimaryRole } from '@/lib/roleHelpers';
 
 interface AccountPopupProps {
   isOpen: boolean;
@@ -107,9 +108,9 @@ export default function AccountPopup({ isOpen, onClose }: AccountPopupProps) {
                         <p className="font-semibold text-gray-900 text-lg">{user.name}</p>
                         <p className="text-sm text-gray-500">{user.email}</p>
                         <span className="mt-1 inline-block rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">
-                          {user.role === 'ADMIN'
+                          {getPrimaryRole(user) === 'ADMIN'
                             ? 'Admin'
-                            : user.role === 'STYLIST'
+                            : getPrimaryRole(user) === 'STYLIST'
                               ? 'Stylist'
                               : 'Customer'}
                         </span>
@@ -118,7 +119,7 @@ export default function AccountPopup({ isOpen, onClose }: AccountPopupProps) {
 
                     {/* Links */}
                     <div className="space-y-2">
-                      {user.role === 'CUSTOMER' && (
+                      {isCustomer(user) && (
                         <Link
                           href="/dashboard"
                           onClick={onClose}
@@ -134,7 +135,7 @@ export default function AccountPopup({ isOpen, onClose }: AccountPopupProps) {
                         </Link>
                       )}
 
-                      {user.role === 'ADMIN' && (
+                      {isAdmin(user) && (
                         <Link
                           href="/admin"
                           onClick={onClose}
@@ -150,7 +151,7 @@ export default function AccountPopup({ isOpen, onClose }: AccountPopupProps) {
                         </Link>
                       )}
 
-                      {user.role === 'STYLIST' && (
+                      {isStylist(user) && !isAdmin(user) && (
                         <Link
                           href="/dashboard"
                           onClick={onClose}

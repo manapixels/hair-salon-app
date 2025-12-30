@@ -358,7 +358,7 @@ export async function findUserForAppointment(appointment: Appointment): Promise<
 
   return {
     ...user,
-    role: user.role as 'CUSTOMER' | 'ADMIN',
+    roles: user.roles as ('CUSTOMER' | 'STYLIST' | 'ADMIN')[],
     authProvider: (user.authProvider as 'email' | 'whatsapp' | 'telegram') ?? undefined,
     telegramId: user.telegramId ?? undefined,
     whatsappPhone: user.whatsappPhone ?? undefined,

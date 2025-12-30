@@ -52,7 +52,7 @@ async function main() {
       id: schema.users.id,
       name: schema.users.name,
       email: schema.users.email,
-      role: schema.users.role,
+      roles: schema.users.roles,
       whatsappPhone: schema.users.whatsappPhone,
     })
     .from(schema.users)
@@ -64,7 +64,7 @@ async function main() {
     for (const user of users) {
       log(`User: ${user.name} (ID: ${user.id})`);
       log(`  Email: ${user.email}`);
-      log(`  Role: ${user.role}`);
+      log(`  Roles: ${user.roles?.join(', ') || 'N/A'}`);
       log(`  WhatsApp: ${user.whatsappPhone || 'N/A'}`);
 
       // Check if this user is linked to a stylist

@@ -6,6 +6,7 @@ import { useEffect } from 'react';
 import CustomerDashboard from '@/components/views/CustomerDashboard';
 import StylistDashboard from '@/components/views/StylistDashboard';
 import { LoadingSpinner } from '@/components/feedback/loaders/LoadingSpinner';
+import { hasStylistAccess } from '@/lib/roleHelpers';
 
 export default function DashboardPage() {
   const { user, isLoading } = useAuth();
@@ -30,12 +31,12 @@ export default function DashboardPage() {
   }
 
   // Show appropriate dashboard based on user role
-  const isStylist = user.role === 'STYLIST' || user.role === 'ADMIN';
+  const showStylistDashboard = hasStylistAccess(user);
 
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-sans">
       <main className="container mx-auto p-4 sm:p-6 lg:p-8">
-        {isStylist ? <StylistDashboard /> : <CustomerDashboard />}
+        {showStylistDashboard ? <StylistDashboard /> : <CustomerDashboard />}
       </main>
     </div>
   );

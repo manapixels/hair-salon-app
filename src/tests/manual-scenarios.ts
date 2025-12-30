@@ -5,10 +5,10 @@ import * as intentParser from '@/services/intentParser';
 import path from 'path';
 
 // Load environment variables from .env.local
-const result = dotenv.config({ path: path.resolve(process.cwd(), '.env.local') });
+const result = dotenv.config({ path: path.resolve(process.cwd(), '.env') });
 
 if (result.error) {
-  console.error('Error loading .env.local:', result.error);
+  console.error('Error loading .env:', result.error);
 }
 
 // Log loaded key (securely)

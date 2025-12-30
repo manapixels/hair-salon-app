@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { google } from 'googleapis';
 import { getSessionFromCookie } from '@/lib/secureSession';
 import { getStylistByUserId } from '@/lib/database';
+import { hasStylistAccess } from '@/lib/roleHelpers';
 
 export const dynamic = 'force-dynamic';
 
@@ -17,8 +18,8 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // 2. Verify user is a stylist
-    if (user.role !== 'STYLIST' && user.role !== 'ADMIN') {
+    // 2. Verify user has stylist-level access (STYLIST or ADMIN)
+    if (!hasStylistAccess(user)) {
       return NextResponse.json(
         { error: 'Only stylists can connect Google Calendar' },
         { status: 403 },

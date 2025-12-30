@@ -137,7 +137,7 @@ export async function PUT(request: NextRequest) {
         if (dbUser) {
           user = {
             ...dbUser,
-            role: dbUser.role as 'CUSTOMER' | 'ADMIN',
+            roles: dbUser.roles as ('CUSTOMER' | 'STYLIST' | 'ADMIN')[],
             authProvider: (dbUser.authProvider as 'email' | 'whatsapp' | 'telegram') ?? undefined,
             telegramId: dbUser.telegramId ?? undefined,
             whatsappPhone: dbUser.whatsappPhone ?? undefined,

@@ -35,7 +35,7 @@ export const POST = withAdminAuth(async (request: NextRequest, { user }) => {
           authProvider: 'whatsapp' as const, // Default for testing
           telegramId: undefined,
           whatsappPhone: '+1234567890', // Test number for development
-          role: 'CUSTOMER' as const,
+          roles: ['CUSTOMER'] as ('CUSTOMER' | 'STYLIST' | 'ADMIN')[],
           avatar: undefined,
         },
       };
@@ -104,7 +104,7 @@ export const POST = withAdminAuth(async (request: NextRequest, { user }) => {
           authProvider: 'whatsapp' as const,
           telegramId: undefined,
           whatsappPhone: '+1234567890',
-          role: 'CUSTOMER' as const,
+          roles: ['CUSTOMER'] as ('CUSTOMER' | 'STYLIST' | 'ADMIN')[],
           avatar: undefined,
         },
         createdAt: new Date(),

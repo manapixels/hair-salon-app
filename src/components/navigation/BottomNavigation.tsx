@@ -11,6 +11,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useBookingModal } from '@/context/BookingModalContext';
 import type { ServiceLink } from '@/lib/categories';
 import { useTranslations } from 'next-intl';
+import { getPrimaryRole } from '@/lib/roleHelpers';
 
 interface BottomNavigationProps {
   serviceLinks: ServiceLink[];
@@ -140,7 +141,11 @@ export default function BottomNavigation({ serviceLinks }: BottomNavigationProps
               active={activeTab === 'dashboard'}
               isOpen={showAccountDropdown}
               roleLabel={
-                user?.role === 'ADMIN' ? 'Admin' : user?.role === 'STYLIST' ? 'Stylist' : undefined
+                user && getPrimaryRole(user) === 'ADMIN'
+                  ? 'Admin'
+                  : user && getPrimaryRole(user) === 'STYLIST'
+                    ? 'Stylist'
+                    : undefined
               }
               onClick={toggleAccount}
             />

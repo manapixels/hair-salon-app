@@ -51,6 +51,40 @@ import { SERVICE_LINKS } from '@/config/navigation';
 
 ---
 
+## 👤 Multi-Role User System
+
+Users can have multiple roles simultaneously (e.g., a stylist who is also an admin).
+
+> [!NOTE]
+> The deprecated `role` column has been removed. Only `roles` array is used.
+
+### **Key Files**
+
+- **`src/lib/roleHelpers.ts`** - Role check utilities (`isAdmin`, `isStylist`, `isCustomer`, `hasStylistAccess`, `getPrimaryRole`)
+- **`src/db/schema.ts`** - `roles` text array column on users table
+- **`src/types.ts`** - `Role` type and `User` interface with `roles: Role[]`
+
+### **Usage Pattern**
+
+```typescript
+import { isAdmin, isStylist, hasStylistAccess, getPrimaryRole } from '@/lib/roleHelpers';
+
+// Check if user has admin access
+if (isAdmin(user)) {
+  /* admin-only logic */
+}
+
+// Check if user can access stylist features (STYLIST or ADMIN)
+if (hasStylistAccess(user)) {
+  /* stylist features */
+}
+
+// Get primary role for display
+const displayRole = getPrimaryRole(user); // 'ADMIN' | 'STYLIST' | 'CUSTOMER'
+```
+
+---
+
 ## 💾 Database Layer (Drizzle ORM)
 
 ### **Overview**

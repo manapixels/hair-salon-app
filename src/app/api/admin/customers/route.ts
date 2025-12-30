@@ -71,7 +71,7 @@ export async function GET(request: NextRequest) {
         createdAt: schema.users.createdAt,
       })
       .from(schema.users)
-      .where(eq(schema.users.role, 'CUSTOMER'))
+      .where(sql`'CUSTOMER' = ANY(${schema.users.roles})`)
       .orderBy(desc(schema.users.lastVisitDate));
 
     // Get all appointments for these customers to compute next appointment and preferred stylist

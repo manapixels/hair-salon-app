@@ -48,7 +48,7 @@ export const users = pgTable(
     name: text('name').notNull(),
     email: text('email').notNull().unique(),
     password: text('password'),
-    role: roleEnum('role').default('CUSTOMER').notNull(),
+    roles: text('roles').array().default(['CUSTOMER']).notNull(),
     authProvider: text('authProvider'),
     telegramId: integer('telegramId').unique(),
     whatsappPhone: text('whatsappPhone').unique(),

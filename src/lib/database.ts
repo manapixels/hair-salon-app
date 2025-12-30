@@ -55,7 +55,7 @@ async function initializeDatabase() {
     const adminUser = await db
       .select()
       .from(schema.users)
-      .where(eq(schema.users.role, 'ADMIN'))
+      .where(sql`'ADMIN' = ANY(${schema.users.roles})`)
       .limit(1);
 
     if (adminUser.length === 0) {
@@ -129,7 +129,7 @@ export const findUserByTelegramId = async (telegramId: number): Promise<User | n
 
   return {
     ...user,
-    role: user.role as 'CUSTOMER' | 'ADMIN',
+    roles: user.roles as ('CUSTOMER' | 'STYLIST' | 'ADMIN')[],
     authProvider: (user.authProvider as 'email' | 'whatsapp' | 'telegram') ?? undefined,
     telegramId: user.telegramId ?? undefined,
     whatsappPhone: user.whatsappPhone ?? undefined,
@@ -146,7 +146,7 @@ export const findUserById = async (id: string): Promise<User | null> => {
 
   return {
     ...user,
-    role: user.role as 'CUSTOMER' | 'ADMIN',
+    roles: user.roles as ('CUSTOMER' | 'STYLIST' | 'ADMIN')[],
     authProvider: (user.authProvider as 'email' | 'whatsapp' | 'telegram') ?? undefined,
     telegramId: user.telegramId ?? undefined,
     whatsappPhone: user.whatsappPhone ?? undefined,
@@ -154,7 +154,7 @@ export const findUserById = async (id: string): Promise<User | null> => {
   };
 };
 
-export const createUserFromOAuth = async (userData: Omit<User, 'id' | 'role'>): Promise<User> => {
+export const createUserFromOAuth = async (userData: Omit<User, 'id' | 'roles'>): Promise<User> => {
   const db = await getDb();
 
   // Check for existing user
@@ -201,7 +201,7 @@ export const createUserFromOAuth = async (userData: Omit<User, 'id' | 'role'>): 
     const updatedUser = result[0];
     return {
       ...updatedUser,
-      role: updatedUser.role as 'CUSTOMER' | 'ADMIN',
+      roles: updatedUser.roles as ('CUSTOMER' | 'STYLIST' | 'ADMIN')[],
       authProvider: updatedUser.authProvider as 'whatsapp' | 'telegram' | undefined,
       telegramId: updatedUser.telegramId ?? undefined,
       whatsappPhone: updatedUser.whatsappPhone ?? undefined,
@@ -209,13 +209,12 @@ export const createUserFromOAuth = async (userData: Omit<User, 'id' | 'role'>): 
     };
   }
 
-  // Create new user
   const result = await db
     .insert(schema.users)
     .values({
       name: userData.name || `User ${userData.whatsappPhone?.slice(-4) || 'Unknown'}`,
       email: userData.email.toLowerCase(),
-      role: 'CUSTOMER',
+      roles: ['CUSTOMER'],
       authProvider: userData.authProvider,
       telegramId: userData.telegramId,
       whatsappPhone: userData.whatsappPhone,
@@ -227,7 +226,7 @@ export const createUserFromOAuth = async (userData: Omit<User, 'id' | 'role'>): 
   const newUser = result[0];
   return {
     ...newUser,
-    role: newUser.role as 'CUSTOMER' | 'ADMIN',
+    roles: newUser.roles as ('CUSTOMER' | 'STYLIST' | 'ADMIN')[],
     authProvider: newUser.authProvider as 'whatsapp' | 'telegram' | undefined,
     telegramId: newUser.telegramId ?? undefined,
     whatsappPhone: newUser.whatsappPhone ?? undefined,
@@ -245,14 +244,14 @@ export const promoteUserToAdmin = async (email: string): Promise<User | null> =>
 
   const result = await db
     .update(schema.users)
-    .set({ role: 'ADMIN', updatedAt: new Date() })
+    .set({ roles: ['ADMIN'], updatedAt: new Date() })
     .where(eq(schema.users.email, email.toLowerCase()))
     .returning();
 
   const updatedUser = result[0];
   return {
     ...updatedUser,
-    role: updatedUser.role as 'CUSTOMER' | 'ADMIN',
+    roles: updatedUser.roles as ('CUSTOMER' | 'STYLIST' | 'ADMIN')[],
     authProvider: updatedUser.authProvider as 'whatsapp' | 'telegram' | undefined,
     telegramId: updatedUser.telegramId ?? undefined,
     whatsappPhone: updatedUser.whatsappPhone ?? undefined,
@@ -1238,7 +1237,7 @@ export const createStylist = async (stylistData: {
   if (stylistData.userId) {
     await db
       .update(schema.users)
-      .set({ role: 'STYLIST', updatedAt: new Date() })
+      .set({ roles: ['STYLIST'], updatedAt: new Date() })
       .where(eq(schema.users.id, stylistData.userId));
   }
 
@@ -1465,7 +1464,7 @@ export const updateUserProfile = async (
     id: updatedUser.id,
     name: updatedUser.name,
     email: updatedUser.email,
-    role: updatedUser.role as 'CUSTOMER' | 'ADMIN',
+    roles: updatedUser.roles as ('CUSTOMER' | 'STYLIST' | 'ADMIN')[],
     authProvider: (updatedUser.authProvider as 'email' | 'whatsapp' | 'telegram') ?? undefined,
     telegramId: updatedUser.telegramId ?? undefined,
     whatsappPhone: updatedUser.whatsappPhone ?? undefined,
@@ -1719,7 +1718,7 @@ export const getUpcomingAppointmentsForReminders = async (
             authProvider: user.authProvider as 'whatsapp' | 'telegram' | 'email',
             telegramId: user.telegramId ?? undefined,
             whatsappPhone: user.whatsappPhone ?? undefined,
-            role: user.role as 'CUSTOMER' | 'ADMIN',
+            roles: user.roles as ('CUSTOMER' | 'STYLIST' | 'ADMIN')[],
             avatar: user.avatar ?? undefined,
           }
         : undefined,
@@ -1810,7 +1809,7 @@ export const getUsersForRebookingReminders = async (daysAgo: number = 28): Promi
     id: user.id,
     name: user.name,
     email: user.email,
-    role: user.role as 'CUSTOMER' | 'ADMIN',
+    roles: user.roles as ('CUSTOMER' | 'STYLIST' | 'ADMIN')[],
     authProvider: (user.authProvider as 'email' | 'whatsapp' | 'telegram') ?? undefined,
     telegramId: user.telegramId ?? undefined,
     whatsappPhone: user.whatsappPhone ?? undefined,

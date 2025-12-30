@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
     // Set the session cookie in the ORIGINAL browser
     const userForSession = {
       ...user,
-      role: user.role as 'CUSTOMER' | 'ADMIN',
+      roles: user.roles,
       authProvider: (user.authProvider as 'email' | 'whatsapp' | 'telegram') ?? undefined,
       telegramId: user.telegramId ?? undefined,
       whatsappPhone: user.whatsappPhone ?? undefined,

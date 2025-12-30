@@ -22,6 +22,7 @@ import { Badge } from '../ui/badge';
 import { CheckIcon, CalendarDays } from 'lucide-react';
 import AppointmentCard from '@/components/appointments/AppointmentCard';
 import { formatShortDate } from '@/lib/timeUtils';
+import { getPrimaryRole } from '@/lib/roleHelpers';
 
 interface StylistProfile {
   id: string;
@@ -270,7 +271,7 @@ export default function StylistDashboard() {
                 <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
                   {t('role')}
                 </label>
-                <Badge variant="outline">{user?.role}</Badge>
+                <Badge variant="outline">{user ? getPrimaryRole(user) : ''}</Badge>
               </div>
             </CardContent>
           </Card>

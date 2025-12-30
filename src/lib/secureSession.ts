@@ -2,6 +2,7 @@ import { SignJWT, jwtVerify } from 'jose';
 import { v4 as uuidv4 } from 'uuid';
 import { cookies } from 'next/headers';
 import type { User } from '@/types';
+import { getPrimaryRole } from '@/lib/roleHelpers';
 
 // Session configuration
 const SESSION_COOKIE_NAME = 'luxecuts_session';
@@ -33,7 +34,7 @@ export async function createSession(user: User): Promise<string> {
     userId: user.id,
     email: user.email,
     name: user.name,
-    role: user.role,
+    role: getPrimaryRole(user),
     authProvider: user.authProvider as 'whatsapp' | 'telegram' | 'email',
     sessionId,
   };

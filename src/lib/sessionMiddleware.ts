@@ -6,6 +6,7 @@ import {
   clearSessionCookie,
 } from './secureSession';
 import type { User } from '@/types';
+import { isAdmin } from '@/lib/roleHelpers';
 
 export interface SessionRequest extends NextRequest {
   user?: User;
@@ -89,7 +90,7 @@ export function withAdminAuth(
   handler: (request: NextRequest, context: { user: User }) => Promise<NextResponse>,
 ) {
   return withAuth(async (request: NextRequest, context: { user: User }) => {
-    if (context.user.role !== 'ADMIN') {
+    if (!isAdmin(context.user)) {
       return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
     }
 

@@ -13,6 +13,8 @@ export interface ServiceAddon {
 
 export type TagCategory = 'CONCERN' | 'OUTCOME' | 'HAIR_TYPE';
 
+export type Role = 'CUSTOMER' | 'STYLIST' | 'ADMIN';
+
 export interface ServiceTag {
   id: string;
   slug: string;
@@ -191,7 +193,7 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  role: 'CUSTOMER' | 'STYLIST' | 'ADMIN';
+  roles: Role[]; // All user roles
   authProvider?: 'email' | 'whatsapp' | 'telegram';
   telegramId?: number;
   whatsappPhone?: string;

@@ -68,7 +68,7 @@ export async function GET(request: NextRequest) {
     // Set session with proper role conversion
     const userForSession = {
       ...user,
-      role: user.role as 'CUSTOMER' | 'ADMIN',
+      roles: user.roles,
       authProvider: (user.authProvider as 'email' | 'whatsapp' | 'telegram') ?? undefined,
       telegramId: user.telegramId ?? undefined,
       whatsappPhone: user.whatsappPhone ?? undefined,

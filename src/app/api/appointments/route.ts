@@ -110,7 +110,7 @@ export async function POST(request: NextRequest) {
       if (existingUser) {
         user = {
           ...existingUser,
-          role: existingUser.role as 'CUSTOMER' | 'ADMIN',
+          roles: existingUser.roles as ('CUSTOMER' | 'STYLIST' | 'ADMIN')[],
           authProvider:
             (existingUser.authProvider as 'email' | 'whatsapp' | 'telegram') ?? undefined,
           telegramId: existingUser.telegramId ?? undefined,

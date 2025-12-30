@@ -23,6 +23,7 @@ import OAuthLoginModal from '../auth/OAuthLoginModal';
 import { LanguageSwitcher } from '../common/LanguageSwitcher';
 import { useTranslations } from 'next-intl';
 import { useBookingModal } from '@/context/BookingModalContext';
+import { isAdmin, isStylist, isCustomer, getPrimaryRole } from '@/lib/roleHelpers';
 
 type View = 'booking' | 'admin' | 'dashboard' | 'services';
 
@@ -91,7 +92,7 @@ export default function AppHeader({ view, onViewChange, serviceLinks }: AppHeade
 
   // Fetch appointment count for customers
   useEffect(() => {
-    if (user && user.role === 'CUSTOMER') {
+    if (user && isCustomer(user)) {
       const fetchCount = async () => {
         try {
           const response = await fetch('/api/appointments/count');
@@ -252,7 +253,7 @@ export default function AppHeader({ view, onViewChange, serviceLinks }: AppHeade
                 <Calendar className="h-4 w-4" aria-hidden="true" />
                 {t('bookNow')}
               </Button>
-              {user && user.role === 'CUSTOMER' && (
+              {user && isCustomer(user) && (
                 <div className="relative">
                   <Button
                     variant={activeView === 'dashboard' ? 'default' : 'ghost'}
@@ -265,7 +266,7 @@ export default function AppHeader({ view, onViewChange, serviceLinks }: AppHeade
                   <NotificationBadge count={appointmentCount} />
                 </div>
               )}
-              {user?.role === 'ADMIN' && (
+              {user && isAdmin(user) && (
                 <Button
                   variant={activeView === 'admin' ? 'default' : 'outline'}
                   size="default"
@@ -276,7 +277,7 @@ export default function AppHeader({ view, onViewChange, serviceLinks }: AppHeade
                   {tAccount('adminPanel')}
                 </Button>
               )}
-              {user?.role === 'STYLIST' && (
+              {user && isStylist(user) && !isAdmin(user) && (
                 <Button
                   variant={activeView === 'dashboard' ? 'default' : 'outline'}
                   size="default"
@@ -322,15 +323,15 @@ export default function AppHeader({ view, onViewChange, serviceLinks }: AppHeade
                     <p className="text-sm font-semibold text-gray-900">{user.name}</p>
                     <p className="text-xs text-gray-500">{user.email}</p>
                     <span className="mt-1.5 inline-block rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">
-                      {user.role === 'ADMIN'
+                      {getPrimaryRole(user) === 'ADMIN'
                         ? 'Admin'
-                        : user.role === 'STYLIST'
+                        : getPrimaryRole(user) === 'STYLIST'
                           ? 'Stylist'
                           : 'Customer'}
                     </span>
                   </div>
 
-                  {user.role === 'CUSTOMER' && activeView !== 'dashboard' && (
+                  {isCustomer(user) && activeView !== 'dashboard' && (
                     <DropdownMenuItem
                       className="flex cursor-pointer items-center gap-2.5 rounded-md px-3 py-2 text-sm text-gray-700 outline-none transition-colors hover:bg-gray-100 focus:bg-gray-100"
                       onSelect={() => router.push('/dashboard')}
@@ -340,7 +341,7 @@ export default function AppHeader({ view, onViewChange, serviceLinks }: AppHeade
                     </DropdownMenuItem>
                   )}
 
-                  {user.role === 'ADMIN' && activeView !== 'admin' && (
+                  {isAdmin(user) && activeView !== 'admin' && (
                     <DropdownMenuItem
                       className="flex cursor-pointer items-center gap-2.5 rounded-md px-3 py-2 text-sm text-gray-700 outline-none transition-colors hover:bg-gray-100 focus:bg-gray-100"
                       onSelect={() => router.push('/admin')}
@@ -350,8 +351,8 @@ export default function AppHeader({ view, onViewChange, serviceLinks }: AppHeade
                     </DropdownMenuItem>
                   )}
 
-                  {((user.role === 'CUSTOMER' && activeView !== 'dashboard') ||
-                    (user.role === 'ADMIN' && activeView !== 'admin')) && (
+                  {((isCustomer(user) && activeView !== 'dashboard') ||
+                    (isAdmin(user) && activeView !== 'admin')) && (
                     <DropdownMenuSeparator className="my-1.5 h-px bg-gray-100" />
                   )}
 

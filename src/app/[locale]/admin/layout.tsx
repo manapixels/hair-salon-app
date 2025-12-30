@@ -6,6 +6,7 @@ import { useEffect } from 'react';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { LoadingSpinner } from '@/components/feedback/loaders/LoadingSpinner';
 import { useTranslations } from 'next-intl';
+import { isAdmin } from '@/lib/roleHelpers';
 
 interface AdminLayoutWrapperProps {
   children: React.ReactNode;
@@ -17,7 +18,7 @@ export default function AdminLayoutWrapper({ children }: AdminLayoutWrapperProps
   const t = useTranslations('Admin.Common');
 
   useEffect(() => {
-    if (!authLoading && (!user || user.role !== 'ADMIN')) {
+    if (!authLoading && (!user || !isAdmin(user))) {
       router.push('/');
     }
   }, [user, authLoading, router]);
@@ -32,7 +33,7 @@ export default function AdminLayoutWrapper({ children }: AdminLayoutWrapperProps
   }
 
   // Redirect if not admin (useEffect handles redirect, this prevents flash)
-  if (!user || user.role !== 'ADMIN') {
+  if (!user || !isAdmin(user)) {
     return null;
   }
 

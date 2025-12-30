@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
         id: schema.users.id,
         name: schema.users.name,
         email: schema.users.email,
-        role: schema.users.role,
+        roles: schema.users.roles,
         authProvider: schema.users.authProvider,
         whatsappPhone: schema.users.whatsappPhone,
         telegramId: schema.users.telegramId,
@@ -44,7 +44,7 @@ export async function GET(request: NextRequest) {
 
     // Exclude stylists if requested
     if (excludeStylists) {
-      users = users.filter(u => u.role !== 'STYLIST');
+      users = users.filter(u => !u.roles?.includes('STYLIST'));
     }
 
     // Limit results
