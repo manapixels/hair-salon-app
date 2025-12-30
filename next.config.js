@@ -5,6 +5,20 @@ const withNextIntl = createNextIntlPlugin();
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  async redirects() {
+    return [
+      {
+        source: '/privacy',
+        destination: '/en/privacy',
+        permanent: true,
+      },
+      {
+        source: '/terms',
+        destination: '/en/terms',
+        permanent: true,
+      },
+    ];
+  },
   eslint: {
     // Ignore ESLint during builds (lint separately)
     ignoreDuringBuilds: true,

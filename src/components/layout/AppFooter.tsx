@@ -62,16 +62,15 @@ export default function AppFooter({ adminSettings }: AppFooterProps) {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
           <div>
             <p>
-              &copy; {new Date().getFullYear()} {businessName}
-              <br /> {t('copyright').replace('© 2024 Signature Trims. ', '')}
+              &copy; {new Date().getFullYear()} {businessName}. {t('allRightsReserved')}
             </p>
             <div className="mt-4 flex gap-4 text-sm">
               <a href="/terms" className="hover:text-white transition-colors">
-                Terms of Service
+                {t('termsOfService')}
               </a>
               <span className="text-white/30">|</span>
               <a href="/privacy" className="hover:text-white transition-colors">
-                Privacy Policy
+                {t('privacyPolicy')}
               </a>
             </div>
           </div>

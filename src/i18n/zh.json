@@ -90,7 +90,10 @@
     "location": "位置",
     "operatingHours": "营业时间",
     "connectWithUs": "联系我们",
-    "closed": "休息"
+    "closed": "休息",
+    "legal": "法律",
+    "privacyPolicy": "隐私政策",
+    "termsOfService": "服务条款"
   },
   "BookingForm": {
     "step1": "1. 选择您的服务",
@@ -200,7 +203,9 @@
       "phone": "电话",
       "email": "电子邮件",
       "followUs": "关注我们",
-      "copyright": "© 2024 Signature Trims. 保留所有权利。"
+      "allRightsReserved": "保留所有权利。",
+      "privacyPolicy": "隐私政策",
+      "termsOfService": "服务条款"
     }
   },
   "Common": {

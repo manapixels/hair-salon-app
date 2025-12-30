@@ -13,7 +13,7 @@ export default function PrivacyPolicyPage() {
       <div className="bg-gradient-to-b from-primary/5 to-white py-12 px-4">
         <div className="container mx-auto max-w-4xl">
           <h1 className="text-4xl font-serif font-light text-gray-900 mb-4">Privacy Policy</h1>
-          <p className="text-gray-500">Last updated: December 30, 2024</p>
+          <p className="text-gray-500">Last updated: December 30, 2025</p>
         </div>
       </div>
 

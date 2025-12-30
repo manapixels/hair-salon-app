@@ -1,8 +1,9 @@
 'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, MapPin, Clock, Instagram, Facebook } from 'lucide-react';
+import { X, MapPin, Clock, Instagram, Facebook, FileText, Shield } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { SkeletonLoader } from '@/components/feedback/loaders/SkeletonLoader';
 import { useTranslations } from 'next-intl';
 
@@ -200,6 +201,29 @@ export default function InfoPopup({ isOpen, onClose }: InfoPopupProps) {
                   >
                     <WhatsAppIcon className="w-4 h-4" />
                   </a>
+                </div>
+              </section>
+
+              {/* Legal */}
+              <section>
+                <h3 className="text-sm font-semibold text-gray-900 mb-3">{t('legal')}</h3>
+                <div className="flex flex-col gap-2">
+                  <Link
+                    href="/privacy"
+                    className="flex items-center gap-2 text-sm text-gray-600 hover:text-primary transition-colors"
+                    onClick={onClose}
+                  >
+                    <Shield className="w-4 h-4" />
+                    {t('privacyPolicy')}
+                  </Link>
+                  <Link
+                    href="/terms"
+                    className="flex items-center gap-2 text-sm text-gray-600 hover:text-primary transition-colors"
+                    onClick={onClose}
+                  >
+                    <FileText className="w-4 h-4" />
+                    {t('termsOfService')}
+                  </Link>
                 </div>
               </section>
             </div>

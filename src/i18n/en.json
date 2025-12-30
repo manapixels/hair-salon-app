@@ -90,7 +90,10 @@
     "location": "Location",
     "operatingHours": "Operating Hours",
     "connectWithUs": "Connect With Us",
-    "closed": "Closed"
+    "closed": "Closed",
+    "legal": "Legal",
+    "privacyPolicy": "Privacy Policy",
+    "termsOfService": "Terms of Service"
   },
   "BookingForm": {
     "bookYourAppointment": "Book Your Appointment",
@@ -200,7 +203,9 @@
       "phone": "Phone",
       "email": "Email",
       "followUs": "Follow Us",
-      "copyright": "© 2024 Signature Trims. All rights reserved."
+      "allRightsReserved": "All rights reserved.",
+      "privacyPolicy": "Privacy Policy",
+      "termsOfService": "Terms of Service"
     }
   },
   "Common": {
