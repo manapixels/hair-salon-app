@@ -65,6 +65,15 @@ export default function AppFooter({ adminSettings }: AppFooterProps) {
               &copy; {new Date().getFullYear()} {businessName}
               <br /> {t('copyright').replace('© 2024 Signature Trims. ', '')}
             </p>
+            <div className="mt-4 flex gap-4 text-sm">
+              <a href="/terms" className="hover:text-white transition-colors">
+                Terms of Service
+              </a>
+              <span className="text-white/30">|</span>
+              <a href="/privacy" className="hover:text-white transition-colors">
+                Privacy Policy
+              </a>
+            </div>
           </div>
           <div>
             <h4 className="text-lg font-serif mb-6 text-brand-primary">{t('visitUs')}</h4>

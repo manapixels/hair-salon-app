@@ -12,7 +12,7 @@ assets = { directory = ".open-next/assets", binding = "ASSETS" }
 # Non-sensitive environment variables
 [vars]
 # Add non-secret env vars here if needed
-NEXTAUTH_URL = "https://hair-salon-app.chrenelias.workers.dev"
+NEXTAUTH_URL = "https://signaturetrims.com"
 
 # Hyperdrive configuration for Neon PostgreSQL
 # After running: wrangler hyperdrive create hair-salon-db --connection-string="<NEON_URL>"

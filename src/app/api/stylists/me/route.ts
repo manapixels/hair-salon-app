@@ -18,6 +18,29 @@ export async function GET() {
       return NextResponse.json({ error: 'Stylist profile not found' }, { status: 404 });
     }
 
+    // Calculate Google token status
+    let googleTokenStatus: 'valid' | 'expiring_soon' | 'expired' | 'not_connected' =
+      'not_connected';
+
+    if (stylist.googleRefreshToken) {
+      const now = Date.now();
+      const tokenExpiry = stylist.googleTokenExpiry?.getTime() || 0;
+      const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
+
+      if (tokenExpiry === 0) {
+        // Has refresh token but no expiry - assume valid
+        googleTokenStatus = 'valid';
+      } else if (now > tokenExpiry) {
+        // Token is expired - but refresh might still work
+        googleTokenStatus = 'expired';
+      } else if (now > tokenExpiry - sevenDaysMs) {
+        // Token expires within 7 days
+        googleTokenStatus = 'expiring_soon';
+      } else {
+        googleTokenStatus = 'valid';
+      }
+    }
+
     // Return only the fields needed by the dashboard
     return NextResponse.json({
       id: stylist.id,
@@ -27,6 +50,8 @@ export async function GET() {
       avatar: stylist.avatar,
       googleEmail: stylist.googleEmail,
       googleCalendarId: stylist.googleCalendarId,
+      googleTokenStatus,
+      googleTokenExpiry: stylist.googleTokenExpiry?.toISOString(),
     });
   } catch (error) {
     console.error('Error fetching stylist profile:', error);

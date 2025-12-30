@@ -1188,7 +1188,19 @@ Stylists can connect their personal Google Calendar to automatically sync appoin
 - **Calendar Logic**: `src/lib/google.ts` (per-stylist OAuth + fallback to salon calendar)
 - **Database**: `src/db/schema.ts` - `stylists` table includes Google OAuth token fields
 - **Dashboard**: `src/components/views/StylistDashboard.tsx` - Includes Profile Management (Name Edit) & Calendar Sync
-- **API**: `src/app/api/stylists/me/route.ts`
+- **API**: `src/app/api/stylists/me/route.ts` - Returns `googleTokenStatus` for dashboard warnings
+
+### Self-Healing Token System
+
+The dashboard shows token status with clear, non-technical UI:
+
+- **Green "Connected"**: Token is valid and syncing works
+- **Amber "Connection Expired"**: Token expired, user sees friendly "Reconnect" button
+- **Gray "Not Connected"**: Calendar not connected yet
+
+Token status values: `valid` | `expiring_soon` | `expired` | `not_connected`
+
+> **Note**: If OAuth app is in "Testing" mode, refresh tokens expire after 7 days. Publish the OAuth consent screen to get permanent tokens.
 
 ### Required Environment Variables
 
