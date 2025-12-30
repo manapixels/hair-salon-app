@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { google } from 'googleapis';
 import { updateStylistGoogleTokens } from '@/lib/database';
 
+export const dynamic = 'force-dynamic';
+
 /**
  * GET /api/auth/google/callback
  * Handles the OAuth2 callback from Google, exchanges code for tokens

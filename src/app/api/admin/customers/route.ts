@@ -8,6 +8,8 @@ import * as schema from '@/db/schema';
 import { eq, desc, asc, gte, sql, and } from 'drizzle-orm';
 import type { CustomerWithStats, CustomerStatus, StylistSummary } from '@/types';
 
+export const dynamic = 'force-dynamic';
+
 // Calculate customer status based on visit patterns
 function calculateCustomerStatus(
   totalVisits: number,

@@ -3,6 +3,8 @@ import { google } from 'googleapis';
 import { getSessionFromCookie } from '@/lib/secureSession';
 import { getStylistByUserId } from '@/lib/database';
 
+export const dynamic = 'force-dynamic';
+
 /**
  * GET /api/auth/google/connect
  * Initiates the Google OAuth2 flow for stylists to connect their calendar

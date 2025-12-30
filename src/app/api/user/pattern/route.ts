@@ -5,6 +5,8 @@ import * as schema from '@/db/schema';
 import { eq, not, desc } from 'drizzle-orm';
 import { withAuth } from '@/lib/sessionMiddleware';
 
+export const dynamic = 'force-dynamic';
+
 export const GET = withAuth(async (request: NextRequest, { user }) => {
   try {
     console.log('[/api/user/pattern] Fetching pattern for user:', user.id);

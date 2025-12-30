@@ -4,6 +4,8 @@ import { getDb } from '@/db';
 import * as schema from '@/db/schema';
 import { eq, gte, asc } from 'drizzle-orm';
 
+export const dynamic = 'force-dynamic';
+
 export const GET = withAuth(async (request: NextRequest, { user }) => {
   try {
     const db = await getDb();

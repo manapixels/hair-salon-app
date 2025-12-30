@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { withAuth } from '@/lib/sessionMiddleware';
 import { getUserAppointments } from '@/lib/database';
 
+export const dynamic = 'force-dynamic';
+
 export const GET = withAuth(async (request: NextRequest, { user }) => {
   try {
     // Validate user.id exists

@@ -589,6 +589,10 @@ wrangler hyperdrive create hair-salon-db --connection-string="<NEON_URL>"
 - `src/db/index.ts` - Uses `postgres` driver (postgres.js) for Cloudflare Workers with Hyperdrive
 - `src/db/schema.ts` - Drizzle schema definitions
 
+**API Route Dynamic Exports:**
+
+API routes that use `request.url` or `cookies` must include `export const dynamic = 'force-dynamic'` to prevent Next.js from attempting static generation during build. This eliminates build warnings and ensures proper server-side rendering.
+
 ---
 
 ## 📊 Monitoring & Metrics (Planned)

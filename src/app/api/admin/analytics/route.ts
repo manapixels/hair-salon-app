@@ -3,6 +3,8 @@ import { getDb } from '@/db';
 import * as schema from '@/db/schema';
 import { gte } from 'drizzle-orm';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(req: NextRequest) {
   try {
     const db = await getDb();

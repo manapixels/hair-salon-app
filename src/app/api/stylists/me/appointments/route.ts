@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { getSessionFromCookie } from '@/lib/secureSession';
 import { getStylistByUserId, getAppointments } from '@/lib/database';
 
+export const dynamic = 'force-dynamic';
+
 /**
  * GET /api/stylists/me/appointments
  * Returns appointments for the logged-in stylist

@@ -7,6 +7,8 @@ import { getDb } from '@/db';
 import * as schema from '@/db/schema';
 import { sql, asc, not, eq } from 'drizzle-orm';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: NextRequest) {
   try {
     const db = await getDb();
