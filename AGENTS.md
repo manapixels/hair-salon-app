@@ -336,6 +336,8 @@ Login uses polling to ensure cookies are set in the **original browser**, not Te
 
 **Localization**: The login complete page (`verify-login`) is localized via `locale` URL param. Supported: `en`, `zh`.
 
+**iOS Deep Links**: Uses `tg://` scheme (native) for iOS because Universal Links (`t.me`) are inconsistent. Falls back to `t.me` if app not installed.
+
 **Key files**: `src/app/api/auth/telegram/` (check-login-status, claim-session, verify-login, start-login), `TelegramLoginWidget.tsx`
 
 ---

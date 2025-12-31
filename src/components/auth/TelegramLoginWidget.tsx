@@ -136,8 +136,26 @@ const TelegramLoginWidget: React.FC<TelegramLoginWidgetProps> = ({
       const startParam = returnedLocale ? `login_${returnedLocale}_${token}` : `login_${token}`;
       const telegramDeepLink = `https://t.me/${botUsername}?start=${startParam}`;
 
-      // Open Telegram in new window/tab
-      popupWindowRef.current = window.open(telegramDeepLink, '_blank');
+      // Detect iOS for better app opening behavior
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+
+      if (isIOS) {
+        // iOS: try native tg:// scheme first for reliable app opening
+        // Universal Links (t.me) can be inconsistent on iOS
+        const tgNativeLink = `tg://resolve?domain=${botUsername}&start=${startParam}`;
+        window.location.href = tgNativeLink;
+
+        // Fallback to t.me if app not installed (after short delay)
+        setTimeout(() => {
+          // Only open if we're still on the page (app didn't open)
+          if (document.hasFocus()) {
+            popupWindowRef.current = window.open(telegramDeepLink, '_blank');
+          }
+        }, 1500);
+      } else {
+        // Non-iOS: use Universal Link
+        popupWindowRef.current = window.open(telegramDeepLink, '_blank');
+      }
 
       // Start polling for login completion
       if (pollingIntervalRef.current) {
