@@ -1936,3 +1936,158 @@ export const getLastAppointmentByUserId = async (userId: string): Promise<Appoin
     estimatedDuration: appointment.estimatedDuration ?? undefined,
   };
 };
+
+// --- CALENDAR TOKEN MANAGEMENT ---
+
+/**
+ * Mark a stylist's Google token as invalid (for reconnection reminders)
+ */
+export const markStylistTokenInvalid = async (
+  stylistId: string,
+  invalid: boolean = true,
+): Promise<void> => {
+  const db = await getDb();
+  await db
+    .update(schema.stylists)
+    .set({
+      googleTokenInvalid: invalid,
+      updatedAt: new Date(),
+    })
+    .where(eq(schema.stylists.id, stylistId));
+};
+
+/**
+ * Update the last calendar reminder sent timestamp for a stylist
+ */
+export const updateLastCalendarReminderSent = async (stylistId: string): Promise<void> => {
+  const db = await getDb();
+  await db
+    .update(schema.stylists)
+    .set({
+      lastCalendarReminderSent: new Date(),
+      updatedAt: new Date(),
+    })
+    .where(eq(schema.stylists.id, stylistId));
+};
+
+/**
+ * Get stylists with invalid tokens that need reconnection reminders
+ * Only returns stylists who:
+ * 1. Have googleTokenInvalid = true
+ * 2. Have a connected user account (for messaging)
+ * 3. Haven't received a reminder in the last 24 hours
+ */
+export const getStylistsNeedingCalendarReminders = async (): Promise<
+  Array<{
+    stylist: Stylist;
+    user: User;
+  }>
+> => {
+  const db = await getDb();
+
+  // Get stylists with invalid tokens
+  const stylistsWithInvalidTokens = await db
+    .select()
+    .from(schema.stylists)
+    .where(
+      and(
+        eq(schema.stylists.googleTokenInvalid, true),
+        eq(schema.stylists.isActive, true),
+        not(isNull(schema.stylists.userId)),
+      ),
+    );
+
+  const results: Array<{ stylist: Stylist; user: User }> = [];
+  const now = new Date();
+  const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+
+  for (const stylistRow of stylistsWithInvalidTokens) {
+    // Skip if reminder was sent less than 24 hours ago
+    if (stylistRow.lastCalendarReminderSent && stylistRow.lastCalendarReminderSent > oneDayAgo) {
+      continue;
+    }
+
+    // Get the linked user
+    if (!stylistRow.userId) continue;
+    const user = await findUserById(stylistRow.userId);
+    if (!user) continue;
+
+    // Map services (we don't need full specialties for this use case)
+    const allServices = await getServices();
+    const specialtyServices = Array.isArray(stylistRow.specialties)
+      ? ((stylistRow.specialties as any[])
+          .map(id => allServices.find(s => s.id === normalizeServiceId(id)))
+          .filter(Boolean) as Service[])
+      : [];
+
+    const stylist: Stylist = {
+      id: stylistRow.id,
+      name: stylistRow.name,
+      email: stylistRow.email ?? undefined,
+      bio: stylistRow.bio ?? undefined,
+      avatar: stylistRow.avatar ?? undefined,
+      specialties: [], // Not needed for reminders
+      workingHours: (stylistRow.workingHours as any) || {},
+      blockedDates: (stylistRow.blockedDates as string[]) ?? [],
+      isActive: stylistRow.isActive,
+      userId: stylistRow.userId,
+      googleAccessToken: stylistRow.googleAccessToken ?? undefined,
+      googleRefreshToken: stylistRow.googleRefreshToken ?? undefined,
+      googleTokenExpiry: stylistRow.googleTokenExpiry ?? undefined,
+      googleCalendarId: stylistRow.googleCalendarId ?? undefined,
+      googleEmail: stylistRow.googleEmail ?? undefined,
+      googleTokenInvalid: stylistRow.googleTokenInvalid,
+      lastCalendarReminderSent: stylistRow.lastCalendarReminderSent,
+      createdAt: stylistRow.createdAt,
+      updatedAt: stylistRow.updatedAt,
+    };
+
+    results.push({ stylist, user });
+  }
+
+  return results;
+};
+
+/**
+ * Get a stylist with their linked user for messaging
+ */
+export const getStylistWithUser = async (
+  stylistId: string,
+): Promise<{ stylist: Stylist; user: User } | null> => {
+  const db = await getDb();
+  const result = await db
+    .select()
+    .from(schema.stylists)
+    .where(eq(schema.stylists.id, stylistId))
+    .limit(1);
+
+  const stylistRow = result[0];
+  if (!stylistRow || !stylistRow.userId) return null;
+
+  const user = await findUserById(stylistRow.userId);
+  if (!user) return null;
+
+  const stylist: Stylist = {
+    id: stylistRow.id,
+    name: stylistRow.name,
+    email: stylistRow.email ?? undefined,
+    bio: stylistRow.bio ?? undefined,
+    avatar: stylistRow.avatar ?? undefined,
+    specialties: [],
+    workingHours: (stylistRow.workingHours as any) || {},
+    blockedDates: (stylistRow.blockedDates as string[]) ?? [],
+    isActive: stylistRow.isActive,
+    userId: stylistRow.userId,
+    googleAccessToken: stylistRow.googleAccessToken ?? undefined,
+    googleRefreshToken: stylistRow.googleRefreshToken ?? undefined,
+    googleTokenExpiry: stylistRow.googleTokenExpiry ?? undefined,
+    googleCalendarId: stylistRow.googleCalendarId ?? undefined,
+    googleEmail: stylistRow.googleEmail ?? undefined,
+    googleTokenInvalid: stylistRow.googleTokenInvalid,
+    lastCalendarReminderSent: stylistRow.lastCalendarReminderSent,
+    createdAt: stylistRow.createdAt,
+    updatedAt: stylistRow.updatedAt,
+  };
+
+  return { stylist, user };
+};

@@ -129,6 +129,9 @@ const initializeStylistCalendar = async (stylist: Stylist): Promise<any | null> 
           console.error(
             `[GoogleCalendar] Refresh token was revoked/expired. Stylist needs to reconnect Google Calendar.`,
           );
+          // Mark token as invalid for reconnection reminder system
+          const { markStylistTokenInvalid } = await import('./database');
+          await markStylistTokenInvalid(stylist.id, true);
         }
         return null;
       }

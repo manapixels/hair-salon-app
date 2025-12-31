@@ -1,6 +1,11 @@
 import { NextResponse } from 'next/server';
 import { google } from 'googleapis';
-import { updateStylistGoogleTokens } from '@/lib/database';
+import {
+  updateStylistGoogleTokens,
+  markStylistTokenInvalid,
+  getStylistWithUser,
+} from '@/lib/database';
+import { sendCalendarReconnectSuccess } from '@/services/calendarReminderService';
 
 export const dynamic = 'force-dynamic';
 
@@ -68,6 +73,21 @@ export async function GET(request: Request) {
       googleCalendarId: 'primary', // Use primary calendar
       googleEmail: googleEmail,
     });
+
+    // Clear invalid token flag (reconnection successful)
+    await markStylistTokenInvalid(stateData.stylistId, false);
+
+    // Send success notification to stylist via their preferred channel
+    try {
+      const stylistWithUser = await getStylistWithUser(stateData.stylistId);
+      if (stylistWithUser) {
+        await sendCalendarReconnectSuccess(stylistWithUser.stylist, stylistWithUser.user);
+        console.log(`Sent calendar reconnection success message to stylist ${stateData.stylistId}`);
+      }
+    } catch (notifyError) {
+      // Don't fail the callback if notification fails
+      console.error('Failed to send calendar reconnect success notification:', notifyError);
+    }
 
     console.log(`Google Calendar connected for stylist ${stateData.stylistId}`);
 

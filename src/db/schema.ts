@@ -150,6 +150,9 @@ export const stylists = pgTable('stylists', {
   googleTokenExpiry: timestamp('googleTokenExpiry'),
   googleCalendarId: text('googleCalendarId'), // Usually 'primary'
   googleEmail: text('googleEmail'), // Connected Google account email
+  // Token status tracking for reconnection reminders
+  googleTokenInvalid: boolean('googleTokenInvalid').default(false).notNull(),
+  lastCalendarReminderSent: timestamp('lastCalendarReminderSent'),
   createdAt: timestamp('createdAt').defaultNow().notNull(),
   updatedAt: timestamp('updatedAt').defaultNow().notNull(),
 });

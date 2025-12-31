@@ -439,6 +439,16 @@ Automated messaging for feedback, rebooking, and win-back campaigns.
   - `sendCancellationConfirmation()`
   - `sendRescheduleConfirmation()`
 
+#### **Calendar Reminder Service** (`src/services/calendarReminderService.ts`)
+
+- Sends daily reminders to stylists when their Google Calendar token expires
+- Sends success notification when calendar is reconnected
+- Rate limited to 1 reminder per stylist per day
+- Endpoint: `/api/calendar-reminders/send`
+- Database fields on `stylists` table:
+  - `googleTokenInvalid` - Flag set when token refresh fails
+  - `lastCalendarReminderSent` - Rate limiting timestamp
+
 #### **Retention Services**
 
 - `retentionService.ts` - Identifies users for rebooking/winback
