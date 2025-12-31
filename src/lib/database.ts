@@ -259,6 +259,102 @@ export const promoteUserToAdmin = async (email: string): Promise<User | null> =>
   };
 };
 
+// --- DATA INTEGRITY VALIDATION ---
+
+export interface DataIntegrityIssue {
+  type: 'STYLIST_ROLE_NO_RECORD' | 'STYLIST_RECORD_NO_ROLE';
+  userId?: string;
+  stylistId?: string;
+  userName?: string;
+  userEmail?: string;
+  description: string;
+}
+
+export interface DataIntegrityResult {
+  isConsistent: boolean;
+  issues: DataIntegrityIssue[];
+  summary: {
+    usersWithStylistRole: number;
+    stylistRecords: number;
+    usersWithStylistRoleNoRecord: number;
+    stylistRecordsNoStylistRole: number;
+  };
+}
+
+/**
+ * Validates consistency between user roles and the stylists table.
+ * - Users with STYLIST role should have a matching stylist record
+ * - Stylist records should have linked users with STYLIST role
+ */
+export const validateRoleStylistConsistency = async (): Promise<DataIntegrityResult> => {
+  const db = await getDb();
+
+  // Get all users with STYLIST role
+  const usersWithStylistRole = await db
+    .select({
+      id: schema.users.id,
+      name: schema.users.name,
+      email: schema.users.email,
+      roles: schema.users.roles,
+    })
+    .from(schema.users)
+    .where(sql`'STYLIST' = ANY(${schema.users.roles})`);
+
+  // Get all stylist records with their linked users
+  const stylistRecords = await db
+    .select({
+      id: schema.stylists.id,
+      name: schema.stylists.name,
+      email: schema.stylists.email,
+      userId: schema.stylists.userId,
+    })
+    .from(schema.stylists);
+
+  const issues: DataIntegrityIssue[] = [];
+
+  // Check: Users with STYLIST role should have a stylist record
+  for (const user of usersWithStylistRole) {
+    const hasRecord = stylistRecords.some(s => s.userId === user.id);
+    if (!hasRecord) {
+      issues.push({
+        type: 'STYLIST_ROLE_NO_RECORD',
+        userId: user.id,
+        userName: user.name,
+        userEmail: user.email,
+        description: `User "${user.name}" (${user.email}) has STYLIST role but no matching stylist record`,
+      });
+    }
+  }
+
+  // Check: Stylist records with userId should have that user with STYLIST role
+  for (const stylist of stylistRecords) {
+    if (stylist.userId) {
+      const userHasStylistRole = usersWithStylistRole.some(u => u.id === stylist.userId);
+      if (!userHasStylistRole) {
+        issues.push({
+          type: 'STYLIST_RECORD_NO_ROLE',
+          stylistId: stylist.id,
+          userId: stylist.userId,
+          userName: stylist.name,
+          userEmail: stylist.email ?? undefined,
+          description: `Stylist record "${stylist.name}" links to user ${stylist.userId}, but that user doesn't have STYLIST role`,
+        });
+      }
+    }
+  }
+
+  return {
+    isConsistent: issues.length === 0,
+    issues,
+    summary: {
+      usersWithStylistRole: usersWithStylistRole.length,
+      stylistRecords: stylistRecords.length,
+      usersWithStylistRoleNoRecord: issues.filter(i => i.type === 'STYLIST_ROLE_NO_RECORD').length,
+      stylistRecordsNoStylistRole: issues.filter(i => i.type === 'STYLIST_RECORD_NO_ROLE').length,
+    },
+  };
+};
+
 // --- SERVICE MANAGEMENT ---
 
 export const getServices = unstable_cache(

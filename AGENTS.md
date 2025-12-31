@@ -83,6 +83,16 @@ if (hasStylistAccess(user)) {
 const displayRole = getPrimaryRole(user); // 'ADMIN' | 'STYLIST' | 'CUSTOMER'
 ```
 
+### **Data Integrity Validation**
+
+Users with `STYLIST` role must have a corresponding record in the `stylists` table.
+
+- **Validate**: `GET /api/admin/data-integrity/check` - Checks for orphaned role/record mismatches
+- **Function**: `validateRoleStylistConsistency()` in `src/lib/database.ts`
+
+> [!TIP]
+> Always use the admin "Promote to Stylist" flow to create stylists, as it creates both the role AND stylist record.
+
 ---
 
 ## 💾 Database Layer (Drizzle ORM)
