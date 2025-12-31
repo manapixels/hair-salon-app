@@ -3,6 +3,7 @@ import { findUserById } from '@/lib/database';
 import { getDb } from '@/db';
 import * as schema from '@/db/schema';
 import { eq } from 'drizzle-orm';
+import { sendTelegramMessage } from '@/services/messagingService';
 
 // Import translations from centralized i18n files
 import enMessages from '@/i18n/en.json';
@@ -154,6 +155,25 @@ export async function GET(request: NextRequest) {
       .where(eq(schema.loginTokens.id, tokenData.id));
 
     console.log('[VERIFY-LOGIN] SUCCESS: Token marked as COMPLETED, returning success page');
+
+    // Send success message to Telegram chat (non-blocking)
+    if (user.telegramId) {
+      const successMessage = `✅ *You have successfully logged in!*
+
+Welcome to Signature Trims! 🎉
+
+✨ *What you can do:*
+• Book appointments with our professional stylists
+• View and manage your bookings
+• Get reminders for upcoming appointments
+• Chat with me anytime for help
+
+Thank you for choosing Signature Trims! 💇‍♀️`;
+
+      sendTelegramMessage(user.telegramId, successMessage).catch(error => {
+        console.error('[VERIFY-LOGIN] Failed to send Telegram success message:', error);
+      });
+    }
 
     // Get localized text
     const t = getTranslation(locale);
