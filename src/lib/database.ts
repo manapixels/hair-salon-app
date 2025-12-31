@@ -1743,6 +1743,20 @@ export const rescheduleAppointment = async (
 
 // --- REMINDERS ---
 
+/**
+ * Check if appointment services include men's haircut
+ * Used for filtering reminders - men's haircut is typically a recurring service
+ */
+const hasMensHaircut = (services: unknown): boolean => {
+  if (!Array.isArray(services)) return false;
+  return services.some(
+    (service: any) =>
+      typeof service?.name === 'string' &&
+      service.name.toLowerCase().includes('haircut') &&
+      service.name.toLowerCase().includes('men'),
+  );
+};
+
 export const getUpcomingAppointmentsForReminders = async (
   hoursAhead: number = 24,
 ): Promise<Appointment[]> => {
@@ -1763,7 +1777,12 @@ export const getUpcomingAppointmentsForReminders = async (
       ),
     );
 
-  const userIds = Array.from(new Set(appointments.map(a => a.userId).filter(Boolean))) as string[];
+  // Filter: only include appointments with men's haircut (recurring service)
+  const haircutAppointments = appointments.filter(apt => hasMensHaircut(apt.services));
+
+  const userIds = Array.from(
+    new Set(haircutAppointments.map(a => a.userId).filter(Boolean)),
+  ) as string[];
   const users =
     userIds.length > 0
       ? await db
@@ -1773,7 +1792,7 @@ export const getUpcomingAppointmentsForReminders = async (
       : [];
 
   const stylistIds = Array.from(
-    new Set(appointments.map(a => a.stylistId).filter(Boolean)),
+    new Set(haircutAppointments.map(a => a.stylistId).filter(Boolean)),
   ) as string[];
   const stylists =
     stylistIds.length > 0
@@ -1783,7 +1802,7 @@ export const getUpcomingAppointmentsForReminders = async (
           .where(sql`${schema.stylists.id} IN ${stylistIds}`)
       : [];
 
-  return appointments.map(appointment => {
+  return haircutAppointments.map(appointment => {
     const user = users.find(u => u.id === appointment.userId);
     const stylist = stylists.find(s => s.id === appointment.stylistId);
 

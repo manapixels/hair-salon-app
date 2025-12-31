@@ -2,12 +2,15 @@ import { inngest } from '@/lib/inngest';
 import { getUpcomingAppointmentsForReminders, markReminderSent } from '@/lib/database';
 import { sendBulkReminders } from '@/services/reminderService';
 
+// 3 days = 72 hours
+const REMINDER_HOURS_AHEAD = 72;
+
 export const sendAppointmentReminders = inngest.createFunction(
-  { id: 'send-appointment-reminders', name: 'Send 24-Hour Appointment Reminders' },
+  { id: 'send-appointment-reminders', name: 'Send 3-Day Appointment Reminders' },
   { cron: '0 9 * * *' }, // Daily at 9 AM UTC
   async ({ step }) => {
     const appointments = await step.run('fetch-upcoming-appointments', async () => {
-      return await getUpcomingAppointmentsForReminders(24);
+      return await getUpcomingAppointmentsForReminders(REMINDER_HOURS_AHEAD);
     });
 
     if (appointments.length === 0) {
@@ -16,7 +19,7 @@ export const sendAppointmentReminders = inngest.createFunction(
 
     const results = await step.run('send-reminder-messages', async () => {
       // Re-fetch appointments within step to avoid serialization issues
-      const appointmentsToProcess = await getUpcomingAppointmentsForReminders(24);
+      const appointmentsToProcess = await getUpcomingAppointmentsForReminders(REMINDER_HOURS_AHEAD);
       const reminderResults = await sendBulkReminders(appointmentsToProcess);
 
       // Mark successful reminders as sent

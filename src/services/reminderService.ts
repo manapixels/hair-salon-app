@@ -108,7 +108,7 @@ export const formatReminderMessage = (
 
   const message = `🔔 *Appointment Reminder*
 
-Hi ${appointment.user?.name || appointment.customerName}! Your appointment is *tomorrow at ${formattedTime}* 📅
+Hi ${appointment.user?.name || appointment.customerName}! Your appointment is on *${formattedDate} at ${formattedTime}* 📅
 
 ━━━━━━━━━━━━━━━━━━━━━
 ✂️ *${serviceNames}*

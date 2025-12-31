@@ -1,9 +1,6 @@
 import { serve } from 'inngest/next';
 import { inngest } from '@/lib/inngest';
 import { sendAppointmentReminders } from '@/inngest/appointmentReminders';
-import { sendFeedbackRequests } from '@/inngest/feedback';
-import { sendRebookingReminders } from '@/inngest/rebooking';
-import { sendWinBackCampaigns } from '@/inngest/winback';
 import { autoCompleteAppointments } from '@/inngest/autoCompleteAppointments';
 import { syncAppointmentsToCalendar } from '@/inngest/syncCalendar';
 import { proactiveAgent } from '@/inngest/proactiveAgent';
@@ -14,9 +11,6 @@ export const { GET, POST, PUT } = serve({
   functions: [
     sendAppointmentReminders,
     autoCompleteAppointments,
-    sendFeedbackRequests,
-    sendRebookingReminders,
-    sendWinBackCampaigns,
     syncAppointmentsToCalendar,
     proactiveAgent,
     customerSuggestions,
