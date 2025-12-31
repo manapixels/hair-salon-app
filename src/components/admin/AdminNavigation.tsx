@@ -15,11 +15,15 @@ import {
   Scissors,
   LayoutDashboard,
   ChevronRight,
+  User,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/context/AuthContext';
+import { isStylist } from '@/lib/roleHelpers';
 
 export type AdminSection =
   | 'home'
+  | 'my-profile'
   | 'appointments'
   | 'availability'
   | 'stylists'
@@ -61,10 +65,12 @@ export default function AdminNavigation({
   const pathname = usePathname();
   const router = useRouter();
   const locale = useLocale();
+  const { user } = useAuth();
 
   const t = useTranslations('AdminNavigation');
 
   const basePath = `/${locale}/admin`;
+  const showStylistProfile = user && isStylist(user);
 
   const navigationGroups: NavigationGroup[] = [
     {
@@ -76,6 +82,17 @@ export default function AdminNavigation({
           icon: <LayoutDashboard className="w-5 h-5" />,
           href: basePath,
         },
+        // My Stylist Profile - only show if user is also a stylist
+        ...(showStylistProfile
+          ? [
+              {
+                id: 'my-profile' as AdminSection,
+                label: t('items.myProfile'),
+                icon: <User className="w-5 h-5" />,
+                href: `${basePath}/my-profile`,
+              },
+            ]
+          : []),
       ],
     },
     {

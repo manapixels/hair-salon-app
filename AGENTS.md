@@ -93,6 +93,34 @@ Users with `STYLIST` role must have a corresponding record in the `stylists` tab
 > [!TIP]
 > Always use the admin "Promote to Stylist" flow to create stylists, as it creates both the role AND stylist record.
 
+### **Role-Based Routing Architecture**
+
+The app has **separate dashboard experiences** for admins and stylists:
+
+| Route        | Layout                  | Access          | Component                                 |
+| ------------ | ----------------------- | --------------- | ----------------------------------------- |
+| `/admin/*`   | `AdminLayout` (sidebar) | `isAdmin(user)` | Full admin panel                          |
+| `/dashboard` | Basic page (no sidebar) | Logged-in users | `StylistDashboard` or `CustomerDashboard` |
+
+**Key routing files:**
+
+- **`src/app/[locale]/admin/layout.tsx`** - Admin auth guard, wraps children in `AdminLayout`
+- **`src/app/[locale]/dashboard/page.tsx`** - Switches between `StylistDashboard` / `CustomerDashboard` based on `hasStylistAccess(user)`
+- **`src/components/admin/AdminLayout.tsx`** - Admin shell with sidebar navigation
+- **`src/components/admin/AdminNavigation.tsx`** - Admin sidebar nav items (11 sections)
+- **`src/components/views/StylistDashboard.tsx`** - Stylist profile, Google Calendar, personal appointments
+- **`src/components/layout/AppHeader.tsx`** - Header with role-based nav buttons
+
+**Admin Navigation Sections:**
+
+- Quick Glance: Dashboard
+- Bookings: Appointments, Availability
+- People: Stylists, Customers
+- Support: Chat, Knowledge Base
+- Settings: Business Info, Operating Hours, Closures, Services
+
+**Admin+Stylist users:** Can access "My Stylist Profile" link in admin sidebar to view stylist-specific features (Google Calendar, personal appointments) without leaving the admin panel.
+
 ---
 
 ## 💾 Database Layer (Drizzle ORM)

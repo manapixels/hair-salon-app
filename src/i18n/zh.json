@@ -230,6 +230,7 @@
     },
     "items": {
       "dashboard": "仪表板",
+      "myProfile": "我的发型师资料",
       "appointments": "预约记录",
       "availability": "排班管理",
       "stylists": "发型师管理",

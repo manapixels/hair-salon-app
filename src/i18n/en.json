@@ -230,6 +230,7 @@
     },
     "items": {
       "dashboard": "Dashboard",
+      "myProfile": "My Stylist Profile",
       "appointments": "Appointments",
       "availability": "Availability",
       "stylists": "Stylists",
