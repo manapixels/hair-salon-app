@@ -735,6 +735,22 @@ We maintain both automated and manual tests to ensure agent reliability. **Alway
 
 ---
 
+## 🛡️ Error Handling
+
+### **Error Boundaries**
+
+Next.js error boundaries catch errors and display user-friendly recovery UIs instead of crashing.
+
+| File                               | Purpose                    | Scope                                                      |
+| ---------------------------------- | -------------------------- | ---------------------------------------------------------- |
+| `src/app/[locale]/error.tsx`       | Route-level error boundary | Catches errors in route segments, shows retry/home buttons |
+| `src/app/[locale]/admin/error.tsx` | Admin-specific errors      | Shows technical details for debugging                      |
+| `src/app/global-error.tsx`         | Root layout errors         | Fallback when root layout fails (uses inline styles)       |
+
+**Translations**: `Error.*` keys in `src/i18n/en.json` and `src/i18n/zh.json`
+
+---
+
 ## ⚛️ 6. Next.js 14 Server vs Client Components - Best Practices
 
 ### **Overview**

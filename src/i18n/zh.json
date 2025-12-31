@@ -1278,5 +1278,14 @@
     "unableToLoad": "无法加载预约",
     "noAppointmentsTitle": "暂无预约",
     "noAppointmentsDesc": "想换个造型？现在预约您的第一次服务吧！"
+  },
+  "Error": {
+    "title": "出错了",
+    "description": "抱歉，发生了意外错误。请重试或返回首页。",
+    "adminTitle": "管理错误",
+    "adminDescription": "加载此页面时发生错误。以下显示技术详情以供调试。",
+    "tryAgain": "重试",
+    "goHome": "返回首页",
+    "backToAdmin": "返回管理面板"
   }
 }

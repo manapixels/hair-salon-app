@@ -1286,5 +1286,14 @@
     "unableToLoad": "Unable to load appointments",
     "noAppointmentsTitle": "No appointments found",
     "noAppointmentsDesc": "Ready for a new look? Book your first appointment to get started!"
+  },
+  "Error": {
+    "title": "Something went wrong",
+    "description": "We're sorry, but something unexpected happened. Please try again or return to the homepage.",
+    "adminTitle": "Admin Error",
+    "adminDescription": "An error occurred while loading this page. Technical details are shown below for debugging.",
+    "tryAgain": "Try Again",
+    "goHome": "Go Home",
+    "backToAdmin": "Back to Admin"
   }
 }
