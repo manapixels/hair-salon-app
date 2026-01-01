@@ -182,7 +182,10 @@
     "morning": "Morning",
     "afternoon": "Afternoon",
     "evening": "Evening",
-    "dismissBanner": "Dismiss"
+    "dismissBanner": "Dismiss",
+    "addToCalendar": "Add to Calendar",
+    "googleCalendar": "Google Calendar",
+    "appleCalendar": "Apple Calendar"
   },
   "Layout": {
     "header": {

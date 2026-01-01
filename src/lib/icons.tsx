@@ -45,6 +45,7 @@ export {
 
   // Calendar & Time
   Calendar,
+  CalendarPlus,
   Clock,
 
   // User & People

@@ -182,7 +182,10 @@
     "morning": "上午",
     "afternoon": "下午",
     "evening": "晚间",
-    "dismissBanner": "关闭"
+    "dismissBanner": "关闭",
+    "addToCalendar": "添加到日历",
+    "googleCalendar": "Google 日历",
+    "appleCalendar": "Apple 日历"
   },
   "Layout": {
     "header": {

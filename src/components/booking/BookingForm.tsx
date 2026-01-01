@@ -9,8 +9,13 @@ import { useBooking } from '@/context/BookingContext';
 import { useBookingModal } from '@/context/BookingModalContext';
 import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
-import { Check } from '@/lib/icons';
+import { Check, CalendarPlus, ChevronDown } from '@/lib/icons';
 import { useTranslations, useFormatter } from 'next-intl';
+import {
+  generateGoogleCalendarUrl,
+  createCalendarEventFromBooking,
+  downloadIcsFile,
+} from '@/lib/calendarUtils';
 
 // Imports from subfolders
 import { SimpleCategorySelector } from './step1-service';
@@ -401,6 +406,56 @@ Please confirm availability. Thank you!`;
     }
   };
 
+  // State for calendar dropdown
+  const [calendarDropdownOpen, setCalendarDropdownOpen] = useState(false);
+
+  // Handle adding to Google Calendar
+  const handleAddToGoogleCalendar = () => {
+    if (!bookingConfirmed) return;
+
+    const serviceName = bookingConfirmed.category
+      ? getCategoryName(bookingConfirmed.category as ServiceCategory)
+      : 'Appointment';
+    const stylistName = bookingConfirmed.stylist?.name || null;
+    const appointmentDate = new Date(bookingConfirmed.date);
+    const duration = bookingConfirmed.estimatedDuration || 60;
+
+    const event = createCalendarEventFromBooking(
+      serviceName,
+      stylistName,
+      appointmentDate,
+      bookingConfirmed.time,
+      duration,
+    );
+
+    const url = generateGoogleCalendarUrl(event);
+    window.open(url, '_blank');
+    setCalendarDropdownOpen(false);
+  };
+
+  // Handle downloading iCal file
+  const handleAddToAppleCalendar = () => {
+    if (!bookingConfirmed) return;
+
+    const serviceName = bookingConfirmed.category
+      ? getCategoryName(bookingConfirmed.category as ServiceCategory)
+      : 'Appointment';
+    const stylistName = bookingConfirmed.stylist?.name || null;
+    const appointmentDate = new Date(bookingConfirmed.date);
+    const duration = bookingConfirmed.estimatedDuration || 60;
+
+    const event = createCalendarEventFromBooking(
+      serviceName,
+      stylistName,
+      appointmentDate,
+      bookingConfirmed.time,
+      duration,
+    );
+
+    downloadIcsFile(event);
+    setCalendarDropdownOpen(false);
+  };
+
   if (bookingConfirmed) {
     return (
       <div className="text-center p-8 bg-white rounded-lg max-w-lg mx-auto">
@@ -439,7 +494,57 @@ Please confirm availability. Thank you!`;
         <p className="mt-2 text-sm text-gray-500">
           {t('confirmationSent')} {bookingConfirmed.customerEmail}.
         </p>
-        <Button variant="default" size="default" onClick={handleReset} className="mt-6">
+
+        {/* Add to Calendar Dropdown */}
+        <div className="mt-6 relative inline-block">
+          <Button
+            variant="outline"
+            size="default"
+            onClick={() => setCalendarDropdownOpen(!calendarDropdownOpen)}
+            className="w-full flex items-center justify-center gap-2"
+          >
+            <CalendarPlus className="h-4 w-4" />
+            {t('addToCalendar')}
+            <ChevronDown
+              className={`h-4 w-4 transition-transform ${calendarDropdownOpen ? 'rotate-180' : ''}`}
+            />
+          </Button>
+
+          {calendarDropdownOpen && (
+            <div className="absolute z-10 mt-2 w-full bg-white border border-gray-200 rounded-md shadow-lg">
+              <button
+                onClick={handleAddToGoogleCalendar}
+                className="w-full px-4 py-3 text-left text-sm hover:bg-gray-50 flex items-center gap-2 border-b border-gray-100"
+              >
+                <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none">
+                  <path
+                    d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
+                    fill="#4285F4"
+                  />
+                  <path d="M12 7V12L15.5 14" stroke="white" strokeWidth="2" strokeLinecap="round" />
+                </svg>
+                {t('googleCalendar')}
+              </button>
+              <button
+                onClick={handleAddToAppleCalendar}
+                className="w-full px-4 py-3 text-left text-sm hover:bg-gray-50 flex items-center gap-2"
+              >
+                <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none">
+                  <rect x="3" y="4" width="18" height="18" rx="2" stroke="#333" strokeWidth="2" />
+                  <path
+                    d="M16 2V6M8 2V6M3 10H21"
+                    stroke="#333"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                  />
+                </svg>
+                {t('appleCalendar')}
+              </button>
+            </div>
+          )}
+        </div>
+
+        <Button variant="default" size="default" onClick={handleReset} className="mt-4 w-full">
           {t('makeAnotherBooking')}
         </Button>
       </div>
