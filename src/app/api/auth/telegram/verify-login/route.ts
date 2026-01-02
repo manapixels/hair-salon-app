@@ -6,8 +6,9 @@ import { eq } from 'drizzle-orm';
 import { sendTelegramMessage } from '@/services/messagingService';
 
 // Import translations from centralized i18n files
-import enMessages from '@/i18n/en.json';
-import zhMessages from '@/i18n/zh.json';
+// Import translations from centralized i18n files
+import enMessages from '@/i18n/en/common.json';
+import zhMessages from '@/i18n/zh/common.json';
 
 type SupportedLocale = 'en' | 'zh';
 
