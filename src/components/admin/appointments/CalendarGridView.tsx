@@ -1,9 +1,10 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useRef } from 'react';
 import { useTranslations, useFormatter } from 'next-intl';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { ChevronLeft, ChevronRight, Maximize2, X } from 'lucide-react';
 import type { Appointment, Stylist } from '@/types';
 import { cn } from '@/lib/utils';
 
@@ -40,6 +41,7 @@ export default function CalendarGridView({
   const t = useTranslations('Admin.Appointments');
   const format = useFormatter();
   const [viewType, setViewType] = useState<ViewType>(defaultView);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   // Generate time slots (30-minute intervals)
   const timeSlots = useMemo(() => {
@@ -96,9 +98,6 @@ export default function CalendarGridView({
     });
   };
 
-  // Navigation handlers
-  const goToToday = () => onDateChange(new Date());
-
   const goToPrevious = () => {
     const prev = new Date(selectedDate);
     if (viewType === 'day') {
@@ -136,7 +135,7 @@ export default function CalendarGridView({
     if (viewType === 'day') {
       return format.dateTime(selectedDate, {
         weekday: 'short',
-        month: 'long',
+        month: 'short',
         day: 'numeric',
         year: 'numeric',
       });
@@ -145,7 +144,7 @@ export default function CalendarGridView({
       const end = weekDays[6];
       return `${format.dateTime(start, { month: 'short', day: 'numeric' })} - ${format.dateTime(end, { month: 'short', day: 'numeric', year: 'numeric' })}`;
     } else {
-      return format.dateTime(selectedDate, { month: 'long', year: 'numeric' });
+      return format.dateTime(selectedDate, { month: 'short', year: 'numeric' });
     }
   };
 
@@ -200,17 +199,14 @@ export default function CalendarGridView({
     });
 
     return (
-      <div className="overflow-x-auto">
-        <div className="min-w-[500px]">
+      <div className="overflow-x-auto bg-gray-50">
+        <div className="min-w-16">
           {/* Header row */}
-          <div className="flex border-b border-border bg-gray-50 sticky top-0 z-10">
-            <div className="w-16 flex-shrink-0 p-2 border-r border-border" />
+          <div className="flex sticky top-0 z-10">
+            <div className="w-16 flex-shrink-0 p-2 sticky left-0 z-20 bg-gray-50" />
             {stylists.length > 0 ? (
               stylists.map(stylist => (
-                <div
-                  key={stylist.id}
-                  className="flex-1 min-w-[140px] p-2 text-center border-r border-border last:border-r-0"
-                >
+                <div key={stylist.id} className="flex-1 min-w-16 p-2 text-center">
                   <div className="font-medium text-sm truncate">{stylist.name}</div>
                 </div>
               ))
@@ -223,35 +219,31 @@ export default function CalendarGridView({
 
           {/* Time grid */}
           <div className="relative flex">
-            <div className="w-16 flex-shrink-0 border-r border-border bg-gray-50/50">
+            <div className="w-16 flex-shrink-0 sticky left-0 z-10">
               {timeSlots.map((slot, index) => (
                 <div
                   key={slot}
                   className={cn(
-                    'px-1 flex items-start justify-end text-[10px] text-muted-foreground',
-                    index % 2 === 0 && 'border-t border-border',
+                    'px-1 flex items-center justify-end text-[10px] text-muted-foreground',
                   )}
                   style={{ height: SLOT_HEIGHT }}
                 >
-                  {index % 2 === 0 && <span className="-mt-1.5">{formatTimeDisplay(slot)}</span>}
+                  {index % 2 === 0 && <span className="pr-1">{formatTimeDisplay(slot)}</span>}
                 </div>
               ))}
             </div>
 
             {stylists.length > 0 ? (
               stylists.map(stylist => (
-                <div
-                  key={stylist.id}
-                  className="flex-1 min-w-[140px] relative border-r border-border last:border-r-0"
-                >
+                <div key={stylist.id} className="flex-1 min-w-16 relative">
                   {timeSlots.map((slot, index) => (
                     <div
                       key={slot}
                       className={cn(
-                        '',
+                        'bg-white',
                         index % 2 === 0
-                          ? 'border-t border-border'
-                          : 'border-t border-dashed border-gray-100',
+                          ? 'border-t border-border border-transparent'
+                          : 'border-t border-dashed border-gray-100 mb-1',
                       )}
                       style={{ height: SLOT_HEIGHT }}
                     />
@@ -270,7 +262,7 @@ export default function CalendarGridView({
                 </div>
               ))
             ) : (
-              <div className="flex-1 min-w-[140px]">
+              <div className="flex-1 min-w-16">
                 {timeSlots.map((slot, index) => (
                   <div
                     key={slot}
@@ -296,11 +288,11 @@ export default function CalendarGridView({
     const today = new Date().toDateString();
 
     return (
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto bg-gray-50">
         <div className="min-w-[700px]">
           {/* Week header */}
-          <div className="flex border-b border-border bg-gray-50 sticky top-0 z-10">
-            <div className="w-16 flex-shrink-0 p-2 border-r border-border" />
+          <div className="flex sticky top-0 z-10">
+            <div className="w-16 flex-shrink-0 p-2 sticky left-0 z-20 bg-gray-50" />
             {weekDays.map(day => {
               const isToday = day.toDateString() === today;
               const isSelected = day.toDateString() === selectedDate.toDateString();
@@ -308,8 +300,8 @@ export default function CalendarGridView({
                 <div
                   key={day.toISOString()}
                   className={cn(
-                    'flex-1 min-w-[90px] p-2 text-center border-r border-border last:border-r-0 cursor-pointer hover:bg-gray-100',
-                    isToday && 'bg-blue-50',
+                    'flex-1 min-w-16 p-2 text-center cursor-pointer hover:bg-primary-50',
+                    isToday && 'bg-primary-50',
                     isSelected && 'bg-primary/10',
                   )}
                   onClick={() => {
@@ -320,7 +312,7 @@ export default function CalendarGridView({
                   <div className="text-xs text-muted-foreground">
                     {format.dateTime(day, { weekday: 'short' })}
                   </div>
-                  <div className={cn('text-lg font-bold', isToday && 'text-blue-600')}>
+                  <div className={cn('text-lg font-bold', isToday && 'text-primary-600')}>
                     {day.getDate()}
                   </div>
                 </div>
@@ -329,18 +321,19 @@ export default function CalendarGridView({
           </div>
 
           {/* Time grid */}
-          <div className="relative flex">
-            <div className="w-16 flex-shrink-0 border-r border-border bg-gray-50/50">
+          <div className="relative flex gap-1">
+            <div className="w-16 bg-gray-50 flex-shrink-0 sticky left-0 z-10">
               {timeSlots.map((slot, index) => (
                 <div
                   key={slot}
                   className={cn(
-                    'px-1 flex items-start justify-end text-[10px] text-muted-foreground',
-                    index % 2 === 0 && 'border-t border-border',
+                    'px-1 flex items-center justify-end text-[10px] text-muted-foreground',
                   )}
                   style={{ height: SLOT_HEIGHT }}
                 >
-                  {index % 2 === 0 && <span className="-mt-1.5">{formatTimeDisplay(slot)}</span>}
+                  {index % 2 === 0 && (
+                    <span className="pr-1 bg-gray-50">{formatTimeDisplay(slot)}</span>
+                  )}
                 </div>
               ))}
             </div>
@@ -352,18 +345,18 @@ export default function CalendarGridView({
                 <div
                   key={day.toISOString()}
                   className={cn(
-                    'flex-1 min-w-[90px] relative border-r border-border last:border-r-0',
-                    isToday && 'bg-blue-50/30',
+                    'flex-1 min-w-16 relative rounded-sm',
+                    isToday && 'bg-primary-50/30',
                   )}
                 >
                   {timeSlots.map((slot, index) => (
                     <div
                       key={slot}
                       className={cn(
-                        '',
+                        'bg-white',
                         index % 2 === 0
-                          ? 'border-t border-border'
-                          : 'border-t border-dashed border-gray-100',
+                          ? 'border-t border-border border-transparent'
+                          : 'border-t border-dashed border-gray-100 mb-1',
                       )}
                       style={{ height: SLOT_HEIGHT }}
                     />
@@ -394,124 +387,171 @@ export default function CalendarGridView({
     const weekdayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
     return (
-      <div className="overflow-auto">
-        {/* Weekday headers */}
-        <div className="grid grid-cols-7 border-b border-border bg-gray-50">
+      <div className="flex flex-col h-full">
+        {/* Weekday headers - fixed at top */}
+        <div className="grid grid-cols-7 bg-gray-50 border-b border-border flex-shrink-0">
           {weekdayNames.map(day => (
-            <div
-              key={day}
-              className="p-2 text-center text-xs font-medium text-muted-foreground border-r border-border last:border-r-0"
-            >
+            <div key={day} className="p-2 text-center text-xs font-medium text-muted-foreground">
               {day}
             </div>
           ))}
         </div>
 
-        {/* Month grid */}
-        <div className="grid grid-cols-7">
-          {monthDays.map((day, index) => {
-            if (!day) {
+        {/* Month grid - scrollable */}
+        <div className="overflow-auto flex-1">
+          <div className="grid grid-cols-7 gap-1">
+            {monthDays.map((day, index) => {
+              if (!day) {
+                return <div key={`empty-${index}`} className="min-h-[100px] bg-white" />;
+              }
+
+              const dayApts = getAppointmentsForDate(day);
+              const isToday = day.toDateString() === today;
+              const isSelected =
+                day.toDateString() === selectedDate.toDateString() && day.toDateString() === today;
+
               return (
                 <div
-                  key={`empty-${index}`}
-                  className="min-h-[100px] border-r border-b border-border bg-gray-50/50"
-                />
-              );
-            }
-
-            const dayApts = getAppointmentsForDate(day);
-            const isToday = day.toDateString() === today;
-            const isSelected = day.toDateString() === selectedDate.toDateString();
-
-            return (
-              <div
-                key={day.toISOString()}
-                className={cn(
-                  'min-h-[100px] p-1 border-r border-b border-border cursor-pointer hover:bg-gray-50 transition-colors',
-                  isToday && 'bg-blue-50',
-                  isSelected && 'ring-2 ring-primary ring-inset',
-                )}
-                onClick={() => {
-                  onDateChange(day);
-                  setViewType('day');
-                }}
-              >
-                <div
+                  key={day.toISOString()}
                   className={cn(
-                    'text-sm font-medium mb-1',
-                    isToday ? 'text-blue-600' : 'text-foreground',
+                    'min-h-[100px] p-1 cursor-pointer hover:bg-primary-50 transition-colors rounded-sm',
+                    isToday ? 'bg-primary-50' : 'bg-white',
+                    isSelected && 'ring-2 ring-primary ring-inset',
                   )}
+                  onClick={() => {
+                    onDateChange(day);
+                    setViewType('day');
+                  }}
                 >
-                  {day.getDate()}
+                  <div
+                    className={cn(
+                      'text-sm font-medium mb-1',
+                      isToday ? 'text-primary-600' : 'text-foreground',
+                    )}
+                  >
+                    {day.getDate()}
+                  </div>
+                  <div className="space-y-0.5">
+                    {dayApts.slice(0, 3).map(apt => (
+                      <div
+                        key={apt.id}
+                        className="text-[10px] px-1 py-0.5 rounded bg-emerald-100 text-emerald-800 truncate"
+                        onClick={e => {
+                          e.stopPropagation();
+                          onAppointmentClick?.(apt);
+                        }}
+                      >
+                        {apt.time.slice(0, 5)} {apt.customerName}
+                      </div>
+                    ))}
+                    {dayApts.length > 3 && (
+                      <div className="text-[10px] text-muted-foreground px-1">
+                        +{dayApts.length - 3} more
+                      </div>
+                    )}
+                  </div>
                 </div>
-                <div className="space-y-0.5">
-                  {dayApts.slice(0, 3).map(apt => (
-                    <div
-                      key={apt.id}
-                      className="text-[10px] px-1 py-0.5 rounded bg-emerald-100 text-emerald-800 truncate"
-                      onClick={e => {
-                        e.stopPropagation();
-                        onAppointmentClick?.(apt);
-                      }}
-                    >
-                      {apt.time.slice(0, 5)} {apt.customerName}
-                    </div>
-                  ))}
-                  {dayApts.length > 3 && (
-                    <div className="text-[10px] text-muted-foreground px-1">
-                      +{dayApts.length - 3} more
-                    </div>
-                  )}
-                </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       </div>
     );
   };
 
-  return (
-    <div className="bg-white border border-border rounded-lg overflow-hidden">
-      {/* Header with navigation and view toggle */}
-      <div className="flex flex-wrap items-center justify-between gap-2 p-3 border-b border-border bg-gray-50">
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={goToToday}>
-            {t('today')}
+  // Render the header component (reusable in both normal and dialog mode)
+  const renderHeader = (inDialog = false) => (
+    <div
+      className={cn(
+        'flex flex-wrap items-center justify-between gap-2 p-3 bg-gray-50',
+        inDialog && 'sticky top-0 z-20',
+      )}
+    >
+      {/* Mobile expand button - only show when not in dialog */}
+      {!inDialog && (
+        <Button
+          variant="outline"
+          size="icon"
+          className="h-8 w-8 sm:hidden"
+          onClick={() => setIsExpanded(true)}
+        >
+          <Maximize2 className="h-4 w-4" />
+        </Button>
+      )}
+      {/* View type toggle */}
+      <div className="flex border border-border rounded-md overflow-hidden">
+        {(['day', 'week', 'month'] as ViewType[]).map(view => (
+          <Button
+            key={view}
+            variant={viewType === view ? 'default' : 'ghost'}
+            size="sm"
+            className="rounded-none px-2 sm:px-3 h-8 capitalize text-xs sm:text-sm"
+            onClick={() => setViewType(view)}
+          >
+            {view[0]}
           </Button>
-          <div className="flex items-center">
-            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={goToPrevious}>
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={goToNext}>
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
-          <span className="font-semibold text-sm sm:text-base">{getHeaderTitle()}</span>
-        </div>
-
-        {/* View type toggle */}
-        <div className="flex border border-border rounded-md overflow-hidden">
-          {(['day', 'week', 'month'] as ViewType[]).map(view => (
-            <Button
-              key={view}
-              variant={viewType === view ? 'default' : 'ghost'}
-              size="sm"
-              className="rounded-none px-3 h-8 capitalize"
-              onClick={() => setViewType(view)}
-            >
-              {view}
-            </Button>
-          ))}
-        </div>
+        ))}
+      </div>
+      <div className="flex items-center gap-2">
+        <span className="font-semibold text-sm sm:text-base">{getHeaderTitle()}</span>
       </div>
 
-      {/* Calendar content */}
-      <div className="max-h-[600px] overflow-auto">
-        {viewType === 'day' && renderDayView()}
-        {viewType === 'week' && renderWeekView()}
-        {viewType === 'month' && renderMonthView()}
+      <div className="flex items-center gap-2">
+        <div className="flex items-center">
+          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={goToPrevious}>
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={goToNext}>
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
+
+        {/* Close button in dialog */}
+        {inDialog && (
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-8 w-8"
+            onClick={() => setIsExpanded(false)}
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        )}
       </div>
     </div>
+  );
+
+  // Render calendar content
+  const renderContent = (inDialog = false) => (
+    <div
+      className={cn(
+        'overflow-auto bg-gray-50/50',
+        inDialog ? 'flex-1' : 'max-h-[400px] sm:max-h-[600px]',
+      )}
+    >
+      {viewType === 'day' && renderDayView()}
+      {viewType === 'week' && renderWeekView()}
+      {viewType === 'month' && renderMonthView()}
+    </div>
+  );
+
+  return (
+    <>
+      {/* Normal view */}
+      <div className="bg-white border border-border rounded-lg overflow-hidden">
+        {renderHeader(false)}
+        {renderContent(false)}
+      </div>
+
+      {/* Fullscreen dialog for mobile */}
+      <Dialog open={isExpanded} onOpenChange={setIsExpanded}>
+        <DialogContent className="max-w-full h-[100dvh] p-0 flex flex-col gap-0 rounded-none sm:rounded-lg">
+          <div className="flex flex-col h-full bg-white">
+            {renderHeader(true)}
+            {renderContent(true)}
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
