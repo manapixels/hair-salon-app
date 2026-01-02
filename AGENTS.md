@@ -775,7 +775,7 @@ Next.js error boundaries catch errors and display user-friendly recovery UIs ins
 | `src/app/[locale]/admin/error.tsx` | Admin-specific errors      | Shows technical details for debugging                      |
 | `src/app/global-error.tsx`         | Root layout errors         | Fallback when root layout fails (uses inline styles)       |
 
-**Translations**: `Error.*` keys in `src/i18n/en.json` and `src/i18n/zh.json`
+**Translations**: `Error.*` keys in `src/i18n/{locale}/common.json`
 
 ---
 

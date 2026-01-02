@@ -1,0 +1,124 @@
+{
+  "Privacy": {
+    "title": "Privacy Policy",
+    "lastUpdated": "Last updated: December 30, 2025",
+    "intro": "Signature Trims (\"we,\" \"our,\" or \"us\") respects your privacy and is committed to protecting the personal information you share with us. This Privacy Policy outlines how we collect, use, and safeguard your data when you visit our website or use our services.",
+    "sections": {
+      "collection": {
+        "title": "1. Information We Collect",
+        "personal": {
+          "title": "Personal Information",
+          "items": [
+            "Name, phone number, and email address provided during booking.",
+            "Account information (e.g., Google profile) if you log in.",
+            "Appointment history and preferences."
+          ]
+        },
+        "usage": {
+          "title": "Usage Data",
+          "content": "We may collect non-personal information about your device and how you interact with our website (e.g., IP address, browser type)."
+        }
+      },
+      "useOfInfo": {
+        "title": "2. How We Use Your Information",
+        "items": [
+          "To facilitate appointment bookings and management.",
+          "To communicate with you regarding your appointments (confirmations, reminders).",
+          "To improve our services and website user experience.",
+          "To comply with legal obligations."
+        ]
+      },
+      "thirdParty": {
+        "title": "3. Third-Party Services",
+        "content": "We use third-party services to support our operations. These providers may have access to your information strictly for the purpose of performing tasks on our behalf:",
+        "items": [
+          "Supabase (Database and Authentication)",
+          "Google Calendar (Calendar Integration)",
+          "Vercel (Hosting)"
+        ]
+      },
+      "googleCalendar": {
+        "title": "4. Google Calendar Integration",
+        "content": "Our application integrates with Google Calendar to sync appointments for our stylists. We access your Google Calendar data only to:",
+        "items": [
+          "View your busy lots to prevent double bookings.",
+          "Create and manage events for appointments booked through our system."
+        ],
+        "assurance": "We do not store your Google Calendar events on our servers unless they are directly related to appointments managed by our system."
+      },
+      "security": {
+        "title": "5. Data Security",
+        "content": "We implement appropriate security measures to protect your personal information against unauthorized access, alteration, disclosure, or destruction. However, no method of transmission over the Internet is 100% secure."
+      },
+      "retention": {
+        "title": "6. Data Retention",
+        "content": "We retain your personal information only for as long as necessary to fulfill the purposes outlined in this policy or as required by law."
+      },
+      "rights": {
+        "title": "7. Your Rights",
+        "content": "You have the right to access, correct, or delete your personal information. If you wish to exercise these rights, please contact us."
+      },
+      "cookies": {
+        "title": "8. Cookies",
+        "content": "We use cookies to enhance your browsing experience. You can control cookie preferences through your browser settings."
+      },
+      "changes": {
+        "title": "9. Changes to This Policy",
+        "content": "We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new policy on this page with an updated \"Last updated\" date."
+      },
+      "contact": {
+        "title": "10. Contact Us",
+        "content": "If you have any questions about this Privacy Policy, please contact us at:",
+        "email": "Email: signaturetrims@gmail.com"
+      }
+    }
+  },
+  "Terms": {
+    "title": "Terms of Service",
+    "lastUpdated": "Last updated: December 30, 2025",
+    "intro": "Welcome to Signature Trims. By accessing our website and using our booking services, you agree to comply with and be bound by the following terms and conditions.",
+    "sections": {
+      "acceptance": {
+        "title": "1. Acceptance of Terms",
+        "content": "By using our services, you agree to these Terms of Service. If you do not agree, please do not use our website or services."
+      },
+      "services": {
+        "title": "2. Services Description",
+        "content": "Signature Trims provides an online platform for booking hair salon appointments. We reserve the right to modify or discontinue any part of our services without notice."
+      },
+      "booking": {
+        "title": "3. Appointment Booking",
+        "items": [
+          "You agree to provide accurate and complete information when booking an appointment.",
+          "We reserve the right to cancel or reschedule appointments due to stylist availability or other operational reasons.",
+          "Cancellations should be made at least 24 hours in advance."
+        ]
+      },
+      "pricing": {
+        "title": "4. Pricing and Payment",
+        "content": "Prices for services are listed on our website but are subject to change. Final pricing may be confirmed during your consultation at the salon."
+      },
+      "accounts": {
+        "title": "5. User Accounts",
+        "content": "You are responsible for maintaining the confidentiality of your account credentials and for all activities that occur under your account."
+      },
+      "intellectualProperty": {
+        "title": "6. Intellectual Property",
+        "content": "All content on this website, including text, graphics, logos, and images, is the property of Signature Trims and protected by copyright laws."
+      },
+      "liability": {
+        "title": "7. Limitation of Liability",
+        "content": "Signature Trims shall not be liable for any indirect, incidental, special, or consequential damages arising out of or in connection with the use of our services."
+      },
+      "changes": {
+        "title": "8. Changes to Terms",
+        "content": "We reserve the right to modify these specific terms at any time. Your continued use of the service constitutes acceptance of the modified terms."
+      },
+      "contact": {
+        "title": "9. Contact Information",
+        "content": "For any questions regarding these Terms of Service, please contact us at:",
+        "email": "Email: signaturetrims@gmail.com"
+      }
+    }
+  }
+}

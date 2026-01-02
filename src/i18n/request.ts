@@ -3,12 +3,20 @@ import { routing } from './routing';
 
 // Static imports for Cloudflare Workers compatibility
 // (dynamic imports with template literals cause fs.readdir at runtime)
-import enMessages from './en.json';
-import zhMessages from './zh.json';
+// Static imports for Cloudflare Workers compatibility
+import enCommon from './en/common.json';
+import enDashboard from './en/dashboard.json';
+import enServices from './en/services.json';
+import enLegal from './en/legal.json';
 
-const messages: Record<string, typeof enMessages> = {
-  en: enMessages,
-  zh: zhMessages,
+import zhCommon from './zh/common.json';
+import zhDashboard from './zh/dashboard.json';
+import zhServices from './zh/services.json';
+import zhLegal from './zh/legal.json';
+
+const messages: Record<string, any> = {
+  en: { ...enCommon, ...enDashboard, ...enServices, Legal: enLegal },
+  zh: { ...zhCommon, ...zhDashboard, ...zhServices, Legal: zhLegal },
 };
 
 export default getRequestConfig(async ({ requestLocale }) => {
