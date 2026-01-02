@@ -29,6 +29,13 @@
       "when": 1767155327629,
       "tag": "0003_telegram_id_bigint",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1767335108595,
+      "tag": "0004_low_valeria_richards",
+      "breakpoints": true
     }
   ]
 }

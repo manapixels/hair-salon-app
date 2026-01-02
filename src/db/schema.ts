@@ -98,6 +98,11 @@ export const services = pgTable('services', {
   basePrice: integer('basePrice').notNull(),
   maxPrice: integer('maxPrice'),
   duration: integer('duration').notNull(),
+  // Processing time fields for concurrent scheduling
+  // processingWaitTime: Time from start until the processing gap begins (e.g., application time)
+  // processingDuration: Length of the gap during which the stylist is free
+  processingWaitTime: integer('processingWaitTime').default(0).notNull(),
+  processingDuration: integer('processingDuration').default(0).notNull(),
   imageUrl: text('imageUrl'),
   popularityScore: integer('popularityScore').default(0).notNull(),
   tags: json('tags').$type<string[]>().default([]),

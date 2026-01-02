@@ -40,6 +40,9 @@ export interface Service {
   basePrice: number;
   maxPrice?: number;
   duration: number; // in minutes
+  // Processing time fields for concurrent scheduling
+  processingWaitTime?: number; // Time from start until the processing gap begins
+  processingDuration?: number; // Length of the gap during which the stylist is free
   imageUrl?: string;
   popularityScore: number;
   tags: string[];

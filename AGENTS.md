@@ -182,6 +182,22 @@ Cache is automatically revalidated in `bookNewAppointment()` and `cancelAppointm
 
 The `/api/availability` endpoint accepts an optional `duration` parameter (in minutes). When provided, the API filters out time slots that don't have enough consecutive 30-minute blocks to accommodate the service. This prevents users from selecting times that would fail at booking due to insufficient time before closing or another appointment.
 
+### **Concurrent Scheduling (Processing Gaps)**
+
+Services with chemical processing (colouring, perms, rebonding, keratin) can define "gaps" where the stylist is free to take other clients:
+
+- **`processingWaitTime`**: Minutes from start until the gap begins (e.g., application time)
+- **`processingDuration`**: Minutes the stylist is free during processing
+
+**Example**: A 2-hour colour service booked at 10:00 with `processingWaitTime=45` and `processingDuration=45`:
+
+- **10:00** slot: Blocked (application)
+- **10:30** slot: Blocked (application continues)
+- **11:00** slot: **FREE** ✅ (colour developing - can book a haircut here!)
+- **11:30** slot: Blocked (rinse/finish)
+
+Configure via Admin → Settings → Services → Edit service → Processing Wait Time / Gap Duration.
+
 ### **Critical Notes for Developers**
 
 ⚠️ **Use `getDb()` for database access** - Always import from `@/db`, never instantiate clients directly

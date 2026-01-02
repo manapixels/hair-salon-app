@@ -703,11 +703,52 @@ export const getAvailability = async (date: Date): Promise<string[]> => {
 
       const bookedSlots = new Set<string>();
       appointments.forEach(app => {
-        let appTime = new Date(`1970-01-01T${app.time}:00`);
-        const numSlots = Math.ceil(app.totalDuration / 30);
-        for (let i = 0; i < numSlots; i++) {
-          bookedSlots.add(appTime.toTimeString().substring(0, 5));
-          appTime.setMinutes(appTime.getMinutes() + 30);
+        const appStartTime = new Date(`1970-01-01T${app.time}:00`);
+        const services = Array.isArray(app.services) ? (app.services as any[]) : [];
+
+        // Check if any service in the appointment has processing gaps
+        let hasProcessingGap = false;
+        let totalProcessingWait = 0;
+        let totalProcessingDuration = 0;
+
+        for (const svc of services) {
+          if (svc.processingWaitTime > 0 && svc.processingDuration > 0) {
+            hasProcessingGap = true;
+            totalProcessingWait = svc.processingWaitTime;
+            totalProcessingDuration = svc.processingDuration;
+            break; // Use the first service with gaps (typically primary service)
+          }
+        }
+
+        if (hasProcessingGap && totalProcessingWait > 0 && totalProcessingDuration > 0) {
+          // Block: Start to WaitTime (application phase)
+          const busyPhase1Slots = Math.ceil(totalProcessingWait / 30);
+          let currentTime = new Date(appStartTime);
+          for (let i = 0; i < busyPhase1Slots; i++) {
+            bookedSlots.add(currentTime.toTimeString().substring(0, 5));
+            currentTime.setMinutes(currentTime.getMinutes() + 30);
+          }
+
+          // Skip the gap (processing duration)
+          currentTime.setMinutes(
+            appStartTime.getMinutes() + totalProcessingWait + totalProcessingDuration,
+          );
+
+          // Block: After gap to end (finishing phase)
+          const finishDuration = app.totalDuration - totalProcessingWait - totalProcessingDuration;
+          const busyPhase2Slots = Math.ceil(finishDuration / 30);
+          for (let i = 0; i < busyPhase2Slots; i++) {
+            bookedSlots.add(currentTime.toTimeString().substring(0, 5));
+            currentTime.setMinutes(currentTime.getMinutes() + 30);
+          }
+        } else {
+          // No processing gap - block all slots
+          let currentTime = new Date(appStartTime);
+          const numSlots = Math.ceil(app.totalDuration / 30);
+          for (let i = 0; i < numSlots; i++) {
+            bookedSlots.add(currentTime.toTimeString().substring(0, 5));
+            currentTime.setMinutes(currentTime.getMinutes() + 30);
+          }
         }
       });
 
@@ -779,11 +820,52 @@ export const getStylistAvailability = async (date: Date, stylistId: string): Pro
 
       const bookedSlots = new Set<string>();
       stylistAppointments.forEach(app => {
-        let appTime = new Date(`1970-01-01T${app.time}:00`);
-        const numSlots = Math.ceil(app.totalDuration / 30);
-        for (let i = 0; i < numSlots; i++) {
-          bookedSlots.add(appTime.toTimeString().substring(0, 5));
-          appTime.setMinutes(appTime.getMinutes() + 30);
+        const appStartTime = new Date(`1970-01-01T${app.time}:00`);
+        const services = Array.isArray(app.services) ? (app.services as any[]) : [];
+
+        // Check if any service in the appointment has processing gaps
+        let hasProcessingGap = false;
+        let totalProcessingWait = 0;
+        let totalProcessingDuration = 0;
+
+        for (const svc of services) {
+          if (svc.processingWaitTime > 0 && svc.processingDuration > 0) {
+            hasProcessingGap = true;
+            totalProcessingWait = svc.processingWaitTime;
+            totalProcessingDuration = svc.processingDuration;
+            break; // Use the first service with gaps
+          }
+        }
+
+        if (hasProcessingGap && totalProcessingWait > 0 && totalProcessingDuration > 0) {
+          // Block: Start to WaitTime (application phase)
+          const busyPhase1Slots = Math.ceil(totalProcessingWait / 30);
+          let currentTime = new Date(appStartTime);
+          for (let i = 0; i < busyPhase1Slots; i++) {
+            bookedSlots.add(currentTime.toTimeString().substring(0, 5));
+            currentTime.setMinutes(currentTime.getMinutes() + 30);
+          }
+
+          // Skip the gap (processing duration)
+          currentTime.setMinutes(
+            appStartTime.getMinutes() + totalProcessingWait + totalProcessingDuration,
+          );
+
+          // Block: After gap to end (finishing phase)
+          const finishDuration = app.totalDuration - totalProcessingWait - totalProcessingDuration;
+          const busyPhase2Slots = Math.ceil(finishDuration / 30);
+          for (let i = 0; i < busyPhase2Slots; i++) {
+            bookedSlots.add(currentTime.toTimeString().substring(0, 5));
+            currentTime.setMinutes(currentTime.getMinutes() + 30);
+          }
+        } else {
+          // No processing gap - block all slots
+          let currentTime = new Date(appStartTime);
+          const numSlots = Math.ceil(app.totalDuration / 30);
+          for (let i = 0; i < numSlots; i++) {
+            bookedSlots.add(currentTime.toTimeString().substring(0, 5));
+            currentTime.setMinutes(currentTime.getMinutes() + 30);
+          }
         }
       });
 

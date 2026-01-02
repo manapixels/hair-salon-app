@@ -230,6 +230,8 @@ function ServiceForm({
     basePrice: service.basePrice,
     maxPrice: service.maxPrice || 0,
     duration: service.duration,
+    processingWaitTime: service.processingWaitTime || 0,
+    processingDuration: service.processingDuration || 0,
     isActive: service.isActive,
   });
 
@@ -310,6 +312,38 @@ function ServiceForm({
             <option value="active">Active</option>
             <option value="inactive">Inactive</option>
           </select>
+        </div>
+      </div>
+
+      {/* Concurrent Scheduling Fields */}
+      <div className="grid grid-cols-2 gap-4 pt-2 border-t">
+        <div className="space-y-2">
+          <Label htmlFor="processingWaitTime">Processing Wait Time (min)</Label>
+          <Input
+            id="processingWaitTime"
+            type="number"
+            value={formData.processingWaitTime}
+            onChange={e =>
+              setFormData({ ...formData, processingWaitTime: parseInt(e.target.value) || 0 })
+            }
+          />
+          <p className="text-xs text-muted-foreground">
+            Time from start until the stylist is free (e.g., application time)
+          </p>
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="processingDuration">Gap Duration (min)</Label>
+          <Input
+            id="processingDuration"
+            type="number"
+            value={formData.processingDuration}
+            onChange={e =>
+              setFormData({ ...formData, processingDuration: parseInt(e.target.value) || 0 })
+            }
+          />
+          <p className="text-xs text-muted-foreground">
+            Duration stylist is free to take other clients
+          </p>
         </div>
       </div>
 
