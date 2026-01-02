@@ -4,7 +4,8 @@ import { useEffect, useState, useMemo, useRef, useCallback } from 'react';
 import { useBooking } from '@/context/BookingContext';
 import { LoadingSpinner } from '@/components/feedback/loaders/LoadingSpinner';
 import EditAppointmentModal from '@/components/booking/EditAppointmentModal';
-import type { Appointment } from '@/types';
+import type { Appointment, Stylist } from '@/types';
+import CalendarGridView from '@/components/admin/appointments/CalendarGridView';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -44,6 +45,8 @@ import {
   MoreHorizontal,
   SlidersHorizontal,
   Check,
+  List,
+  CalendarDays,
 } from 'lucide-react';
 import TelegramIcon from '@/components/icons/telegram';
 import AppointmentCard from '@/components/appointments/AppointmentCard';
@@ -82,6 +85,11 @@ export default function AppointmentsPage() {
   const [appointmentToCancel, setAppointmentToCancel] = useState<Appointment | null>(null);
   const lastFetchTime = useRef<number>(0);
 
+  // Calendar view state
+  const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list');
+  const [stylists, setStylists] = useState<Stylist[]>([]);
+  const [calendarDate, setCalendarDate] = useState(new Date());
+
   // Throttled refresh - won't refetch if data was fetched within last 30 seconds
   const REFRESH_THROTTLE_MS = 30000;
 
@@ -113,6 +121,20 @@ export default function AppointmentsPage() {
       setAppointmentsLoading(false);
     };
     loadData();
+
+    // Fetch stylists for calendar view
+    const fetchStylists = async () => {
+      try {
+        const res = await fetch('/api/stylists');
+        if (res.ok) {
+          const data = (await res.json()) as { stylists?: Stylist[] };
+          setStylists(data.stylists || []);
+        }
+      } catch (error) {
+        console.error('Failed to fetch stylists:', error);
+      }
+    };
+    fetchStylists();
   }, [fetchAndSetAppointments]);
 
   // Auto-refresh on window focus/visibility change
@@ -354,10 +376,33 @@ export default function AppointmentsPage() {
               <span className="ml-1.5 text-xs text-muted-foreground">{pastCount}</span>
             </TabsTrigger>
           </TabsList>
-          <Button variant="outline" size="sm" onClick={handleRefresh} disabled={isRefreshing}>
-            <Refresh className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-            {t('refresh')}
-          </Button>
+          <div className="flex items-center gap-2">
+            {/* View Toggle */}
+            <div className="flex border border-border rounded-md overflow-hidden">
+              <Button
+                variant={viewMode === 'list' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setViewMode('list')}
+                className="rounded-none px-3"
+              >
+                <List className="w-4 h-4 mr-1" />
+                {t('listView')}
+              </Button>
+              <Button
+                variant={viewMode === 'calendar' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setViewMode('calendar')}
+                className="rounded-none px-3"
+              >
+                <CalendarDays className="w-4 h-4 mr-1" />
+                {t('calendarView')}
+              </Button>
+            </div>
+            <Button variant="outline" size="sm" onClick={handleRefresh} disabled={isRefreshing}>
+              <Refresh className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+              {t('refresh')}
+            </Button>
+          </div>
         </div>
 
         {/* Filters */}
@@ -419,76 +464,91 @@ export default function AppointmentsPage() {
           </div>
         </div>
 
-        {/* Appointments List */}
-        {appointmentsLoading ? (
-          <div className="p-8 text-center">
-            <LoadingSpinner size="md" message={t('loading')} />
-          </div>
-        ) : paginatedAppointments.length === 0 ? (
-          <div className="bg-white border border-border rounded-lg p-12 text-center">
-            <p className="text-muted-foreground">{t('noAppointmentsFound')}</p>
-          </div>
+        {/* Appointments View - List or Calendar */}
+        {viewMode === 'calendar' ? (
+          <CalendarGridView
+            appointments={appointments || []}
+            stylists={stylists}
+            selectedDate={calendarDate}
+            onDateChange={setCalendarDate}
+            onAppointmentClick={handleEditAppointment}
+          />
         ) : (
-          <div className="space-y-4">
-            {/* Group appointments by date */}
-            {Object.entries(
-              paginatedAppointments.reduce(
-                (groups, appointment) => {
-                  const dateKey = new Date(appointment.date).toDateString();
-                  if (!groups[dateKey]) {
-                    groups[dateKey] = [];
-                  }
-                  groups[dateKey].push(appointment);
-                  return groups;
-                },
-                {} as Record<string, Appointment[]>,
-              ),
-            )
-              .sort(([a], [b]) => {
-                const timeA = new Date(a).getTime();
-                const timeB = new Date(b).getTime();
-                // For past tab, show most recent dates first
-                return activeTab === 'past' ? timeB - timeA : timeA - timeB;
-              })
-              .map(([dateKey, dateAppointments]) => (
-                <div key={dateKey}>
-                  <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3 px-1">
-                    {formatShortDate(new Date(dateKey))}
-                  </h3>
-                  <div className="bg-white border border-border rounded-lg divide-y divide-border">
-                    {dateAppointments.map(appointment => (
-                      <AppointmentCard
-                        key={appointment.id}
-                        appointment={appointment}
-                        showSource={true}
-                        showStylist={true}
-                        actions={
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" className="h-8 w-8 p-0">
-                                <span className="sr-only">{t('openMenu')}</span>
-                                <MoreHorizontal className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => handleEditAppointment(appointment)}>
-                                {t('edit')}
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onClick={() => handleCancelAppointment(appointment)}
-                                className="text-destructive focus:text-destructive"
-                              >
-                                {t('cancel')}
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        }
-                      />
-                    ))}
-                  </div>
-                </div>
-              ))}
-          </div>
+          <>
+            {/* Appointments List */}
+            {appointmentsLoading ? (
+              <div className="p-8 text-center">
+                <LoadingSpinner size="md" message={t('loading')} />
+              </div>
+            ) : paginatedAppointments.length === 0 ? (
+              <div className="bg-white border border-border rounded-lg p-12 text-center">
+                <p className="text-muted-foreground">{t('noAppointmentsFound')}</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {/* Group appointments by date */}
+                {Object.entries(
+                  paginatedAppointments.reduce(
+                    (groups, appointment) => {
+                      const dateKey = new Date(appointment.date).toDateString();
+                      if (!groups[dateKey]) {
+                        groups[dateKey] = [];
+                      }
+                      groups[dateKey].push(appointment);
+                      return groups;
+                    },
+                    {} as Record<string, Appointment[]>,
+                  ),
+                )
+                  .sort(([a], [b]) => {
+                    const timeA = new Date(a).getTime();
+                    const timeB = new Date(b).getTime();
+                    // For past tab, show most recent dates first
+                    return activeTab === 'past' ? timeB - timeA : timeA - timeB;
+                  })
+                  .map(([dateKey, dateAppointments]) => (
+                    <div key={dateKey}>
+                      <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3 px-1">
+                        {formatShortDate(new Date(dateKey))}
+                      </h3>
+                      <div className="bg-white border border-border rounded-lg divide-y divide-border">
+                        {dateAppointments.map(appointment => (
+                          <AppointmentCard
+                            key={appointment.id}
+                            appointment={appointment}
+                            showSource={true}
+                            showStylist={true}
+                            actions={
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" className="h-8 w-8 p-0">
+                                    <span className="sr-only">{t('openMenu')}</span>
+                                    <MoreHorizontal className="h-4 w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuItem
+                                    onClick={() => handleEditAppointment(appointment)}
+                                  >
+                                    {t('edit')}
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    onClick={() => handleCancelAppointment(appointment)}
+                                    className="text-destructive focus:text-destructive"
+                                  >
+                                    {t('cancel')}
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            }
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            )}
+          </>
         )}
 
         {/* Pagination */}

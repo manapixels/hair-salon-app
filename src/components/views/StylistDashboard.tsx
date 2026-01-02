@@ -21,8 +21,10 @@ import { useTranslations } from 'next-intl';
 import { Badge } from '../ui/badge';
 import { CheckIcon, CalendarDays } from 'lucide-react';
 import AppointmentCard from '@/components/appointments/AppointmentCard';
+import CalendarGridView from '@/components/admin/appointments/CalendarGridView';
 import { formatShortDate } from '@/lib/timeUtils';
 import { getPrimaryRole } from '@/lib/roleHelpers';
+import type { Stylist } from '@/types';
 
 interface StylistProfile {
   id: string;
@@ -49,6 +51,7 @@ export default function StylistDashboard() {
   // Appointments state
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [appointmentsLoading, setAppointmentsLoading] = useState(true);
+  const [calendarDate, setCalendarDate] = useState(new Date());
 
   const handleNameEdit = () => {
     setNewName(user?.name || '');
@@ -416,8 +419,48 @@ export default function StylistDashboard() {
         </div>
       </div>
 
-      {/* Appointments Section */}
-      <div className="mt-8">
+      {/* Appointments Section - 2 column layout on desktop */}
+      <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Calendar Grid View */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <CalendarDays className="h-5 w-5" />
+              {t('scheduleView')}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            {appointmentsLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <LoadingSpinner size="sm" message={t('loadingAppointments')} />
+              </div>
+            ) : (
+              <CalendarGridView
+                appointments={appointments}
+                stylists={
+                  stylistProfile
+                    ? [
+                        {
+                          id: stylistProfile.id,
+                          name: stylistProfile.name,
+                          specialties: [],
+                          workingHours: {},
+                          blockedDates: [],
+                          isActive: true,
+                          createdAt: new Date(),
+                          updatedAt: new Date(),
+                        } as Stylist,
+                      ]
+                    : []
+                }
+                selectedDate={calendarDate}
+                onDateChange={setCalendarDate}
+              />
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Appointment List */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="flex items-center gap-2">
@@ -437,7 +480,7 @@ export default function StylistDashboard() {
                 <p>{t('noAppointments')}</p>
               </div>
             ) : (
-              <div className="space-y-6">
+              <div className="space-y-6 max-h-[600px] overflow-y-auto">
                 {/* Group appointments by date */}
                 {Object.entries(
                   appointments.reduce(

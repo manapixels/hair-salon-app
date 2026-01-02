@@ -1103,7 +1103,10 @@
       "cancelFailed": "Failed to cancel appointment",
       "cancelling": "Cancelling appointment...",
       "openMenu": "Open menu",
-      "failedToUpdate": "Failed to update appointment"
+      "failedToUpdate": "Failed to update appointment",
+      "listView": "List",
+      "calendarView": "Calendar",
+      "noStylistsAvailable": "No stylists available"
     },
     "Customers": {
       "title": "Customers",
@@ -1229,7 +1232,8 @@
     "loadingProfile": "Loading your profile...",
     "pleaseLogIn": "Please log in to view your dashboard",
     "loadingAppointments": "Loading appointments...",
-    "enterDisplayName": "Enter your display name"
+    "enterDisplayName": "Enter your display name",
+    "scheduleView": "Schedule View"
   },
   "AppointmentCard": {
     "bookedWith": "Booked with",
