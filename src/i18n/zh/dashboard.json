@@ -2,19 +2,24 @@
   "AdminNavigation": {
     "sections": {
       "quickGlance": "概览",
-      "management": "管理",
-      "system": "系统"
+      "bookings": "预约",
+      "people": "人员",
+      "support": "支持",
+      "settings": "设置"
     },
     "items": {
       "dashboard": "仪表板",
+      "myProfile": "我的发型师资料",
       "appointments": "预约管理",
       "availability": "排班管理",
-      "customers": "客户管理",
       "stylists": "发型师管理",
-      "services": "服务项目",
-      "settings": "设置",
-      "closureDates": "停业日期",
-      "chat": "聊天"
+      "customers": "客户管理",
+      "chat": "聊天",
+      "knowledgeBase": "知识库",
+      "businessInfo": "业务信息",
+      "operatingHours": "营业时间",
+      "closures": "停业日期",
+      "services": "服务项目"
     },
     "logout": "退出登录"
   },

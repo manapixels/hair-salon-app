@@ -2,19 +2,24 @@
   "AdminNavigation": {
     "sections": {
       "quickGlance": "Quick Glance",
-      "management": "Management",
-      "system": "System"
+      "bookings": "Bookings",
+      "people": "People",
+      "support": "Support",
+      "settings": "Settings"
     },
     "items": {
       "dashboard": "Dashboard",
+      "myProfile": "My Stylist Profile",
       "appointments": "Appointments",
       "availability": "Availability",
-      "customers": "Customers",
       "stylists": "Stylists",
-      "services": "Services",
-      "settings": "Settings",
-      "closureDates": "Closure Dates",
-      "chat": "Chat"
+      "customers": "Customers",
+      "chat": "Chat",
+      "knowledgeBase": "Knowledge Base",
+      "businessInfo": "Business Info",
+      "operatingHours": "Operating Hours",
+      "closures": "Closures",
+      "services": "Services"
     },
     "logout": "Log Out"
   },
