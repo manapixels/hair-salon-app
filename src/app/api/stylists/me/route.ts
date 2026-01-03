@@ -21,24 +21,19 @@ export async function GET() {
     }
 
     // Calculate Google token status
+    // The refresh token is what matters - access tokens expire hourly but are auto-refreshed
+    // We only show warnings if:
+    // - No refresh token (not connected)
+    // - googleTokenInvalid flag is set (token was revoked or refresh failed)
     let googleTokenStatus: 'valid' | 'expiring_soon' | 'expired' | 'not_connected' =
       'not_connected';
 
     if (stylist.googleRefreshToken) {
-      const now = Date.now();
-      const tokenExpiry = stylist.googleTokenExpiry?.getTime() || 0;
-      const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
-
-      if (tokenExpiry === 0) {
-        // Has refresh token but no expiry - assume valid
-        googleTokenStatus = 'valid';
-      } else if (now > tokenExpiry) {
-        // Token is expired - but refresh might still work
+      // Check if the token was marked as invalid (refresh failed)
+      if ((stylist as any).googleTokenInvalid) {
         googleTokenStatus = 'expired';
-      } else if (now > tokenExpiry - sevenDaysMs) {
-        // Token expires within 7 days
-        googleTokenStatus = 'expiring_soon';
       } else {
+        // Has valid refresh token - we can always get new access tokens
         googleTokenStatus = 'valid';
       }
     }
