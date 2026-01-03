@@ -6,6 +6,7 @@ import BusinessSettings from './salon/BusinessSettings';
 import ScheduleSettings from './salon/ScheduleSettings';
 import ClosuresSettings from './salon/ClosuresSettings';
 import ServicesSettings from './salon/ServicesSettings';
+import DepositSettings from './salon/DepositSettings';
 import { LoadingButton } from '@/components/feedback/loaders/LoadingButton';
 import type { AdminSettings, BlockedPeriod } from '@/types';
 
@@ -107,9 +108,10 @@ export default function SettingsLayout({ adminSettings, onSave }: SettingsLayout
             <ClosuresSettings closures={specialClosures} onChange={setSpecialClosures} />
           )}
           {activeSection === 'salon-services' && <ServicesSettings />}
+          {activeSection === 'salon-deposits' && <DepositSettings />}
 
           {/* Save Button - Only show for sections that use the parent save handler */}
-          {activeSection !== 'salon-services' && (
+          {activeSection !== 'salon-services' && activeSection !== 'salon-deposits' && (
             <div className="mt-8 pt-6 border-t border-border flex justify-end">
               <LoadingButton
                 loading={isSaving}

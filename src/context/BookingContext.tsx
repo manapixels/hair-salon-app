@@ -45,6 +45,10 @@ export const BookingProvider: React.FC<{ children: ReactNode }> = ({ children })
     businessName: 'Signature Trims Hair Salon',
     businessAddress: '930 Yishun Avenue 1 #01-127, Singapore 760930',
     businessPhone: '(555) 123-4567',
+    depositEnabled: true,
+    depositPercentage: 15,
+    depositTrustThreshold: 1,
+    depositRefundWindowHours: 24,
   });
 
   const fetchAndSetAppointments = useCallback(async () => {

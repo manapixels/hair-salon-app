@@ -5,6 +5,7 @@ import { autoCompleteAppointments } from '@/inngest/autoCompleteAppointments';
 import { syncAppointmentsToCalendar } from '@/inngest/syncCalendar';
 import { proactiveAgent } from '@/inngest/proactiveAgent';
 import { customerSuggestions } from '@/inngest/customerSuggestions';
+import { autoCancelUnpaidDeposits, sendDailyDepositSummary } from '@/inngest/depositFunctions';
 
 export const { GET, POST, PUT } = serve({
   client: inngest,
@@ -14,5 +15,7 @@ export const { GET, POST, PUT } = serve({
     syncAppointmentsToCalendar,
     proactiveAgent,
     customerSuggestions,
+    autoCancelUnpaidDeposits,
+    sendDailyDepositSummary,
   ],
 });

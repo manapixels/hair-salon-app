@@ -353,6 +353,33 @@ Please confirm availability. Thank you!`;
         categoryId: selectedCategory.id,
         estimatedDuration: selectedCategory.estimatedDuration ?? 0,
       });
+
+      // Check if deposit is required
+      const depositResponse = await fetch('/api/payments/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          appointmentId: confirmedAppt.id,
+          totalPrice: confirmedAppt.totalPrice || selectedCategory.priceRangeMin || 5000, // in cents
+          customerEmail: email,
+          customerName: name,
+        }),
+      });
+
+      const depositData = (await depositResponse.json()) as {
+        required: boolean;
+        paymentUrl?: string;
+        error?: string;
+      };
+
+      if (depositData.required && depositData.paymentUrl) {
+        // Redirect to payment
+        toast.loading('Redirecting to payment...', { id: toastId });
+        window.location.href = depositData.paymentUrl;
+        return;
+      }
+
+      // No deposit required - show confirmation
       setBookingConfirmed(confirmedAppt);
       toast.success('Appointment booked successfully! Confirmation sent to your email.', {
         id: toastId,

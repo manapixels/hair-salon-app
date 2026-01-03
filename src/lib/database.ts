@@ -592,6 +592,10 @@ export const getAdminSettings = async (): Promise<AdminSettings> => {
       businessName: 'Signature Trims Hair Salon',
       businessAddress: '930 Yishun Avenue 1 #01-127, Singapore 760930',
       businessPhone: '(555) 123-4567',
+      depositEnabled: true,
+      depositPercentage: 15,
+      depositTrustThreshold: 1,
+      depositRefundWindowHours: 24,
     };
   }
 
@@ -626,6 +630,10 @@ export const getAdminSettings = async (): Promise<AdminSettings> => {
     businessName: settings.businessName,
     businessAddress: settings.businessAddress,
     businessPhone: settings.businessPhone,
+    depositEnabled: settings.depositEnabled,
+    depositPercentage: settings.depositPercentage,
+    depositTrustThreshold: settings.depositTrustThreshold,
+    depositRefundWindowHours: settings.depositRefundWindowHours,
   };
 };
 

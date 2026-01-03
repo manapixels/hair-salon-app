@@ -186,6 +186,30 @@ export interface AdminSettings {
   businessName: string;
   businessAddress: string;
   businessPhone: string;
+  // Deposit settings for no-show protection
+  depositEnabled: boolean;
+  depositPercentage: number;
+  depositTrustThreshold: number;
+  depositRefundWindowHours: number;
+}
+
+// Deposit types for no-show protection
+export type DepositStatus = 'PENDING' | 'PAID' | 'REFUNDED' | 'FORFEITED';
+
+export interface Deposit {
+  id: string;
+  appointmentId: string;
+  userId?: string | null;
+  customerEmail: string;
+  amount: number; // in cents
+  currency: string;
+  hitpayPaymentId?: string | null;
+  hitpayPaymentUrl?: string | null;
+  status: DepositStatus;
+  expiresAt: Date;
+  createdAt: Date;
+  paidAt?: Date | null;
+  refundedAt?: Date | null;
 }
 
 // FIX: Define and export the missing WhatsAppMessage interface.

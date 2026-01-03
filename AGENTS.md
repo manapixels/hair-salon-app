@@ -51,6 +51,41 @@ import { SERVICE_LINKS } from '@/config/navigation';
 
 ---
 
+## 💰 No-Show Protection (Deposits)
+
+First-time customers (0 completed visits) must pay a deposit to secure their booking.
+
+### **Key Files**
+
+| File                                                      | Purpose                    |
+| --------------------------------------------------------- | -------------------------- |
+| `src/services/paymentService.ts`                          | HitPay API integration     |
+| `src/inngest/depositFunctions.ts`                         | Auto-cancel, daily summary |
+| `src/components/admin/settings/salon/DepositSettings.tsx` | Admin config               |
+
+### **Settings** (Admin Dashboard → Deposits)
+
+- `depositEnabled` - Toggle deposit requirement
+- `depositPercentage` - Default 15%
+- `depositTrustThreshold` - Visits before trusted (default 1)
+- `depositRefundWindowHours` - Cancellation deadline (default 24)
+
+### **Flow**
+
+1. First-timer books → Create PENDING deposit
+2. Redirect to HitPay payment (Web) or show link (Telegram)
+3. If paid → Appointment confirmed
+4. If unpaid after 2hr → Auto-cancel + notify customer
+
+### **Env Variables**
+
+```bash
+HITPAY_API_KEY=your_api_key
+HITPAY_SALT=your_webhook_salt
+```
+
+---
+
 ## 👤 Multi-Role User System
 
 Users can have multiple roles simultaneously (e.g., a stylist who is also an admin).
@@ -553,6 +588,10 @@ R2_SECRET_ACCESS_KEY=your_r2_secret_key
 R2_BUCKET_NAME=your_bucket_name
 R2_PUBLIC_URL=https://pub-xxxxxxxx.r2.dev
 
+# HitPay Payment Gateway (Deposits)
+HITPAY_API_KEY=your_hitpay_api_key
+HITPAY_SALT=your_webhook_salt
+
 # Optional: WhatsApp Business Phone ID
    const newFunction: FunctionDeclaration = {
      name: 'functionName',
@@ -792,6 +831,91 @@ Next.js error boundaries catch errors and display user-friendly recovery UIs ins
 | `src/app/global-error.tsx`         | Root layout errors         | Fallback when root layout fails (uses inline styles)       |
 
 **Translations**: `Error.*` keys in `src/i18n/{locale}/common.json`
+
+---
+
+## 🔄 Flow Design Principles (Error Recovery)
+
+When designing new user flows (booking, payments, multi-step forms), follow these principles to ensure graceful recovery from errors and interruptions.
+
+### **1. Persist State Server-Side, Not Client-Side**
+
+❌ **Bad**: Store flow state in React state / localStorage only
+✅ **Good**: Create a pending record in the database immediately
+
+```typescript
+// Example: Deposit payment flow
+// 1. User confirms booking → Create PENDING appointment + deposit in DB
+// 2. Redirect to payment gateway
+// 3. If user closes browser, the pending records exist for recovery
+// 4. Webhook confirms payment → Update status to PAID/SCHEDULED
+```
+
+**Why**: Browser crashes, tab closes, mobile app switches – client state is volatile. Server-side records allow recovery.
+
+### **2. Design for Stateless Recovery**
+
+Every step should be recoverable with a **single identifier** (e.g., `appointmentId`, `sessionId`).
+
+| Scenario                  | Recovery Mechanism                                                            |
+| ------------------------- | ----------------------------------------------------------------------------- |
+| Tab closed during payment | `/booking/recover?appointmentId=X` checks status, resumes or shows result     |
+| Payment gateway timeout   | Webhook still fires → updates DB → user polls status or receives notification |
+| Guest user (no account)   | Use `customerEmail` to look up pending bookings                               |
+| Logged-in user            | Show pending bookings on dashboard with "Complete Payment" action             |
+
+### **3. Guest vs Authenticated User Flows**
+
+For flows that work both for guests and logged-in users:
+
+| Flow State              | Guest User                                                     | Authenticated User             |
+| ----------------------- | -------------------------------------------------------------- | ------------------------------ |
+| **Identify user**       | `customerEmail` (entered in form)                              | `userId` from session          |
+| **Recovery page**       | Email-based lookup: "Enter your email to check booking status" | Auto-show on dashboard         |
+| **Notifications**       | None (or optional SMS if collected)                            | Telegram/WhatsApp notification |
+| **Payment link expiry** | Include in URL, 30min default                                  | Same                           |
+
+### **4. Payment Flow Error Scenarios**
+
+| Error                 | Detection                            | User Experience                | Recovery                               |
+| --------------------- | ------------------------------------ | ------------------------------ | -------------------------------------- |
+| **Payment declined**  | Webhook `payment.failed`             | Show error, offer retry        | Keep pending deposit, allow re-attempt |
+| **Payment timeout**   | No webhook within 30min              | Email reminder (if collected)  | Pending record expires, must restart   |
+| **Webhook failure**   | Our server error                     | Silent to user                 | Retry queue, manual reconciliation     |
+| **Duplicate payment** | Check `stripePaymentIntentId` unique | Prevent double charge          | Refund duplicate automatically         |
+| **Partial payment**   | Amount mismatch                      | Reject, request correct amount | Clear instructions in payment UI       |
+
+### **5. Pending Record Cleanup**
+
+Expired pending records should be cleaned up:
+
+```typescript
+// Cron job or Inngest function
+async function cleanupExpiredPendingDeposits() {
+  // Delete PENDING deposits older than 24 hours
+  // Delete PENDING appointments with no deposit after 1 hour
+}
+```
+
+### **6. UX Patterns for Interrupted Flows**
+
+- **Dashboard Banner**: "You have an incomplete booking. [Complete Payment] or [Cancel]"
+- **Email Recovery**: If email collected, send "Complete your booking" link
+- **Telegram/WhatsApp**: If user has account, send reminder via their preferred channel
+- **Expiry Warning**: Show "This payment link expires in X minutes" in payment UI
+
+### **7. Checklist for New Multi-Step Flows**
+
+When designing any new flow, answer these questions:
+
+- [ ] What DB records are created at each step?
+- [ ] What happens if the user closes the browser at each step?
+- [ ] How does a guest user recover without logging in?
+- [ ] How does a logged-in user see pending items?
+- [ ] What is the expiry time for incomplete flows?
+- [ ] What cleanup is needed for abandoned flows?
+- [ ] What webhooks/notifications confirm completion?
+- [ ] How are duplicates prevented?
 
 ---
 

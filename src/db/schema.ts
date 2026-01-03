@@ -34,6 +34,12 @@ export const retentionMessageTypeEnum = pgEnum('RetentionMessageType', [
 ]);
 export const tagCategoryEnum = pgEnum('TagCategory', ['CONCERN', 'OUTCOME', 'HAIR_TYPE']);
 export const bookingSourceEnum = pgEnum('BookingSource', ['WEB', 'TELEGRAM', 'WHATSAPP']);
+export const depositStatusEnum = pgEnum('DepositStatus', [
+  'PENDING',
+  'PAID',
+  'REFUNDED',
+  'FORFEITED',
+]);
 
 // ============================================
 // TABLES
@@ -247,6 +253,11 @@ export const adminSettings = pgTable('admin_settings', {
     .default('930 Yishun Avenue 1 #01-127, Singapore 760930')
     .notNull(),
   businessPhone: text('businessPhone').default('(555) 123-4567').notNull(),
+  // Deposit settings for no-show protection
+  depositEnabled: boolean('depositEnabled').default(true).notNull(),
+  depositPercentage: integer('depositPercentage').default(15).notNull(),
+  depositTrustThreshold: integer('depositTrustThreshold').default(1).notNull(),
+  depositRefundWindowHours: integer('depositRefundWindowHours').default(24).notNull(),
   updatedAt: timestamp('updatedAt').defaultNow().notNull(),
 });
 
@@ -411,6 +422,34 @@ export const conversationSessions = pgTable(
   }),
 );
 
+// Deposits (for no-show protection)
+export const deposits = pgTable(
+  'deposits',
+  {
+    id: text('id')
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    appointmentId: text('appointmentId')
+      .notNull()
+      .references(() => appointments.id, { onDelete: 'cascade' }),
+    userId: text('userId').references(() => users.id, { onDelete: 'set null' }),
+    customerEmail: text('customerEmail').notNull(),
+    amount: integer('amount').notNull(), // in cents
+    currency: text('currency').default('SGD').notNull(),
+    hitpayPaymentId: text('hitpayPaymentId').unique(),
+    hitpayPaymentUrl: text('hitpayPaymentUrl'),
+    status: depositStatusEnum('status').default('PENDING').notNull(),
+    expiresAt: timestamp('expiresAt').notNull(),
+    createdAt: timestamp('createdAt').defaultNow().notNull(),
+    paidAt: timestamp('paidAt'),
+    refundedAt: timestamp('refundedAt'),
+  },
+  table => ({
+    appointmentIdx: index('deposits_appointmentId_idx').on(table.appointmentId),
+    statusIdx: index('deposits_status_idx').on(table.status),
+  }),
+);
+
 // ============================================
 // RELATIONS (for Drizzle Query API)
 // ============================================
@@ -507,5 +546,16 @@ export const serviceTagRelationsRelations = relations(serviceTagRelations, ({ on
   tag: one(serviceTags, {
     fields: [serviceTagRelations.tagId],
     references: [serviceTags.id],
+  }),
+}));
+
+export const depositsRelations = relations(deposits, ({ one }) => ({
+  appointment: one(appointments, {
+    fields: [deposits.appointmentId],
+    references: [appointments.id],
+  }),
+  user: one(users, {
+    fields: [deposits.userId],
+    references: [users.id],
   }),
 }));

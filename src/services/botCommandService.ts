@@ -1505,6 +1505,83 @@ Please make sure you're logged in and try again with /book`,
         bookingSource: 'TELEGRAM',
       });
 
+      // Check if deposit is required (first-time customer)
+      let depositRequired = false;
+      let paymentUrl: string | undefined;
+
+      try {
+        const depositResponse = await fetch(
+          `${process.env.NEXT_PUBLIC_APP_URL}/api/payments/create`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              appointmentId: appointment.id,
+              totalPrice: service.basePrice, // in cents
+              customerEmail: user.email,
+              customerName: user.name,
+              userId: user.id,
+            }),
+          },
+        );
+
+        const depositData = (await depositResponse.json()) as {
+          required: boolean;
+          paymentUrl?: string;
+          amount?: number;
+          percentage?: number;
+        };
+
+        if (depositData.required && depositData.paymentUrl) {
+          depositRequired = true;
+          paymentUrl = depositData.paymentUrl;
+
+          // Return deposit payment message instead of confirmation
+          const depositAmount = depositData.amount
+            ? `$${(depositData.amount / 100).toFixed(2)}`
+            : '';
+
+          // Clear booking context and step history
+          const messageId = context.currentStepMessageId;
+          await clearStepHistory(userId);
+          await clearBookingContext(userId);
+          if (messageId) {
+            await setBookingContext(userId, {
+              currentStepMessageId: messageId,
+            });
+          }
+
+          return {
+            text: `⏳ *Almost Done - Deposit Required*
+
+As a first-time customer, a small deposit is needed to secure your booking.
+
+✂️ *Service:* ${service.name}
+📅 *Date:* ${formatDisplayDate(new Date(context.date))}
+🕐 *Time:* ${formatTime12Hour(context.time)}
+💰 *Deposit:* ${depositAmount} (${depositData.percentage || 15}%)
+
+⚠️ *Please complete payment within 2 hours* or your booking will be automatically cancelled.
+
+After your first visit, future bookings won't require a deposit.
+
+👇 *Tap below to pay:*`,
+            keyboard: {
+              inline_keyboard: [
+                [{ text: '💳 Pay Deposit Now', url: paymentUrl }],
+                [{ text: '❌ Cancel Booking', callback_data: `confirm_cancel_${appointment.id}` }],
+              ],
+            },
+            parseMode: 'Markdown',
+            editPreviousMessage: true,
+          };
+        }
+      } catch (depositError) {
+        console.error('[DEPOSIT CHECK ERROR]', depositError);
+        // If deposit check fails, proceed without deposit (fail open)
+      }
+
+      // No deposit required - show normal confirmation
       // Clear booking context and step history
       const messageId = context.currentStepMessageId;
       await clearStepHistory(userId);
