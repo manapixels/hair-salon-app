@@ -76,6 +76,9 @@ export default function StylistDashboard() {
     setIsEditingName(false);
   };
 
+  // State to trigger profile refresh after OAuth success
+  const [refreshKey, setRefreshKey] = useState(0);
+
   // Check for OAuth callback results
   useEffect(() => {
     const googleSuccess = searchParams.get('google_success');
@@ -83,8 +86,10 @@ export default function StylistDashboard() {
 
     if (googleSuccess === 'connected') {
       toast.success('Google Calendar connected successfully!');
+      // Trigger profile re-fetch to show updated connected status
+      setRefreshKey(prev => prev + 1);
       // Clean up URL
-      router.replace('/dashboard', { scroll: false });
+      router.replace('/stylist', { scroll: false });
     }
 
     if (googleError) {
@@ -96,7 +101,7 @@ export default function StylistDashboard() {
         token_exchange_failed: 'Failed to connect to Google',
       };
       toast.error(errorMessages[googleError] || 'Failed to connect Google Calendar');
-      router.replace('/dashboard', { scroll: false });
+      router.replace('/stylist', { scroll: false });
     }
   }, [searchParams, router]);
 
@@ -119,7 +124,7 @@ export default function StylistDashboard() {
     if (user) {
       fetchStylistProfile();
     }
-  }, [user]);
+  }, [user, refreshKey]);
 
   // Fetch stylist's appointments
   useEffect(() => {

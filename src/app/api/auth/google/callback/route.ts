@@ -23,12 +23,12 @@ export async function GET(request: Request) {
     // Handle user denying consent
     if (error) {
       console.log('Google OAuth denied:', error);
-      return NextResponse.redirect(new URL('/dashboard?google_error=consent_denied', request.url));
+      return NextResponse.redirect(new URL('/stylist?google_error=consent_denied', request.url));
     }
 
     // Validate required parameters
     if (!code || !state) {
-      return NextResponse.redirect(new URL('/dashboard?google_error=missing_params', request.url));
+      return NextResponse.redirect(new URL('/stylist?google_error=missing_params', request.url));
     }
 
     // Decode state to get stylist info
@@ -36,7 +36,7 @@ export async function GET(request: Request) {
     try {
       stateData = JSON.parse(Buffer.from(state, 'base64').toString());
     } catch {
-      return NextResponse.redirect(new URL('/dashboard?google_error=invalid_state', request.url));
+      return NextResponse.redirect(new URL('/stylist?google_error=invalid_state', request.url));
     }
 
     // Create OAuth2 client
@@ -52,7 +52,7 @@ export async function GET(request: Request) {
 
     if (!tokens.access_token || !tokens.refresh_token) {
       console.error('Missing tokens from Google OAuth response');
-      return NextResponse.redirect(new URL('/dashboard?google_error=missing_tokens', request.url));
+      return NextResponse.redirect(new URL('/stylist?google_error=missing_tokens', request.url));
     }
 
     // Get user's email from Google
@@ -91,12 +91,12 @@ export async function GET(request: Request) {
 
     console.log(`Google Calendar connected for stylist ${stateData.stylistId}`);
 
-    // Redirect back to dashboard with success
-    return NextResponse.redirect(new URL('/dashboard?google_success=connected', request.url));
+    // Redirect back to stylist dashboard with success
+    return NextResponse.redirect(new URL('/stylist?google_success=connected', request.url));
   } catch (error) {
     console.error('Google OAuth callback error:', error);
     return NextResponse.redirect(
-      new URL('/dashboard?google_error=token_exchange_failed', request.url),
+      new URL('/stylist?google_error=token_exchange_failed', request.url),
     );
   }
 }
