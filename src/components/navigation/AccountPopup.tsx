@@ -13,6 +13,7 @@ import {
   CalendarDays,
 } from 'lucide-react';
 import Link from 'next/link';
+import { cn } from '@/lib/utils';
 import { useAuth } from '@/context/AuthContext';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -107,21 +108,36 @@ export default function AccountPopup({ isOpen, onClose }: AccountPopupProps) {
                       <div>
                         <p className="font-semibold text-gray-900 text-lg">{user.name}</p>
                         <p className="text-sm text-gray-500">{user.email}</p>
-                        <span className="mt-1 inline-block rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">
-                          {getPrimaryRole(user) === 'ADMIN'
-                            ? 'Admin'
-                            : getPrimaryRole(user) === 'STYLIST'
-                              ? 'Stylist'
-                              : 'Customer'}
-                        </span>
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {user.roles?.map(role => (
+                            <span
+                              key={role}
+                              className={cn(
+                                'inline-block rounded-full px-2 py-0.5 text-[10px] font-medium border',
+                                role === 'ADMIN'
+                                  ? 'bg-purple-100 text-purple-700 border-purple-200'
+                                  : role === 'STYLIST'
+                                    ? 'bg-indigo-100 text-indigo-700 border-indigo-200'
+                                    : 'bg-blue-100 text-blue-700 border-blue-200',
+                              )}
+                            >
+                              {role === 'ADMIN'
+                                ? 'Admin'
+                                : role === 'STYLIST'
+                                  ? 'Stylist'
+                                  : 'Customer'}
+                            </span>
+                          ))}
+                        </div>
                       </div>
                     </div>
 
                     {/* Links */}
                     <div className="space-y-2">
+                      {/* Customer Dashboard - Available to everyone as 'My Bookings' */}
                       {isCustomer(user) && (
                         <Link
-                          href="/dashboard"
+                          href="/customer"
                           onClick={onClose}
                           className="flex items-center justify-between p-4 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors group"
                         >
@@ -151,9 +167,9 @@ export default function AccountPopup({ isOpen, onClose }: AccountPopupProps) {
                         </Link>
                       )}
 
-                      {isStylist(user) && !isAdmin(user) && (
+                      {isStylist(user) && (
                         <Link
-                          href="/dashboard"
+                          href="/stylist"
                           onClick={onClose}
                           className="flex items-center justify-between p-4 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors group"
                         >

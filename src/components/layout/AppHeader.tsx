@@ -253,12 +253,13 @@ export default function AppHeader({ view, onViewChange, serviceLinks }: AppHeade
                 <Calendar className="h-4 w-4" aria-hidden="true" />
                 {t('bookNow')}
               </Button>
+              {/* Customer Dashboard Button */}
               {user && isCustomer(user) && (
                 <div className="relative">
                   <Button
                     variant={activeView === 'dashboard' ? 'default' : 'ghost'}
                     size="default"
-                    onClick={() => handleNavigation('dashboard', '/dashboard')}
+                    onClick={() => handleNavigation('dashboard', '/customer')}
                   >
                     <User className="h-4 w-4" aria-hidden="true" />
                     {tAccount('dashboard')}
@@ -266,6 +267,7 @@ export default function AppHeader({ view, onViewChange, serviceLinks }: AppHeade
                   <NotificationBadge count={appointmentCount} />
                 </div>
               )}
+              {/* Admin Panel Button */}
               {user && isAdmin(user) && (
                 <Button
                   variant={activeView === 'admin' ? 'default' : 'outline'}
@@ -277,12 +279,13 @@ export default function AppHeader({ view, onViewChange, serviceLinks }: AppHeade
                   {tAccount('adminPanel')}
                 </Button>
               )}
-              {user && isStylist(user) && !isAdmin(user) && (
+              {/* Stylist Dashboard Button - Now visible to Admins who are also Stylists */}
+              {user && isStylist(user) && (
                 <Button
                   variant={activeView === 'dashboard' ? 'default' : 'outline'}
                   size="default"
                   className="bg-primary-50 hover:bg-primary-100"
-                  onClick={() => handleNavigation('dashboard', '/dashboard')}
+                  onClick={() => handleNavigation('dashboard', '/stylist')}
                 >
                   <User className="h-4 w-4" aria-hidden="true" />
                   {tAccount('stylistDashboard')}
@@ -331,16 +334,29 @@ export default function AppHeader({ view, onViewChange, serviceLinks }: AppHeade
                     </span>
                   </div>
 
+                  {/* Customer Dashboard Link */}
                   {isCustomer(user) && activeView !== 'dashboard' && (
                     <DropdownMenuItem
                       className="flex cursor-pointer items-center gap-2.5 rounded-md px-3 py-2 text-sm text-gray-700 outline-none transition-colors hover:bg-gray-100 focus:bg-gray-100"
-                      onSelect={() => router.push('/dashboard')}
+                      onSelect={() => router.push('/customer')}
                     >
                       <User className="h-4 w-4" aria-hidden="true" />
                       <span>{tAccount('dashboard')}</span>
                     </DropdownMenuItem>
                   )}
 
+                  {/* Stylist Dashboard Link - Added for Stylists */}
+                  {isStylist(user) && activeView !== 'dashboard' && (
+                    <DropdownMenuItem
+                      className="flex cursor-pointer items-center gap-2.5 rounded-md px-3 py-2 text-sm text-gray-700 outline-none transition-colors hover:bg-gray-100 focus:bg-gray-100"
+                      onSelect={() => router.push('/stylist')}
+                    >
+                      <User className="h-4 w-4" aria-hidden="true" />
+                      <span>{tAccount('stylistDashboard')}</span>
+                    </DropdownMenuItem>
+                  )}
+
+                  {/* Admin Panel Link */}
                   {isAdmin(user) && activeView !== 'admin' && (
                     <DropdownMenuItem
                       className="flex cursor-pointer items-center gap-2.5 rounded-md px-3 py-2 text-sm text-gray-700 outline-none transition-colors hover:bg-gray-100 focus:bg-gray-100"

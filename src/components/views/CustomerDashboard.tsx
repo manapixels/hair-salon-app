@@ -9,7 +9,6 @@ import { LoadingSpinner } from '../feedback/loaders/LoadingSpinner';
 import { ErrorState } from '../feedback/ErrorState';
 import { EmptyState } from '../feedback/EmptyState';
 import { useDelayedLoading } from '@/hooks/useDelayedLoading';
-import { formatDisplayDate } from '@/lib/timeUtils';
 import type { Appointment } from '@/types';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';

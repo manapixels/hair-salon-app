@@ -82,17 +82,6 @@ export default function AdminNavigation({
           icon: <LayoutDashboard className="w-5 h-5" />,
           href: basePath,
         },
-        // My Stylist Profile - only show if user is also a stylist
-        ...(showStylistProfile
-          ? [
-              {
-                id: 'my-profile' as AdminSection,
-                label: t('items.myProfile'),
-                icon: <User className="w-5 h-5" />,
-                href: `${basePath}/my-profile`,
-              },
-            ]
-          : []),
       ],
     },
     {
