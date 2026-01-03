@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import { google } from 'googleapis';
 import { getSessionFromCookie } from '@/lib/secureSession';
 import { getStylistByUserId } from '@/lib/database';
 import { hasStylistAccess } from '@/lib/roleHelpers';
@@ -7,8 +6,34 @@ import { hasStylistAccess } from '@/lib/roleHelpers';
 export const dynamic = 'force-dynamic';
 
 /**
+ * Build Google OAuth authorization URL manually
+ * (Cloudflare Workers compatible - no googleapis library needed)
+ */
+function buildAuthorizationUrl(state: string): string {
+  const baseUrl = 'https://accounts.google.com/o/oauth2/v2/auth';
+
+  const scopes = [
+    'https://www.googleapis.com/auth/calendar.events',
+    'https://www.googleapis.com/auth/userinfo.email',
+  ];
+
+  const params = new URLSearchParams({
+    client_id: process.env.GOOGLE_OAUTH_CLIENT_ID || '',
+    redirect_uri: process.env.GOOGLE_OAUTH_REDIRECT_URI || '',
+    response_type: 'code',
+    scope: scopes.join(' '),
+    access_type: 'offline', // Get refresh token
+    prompt: 'consent', // Force consent to ensure refresh token is returned
+    state,
+  });
+
+  return `${baseUrl}?${params.toString()}`;
+}
+
+/**
  * GET /api/auth/google/connect
  * Initiates the Google OAuth2 flow for stylists to connect their calendar
+ * Uses manual URL construction for Cloudflare Workers compatibility
  */
 export async function GET(request: Request) {
   try {
@@ -32,30 +57,13 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Stylist profile not found' }, { status: 404 });
     }
 
-    // 4. Create OAuth2 client
-    const oauth2Client = new google.auth.OAuth2(
-      process.env.GOOGLE_OAUTH_CLIENT_ID,
-      process.env.GOOGLE_OAUTH_CLIENT_SECRET,
-      process.env.GOOGLE_OAUTH_REDIRECT_URI,
-    );
-
-    // 5. Generate authorization URL
-    const scopes = [
-      'https://www.googleapis.com/auth/calendar.events',
-      'https://www.googleapis.com/auth/userinfo.email',
-    ];
-
-    // Use stylist ID as state for CSRF protection
+    // 4. Use stylist ID as state for CSRF protection
     const state = Buffer.from(JSON.stringify({ stylistId: stylist.id, userId: user.id })).toString(
       'base64',
     );
 
-    const authorizationUrl = oauth2Client.generateAuthUrl({
-      access_type: 'offline', // Get refresh token
-      scope: scopes,
-      state,
-      prompt: 'consent', // Force consent to ensure refresh token is returned
-    });
+    // 5. Generate authorization URL manually (Workers compatible)
+    const authorizationUrl = buildAuthorizationUrl(state);
 
     // 6. Redirect to Google consent screen
     return NextResponse.redirect(authorizationUrl);

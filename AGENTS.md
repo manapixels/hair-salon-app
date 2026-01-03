@@ -530,6 +530,17 @@ Automated messaging for feedback, rebooking, and win-back campaigns.
   - `googleTokenInvalid` - Flag set when token refresh fails
   - `lastCalendarReminderSent` - Rate limiting timestamp
 
+#### **Google Calendar Library** (`src/lib/google.ts`)
+
+Cloudflare Workers compatible implementation using native `fetch` API and Web Crypto API:
+
+- **Token Refresh**: Uses `fetch` to refresh OAuth tokens
+- **Service Account JWT**: Uses Web Crypto `RSASSA-PKCS1-v1_5` for JWT signing
+- **Calendar CRUD**: Uses `fetch` for create/update/delete events
+
+> [!NOTE]
+> The `googleapis` library was removed because it uses Node.js `https` module which is not available in Cloudflare Workers runtime.
+
 #### **Retention Services**
 
 - `retentionService.ts` - Identifies users for rebooking/winback

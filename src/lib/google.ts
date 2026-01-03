@@ -1,158 +1,283 @@
-import { google } from 'googleapis';
 import type { Appointment, Stylist } from '../types';
-import { getStylistById, updateStylistGoogleTokens } from './database';
+import { getStylistById, updateStylistGoogleTokens, markStylistTokenInvalid } from './database';
 
 /**
  * Google Calendar integration for appointment management.
+ * Cloudflare Workers compatible - uses native fetch API instead of googleapis.
+ *
  * Supports both:
  * 1. Service account (salon-wide calendar) - via GOOGLE_SERVICE_ACCOUNT_KEY
  * 2. Per-stylist OAuth (individual calendars) - via stylist's stored tokens
  */
 
-// Salon-wide calendar client (service account)
-let salonCalendar: any = null;
+// ============================================================================
+// Types
+// ============================================================================
+
+interface GoogleTokenResponse {
+  access_token: string;
+  refresh_token?: string;
+  expires_in: number;
+  token_type: string;
+  scope?: string;
+  error?: string;
+  error_description?: string;
+}
+
+interface GoogleCalendarEvent {
+  id?: string;
+  summary: string;
+  description: string;
+  start: { dateTime: string; timeZone: string };
+  end: { dateTime: string; timeZone: string };
+  reminders?: {
+    useDefault: boolean;
+    overrides?: Array<{ method: string; minutes: number }>;
+  };
+  attendees?: Array<{ email: string }>;
+}
+
+interface GoogleCalendarEventResponse {
+  id: string;
+  htmlLink: string;
+  summary: string;
+  status: string;
+}
+
+interface ServiceAccountCredentials {
+  type: string;
+  project_id: string;
+  private_key_id: string;
+  private_key: string;
+  client_email: string;
+  client_id: string;
+  auth_uri: string;
+  token_uri: string;
+  auth_provider_x509_cert_url: string;
+  client_x509_cert_url: string;
+}
+
+// Cached service account access token
+let serviceAccountToken: { accessToken: string; expiry: number } | null = null;
+
+// ============================================================================
+// JWT / Service Account Token Generation
+// ============================================================================
 
 /**
- * Initialize salon-wide Google Calendar (service account)
+ * Base64 URL encode (for JWT)
  */
-const initializeSalonCalendar = () => {
-  if (salonCalendar) return salonCalendar;
+function base64UrlEncode(str: string): string {
+  return btoa(str).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
 
+/**
+ * Import private key for signing JWT (Web Crypto API)
+ */
+async function importPrivateKey(pem: string): Promise<CryptoKey> {
+  // Remove PEM headers and decode base64
+  const pemContents = pem
+    .replace(/-----BEGIN PRIVATE KEY-----/g, '')
+    .replace(/-----END PRIVATE KEY-----/g, '')
+    .replace(/\s/g, '');
+
+  const binaryDer = Uint8Array.from(atob(pemContents), c => c.charCodeAt(0));
+
+  return crypto.subtle.importKey(
+    'pkcs8',
+    binaryDer,
+    { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' },
+    false,
+    ['sign'],
+  );
+}
+
+/**
+ * Sign data with private key (Web Crypto API)
+ */
+async function signJwt(data: string, privateKey: CryptoKey): Promise<string> {
+  const encoder = new TextEncoder();
+  const signature = await crypto.subtle.sign('RSASSA-PKCS1-v1_5', privateKey, encoder.encode(data));
+  return base64UrlEncode(String.fromCharCode(...new Uint8Array(signature)));
+}
+
+/**
+ * Generate a JWT for service account authentication
+ */
+async function generateServiceAccountJwt(credentials: ServiceAccountCredentials): Promise<string> {
+  const now = Math.floor(Date.now() / 1000);
+
+  const header = { alg: 'RS256', typ: 'JWT' };
+  const payload = {
+    iss: credentials.client_email,
+    scope: 'https://www.googleapis.com/auth/calendar',
+    aud: 'https://oauth2.googleapis.com/token',
+    exp: now + 3600,
+    iat: now,
+  };
+
+  const encodedHeader = base64UrlEncode(JSON.stringify(header));
+  const encodedPayload = base64UrlEncode(JSON.stringify(payload));
+  const unsignedToken = `${encodedHeader}.${encodedPayload}`;
+
+  const privateKey = await importPrivateKey(credentials.private_key);
+  const signature = await signJwt(unsignedToken, privateKey);
+
+  return `${unsignedToken}.${signature}`;
+}
+
+/**
+ * Get access token for service account
+ */
+async function getServiceAccountToken(): Promise<string | null> {
   const credentials = process.env.GOOGLE_SERVICE_ACCOUNT_KEY;
-  const calendarId = process.env.GOOGLE_CALENDAR_ID;
 
   if (!credentials) {
-    console.warn(
-      'Google Calendar: Service account credentials not found. Salon calendar disabled.',
-    );
+    console.warn('[GoogleCalendar] Service account credentials not found');
     return null;
   }
 
-  if (!calendarId) {
-    console.warn('Google Calendar: Calendar ID not found. Using primary calendar.');
+  // Check cached token
+  if (serviceAccountToken && Date.now() < serviceAccountToken.expiry - 60000) {
+    return serviceAccountToken.accessToken;
   }
 
   try {
-    const serviceAccount = JSON.parse(credentials);
-    const auth = new google.auth.GoogleAuth({
-      credentials: serviceAccount,
-      scopes: ['https://www.googleapis.com/auth/calendar'],
+    const serviceAccount: ServiceAccountCredentials = JSON.parse(credentials);
+    const jwt = await generateServiceAccountJwt(serviceAccount);
+
+    const response = await fetch('https://oauth2.googleapis.com/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
+        assertion: jwt,
+      }).toString(),
     });
 
-    salonCalendar = google.calendar({
-      version: 'v3',
-      auth: auth,
-    });
+    const data = (await response.json()) as GoogleTokenResponse;
 
-    console.log('Salon Google Calendar API initialized successfully');
-    return salonCalendar;
+    if (!response.ok || data.error) {
+      console.error('[GoogleCalendar] Service account token error:', data);
+      return null;
+    }
+
+    // Cache the token
+    serviceAccountToken = {
+      accessToken: data.access_token,
+      expiry: Date.now() + data.expires_in * 1000,
+    };
+
+    console.log('[GoogleCalendar] Service account token obtained');
+    return data.access_token;
   } catch (error) {
-    console.error(
-      'Failed to initialize Salon Google Calendar API. Check GOOGLE_SERVICE_ACCOUNT_KEY format.',
-      error,
-    );
+    console.error('[GoogleCalendar] Failed to get service account token:', error);
     return null;
   }
-};
+}
+
+// ============================================================================
+// OAuth Token Refresh (for Stylists)
+// ============================================================================
 
 /**
- * Initialize per-stylist Google Calendar using their OAuth tokens
+ * Refresh OAuth access token using refresh token
  */
-const initializeStylistCalendar = async (stylist: Stylist): Promise<any | null> => {
-  console.log(`[GoogleCalendar] Initializing calendar for stylist ${stylist.id} (${stylist.name})`);
-  console.log(`[GoogleCalendar] Token status:`, {
-    hasAccessToken: !!stylist.googleAccessToken,
-    hasRefreshToken: !!stylist.googleRefreshToken,
-    tokenExpiry: stylist.googleTokenExpiry,
-    googleEmail: stylist.googleEmail,
-    calendarId: stylist.googleCalendarId,
-  });
-
-  if (!stylist.googleRefreshToken || !stylist.googleAccessToken) {
-    console.warn(
-      `[GoogleCalendar] Missing tokens for stylist ${stylist.id}: refreshToken=${!!stylist.googleRefreshToken}, accessToken=${!!stylist.googleAccessToken}`,
-    );
-    return null;
-  }
-
+async function refreshAccessToken(
+  refreshToken: string,
+): Promise<{ accessToken: string; refreshToken: string; expiresIn: number } | null> {
   const clientId = process.env.GOOGLE_OAUTH_CLIENT_ID;
   const clientSecret = process.env.GOOGLE_OAUTH_CLIENT_SECRET;
 
   if (!clientId || !clientSecret) {
-    console.warn(
-      `[GoogleCalendar] OAuth not configured: CLIENT_ID=${!!clientId}, CLIENT_SECRET=${!!clientSecret}`,
-    );
+    console.warn('[GoogleCalendar] OAuth credentials not configured');
     return null;
   }
 
   try {
-    const oauth2Client = new google.auth.OAuth2(clientId, clientSecret);
-
-    oauth2Client.setCredentials({
-      access_token: stylist.googleAccessToken,
-      refresh_token: stylist.googleRefreshToken,
-      expiry_date: stylist.googleTokenExpiry?.getTime(),
+    const response = await fetch('https://oauth2.googleapis.com/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        client_id: clientId,
+        client_secret: clientSecret,
+        refresh_token: refreshToken,
+        grant_type: 'refresh_token',
+      }).toString(),
     });
 
-    // Check if token is expired and refresh if needed
-    const tokenExpiry = stylist.googleTokenExpiry?.getTime() || 0;
-    const now = Date.now();
-    console.log(
-      `[GoogleCalendar] Token expiry check: now=${new Date(now).toISOString()}, expiry=${new Date(tokenExpiry).toISOString()}, needsRefresh=${now > tokenExpiry - 60000}`,
-    );
+    const data = (await response.json()) as GoogleTokenResponse;
 
-    if (now > tokenExpiry - 60000) {
-      // Refresh 1 minute before expiry
-      console.log(`[GoogleCalendar] Refreshing token for stylist ${stylist.id}...`);
-      try {
-        const { credentials } = await oauth2Client.refreshAccessToken();
-        console.log(`[GoogleCalendar] Token refreshed successfully for stylist ${stylist.id}`);
-
-        // Update tokens in database
-        await updateStylistGoogleTokens(stylist.id, {
-          googleAccessToken: credentials.access_token!,
-          googleRefreshToken: credentials.refresh_token || stylist.googleRefreshToken,
-          googleTokenExpiry: new Date(credentials.expiry_date!),
-          googleCalendarId: stylist.googleCalendarId || 'primary',
-          googleEmail: stylist.googleEmail || '',
-        });
-
-        oauth2Client.setCredentials(credentials);
-      } catch (refreshError: any) {
-        console.error(`[GoogleCalendar] Token refresh FAILED for stylist ${stylist.id}:`, {
-          error: refreshError.message,
-          code: refreshError.code,
-          response: refreshError.response?.data,
-        });
-        // If refresh fails with invalid_grant, the token was revoked
-        if (refreshError.response?.data?.error === 'invalid_grant') {
-          console.error(
-            `[GoogleCalendar] Refresh token was revoked/expired. Stylist needs to reconnect Google Calendar.`,
-          );
-          // Mark token as invalid for reconnection reminder system
-          const { markStylistTokenInvalid } = await import('./database');
-          await markStylistTokenInvalid(stylist.id, true);
-        }
-        return null;
-      }
+    if (!response.ok || data.error) {
+      console.error('[GoogleCalendar] Token refresh error:', data);
+      return null;
     }
 
-    console.log(`[GoogleCalendar] Calendar client initialized for stylist ${stylist.id}`);
-    return google.calendar({ version: 'v3', auth: oauth2Client });
-  } catch (error: any) {
-    console.error(`[GoogleCalendar] Failed to initialize calendar for stylist ${stylist.id}:`, {
-      error: error.message,
-      code: error.code,
-      stack: error.stack,
-    });
+    return {
+      accessToken: data.access_token,
+      refreshToken: data.refresh_token || refreshToken, // Keep old if not returned
+      expiresIn: data.expires_in,
+    };
+  } catch (error) {
+    console.error('[GoogleCalendar] Failed to refresh token:', error);
     return null;
   }
-};
+}
+
+/**
+ * Get valid access token for a stylist (refresh if needed)
+ */
+async function getStylistAccessToken(stylist: Stylist): Promise<string | null> {
+  console.log(`[GoogleCalendar] Getting token for stylist ${stylist.id} (${stylist.name})`);
+
+  if (!stylist.googleRefreshToken || !stylist.googleAccessToken) {
+    console.warn(`[GoogleCalendar] Missing tokens for stylist ${stylist.id}`);
+    return null;
+  }
+
+  const tokenExpiry = stylist.googleTokenExpiry?.getTime() || 0;
+  const now = Date.now();
+
+  // Check if token is still valid (with 1 min buffer)
+  if (now < tokenExpiry - 60000) {
+    console.log(`[GoogleCalendar] Using cached token for stylist ${stylist.id}`);
+    return stylist.googleAccessToken;
+  }
+
+  // Need to refresh
+  console.log(`[GoogleCalendar] Refreshing token for stylist ${stylist.id}`);
+  const refreshed = await refreshAccessToken(stylist.googleRefreshToken);
+
+  if (!refreshed) {
+    console.error(`[GoogleCalendar] Token refresh failed for stylist ${stylist.id}`);
+    // Mark token as invalid
+    await markStylistTokenInvalid(stylist.id, true);
+    return null;
+  }
+
+  // Update tokens in database
+  await updateStylistGoogleTokens(stylist.id, {
+    googleAccessToken: refreshed.accessToken,
+    googleRefreshToken: refreshed.refreshToken,
+    googleTokenExpiry: new Date(Date.now() + refreshed.expiresIn * 1000),
+    googleCalendarId: stylist.googleCalendarId || 'primary',
+    googleEmail: stylist.googleEmail || '',
+  });
+
+  console.log(`[GoogleCalendar] Token refreshed for stylist ${stylist.id}`);
+  return refreshed.accessToken;
+}
+
+// ============================================================================
+// Calendar API Operations
+// ============================================================================
+
+const CALENDAR_API_BASE = 'https://www.googleapis.com/calendar/v3';
 
 /**
  * Build the event object for calendar
  */
-const buildCalendarEvent = (appointment: Appointment) => {
+function buildCalendarEvent(appointment: Appointment): GoogleCalendarEvent {
   const eventStartTime = new Date(
     `${appointment.date.toISOString().split('T')[0]}T${appointment.time}`,
   );
@@ -174,20 +299,119 @@ const buildCalendarEvent = (appointment: Appointment) => {
     reminders: {
       useDefault: false,
       overrides: [
-        { method: 'popup', minutes: 60 }, // 1 hour before
-        { method: 'popup', minutes: 15 }, // 15 minutes before
+        { method: 'popup', minutes: 60 },
+        { method: 'popup', minutes: 15 },
       ],
     },
   };
-};
+}
+
+/**
+ * Insert event to Google Calendar using fetch API
+ */
+async function insertEvent(
+  accessToken: string,
+  calendarId: string,
+  event: GoogleCalendarEvent,
+): Promise<GoogleCalendarEventResponse | null> {
+  const url = `${CALENDAR_API_BASE}/calendars/${encodeURIComponent(calendarId)}/events`;
+
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(event),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      console.error('[GoogleCalendar] Insert event error:', error);
+      return null;
+    }
+
+    return (await response.json()) as GoogleCalendarEventResponse;
+  } catch (error) {
+    console.error('[GoogleCalendar] Insert event failed:', error);
+    return null;
+  }
+}
+
+/**
+ * Update event in Google Calendar using fetch API
+ */
+async function updateEvent(
+  accessToken: string,
+  calendarId: string,
+  eventId: string,
+  event: GoogleCalendarEvent,
+): Promise<boolean> {
+  const url = `${CALENDAR_API_BASE}/calendars/${encodeURIComponent(calendarId)}/events/${encodeURIComponent(eventId)}`;
+
+  try {
+    const response = await fetch(url, {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(event),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      console.error('[GoogleCalendar] Update event error:', error);
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error('[GoogleCalendar] Update event failed:', error);
+    return false;
+  }
+}
+
+/**
+ * Delete event from Google Calendar using fetch API
+ */
+async function deleteEvent(
+  accessToken: string,
+  calendarId: string,
+  eventId: string,
+): Promise<boolean> {
+  const url = `${CALENDAR_API_BASE}/calendars/${encodeURIComponent(calendarId)}/events/${encodeURIComponent(eventId)}`;
+
+  try {
+    const response = await fetch(url, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+
+    // 204 No Content = success, 404 = already deleted (also ok)
+    if (response.ok || response.status === 204 || response.status === 404) {
+      return true;
+    }
+
+    const error = await response.json();
+    console.error('[GoogleCalendar] Delete event error:', error);
+    return false;
+  } catch (error) {
+    console.error('[GoogleCalendar] Delete event failed:', error);
+    return false;
+  }
+}
+
+// ============================================================================
+// Public API
+// ============================================================================
 
 /**
  * Creates an event in Google Calendar for the new appointment.
  * Attempts stylist's personal calendar first, then falls back to salon calendar.
- * @param appointment The appointment details.
- * @returns The created event ID or null if failed
  */
-export const createCalendarEvent = async (appointment: Appointment): Promise<string | null> => {
+export async function createCalendarEvent(appointment: Appointment): Promise<string | null> {
   console.log(`[GoogleCalendar] Creating event for appointment:`, {
     customerName: appointment.customerName,
     stylistId: appointment.stylistId,
@@ -204,98 +428,60 @@ export const createCalendarEvent = async (appointment: Appointment): Promise<str
     );
     const stylist = await getStylistById(appointment.stylistId);
 
-    if (!stylist) {
-      console.warn(`[GoogleCalendar] Stylist not found for ID: ${appointment.stylistId}`);
-    } else {
-      console.log(
-        `[GoogleCalendar] Stylist found: ${stylist.name}, hasRefreshToken: ${!!stylist.googleRefreshToken}`,
-      );
+    if (stylist?.googleRefreshToken) {
+      const accessToken = await getStylistAccessToken(stylist);
+      if (accessToken) {
+        const calendarId = stylist.googleCalendarId || 'primary';
+        console.log(`[GoogleCalendar] Inserting event to stylist calendar: ${calendarId}`);
 
-      if (stylist.googleRefreshToken) {
-        const stylistCalendar = await initializeStylistCalendar(stylist);
-        if (stylistCalendar) {
-          try {
-            const calendarId = stylist.googleCalendarId || 'primary';
-            console.log(`[GoogleCalendar] Inserting event to calendar: ${calendarId}`);
-            const response = await stylistCalendar.events.insert({
-              calendarId,
-              requestBody: event,
-            });
-            console.log(
-              `[GoogleCalendar] ✅ Event created on stylist ${stylist.name}'s calendar: ${response.data.htmlLink}`,
-            );
-            return response.data.id;
-          } catch (error: any) {
-            console.error(
-              `[GoogleCalendar] ❌ Failed to create event on stylist ${stylist.name}'s calendar:`,
-              {
-                error: error.message,
-                code: error.code,
-                status: error.response?.status,
-                statusText: error.response?.statusText,
-                data: error.response?.data,
-              },
-            );
-            // Fall through to salon calendar
-          }
-        } else {
-          console.warn(`[GoogleCalendar] Could not initialize stylist calendar (returned null)`);
+        const result = await insertEvent(accessToken, calendarId, event);
+        if (result) {
+          console.log(
+            `[GoogleCalendar] ✅ Event created on stylist ${stylist.name}'s calendar: ${result.htmlLink}`,
+          );
+          return result.id;
         }
-      } else {
-        console.warn(
-          `[GoogleCalendar] Stylist ${stylist.name} has no refresh token - calendar not connected`,
-        );
+        console.warn(`[GoogleCalendar] Failed to insert on stylist calendar, falling back...`);
       }
+    } else {
+      console.warn(
+        `[GoogleCalendar] Stylist ${appointment.stylistId} has no Google Calendar connected`,
+      );
     }
-  } else {
-    console.log(`[GoogleCalendar] No stylistId on appointment, skipping stylist calendar`);
   }
 
   // Fallback to salon-wide calendar
   console.log(`[GoogleCalendar] Falling back to salon calendar...`);
-  const salonCalendarClient = initializeSalonCalendar();
-  if (!salonCalendarClient) {
-    console.warn(
-      `[GoogleCalendar] ❌ No salon calendar configured, skipping event creation entirely`,
-    );
+  const salonToken = await getServiceAccountToken();
+  if (!salonToken) {
+    console.warn(`[GoogleCalendar] ❌ No salon calendar configured, skipping event creation`);
     return null;
   }
 
-  try {
-    const calendarId = process.env.GOOGLE_CALENDAR_ID || 'primary';
-    console.log(`[GoogleCalendar] Inserting event to salon calendar: ${calendarId}`);
-    const response = await salonCalendarClient.events.insert({
-      calendarId,
-      requestBody: { ...event, attendees: [{ email: appointment.customerEmail }] },
-    });
+  const calendarId = process.env.GOOGLE_CALENDAR_ID || 'primary';
+  const salonEvent = { ...event, attendees: [{ email: appointment.customerEmail }] };
 
-    console.log(`[GoogleCalendar] ✅ Event created on salon calendar: ${response.data.htmlLink}`);
-    return response.data.id;
-  } catch (error: any) {
-    console.error(`[GoogleCalendar] ❌ Error creating event on salon calendar:`, {
-      error: error.message,
-      code: error.code,
-      status: error.response?.status,
-      data: error.response?.data,
-    });
-    return null;
+  const result = await insertEvent(salonToken, calendarId, salonEvent);
+  if (result) {
+    console.log(`[GoogleCalendar] ✅ Event created on salon calendar: ${result.htmlLink}`);
+    return result.id;
   }
-};
+
+  console.error(`[GoogleCalendar] ❌ Failed to create event on salon calendar`);
+  return null;
+}
 
 /**
  * Updates an existing Google Calendar event.
- * @param eventId The Google Calendar event ID
- * @param appointment The updated appointment details
- * @returns True if successful, false otherwise
  */
-export const updateCalendarEvent = async (
+export async function updateCalendarEvent(
   eventId: string,
   appointment: Appointment,
-): Promise<boolean> => {
-  console.log('Updating Google Calendar event:', eventId);
+): Promise<boolean> {
+  console.log('[GoogleCalendar] Updating event:', eventId);
 
   if (!eventId) {
-    console.log('Missing event ID, skipping update');
+    console.log('[GoogleCalendar] Missing event ID, skipping update');
     return false;
   }
 
@@ -305,64 +491,51 @@ export const updateCalendarEvent = async (
   if (appointment.stylistId) {
     const stylist = await getStylistById(appointment.stylistId);
     if (stylist?.googleRefreshToken) {
-      const stylistCalendar = await initializeStylistCalendar(stylist);
-      if (stylistCalendar) {
-        try {
-          const calendarId = stylist.googleCalendarId || 'primary';
-          await stylistCalendar.events.update({
-            calendarId,
-            eventId,
-            requestBody: event,
-          });
-          console.log(`Calendar event updated on stylist ${stylist.name}'s calendar: ${eventId}`);
+      const accessToken = await getStylistAccessToken(stylist);
+      if (accessToken) {
+        const calendarId = stylist.googleCalendarId || 'primary';
+        const success = await updateEvent(accessToken, calendarId, eventId, event);
+        if (success) {
+          console.log(
+            `[GoogleCalendar] Event updated on stylist ${stylist.name}'s calendar: ${eventId}`,
+          );
           return true;
-        } catch (error: any) {
-          // If event not found on stylist calendar, try salon calendar
-          if (error?.response?.status !== 404) {
-            console.error(`Failed to update event on stylist ${stylist.name}'s calendar:`, error);
-          }
         }
       }
     }
   }
 
   // Fallback to salon calendar
-  const salonCalendarClient = initializeSalonCalendar();
-  if (!salonCalendarClient) {
-    console.log('Google Calendar not configured, skipping update');
+  const salonToken = await getServiceAccountToken();
+  if (!salonToken) {
+    console.log('[GoogleCalendar] No salon calendar configured, skipping update');
     return false;
   }
 
-  try {
-    const calendarId = process.env.GOOGLE_CALENDAR_ID || 'primary';
-    await salonCalendarClient.events.update({
-      calendarId,
-      eventId,
-      requestBody: { ...event, attendees: [{ email: appointment.customerEmail }] },
-    });
+  const calendarId = process.env.GOOGLE_CALENDAR_ID || 'primary';
+  const salonEvent = { ...event, attendees: [{ email: appointment.customerEmail }] };
 
-    console.log(`Google Calendar event updated on salon calendar: ${eventId}`);
+  const success = await updateEvent(salonToken, calendarId, eventId, salonEvent);
+  if (success) {
+    console.log(`[GoogleCalendar] Event updated on salon calendar: ${eventId}`);
     return true;
-  } catch (error) {
-    console.error('Error updating Google Calendar event:', error);
-    return false;
   }
-};
+
+  console.error('[GoogleCalendar] Failed to update event');
+  return false;
+}
 
 /**
  * Deletes a Google Calendar event.
- * @param eventId The Google Calendar event ID
- * @param stylistId Optional stylist ID to try their calendar first
- * @returns True if successful, false otherwise
  */
-export const deleteCalendarEvent = async (
+export async function deleteCalendarEvent(
   eventId: string,
   stylistId?: string | null,
-): Promise<boolean> => {
-  console.log('Deleting Google Calendar event:', eventId);
+): Promise<boolean> {
+  console.log('[GoogleCalendar] Deleting event:', eventId);
 
   if (!eventId) {
-    console.log('Missing event ID, skipping deletion');
+    console.log('[GoogleCalendar] Missing event ID, skipping deletion');
     return false;
   }
 
@@ -370,44 +543,34 @@ export const deleteCalendarEvent = async (
   if (stylistId) {
     const stylist = await getStylistById(stylistId);
     if (stylist?.googleRefreshToken) {
-      const stylistCalendar = await initializeStylistCalendar(stylist);
-      if (stylistCalendar) {
-        try {
-          const calendarId = stylist.googleCalendarId || 'primary';
-          await stylistCalendar.events.delete({
-            calendarId,
-            eventId,
-          });
-          console.log(`Calendar event deleted from stylist ${stylist.name}'s calendar: ${eventId}`);
+      const accessToken = await getStylistAccessToken(stylist);
+      if (accessToken) {
+        const calendarId = stylist.googleCalendarId || 'primary';
+        const success = await deleteEvent(accessToken, calendarId, eventId);
+        if (success) {
+          console.log(
+            `[GoogleCalendar] Event deleted from stylist ${stylist.name}'s calendar: ${eventId}`,
+          );
           return true;
-        } catch (error: any) {
-          // If event not found on stylist calendar, try salon calendar
-          if (error?.response?.status !== 404) {
-            console.error(`Failed to delete event from stylist ${stylist.name}'s calendar:`, error);
-          }
         }
       }
     }
   }
 
   // Fallback to salon calendar
-  const salonCalendarClient = initializeSalonCalendar();
-  if (!salonCalendarClient) {
-    console.log('Google Calendar not configured, skipping deletion');
+  const salonToken = await getServiceAccountToken();
+  if (!salonToken) {
+    console.log('[GoogleCalendar] No salon calendar configured, skipping deletion');
     return false;
   }
 
-  try {
-    const calendarId = process.env.GOOGLE_CALENDAR_ID || 'primary';
-    await salonCalendarClient.events.delete({
-      calendarId,
-      eventId,
-    });
-
-    console.log(`Google Calendar event deleted from salon calendar: ${eventId}`);
+  const calendarId = process.env.GOOGLE_CALENDAR_ID || 'primary';
+  const success = await deleteEvent(salonToken, calendarId, eventId);
+  if (success) {
+    console.log(`[GoogleCalendar] Event deleted from salon calendar: ${eventId}`);
     return true;
-  } catch (error) {
-    console.error('Error deleting Google Calendar event:', error);
-    return false;
   }
-};
+
+  console.error('[GoogleCalendar] Failed to delete event');
+  return false;
+}

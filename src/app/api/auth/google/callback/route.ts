@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import { google } from 'googleapis';
 import {
   updateStylistGoogleTokens,
   markStylistTokenInvalid,
@@ -9,9 +8,82 @@ import { sendCalendarReconnectSuccess } from '@/services/calendarReminderService
 
 export const dynamic = 'force-dynamic';
 
+// Google OAuth token response type
+interface GoogleTokenResponse {
+  access_token: string;
+  refresh_token?: string;
+  expires_in: number;
+  token_type: string;
+  scope: string;
+  error?: string;
+  error_description?: string;
+}
+
+// Google userinfo response type
+interface GoogleUserInfo {
+  id: string;
+  email: string;
+  verified_email: boolean;
+  name?: string;
+  picture?: string;
+}
+
+/**
+ * Exchange authorization code for tokens using native fetch API
+ * (Cloudflare Workers compatible - no Node.js https module needed)
+ */
+async function exchangeCodeForTokens(code: string): Promise<GoogleTokenResponse> {
+  const tokenEndpoint = 'https://oauth2.googleapis.com/token';
+
+  const params = new URLSearchParams({
+    code,
+    client_id: process.env.GOOGLE_OAUTH_CLIENT_ID || '',
+    client_secret: process.env.GOOGLE_OAUTH_CLIENT_SECRET || '',
+    redirect_uri: process.env.GOOGLE_OAUTH_REDIRECT_URI || '',
+    grant_type: 'authorization_code',
+  });
+
+  const response = await fetch(tokenEndpoint, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    body: params.toString(),
+  });
+
+  const data = (await response.json()) as GoogleTokenResponse;
+
+  if (!response.ok || data.error) {
+    throw new Error(data.error_description || data.error || 'Token exchange failed');
+  }
+
+  return data;
+}
+
+/**
+ * Get user info from Google using access token
+ * (Cloudflare Workers compatible - no Node.js https module needed)
+ */
+async function getUserInfo(accessToken: string): Promise<GoogleUserInfo> {
+  const userinfoEndpoint = 'https://www.googleapis.com/oauth2/v2/userinfo';
+
+  const response = await fetch(userinfoEndpoint, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch user info');
+  }
+
+  return (await response.json()) as GoogleUserInfo;
+}
+
 /**
  * GET /api/auth/google/callback
  * Handles the OAuth2 callback from Google, exchanges code for tokens
+ * Uses native fetch API for Cloudflare Workers compatibility
  */
 export async function GET(request: Request) {
   try {
@@ -39,31 +111,20 @@ export async function GET(request: Request) {
       return NextResponse.redirect(new URL('/stylist?google_error=invalid_state', request.url));
     }
 
-    // Create OAuth2 client
-    const oauth2Client = new google.auth.OAuth2(
-      process.env.GOOGLE_OAUTH_CLIENT_ID,
-      process.env.GOOGLE_OAUTH_CLIENT_SECRET,
-      process.env.GOOGLE_OAUTH_REDIRECT_URI,
-    );
-
-    // Exchange authorization code for tokens
-    const { tokens } = await oauth2Client.getToken(code);
-    oauth2Client.setCredentials(tokens);
+    // Exchange authorization code for tokens using fetch API
+    const tokens = await exchangeCodeForTokens(code);
 
     if (!tokens.access_token || !tokens.refresh_token) {
-      console.error('Missing tokens from Google OAuth response');
+      console.error('Missing tokens from Google OAuth response:', tokens);
       return NextResponse.redirect(new URL('/stylist?google_error=missing_tokens', request.url));
     }
 
-    // Get user's email from Google
-    const oauth2 = google.oauth2({ version: 'v2', auth: oauth2Client });
-    const userInfo = await oauth2.userinfo.get();
-    const googleEmail = userInfo.data.email || 'Unknown';
+    // Get user's email from Google using fetch API
+    const userInfo = await getUserInfo(tokens.access_token);
+    const googleEmail = userInfo.email || 'Unknown';
 
-    // Calculate token expiry
-    const tokenExpiry = tokens.expiry_date
-      ? new Date(tokens.expiry_date)
-      : new Date(Date.now() + 3600 * 1000); // Default 1 hour
+    // Calculate token expiry (expires_in is in seconds)
+    const tokenExpiry = new Date(Date.now() + tokens.expires_in * 1000);
 
     // Save tokens to database
     await updateStylistGoogleTokens(stateData.stylistId, {
