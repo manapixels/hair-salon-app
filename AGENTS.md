@@ -1520,3 +1520,14 @@ Each admin page (`/admin/**/page.tsx`) renders only its content - auth and layou
 ---
 
 **Production-ready AI agent system with natural language booking, automated retention, and multi-channel messaging.**
+
+---
+
+## 📅 Production Incident Log
+
+### **2026-01-03: 500 Error on Production (Missing Columns)**
+
+- **Issue**: `signaturetrims.com` crashed with 500 Internal Server Error.
+- **Cause**: Production database was missing `processingWaitTime` and `processingDuration` columns in the `services` table, causing server-side rendering to fail due to schema mismatch. Migration `0005` was partially applied or conflicted.
+- **Resolution**: Created manual script `scripts/fix-db-schema.js` to `ALTER TABLE services` and add the missing columns. Verified site recovery.
+- **Action Item**: Ensure production database migrations are strictly synchronized with deployments.

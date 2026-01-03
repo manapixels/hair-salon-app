@@ -1,4 +1,5 @@
-CREATE TYPE "public"."DepositStatus" AS ENUM('PENDING', 'PAID', 'REFUNDED', 'FORFEITED');--> statement-breakpoint
+-- Type DepositStatus skipped (already exists)
+--> statement-breakpoint
 CREATE TABLE "deposits" (
 	"id" text PRIMARY KEY NOT NULL,
 	"appointmentId" text NOT NULL,
