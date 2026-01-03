@@ -1,5 +1,10 @@
 import type { Appointment, Stylist } from '../types';
-import { getStylistById, updateStylistGoogleTokens, markStylistTokenInvalid } from './database';
+import {
+  getStylistById,
+  updateStylistGoogleTokens,
+  markStylistTokenInvalid,
+  getAdminSettings,
+} from './database';
 
 /**
  * Google Calendar integration for appointment management.
@@ -28,6 +33,7 @@ interface GoogleCalendarEvent {
   id?: string;
   summary: string;
   description: string;
+  location?: string;
   start: { dateTime: string; timeZone: string };
   end: { dateTime: string; timeZone: string };
   reminders?: {
@@ -277,24 +283,46 @@ const CALENDAR_API_BASE = 'https://www.googleapis.com/calendar/v3';
 /**
  * Build the event object for calendar
  */
-function buildCalendarEvent(appointment: Appointment): GoogleCalendarEvent {
-  const eventStartTime = new Date(
-    `${appointment.date.toISOString().split('T')[0]}T${appointment.time}`,
-  );
-  const eventEndTime = new Date(eventStartTime.getTime() + appointment.totalDuration * 60000);
+function buildCalendarEvent(appointment: Appointment, salonAddress: string): GoogleCalendarEvent {
+  // Get date parts from the appointment date
+  // Use local date to avoid timezone conversion issues
+  const appointmentDate = new Date(appointment.date);
+  const year = appointmentDate.getFullYear();
+  const month = String(appointmentDate.getMonth() + 1).padStart(2, '0');
+  const day = String(appointmentDate.getDate()).padStart(2, '0');
+  const dateString = `${year}-${month}-${day}`;
 
-  const stylistInfo = appointment.stylist ? `\nStylist: ${appointment.stylist.name}` : '';
+  // Build datetime string in local timezone format
+  const timeZone = process.env.GOOGLE_CALENDAR_TIMEZONE || 'Asia/Singapore';
+  const startDateTime = `${dateString}T${appointment.time}:00`;
+
+  // Calculate end time
+  const [hours, minutes] = appointment.time.split(':').map(Number);
+  const totalMinutes = hours * 60 + minutes + appointment.totalDuration;
+  const endHours = Math.floor(totalMinutes / 60) % 24;
+  const endMinutes = totalMinutes % 60;
+  const endTime = `${String(endHours).padStart(2, '0')}:${String(endMinutes).padStart(2, '0')}`;
+  const endDateTime = `${dateString}T${endTime}:00`;
+
+  // Build service names for the title
+  const serviceNames =
+    appointment.services
+      .map(s => s.name)
+      .filter(Boolean)
+      .join(', ') || 'Appointment';
+  const stylistName = appointment.stylist?.name || 'Stylist';
 
   return {
-    summary: `Signature Trims: ${appointment.customerName}${appointment.stylist ? ` (${appointment.stylist.name})` : ''}`,
-    description: `Services: ${appointment.services.map(s => s.name).join(', ')}\nCustomer: ${appointment.customerName}\nEmail: ${appointment.customerEmail}${stylistInfo}\nDuration: ${appointment.totalDuration} minutes`,
+    summary: `${serviceNames} with ${stylistName} at Signature Trims`,
+    description: `Services: ${serviceNames}\nStylist: ${stylistName}\nCustomer: ${appointment.customerName}\nEmail: ${appointment.customerEmail}\nDuration: ${appointment.totalDuration} minutes`,
+    location: salonAddress,
     start: {
-      dateTime: eventStartTime.toISOString(),
-      timeZone: process.env.GOOGLE_CALENDAR_TIMEZONE || 'Asia/Singapore',
+      dateTime: startDateTime,
+      timeZone,
     },
     end: {
-      dateTime: eventEndTime.toISOString(),
-      timeZone: process.env.GOOGLE_CALENDAR_TIMEZONE || 'Asia/Singapore',
+      dateTime: endDateTime,
+      timeZone,
     },
     reminders: {
       useDefault: false,
@@ -326,13 +354,19 @@ async function insertEvent(
       body: JSON.stringify(event),
     });
 
+    const responseData = await response.json();
+    console.log('[GoogleCalendar] Insert event response:', {
+      status: response.status,
+      ok: response.ok,
+      data: responseData,
+    });
+
     if (!response.ok) {
-      const error = await response.json();
-      console.error('[GoogleCalendar] Insert event error:', error);
+      console.error('[GoogleCalendar] Insert event error:', responseData);
       return null;
     }
 
-    return (await response.json()) as GoogleCalendarEventResponse;
+    return responseData as GoogleCalendarEventResponse;
   } catch (error) {
     console.error('[GoogleCalendar] Insert event failed:', error);
     return null;
@@ -419,7 +453,11 @@ export async function createCalendarEvent(appointment: Appointment): Promise<str
     time: appointment.time,
   });
 
-  const event = buildCalendarEvent(appointment);
+  // Fetch salon address from database
+  const settings = await getAdminSettings();
+  const salonAddress = settings.businessAddress || 'Signature Trims';
+
+  const event = buildCalendarEvent(appointment, salonAddress);
 
   // Try stylist's personal calendar first
   if (appointment.stylistId) {
@@ -485,7 +523,11 @@ export async function updateCalendarEvent(
     return false;
   }
 
-  const event = buildCalendarEvent(appointment);
+  // Fetch salon address from database
+  const settings = await getAdminSettings();
+  const salonAddress = settings.businessAddress || '';
+
+  const event = buildCalendarEvent(appointment, salonAddress);
 
   // Try stylist's calendar first
   if (appointment.stylistId) {

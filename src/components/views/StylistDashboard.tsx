@@ -43,6 +43,7 @@ export default function StylistDashboard() {
   const [stylistProfile, setStylistProfile] = useState<StylistProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [disconnecting, setDisconnecting] = useState(false);
+  const [syncing, setSyncing] = useState(false);
   const [isEditingName, setIsEditingName] = useState(false);
   const [newName, setNewName] = useState('');
 
@@ -150,6 +151,39 @@ export default function StylistDashboard() {
   const handleConnectGoogle = () => {
     // Redirect to OAuth flow
     window.location.href = '/api/auth/google/connect';
+  };
+
+  const handleSyncCalendar = async () => {
+    setSyncing(true);
+    try {
+      const response = await fetch('/api/stylists/me/sync-calendar', {
+        method: 'POST',
+      });
+
+      const data = (await response.json()) as {
+        syncedCount?: number;
+        failedCount?: number;
+        error?: string;
+      };
+
+      if (response.ok) {
+        if (data.syncedCount && data.syncedCount > 0) {
+          toast.success(`Synced ${data.syncedCount} appointment(s) to calendar`);
+        } else {
+          toast.info('All appointments are already synced');
+        }
+        if (data.failedCount && data.failedCount > 0) {
+          toast.warning(`${data.failedCount} appointment(s) failed to sync`);
+        }
+      } else {
+        toast.error(data.error || 'Failed to sync calendar');
+      }
+    } catch (error) {
+      console.error('Calendar sync error:', error);
+      toast.error('Failed to sync calendar');
+    } finally {
+      setSyncing(false);
+    }
   };
 
   const handleDisconnectGoogle = async () => {
@@ -304,14 +338,24 @@ export default function StylistDashboard() {
                         <p className="text-green-800 font-medium">{stylistProfile?.googleEmail}</p>
                       </div>
                     </div>
-                    <Button
-                      variant="outline"
-                      className="border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 hover:border-red-300 transition-colors w-full sm:w-auto"
-                      onClick={handleDisconnectGoogle}
-                      disabled={disconnecting}
-                    >
-                      {disconnecting ? t('disconnecting') : t('disconnect')}
-                    </Button>
+                    <div className="flex gap-2 w-full sm:w-auto">
+                      <Button
+                        variant="outline"
+                        className="border-green-200 text-green-600 hover:bg-green-50 hover:text-green-700 hover:border-green-300 transition-colors flex-1 sm:flex-none"
+                        onClick={handleSyncCalendar}
+                        disabled={syncing}
+                      >
+                        {syncing ? t('syncing') : t('syncNow')}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className="border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 hover:border-red-300 transition-colors flex-1 sm:flex-none"
+                        onClick={handleDisconnectGoogle}
+                        disabled={disconnecting}
+                      >
+                        {disconnecting ? t('disconnecting') : t('disconnect')}
+                      </Button>
+                    </div>
                   </div>
 
                   <div className="flex gap-3 text-green-800/80 bg-green-100/50 p-4 rounded-lg text-sm">

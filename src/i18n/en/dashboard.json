@@ -221,7 +221,9 @@
     "pleaseLogIn": "Please log in to view your dashboard",
     "loadingAppointments": "Loading appointments...",
     "enterDisplayName": "Enter your display name",
-    "scheduleView": "Schedule View"
+    "scheduleView": "Schedule View",
+    "syncNow": "Sync Now",
+    "syncing": "Syncing..."
   },
   "CustomerDashboard": {
     "welcome": "Welcome back, {name}!",

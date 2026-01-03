@@ -221,7 +221,9 @@
     "pleaseLogIn": "请登录以查看您的仪表板",
     "loadingAppointments": "正在加载预约...",
     "enterDisplayName": "输入您的显示名称",
-    "scheduleView": "日程视图"
+    "scheduleView": "日程视图",
+    "syncNow": "立即同步",
+    "syncing": "同步中..."
   },
   "CustomerDashboard": {
     "welcome": "欢迎回来，{name}！",
