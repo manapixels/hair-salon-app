@@ -84,7 +84,7 @@ const TimeSlotGroup: React.FC<TimeSlotGroupProps> = ({
                 ${
                   isSelected
                     ? 'border-primary bg-stone-100 text-gray-900 shadow-md'
-                    : 'border-gray-200 text-gray-900 hover:border-primary hover:bg-primary/10 hover:shadow-sm'
+                    : 'border-gray-200 text-gray-900 hover:border-primary hover:bg-primary/10 hover:shadow-sm active:border-primary active:bg-primary/5'
                 }
                 ${!available ? 'opacity-50 cursor-not-allowed hover:border-gray-200 hover:bg-transparent hover:shadow-none' : 'cursor-pointer'}
                 ${isSelected && isAnimatingSelection ? 'animate-pulse-selection motion-reduce:animate-none' : ''}

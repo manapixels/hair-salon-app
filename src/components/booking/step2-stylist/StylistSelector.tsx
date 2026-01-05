@@ -113,7 +113,7 @@ export const StylistSelector: React.FC<StylistSelectorProps> = ({
                   <Card
                     key={stylist.id}
                     onClick={() => onStylistSelect(stylist)}
-                    className={`relative cursor-pointer min-h-[44px] transition-all hover:border-primary shadow-none ${
+                    className={`relative cursor-pointer min-h-[44px] transition-all hover:border-primary active:border-primary active-scale shadow-none ${
                       isSelected && 'border-primary bg-primary/10'
                     } ${isSelected && isAnimatingSelection ? 'animate-pulse-selection motion-reduce:animate-none' : ''}`}
                   >

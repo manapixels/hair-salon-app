@@ -34,9 +34,11 @@ export const CategoryCard: React.FC<CategoryCardProps> = ({
       onClick={onClick}
       className={cn(
         'relative h-auto text-left px-5 py-2 flex flex-col items-center justify-between gap-1',
-        'border hover:border-primary focus:ring-2 focus:ring-primary/20 whitespace-normal',
+        'border hover:border-primary active:border-primary focus:ring-2 focus:ring-primary/20 whitespace-normal active:scale-95',
         'transition-all',
-        isSelected ? 'border-primary bg-primary/5 hover:bg-primary/5' : 'bg-white hover:bg-gray-50',
+        isSelected
+          ? 'border-primary bg-primary/5 hover:bg-primary/5'
+          : 'bg-white hover:bg-gray-50 active:bg-gray-50',
         // Pulse animation for pre-selection
         isAnimatingSelection && 'animate-pulse-selection',
         'motion-reduce:animate-none motion-reduce:scale-100',

@@ -211,7 +211,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                 focus:outline-none focus:ring-2 focus:ring-primary active-scale
                 ${isSelected ? 'bg-primary text-white font-semibold' : ''}
                 ${!isSelected && isTodayDate ? 'ring-2 ring-primary ring-offset-2' : ''}
-                ${!isSelected && !isDisabled && isCurrentMonth ? 'hover:bg-primary/10 cursor-pointer' : ''}
+                ${!isSelected && !isDisabled && isCurrentMonth ? 'hover:bg-primary/10 active:bg-primary/10 cursor-pointer' : ''}
                 ${isDisabled || !isCurrentMonth ? 'text-gray-300 cursor-not-allowed' : ''}
                 ${!isDisabled && !isSelected && isCurrentMonth ? 'text-gray-900' : ''}
               `}

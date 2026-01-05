@@ -589,7 +589,7 @@ Please confirm availability. Thank you!`;
         {currentStep === 4 && 'Step 4 of 4: Confirm Your Booking'}
       </div>
 
-      <div className="gap-8 sm:p-6 pb-24 sm:pb-0 lg:pb-0">
+      <div className="gap-8 sm:p-6 pb-12 sm:pb-0">
         <div className="w-full">
           {/* Step 1: Services */}
           <div
@@ -739,17 +739,7 @@ Please confirm availability. Thank you!`;
               </div>
             )}
         </div>
-        {/* To buffer sticky summary on mobile */}
-        <div className={`${currentStep === 4 ? 'pb-4' : 'pb-16'}`}></div>
       </div>
-
-      {/* Sticky Booking Summary */}
-      <BookingSummary
-        totalDuration={totalDuration}
-        currentStep={currentStep}
-        totalSteps={4}
-        onNext={handleNextStep}
-      />
     </div>
   );
 };

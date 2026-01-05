@@ -51,6 +51,32 @@ import { SERVICE_LINKS } from '@/config/navigation';
 
 ---
 
+## 📱 Mobile UX Guidelines
+
+### **Interaction Philosophy**
+
+Touch devices lack a true "hover" state. Tapping an element can cause "sticky" hover styles that persist until another interaction occurs, leading to a confusing user experience.
+
+### **Rules**
+
+1.  **No Hover on Touch**: Disable hover effects on devices that don't support a pointing device (mouse).
+2.  **Explicit Feedback**: Use `:active` states to provide immediate visual feedback during a tap.
+
+### **Implementation Strategy**
+
+1.  **Global Config**: Enable `hoverOnlyWhenSupported` in `tailwind.config.ts`.
+    ```typescript
+    future: {
+      hoverOnlyWhenSupported: true,
+    }
+    ```
+2.  **Component Styling**:
+    - **Avoid**: `hover:bg-primary` (unless wrapped in media query)
+    - **Prefer**: `active:scale-95` (via `.active-scale` utility) or `active:bg-gray-100`.
+    - **Utility**: `src/styles/globals.css` defines `.active-scale`.
+
+---
+
 ## 💰 No-Show Protection (Deposits)
 
 First-time customers (0 completed visits) must pay a deposit to secure their booking.

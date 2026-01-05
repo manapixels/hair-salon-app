@@ -67,14 +67,14 @@ export function BookingModal() {
   if (isMobile) {
     return (
       <Drawer open={isOpen} onOpenChange={open => !open && closeModal()}>
-        <DrawerContent className="max-h-[95vh]">
-          <DrawerHeader>
+        <DrawerContent className="max-h-[95vh] flex flex-col">
+          <DrawerHeader className="flex-none">
             <DrawerTitle>{t('bookYourAppointment')}</DrawerTitle>
             <div className="mt-4">
               <BookingProgress currentStep={currentStep} />
             </div>
           </DrawerHeader>
-          <div className="px-4">{content}</div>
+          <div className="px-4 flex-1 overflow-y-auto pb-safe-bottom">{content}</div>
         </DrawerContent>
       </Drawer>
     );
