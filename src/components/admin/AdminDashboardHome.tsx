@@ -136,7 +136,7 @@ export default function AdminDashboardHome({
       <div className="space-y-6">
         {/* KPI Cards */}
         <section>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-4">
             <KPICard
               title={t('today')}
               value={kpis.today}
@@ -234,7 +234,7 @@ export default function AdminDashboardHome({
         {/* Quick Actions */}
         <section>
           <h2 className="text-lg font-semibold text-foreground mb-4">{t('quickActions')}</h2>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-3">
             <QuickActionCard
               href={`${basePath}/availability`}
               title={t('blockTime')}

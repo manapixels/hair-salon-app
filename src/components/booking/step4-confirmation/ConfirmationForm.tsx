@@ -69,7 +69,7 @@ export const ConfirmationForm: React.FC<ConfirmationFormProps> = ({
         totalDuration={totalDuration}
       />
 
-      <form onSubmit={handleSubmit} className="max-w-lg bg-gray-50/50 rounded-xl">
+      <form onSubmit={handleSubmit} className="mx-auto bg-gray-50/50 rounded-xl">
         <div className="px-6 py-4 space-y-2 mb-2">
           <div className="flex items-center justify-between">
             <div className="text-md font-semibold text-gray-800">{t('bookingUsing')}</div>

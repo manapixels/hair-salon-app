@@ -13,20 +13,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import {
-  Drawer,
-  DrawerContent,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerDescription,
-} from '@/components/ui/drawer';
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
 
 /**
  * Global booking modal that can be triggered from anywhere in the app
  * Uses Drawer for mobile and Dialog for desktop responsive behavior
  */
 export function BookingModal() {
-  const { isOpen, preSelectedCategorySlug, closeModal } = useBookingModal();
+  const { isOpen, preSelectedCategorySlug, preSelectedCategoryId, closeModal } = useBookingModal();
   const bookingFormRef = useRef<HTMLDivElement>(null);
   const [currentStep, setCurrentStep] = useState(1);
   const isMobile = useIsMobile();
@@ -62,14 +56,12 @@ export function BookingModal() {
   }, [isOpen, closeModal, t]);
 
   const content = (
-    <div ref={bookingFormRef} className="max-h-[95vh] overflow-y-auto">
-      <BookingForm
-        preSelectedCategorySlug={preSelectedCategorySlug}
-        preSelectedCategoryId={useBookingModal().preSelectedCategoryId}
-        disableAutoScroll={true}
-        onStepChange={setCurrentStep}
-      />
-    </div>
+    <BookingForm
+      preSelectedCategorySlug={preSelectedCategorySlug}
+      preSelectedCategoryId={preSelectedCategoryId}
+      disableAutoScroll={true}
+      onStepChange={setCurrentStep}
+    />
   );
 
   if (isMobile) {
@@ -78,7 +70,6 @@ export function BookingModal() {
         <DrawerContent className="max-h-[95vh]">
           <DrawerHeader>
             <DrawerTitle>{t('bookYourAppointment')}</DrawerTitle>
-            <DrawerDescription>{t('selectServicesDesc')}</DrawerDescription>
             <div className="mt-4">
               <BookingProgress currentStep={currentStep} />
             </div>
@@ -91,17 +82,25 @@ export function BookingModal() {
 
   return (
     <Dialog open={isOpen} onOpenChange={open => !open && closeModal()}>
-      <DialogContent className="max-h-[95vh] w-full max-w-3xl overflow-y-auto p-0 gap-0">
-        <DialogHeader className="border-b p-6 text-left">
-          <DialogTitle className="text-lg font-semibold">{t('bookYourAppointment')}</DialogTitle>
-          <DialogDescription className="mt-1 text-sm text-gray-600">
-            {t('selectServicesDesc')}
-          </DialogDescription>
-          <div className="mt-4">
-            <BookingProgress currentStep={currentStep} />
+      <DialogContent className="max-h-[95vh] w-full max-w-3xl flex flex-col overflow-hidden p-0 gap-0">
+        <DialogHeader className="border-b p-6 text-left shrink-0">
+          <div className="flex flex-col landscape:flex-row landscape:items-center landscape:gap-8">
+            <DialogTitle className="text-lg font-semibold whitespace-nowrap">
+              {t('bookYourAppointment')}
+            </DialogTitle>
+            <div className="mt-4 landscape:mt-0 landscape:w-1/2 landscape:max-w-xs">
+              <BookingProgress currentStep={currentStep} />
+            </div>
           </div>
         </DialogHeader>
-        {content}
+        <div ref={bookingFormRef} className="flex-1 overflow-y-auto">
+          <BookingForm
+            preSelectedCategorySlug={preSelectedCategorySlug}
+            preSelectedCategoryId={preSelectedCategoryId}
+            disableAutoScroll={true}
+            onStepChange={setCurrentStep}
+          />
+        </div>
       </DialogContent>
     </Dialog>
   );

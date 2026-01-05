@@ -97,7 +97,6 @@
   },
   "BookingForm": {
     "bookYourAppointment": "Book Your Appointment",
-    "selectServicesDesc": "Select your services and preferred stylist to get started.",
     "step1": "1. Choose Your Service",
     "step2": "2. Choose Your Stylist",
     "step3": "3. Select Date & Time",

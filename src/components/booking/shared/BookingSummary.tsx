@@ -63,7 +63,7 @@ export const BookingSummary = memo<BookingSummaryProps>(
     return (
       <div
         className={`
-        fixed bottom-0 left-0 right-0 z-50
+        sticky bottom-0 left-0 right-0 z-50
         bg-white
         border-t border-gray-200
         shadow-lg transition-all duration-300 ease-in-out

@@ -218,7 +218,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
             >
               {format(date, 'd')}
               {isAvailable && !isSelected && isCurrentMonth && !isDisabled && (
-                <span className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-primary" />
+                <span className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-green-500" />
               )}
             </button>
           );

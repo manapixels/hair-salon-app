@@ -168,7 +168,7 @@ export default function AppHeader({ view, onViewChange, serviceLinks }: AppHeade
   return (
     <>
       {/* Desktop Header - Hidden on Mobile */}
-      <header className="hidden md:block sticky top-0 z-50 border-b border-primary/10 bg-stone-50 bg-opacity-50 backdrop-blur-md transition-all duration-300">
+      <header className="hidden xl:block sticky top-0 z-50 border-b border-primary/10 bg-stone-50 bg-opacity-50 backdrop-blur-md transition-all duration-300">
         <nav className="w-full flex items-center justify-between px-6 py-3 lg:px-12">
           <div className="flex items-center gap-6">
             <Link href="/" className="cursor-pointer">

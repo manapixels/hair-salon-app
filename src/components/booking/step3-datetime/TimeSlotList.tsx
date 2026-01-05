@@ -79,11 +79,11 @@ const TimeSlotGroup: React.FC<TimeSlotGroupProps> = ({
               className={`
                 w-full text-left px-5 py-4 md:px-4 md:py-3.5 rounded-lg font-medium
                 border-2 bg-white transition-all duration-200
-                min-h-touch-lg focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2
+                min-h-touch-lg
                 ${available ? 'active-scale' : ''}
                 ${
                   isSelected
-                    ? 'border-primary bg-primary text-white shadow-md'
+                    ? 'border-primary bg-stone-100 text-gray-900 shadow-md'
                     : 'border-gray-200 text-gray-900 hover:border-primary hover:bg-primary/10 hover:shadow-sm'
                 }
                 ${!available ? 'opacity-50 cursor-not-allowed hover:border-gray-200 hover:bg-transparent hover:shadow-none' : 'cursor-pointer'}

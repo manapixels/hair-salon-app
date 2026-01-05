@@ -7,3 +7,4 @@ export { StepIndicator, SimpleStepIndicator } from './StepIndicator';
 export { PreSelectionBanner } from './PreSelectionBanner';
 export { AnimatedStepContainer } from './AnimatedStepContainer';
 export { CancelAppointmentDialog } from './CancelAppointmentDialog';
+export { StepHeader } from './StepHeader';

@@ -1,11 +1,12 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
+import { useTranslations } from 'next-intl';
+
 import type { ServiceCategory } from '@/types';
 import { CategoryCard } from './CategoryCard';
-import { LoadingSpinner } from '@/components/feedback/loaders/LoadingSpinner';
 import { useBookingModal } from '@/context/BookingModalContext';
-import { useTranslations } from 'next-intl';
+import { StepHeader } from '@/components/booking/shared/StepHeader';
 
 interface SimpleCategorySelectorProps {
   selectedCategory: ServiceCategory | null;
@@ -32,15 +33,15 @@ export const SimpleCategorySelector: React.FC<SimpleCategorySelectorProps> = ({
 
   return (
     <div id="service-selector" className="space-y-4">
-      <h2 className="text-xl font-semibold mb-4 text-gray-800">{t('step1')}</h2>
+      <StepHeader title={t('step1')} />
 
-      <p className="text-sm text-gray-600 mb-6">{t('chooseCategoryDesc')}</p>
+      <p className="text-sm text-gray-600 mb-6 px-4 sm:px-6">{t('chooseCategoryDesc')}</p>
 
       <div
         ref={containerRef}
         role="radiogroup"
         aria-label={t('serviceCategories')}
-        className="max-w-2xl grid grid-cols-3 md:grid-cols-6 gap-4 bg-white p-4"
+        className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 bg-white p-4 mx-4 sm:mx-6"
       >
         {bookingCategories.map((category, index) => (
           <CategoryCard

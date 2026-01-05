@@ -252,7 +252,7 @@ export default function StylistDashboard() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
         {/* Profile Section */}
         <div className="lg:col-span-1">
           <Card>
@@ -328,7 +328,7 @@ export default function StylistDashboard() {
             <CardContent>
               {isGoogleConnected && !needsReconnect ? (
                 <div className="bg-green-50/50 rounded-xl border border-green-100 p-6">
-                  <div className="flex items-start sm:items-center justify-between gap-4 flex-col sm:flex-row mb-6">
+                  <div className="flex items-start sm:items-center justify-between gap-4 flex-col xl:flex-row mb-6">
                     <div className="flex items-center gap-4">
                       <div className="bg-green-100 p-3 rounded-full shrink-0">
                         <CheckIcon className="h-4 w-4 text-green-600" />
@@ -377,7 +377,7 @@ export default function StylistDashboard() {
                 </div>
               ) : isGoogleConnected && needsReconnect ? (
                 <div className="bg-amber-50/50 rounded-xl border border-amber-200 p-6">
-                  <div className="flex items-start sm:items-center justify-between gap-4 flex-col sm:flex-row mb-6">
+                  <div className="flex items-start sm:items-center justify-between gap-4 flex-col xl:flex-row mb-6">
                     <div className="flex items-center gap-4">
                       <div className="bg-amber-100 p-3 rounded-full shrink-0">
                         <svg
@@ -469,7 +469,7 @@ export default function StylistDashboard() {
       </div>
 
       {/* Appointments Section - 2 column layout on desktop */}
-      <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="mt-8 grid grid-cols-1 xl:grid-cols-2 gap-8">
         {/* Calendar Grid View */}
         <Card>
           <CardHeader>

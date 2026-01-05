@@ -3,6 +3,7 @@
 import React from 'react';
 import Image from 'next/image';
 import { Check } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 import { Card, CardContent } from '@/components/ui/card';
 import { StylistCardSkeleton } from '@/components/feedback/loaders/StylistCardSkeleton';
@@ -11,7 +12,7 @@ import { EmptyState } from '@/components/feedback/EmptyState';
 import { useDelayedLoading } from '@/hooks/useDelayedLoading';
 import { useStylists } from '@/hooks/queries';
 import type { Service, Stylist, ServiceCategory } from '@/types';
-import { useTranslations } from 'next-intl';
+import { StepHeader } from '@/components/booking/shared/StepHeader';
 
 interface StylistSelectorProps {
   selectedServices: Service[];
@@ -61,7 +62,7 @@ export const StylistSelector: React.FC<StylistSelectorProps> = ({
 
   return (
     <div className="scroll-mt-24" id="stylist-selector" tabIndex={-1}>
-      <h2 className="text-lg font-semibold mb-4 text-gray-800">{t('step2')}</h2>
+      <StepHeader title={t('step2')} />
 
       {/* Screen reader announcement */}
       <div className="sr-only" aria-live="polite" aria-atomic="true">
@@ -71,7 +72,7 @@ export const StylistSelector: React.FC<StylistSelectorProps> = ({
         {!isLoading && stylists.length === 0 && t('noStylistsAvailable')}
       </div>
 
-      <div className="px-4">
+      <div className="px-4 sm:px-6">
         {showLoader || isLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <StylistCardSkeleton count={2} />
