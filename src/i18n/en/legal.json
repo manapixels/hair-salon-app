@@ -30,21 +30,21 @@
       },
       "thirdParty": {
         "title": "3. Third-Party Services",
-        "content": "We use third-party services to support our operations. These providers may have access to your information strictly for the purpose of performing tasks on our behalf:",
+        "content": "We use third-party services to support our operations. These providers may have access to your information strictly for the purpose of performing tasks on our behalf. We do not sell, trade, or otherwise transfer your personal information to outside parties.",
         "items": [
           "Supabase (Database and Authentication)",
           "Google Calendar (Calendar Integration)",
-          "Vercel (Hosting)"
+          "Cloudflare (Hosting & Security)"
         ]
       },
       "googleCalendar": {
         "title": "4. Google Calendar Integration",
         "content": "Our application integrates with Google Calendar to sync appointments for our stylists. We access your Google Calendar data only to:",
         "items": [
-          "View your busy lots to prevent double bookings.",
+          "View your busy slots to prevent double bookings.",
           "Create and manage events for appointments booked through our system."
         ],
-        "assurance": "We do not store your Google Calendar events on our servers unless they are directly related to appointments managed by our system."
+        "assurance": "We do not share, transfer, or disclose your Google user data to any third parties whatsoever. Your data is only used internally by our system to sync appointments with your personal calendar. We do not sell your data. Our use of information received from Google APIs will adhere to the Google API Services User Data Policy, including the Limited Use requirements."
       },
       "security": {
         "title": "5. Data Security",
