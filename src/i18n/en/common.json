@@ -163,6 +163,8 @@
     "timeLabel": "Time",
     "estimatedDuration": "Estimated Duration",
     "confirmationSent": "Confirmation sent to",
+    "confirmationSentWhatsApp": "Confirmation sent to WhatsApp number",
+    "confirmationSentTelegram": "Confirmation sent via Telegram.",
     "makeAnotherBooking": "Make Another Booking",
     "chooseStylist": "Choose Stylist",
     "selectTime": "Select Time",

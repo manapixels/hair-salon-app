@@ -94,6 +94,7 @@ export interface Stylist {
   email?: string; // Optional - may be inherited from linked User
   bio?: string;
   avatar?: string;
+  role?: string;
   specialties: ServiceCategory[]; // Service categories this stylist specializes in
   workingHours: {
     [day: string]: {

@@ -163,6 +163,8 @@
     "timeLabel": "时间",
     "estimatedDuration": "预计时长",
     "confirmationSent": "确认信息已发送至",
+    "confirmationSentWhatsApp": "确认信息已发送至 WhatsApp 号码",
+    "confirmationSentTelegram": "确认信息已通过 Telegram 发送。",
     "makeAnotherBooking": "再次预约",
     "chooseStylist": "选择发型师",
     "selectTime": "选择时间",

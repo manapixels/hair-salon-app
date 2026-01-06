@@ -72,10 +72,10 @@ export const StylistSelector: React.FC<StylistSelectorProps> = ({
         {!isLoading && stylists.length === 0 && t('noStylistsAvailable')}
       </div>
 
-      <div className="px-4 sm:px-6">
+      <div className="px-4 pb-4">
         {showLoader || isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <StylistCardSkeleton count={2} />
+          <div className="flex gap-4 overflow-x-auto pb-4 no-scrollbar">
+            <StylistCardSkeleton count={3} />
           </div>
         ) : error ? (
           <ErrorState
@@ -105,57 +105,69 @@ export const StylistSelector: React.FC<StylistSelectorProps> = ({
             description={t('noStylistsDesc')}
           />
         ) : (
-          <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
-              {stylists.map(stylist => {
-                const isSelected = selectedStylist?.id === stylist.id;
-                return (
-                  <Card
-                    key={stylist.id}
-                    onClick={() => onStylistSelect(stylist)}
-                    className={`relative cursor-pointer min-h-[44px] transition-all hover:border-primary active:border-primary active-scale shadow-none ${
-                      isSelected && 'border-primary bg-primary/10'
-                    } ${isSelected && isAnimatingSelection ? 'animate-pulse-selection motion-reduce:animate-none' : ''}`}
-                  >
-                    <CardContent className="p-4">
-                      {/* Checkmark */}
-                      {isSelected && (
-                        <div
-                          className={`absolute -right-1 -top-1 flex items-center justify-center w-5 h-5 rounded-full bg-primary ${isAnimatingSelection ? 'animate-scale-in' : ''}`}
-                          aria-hidden="true"
-                        >
-                          <Check className="w-3 h-3 text-white" />
-                        </div>
-                      )}
-                      <div className="flex items-center">
-                        {stylist.avatar ? (
-                          <Image
-                            src={stylist.avatar}
-                            alt={stylist.name}
-                            width={52}
-                            height={52}
-                            className="aspect-square rounded-full mr-4 object-cover"
-                          />
-                        ) : (
-                          <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mr-4 shrink-0"></div>
-                        )}
-                        <div className="overflow-hidden flex-1">
-                          <h3 className="text-base font-semibold text-foreground">
-                            {stylist.name}
-                          </h3>
-                        </div>
-                      </div>
-                      {stylist.bio && (
-                        <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
-                          {stylist.bio}
-                        </p>
-                      )}
-                    </CardContent>
-                  </Card>
-                );
-              })}
+          <div className="flex gap-4 overflow-x-auto pb-4 snap-x no-scrollbar">
+            {/* Anyone Available Option */}
+            <div
+              onClick={() => onStylistSelect(null)}
+              className={`
+                relative shrink-0 snap-start cursor-pointer rounded-2xl border-2 transition-all duration-200
+                flex flex-col items-center justify-center py-3 px-4 text-center
+                ${!selectedStylist ? 'border-primary bg-primary/5' : 'border-gray-200 bg-white hover:border-primary/50'}
+              `}
+            >
+              <div className="w-16 h-16 rounded-full bg-white border border-gray-100 flex items-center justify-center mb-3 shadow-sm">
+                <div className="w-14 h-14 rounded-full bg-stone-900 flex items-center justify-center">
+                  <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                  </svg>
+                </div>
+              </div>
+              <h3 className="text-sm font-bold text-gray-900 leading-tight">
+                Anyone
+                <br />
+                available
+              </h3>
             </div>
-          </>
+
+            {/* Stylist Cards */}
+            {stylists.map(stylist => {
+              const isSelected = selectedStylist?.id === stylist.id;
+              return (
+                <div
+                  key={stylist.id}
+                  onClick={() => onStylistSelect(stylist)}
+                  className={`
+                    relative shrink-0 snap-start cursor-pointer rounded-2xl border-2 transition-all duration-200
+                    flex flex-col items-center justify-center py-3 px-4 text-center
+                    ${isSelected ? 'border-primary bg-primary/5' : 'border-gray-200 bg-white hover:border-primary/50'}
+                    ${isSelected && isAnimatingSelection ? 'animate-pulse' : ''}
+                  `}
+                >
+                  {stylist.avatar ? (
+                    <div className="relative w-16 h-16 mb-3">
+                      <Image
+                        src={stylist.avatar}
+                        alt={stylist.name}
+                        fill
+                        className="rounded-full object-cover border border-gray-100 shadow-sm"
+                      />
+                    </div>
+                  ) : (
+                    <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-3 text-2xl font-bold text-gray-400">
+                      {stylist.name.charAt(0)}
+                    </div>
+                  )}
+
+                  <h3 className="text-sm font-bold text-gray-900 truncate w-full px-1">
+                    {stylist.name}
+                  </h3>
+                  <p className="text-xs text-gray-500 mt-0.5 truncate w-full px-1">
+                    {stylist.role || 'Stylist'}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
         )}
       </div>
     </div>

@@ -493,41 +493,28 @@ Please confirm availability. Thank you!`;
 
   if (bookingConfirmed) {
     return (
-      <div className="text-center p-8 bg-white rounded-lg max-w-lg mx-auto">
-        <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-green-100">
-          <Check className="h-10 w-10 text-green-600" aria-hidden="true" />
+      <div className="text-center p-6 bg-white rounded-lg max-w-lg mx-auto">
+        <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100">
+          <Check className="h-6 w-6 text-green-600" aria-hidden="true" />
         </div>
-        <h2 className="mt-4 text-3xl font-bold text-gray-900">{t('bookingConfirmed')}</h2>
-        <p className="mt-2 text-gray-600">
-          {t('thankYou')}, {bookingConfirmed.customerName}.
-        </p>
-        <div className="mt-6 text-left bg-gray-50 p-4 rounded-md space-y-2">
-          <p>
-            <strong>{t('serviceCategoryLabel')}:</strong>{' '}
+        <h2 className="mt-4 text-2xl font-bold text-gray-900">{t('bookingConfirmed')}</h2>
+
+        <div className="mt-6 text-left bg-primary-50 p-4 rounded-md space-y-2 text-gray-700">
+          {t('thankYou')}, {bookingConfirmed.customerName}. Your{' '}
+          <strong>
             {bookingConfirmed.category
               ? getCategoryName(bookingConfirmed.category as ServiceCategory)
               : 'N/A'}
-          </p>
-          {bookingConfirmed.stylist && (
-            <p>
-              <strong>{t('stylistLabel')}:</strong> {bookingConfirmed.stylist.name}
-            </p>
-          )}
-          <p>
-            <strong>{t('dateLabel')}:</strong> {formatDate(bookingConfirmed.date)}
-          </p>
-          <p>
-            <strong>{t('timeLabel')}:</strong> {bookingConfirmed.time}
-          </p>
-          {bookingConfirmed.estimatedDuration && (
-            <p>
-              <strong>{t('estimatedDuration')}:</strong> {bookingConfirmed.estimatedDuration}{' '}
-              {t('minutes')}
-            </p>
-          )}
+          </strong>{' '}
+          appointment has been confirmed with {bookingConfirmed.stylist?.name} on{' '}
+          {format(new Date(bookingConfirmed.date), 'MMMM d, yyyy')} at {bookingConfirmed.time}.
         </div>
         <p className="mt-2 text-sm text-gray-500">
-          {t('confirmationSent')} {bookingConfirmed.customerEmail}.
+          {bookingConfirmed.customerEmail.endsWith('@whatsapp.local')
+            ? `${t('confirmationSentWhatsApp')} ${bookingConfirmed.customerEmail.split('@')[0]}.`
+            : bookingConfirmed.customerEmail.endsWith('@telegram.local')
+              ? t('confirmationSentTelegram')
+              : `${t('confirmationSent')} ${bookingConfirmed.customerEmail}.`}
         </p>
 
         {/* Add to Calendar Dropdown */}
