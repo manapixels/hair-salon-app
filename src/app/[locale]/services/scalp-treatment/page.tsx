@@ -11,11 +11,7 @@ import {
   ServiceCTA,
 } from '@/components/services';
 import { BeforeAfterSlider } from '@/components/ui/BeforeAfterSlider';
-import { getServiceContent } from '@/data/serviceContent';
-import { getServiceCategories } from '@/lib/database';
 import LineWithDiamondDivider from '@/components/services/LineWithDiamondDivider';
-
-// --- Local Components ---
 
 // --- Local Components ---
 
@@ -61,25 +57,10 @@ const ProblemSolution = ({ problem, solution }: { problem: string; solution: str
   </div>
 );
 
-// --- Main Page ---
+// --- Services: Scalp Treatment Page ---
 
 export default async function ScalpTreatmentPage() {
   const t = await getTranslations('Services.ScalpTreatment');
-  // Get static content for scalp treatment service
-  const serviceContent = getServiceContent('scalp-treatment');
-
-  // We don't error if serviceContent is missing for now as we have inline content,
-  // but in a real app we might want to use it or fallback.
-
-  // Fetch service ID from database
-  const categories = await getServiceCategories();
-  const scalpTreatmentService = categories
-    .flatMap(cat => cat.items)
-    .find(service => service.name.toLowerCase().includes('scalp'));
-  const serviceId = scalpTreatmentService?.id;
-  // if (!serviceContent) notFound();
-
-  const servicePrice = 'From $88';
 
   return (
     <div className="bg-white min-h-screen">
@@ -189,7 +170,7 @@ export default async function ScalpTreatmentPage() {
         title={t('cta.title')}
         description={t('cta.description')}
         serviceName="Scalp Treatment"
-        serviceId={serviceId}
+        serviceSlug={'scalp-treatment'}
       />
     </div>
   );

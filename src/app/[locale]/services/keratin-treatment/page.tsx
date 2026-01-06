@@ -11,8 +11,6 @@ import {
   ServiceCTA,
 } from '@/components/services';
 import { BeforeAfterSlider } from '@/components/ui/BeforeAfterSlider';
-import { getServiceContent } from '@/data/serviceContent';
-import { getServiceCategories } from '@/lib/database';
 import LineWithDiamondDivider from '@/components/services/LineWithDiamondDivider';
 
 // --- Local Components ---
@@ -59,22 +57,10 @@ const ProblemSolution = ({ problem, solution }: { problem: string; solution: str
   </div>
 );
 
-// --- Main Page ---
+// --- Services: Keratin Treatment Page ---
 
 export default async function KeratinTreatmentPage() {
   const t = await getTranslations('Services.KeratinTreatment');
-  // Get static content for keratin treatment service
-  const serviceContent = getServiceContent('keratin-treatment');
-
-  // if (!serviceContent) notFound();
-  const servicePrice = 'From $35';
-
-  // Fetch service ID from database
-  const categories = await getServiceCategories();
-  const keratinService = categories
-    .flatMap(cat => cat.items)
-    .find(service => service.name.toLowerCase().includes('keratin'));
-  const serviceId = keratinService?.id;
 
   return (
     <div className="bg-white min-h-screen">
@@ -184,7 +170,7 @@ export default async function KeratinTreatmentPage() {
         title={t('cta.title')}
         description={t('cta.description')}
         serviceName="Keratin Treatment"
-        serviceId={serviceId}
+        serviceSlug={'keratin-treatment'}
       />
     </div>
   );

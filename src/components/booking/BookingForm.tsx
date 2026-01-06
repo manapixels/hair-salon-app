@@ -171,6 +171,13 @@ const BookingForm: React.FC<BookingFormProps> = ({
       categoryToSelect = bookingCategories.find(c => c.slug === preSelectedCategorySlug);
     }
 
+    console.log(
+      categoryToSelect,
+      preSelectedCategoryId,
+      preSelectedCategorySlug,
+      bookingCategories,
+    );
+
     // 2. Execute Pre-selection Animation with pulse feedback
     if (categoryToSelect && !selectedCategory) {
       hasHandledPreSelection.current = true;

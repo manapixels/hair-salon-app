@@ -11,26 +11,12 @@ import {
   ServiceFAQ,
   ServiceCTA,
 } from '@/components/services';
-import { getServiceContent } from '@/data/serviceContent';
-import { getServiceCategories } from '@/lib/database';
 import LineWithDiamondDivider from '@/components/services/LineWithDiamondDivider';
 
-// --- Main Page ---
+// --- Services: Hair Perm Page ---
 
 export default async function HairPermPage() {
   const t = await getTranslations('Services.HairPerm');
-  // Get static content for hair perm service
-  const serviceContent = getServiceContent('hair-perm');
-
-  if (!serviceContent) notFound();
-  const servicePrice = 'From $70';
-
-  // Fetch service ID from database
-  const categories = await getServiceCategories();
-  const hairPermService = categories
-    .flatMap(cat => cat.items)
-    .find(service => service.name.toLowerCase().includes('perm'));
-  const serviceId = hairPermService?.id;
 
   return (
     <div className="bg-white min-h-screen">
@@ -123,7 +109,7 @@ export default async function HairPermPage() {
         title={t('cta.title')}
         description={t('cta.description')}
         serviceName="Hair Perm"
-        serviceId={serviceId}
+        serviceSlug={'hair-perm'}
       />
     </div>
   );

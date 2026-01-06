@@ -1,7 +1,6 @@
 ﻿import React from 'react';
 import { getTranslations } from 'next-intl/server';
 
-import { notFound } from 'next/navigation';
 import {
   ServiceHero,
   ServiceStats,
@@ -11,28 +10,12 @@ import {
   ServiceFAQ,
   ServiceCTA,
 } from '@/components/services';
-import { getServiceContent } from '@/data/serviceContent';
-import { getServiceCategories } from '@/lib/database';
 import LineWithDiamondDivider from '@/components/services/LineWithDiamondDivider';
 
-// --- Main Page ---
-
-// --- Main Page ---
+// --- Services: Hair Colouring Page ---
 
 export default async function HairColouringPage() {
   const t = await getTranslations('Services.HairColouring');
-  // Get static content for hair colouring service
-  const serviceContent = getServiceContent('hair-colouring');
-
-  if (!serviceContent) notFound();
-  const servicePrice = 'From $70';
-
-  // Fetch service ID from database - find first service with "Colouring" in the name
-  const categories = await getServiceCategories();
-  const hairColouringService = categories
-    .flatMap(cat => cat.items)
-    .find(service => service.name.toLowerCase().includes('colouring'));
-  const serviceId = hairColouringService?.id;
 
   return (
     <div className="bg-white min-h-screen">
@@ -116,7 +99,7 @@ export default async function HairColouringPage() {
         title={t('cta.title')}
         description={t('cta.description')}
         serviceName="Hair Colouring"
-        serviceId={serviceId}
+        serviceSlug={'hair-colouring'}
       />
     </div>
   );

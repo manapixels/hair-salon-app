@@ -38,6 +38,7 @@ export const BookingModalProvider: React.FC<BookingModalProviderProps> = ({
 
   const openModal = useCallback((options?: BookingModalOptions) => {
     setIsOpen(true);
+    console.log(options);
     setPreSelectedCategorySlug(options?.preSelectedCategorySlug);
     setPreSelectedCategoryId(options?.preSelectedCategoryId);
   }, []);

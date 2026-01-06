@@ -1,8 +1,6 @@
 ﻿import React from 'react';
 import { getTranslations } from 'next-intl/server';
 
-import { Info } from '@/lib/icons';
-import { notFound } from 'next/navigation';
 import {
   ServiceHero,
   ServiceStats,
@@ -12,28 +10,12 @@ import {
   ServiceFAQ,
   ServiceCTA,
 } from '@/components/services';
-import { getServiceContent } from '@/data/serviceContent';
-import { getServiceCategories } from '@/lib/database';
 import LineWithDiamondDivider from '@/components/services/LineWithDiamondDivider';
 
-// --- Main Page ---
-
-// --- Main Page ---
+// --- Services: Hair Rebonding Page ---
 
 export default async function HairRebondingPage() {
   const t = await getTranslations('Services.HairRebonding');
-  // Get static content for hair rebonding service
-  const serviceContent = getServiceContent('hair-rebonding');
-
-  if (!serviceContent) notFound();
-  const servicePrice = 'From $70';
-
-  // Fetch service ID from database
-  const categories = await getServiceCategories();
-  const hairRebondingService = categories
-    .flatMap(cat => cat.items)
-    .find(service => service.name.toLowerCase().includes('rebonding'));
-  const serviceId = hairRebondingService?.id;
 
   return (
     <div className="bg-white min-h-screen">
@@ -132,7 +114,7 @@ export default async function HairRebondingPage() {
         title={t('cta.title')}
         description={t('cta.description')}
         serviceName="Hair Rebonding"
-        serviceId={serviceId}
+        serviceSlug={'hair-rebonding'}
       />
     </div>
   );
