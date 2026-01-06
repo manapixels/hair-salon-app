@@ -62,9 +62,9 @@ export default async function RootLayout({
               <BookingProvider>
                 <BookingModalProvider bookingCategories={bookingCategories}>
                   <AppHeader serviceLinks={navigationLinks} />
-                  <main className="min-h-screen pb-16 md:pb-0">{children}</main>
-                  <BottomNavigation serviceLinks={navigationLinks} />
+                  <main className="min-h-screen">{children}</main>
                   <AppFooter adminSettings={adminSettings} />
+                  <BottomNavigation serviceLinks={navigationLinks} />
                   <BookingModal />
                 </BookingModalProvider>
               </BookingProvider>

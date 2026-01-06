@@ -20,7 +20,7 @@ export function ServiceTypeCard({ title, description, image }: ServiceTypeCardPr
       </div>
       <div className="p-5 md:p-6">
         <h3 className="text-lg md:text-xl font-bold mb-2 md:mb-3">{title}</h3>
-        <p className="text-stone-600 text-sm md:text-base">{description}</p>
+        <p className="text-stone-600 text-base">{description}</p>
       </div>
     </div>
   );

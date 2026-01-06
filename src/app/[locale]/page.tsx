@@ -69,7 +69,7 @@ export default function HomePage() {
                 sizes="112px"
               />
             </div>
-            <span className="text-primary/80 sm:text-primary font-medium tracking-widest text-xs md:text-sm mb-3 md:mb-4 block">
+            <span className="text-primary font-medium tracking-widest text-xs md:text-sm mb-3 md:mb-4 block">
               {t('est')}
             </span>
             <h1 className="font-serif text-2xl font-semibold sm:font-normal sm:text-4xl md:text-5xl lg:text-7xl text-primary leading-tight mb-0 sm:mb-6">

@@ -13,9 +13,9 @@ export default function PrivacyPolicyPage() {
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
-      <div className="bg-gradient-to-b from-primary/5 to-white py-12 px-4">
+      <div className="bg-gradient-to-b from-primary/5 to-white pt-16 pb-8">
         <div className="container mx-auto max-w-4xl">
-          <h1 className="text-4xl font-serif font-light text-gray-900 mb-4">{t('title')}</h1>
+          <h1 className="text-3xl font-serif font-light text-gray-900 mb-4">{t('title')}</h1>
           <p className="text-gray-500">{t('lastUpdated')}</p>
         </div>
       </div>
@@ -28,7 +28,7 @@ export default function PrivacyPolicyPage() {
           </section>
 
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-4">
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">
               {t('sections.collection.title')}
             </h2>
 
@@ -48,7 +48,7 @@ export default function PrivacyPolicyPage() {
           </section>
 
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-4">
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">
               {t('sections.useOfInfo.title')}
             </h2>
             <ul className="list-disc pl-6 text-gray-600 space-y-2">
@@ -59,7 +59,7 @@ export default function PrivacyPolicyPage() {
           </section>
 
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-4">
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">
               {t('sections.thirdParty.title')}
             </h2>
             <p className="text-gray-600 mb-4">{t('sections.thirdParty.content')}</p>
@@ -71,7 +71,7 @@ export default function PrivacyPolicyPage() {
           </section>
 
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-4">
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">
               {t('sections.googleCalendar.title')}
             </h2>
             <p className="text-gray-600 mb-4">{t('sections.googleCalendar.content')}</p>
@@ -84,42 +84,42 @@ export default function PrivacyPolicyPage() {
           </section>
 
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-4">
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">
               {t('sections.security.title')}
             </h2>
             <p className="text-gray-600">{t('sections.security.content')}</p>
           </section>
 
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-4">
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">
               {t('sections.retention.title')}
             </h2>
             <p className="text-gray-600">{t('sections.retention.content')}</p>
           </section>
 
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-4">
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">
               {t('sections.rights.title')}
             </h2>
             <p className="text-gray-600 mb-4">{t('sections.rights.content')}</p>
           </section>
 
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-4">
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">
               {t('sections.cookies.title')}
             </h2>
             <p className="text-gray-600">{t('sections.cookies.content')}</p>
           </section>
 
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-4">
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">
               {t('sections.changes.title')}
             </h2>
             <p className="text-gray-600">{t('sections.changes.content')}</p>
           </section>
 
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-4">
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">
               {t('sections.contact.title')}
             </h2>
             <p className="text-gray-600">
@@ -132,7 +132,7 @@ export default function PrivacyPolicyPage() {
           <div className="border-t pt-6 mt-8">
             <p className="text-gray-500 text-sm">
               <Link href="/terms" className="text-primary hover:underline">
-                {t('sections.contact.email').includes('signaturetrims@gmail.com')
+                {t('sections.contact.email').includes('admin@signaturetrims.com')
                   ? 'Terms of Service'
                   : '服务条款'}
                 {/* Note: I should ideally use a translation for the link text itself. 

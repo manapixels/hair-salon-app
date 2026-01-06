@@ -100,6 +100,7 @@ export default function InfoPopup({ isOpen, onClose }: InfoPopupProps) {
                     <div className="flex-1 space-y-2">
                       <SkeletonLoader height="h-4" className="w-24" />
                       <SkeletonLoader height="h-4" className="w-full" />
+                      <SkeletonLoader height="h-4" className="w-2/3" />
                     </div>
                   </div>
                 </section>
@@ -129,7 +130,13 @@ export default function InfoPopup({ isOpen, onClose }: InfoPopupProps) {
                     <div className="flex-1 space-y-3">
                       <SkeletonLoader height="h-4" className="w-32" />
                       <div className="space-y-2">
-                        <SkeletonLoader count={7} height="h-4" className="w-full" />
+                        {/* 7 days of hours */}
+                        {Array.from({ length: 7 }).map((_, i) => (
+                          <div key={i} className="flex justify-between items-center">
+                            <SkeletonLoader height="h-4" className="w-20" />
+                            <SkeletonLoader height="h-4" className="w-24" />
+                          </div>
+                        ))}
                       </div>
                     </div>
                   </div>

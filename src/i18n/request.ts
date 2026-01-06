@@ -15,8 +15,8 @@ import zhServices from './zh/services.json';
 import zhLegal from './zh/legal.json';
 
 const messages: Record<string, any> = {
-  en: { ...enCommon, ...enDashboard, ...enServices, Legal: enLegal },
-  zh: { ...zhCommon, ...zhDashboard, ...zhServices, Legal: zhLegal },
+  en: { ...enCommon, ...enDashboard, Services: enServices, Legal: enLegal },
+  zh: { ...zhCommon, ...zhDashboard, Services: zhServices, Legal: zhLegal },
 };
 
 export default getRequestConfig(async ({ requestLocale }) => {

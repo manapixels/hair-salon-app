@@ -13,6 +13,7 @@ import {
 import { BeforeAfterSlider } from '@/components/ui/BeforeAfterSlider';
 import { getServiceContent } from '@/data/serviceContent';
 import { getServiceCategories } from '@/lib/database';
+import LineWithDiamondDivider from '@/components/services/LineWithDiamondDivider';
 
 // --- Local Components ---
 
@@ -142,11 +143,14 @@ export default async function ScalpTreatmentPage() {
         </div>
       </div>
 
+      {/* Section Divider */}
+      <LineWithDiamondDivider />
+
       {/* Process & Aftercare */}
-      <div className="container mx-auto px-6 md:px-12 py-16 bg-white">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="container mx-auto px-6 md:px-12 py-12 bg-white">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-6">
           {/* Left: Process */}
-          <div className="p-8 md:p-12">
+          <div className="md:p-12">
             <h2 className="text-3xl font-serif font-light mb-8">{t('process.title')}</h2>
             <div className="space-y-8">
               {(t.raw('process.steps') as any[]).map((step, index) => (
@@ -164,7 +168,7 @@ export default async function ScalpTreatmentPage() {
           {/* Right: Aftercare */}
           <div className="bg-stone-50 rounded-3xl p-8 md:p-12">
             <h2 className="text-3xl font-serif font-light mb-8">{t('aftercare.title')}</h2>
-            <div className="space-y-4">
+            <div className="space-y-8">
               {(t.raw('aftercare.tips') as any[]).map((tip, index) => (
                 <MaintenanceTip key={index} title={tip.title} text={tip.text} />
               ))}

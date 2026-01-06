@@ -13,9 +13,9 @@ export default function TermsOfServicePage() {
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
-      <div className="bg-gradient-to-b from-primary/5 to-white py-12 px-4">
+      <div className="bg-gradient-to-b from-primary/5 to-white pt-16 pb-8">
         <div className="container mx-auto max-w-4xl">
-          <h1 className="text-4xl font-serif font-light text-gray-900 mb-4">{t('title')}</h1>
+          <h1 className="text-3xl font-serif font-light text-gray-900 mb-4">{t('title')}</h1>
           <p className="text-gray-500">{t('lastUpdated')}</p>
         </div>
       </div>
@@ -24,21 +24,21 @@ export default function TermsOfServicePage() {
       <div className="container mx-auto max-w-4xl px-4 py-8">
         <div className="prose prose-gray max-w-none">
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-4">
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">
               {t('sections.acceptance.title')}
             </h2>
             <p className="text-gray-600 mb-4">{t('sections.acceptance.content')}</p>
           </section>
 
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-4">
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">
               {t('sections.services.title')}
             </h2>
             <p className="text-gray-600 mb-4">{t('sections.services.content')}</p>
           </section>
 
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-4">
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">
               {t('sections.booking.title')}
             </h2>
             <p className="text-gray-600 mb-4">When booking an appointment through our platform:</p>
@@ -59,42 +59,42 @@ export default function TermsOfServicePage() {
           </section>
 
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-4">
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">
               {t('sections.pricing.title')}
             </h2>
             <p className="text-gray-600 mb-4">{t('sections.pricing.content')}</p>
           </section>
 
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-4">
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">
               {t('sections.accounts.title')}
             </h2>
             <p className="text-gray-600 mb-4">{t('sections.accounts.content')}</p>
           </section>
 
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-4">
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">
               {t('sections.intellectualProperty.title')}
             </h2>
             <p className="text-gray-600">{t('sections.intellectualProperty.content')}</p>
           </section>
 
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-4">
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">
               {t('sections.liability.title')}
             </h2>
             <p className="text-gray-600">{t('sections.liability.content')}</p>
           </section>
 
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-4">
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">
               {t('sections.changes.title')}
             </h2>
             <p className="text-gray-600">{t('sections.changes.content')}</p>
           </section>
 
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-4">
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">
               {t('sections.contact.title')}
             </h2>
             <p className="text-gray-600">

@@ -18,7 +18,10 @@ export function ServiceHero({ backgroundImage, badge, headline, subheading }: Se
     >
       <div className="absolute inset-0 bg-black/40" />
       <div className="relative z-10 max-w-4xl mx-auto px-4 md:px-6 pt-[20vh]">
-        <Badge variant="default" className="mb-4 md:mb-6 text-sm md:text-base">
+        <Badge
+          variant="default"
+          className="mb-4 md:mb-6 text-sm md:text-base bg-primary-700 ring ring-primary-700 ring-offset-1"
+        >
           {badge.text}
         </Badge>
         <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold text-white mb-4 md:mb-6 whitespace-pre-line leading-tight">
