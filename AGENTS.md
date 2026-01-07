@@ -51,6 +51,21 @@ import { SERVICE_LINKS } from '@/config/navigation';
 
 ---
 
+## 🏗️ Site Layout & Components
+
+### **Header (`AppHeader.tsx`)**
+
+- **Mental Model**: Desktop = Mega Menu + Actions; Mobile = Drawer.
+- **Social Links**: Desktop header includes direct icon links to Instagram, Facebook, WhatsApp.
+- **Roles**: Context-aware buttons (Admin Panel vs Customer Dashboard).
+
+### **Footer (`AppFooter.tsx`)**
+
+- **Dynamic Content**: Fetches business info (address, hours) from Admin Settings.
+- **Social**: Dedicated column for social connections.
+
+---
+
 ## 📱 Mobile UX Guidelines
 
 ### **Interaction Philosophy**

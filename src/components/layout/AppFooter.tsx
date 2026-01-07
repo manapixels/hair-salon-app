@@ -1,5 +1,7 @@
 import { AdminSettings } from '@/types';
 import { useTranslations, useLocale } from 'next-intl';
+import { Instagram, Facebook } from 'lucide-react';
+import { WhatsAppIcon, TelegramIcon } from '@/lib/icons';
 
 interface AppFooterProps {
   adminSettings: AdminSettings;
@@ -87,6 +89,55 @@ export default function AppFooter({ adminSettings }: AppFooterProps) {
                 <span>{businessPhone}</span>
               </li>
             </ul>
+
+            <div className="mt-8">
+              <h4 className="text-lg font-serif mb-6 text-brand-primary">{t('connectWithUs')}</h4>
+              <div className="flex gap-4">
+                {/* Instagram */}
+                <a
+                  href="https://instagram.com/signaturetrims"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white/70 hover:bg-brand-primary hover:text-white transition-all duration-300"
+                  aria-label="Follow us on Instagram"
+                >
+                  <Instagram className="w-5 h-5" />
+                </a>
+
+                {/* Facebook */}
+                <a
+                  href="https://facebook.com/signaturetrims"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white/70 hover:bg-brand-primary hover:text-white transition-all duration-300"
+                  aria-label="Follow us on Facebook"
+                >
+                  <Facebook className="w-5 h-5" />
+                </a>
+
+                {/* WhatsApp */}
+                <a
+                  href="https://wa.me/1234567890"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white/70 hover:bg-brand-primary hover:text-white transition-all duration-300"
+                  aria-label="Chat with us on WhatsApp"
+                >
+                  <WhatsAppIcon className="w-5 h-5" />
+                </a>
+
+                {/* Telegram */}
+                <a
+                  href="https://t.me/hair_salon_app_bot"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white/70 hover:bg-brand-primary hover:text-white transition-all duration-300"
+                  aria-label="Chat with us on Telegram"
+                >
+                  <TelegramIcon className="w-5 h-5" />
+                </a>
+              </div>
+            </div>
           </div>
           <div>
             <h4 className="text-lg font-serif mb-6 text-brand-primary">{t('hours')}</h4>

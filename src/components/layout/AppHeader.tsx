@@ -13,6 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Instagram, Facebook } from 'lucide-react';
 import {
   Calendar,
   User,
@@ -240,9 +241,44 @@ export default function AppHeader({ view, onViewChange, serviceLinks }: AppHeade
                 {t('prices')}
               </Button>
 
-              <Button variant="ghost" className="px-2" onClick={() => router.push('/#contact')}>
-                {t('contact')}
-              </Button>
+              <div className="flex items-center gap-1 mx-2">
+                <a
+                  href="https://instagram.com/signaturetrims"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="p-2 rounded-full text-foreground/70 hover:text-primary hover:bg-primary/10 transition-colors"
+                  aria-label="Instagram"
+                >
+                  <Instagram className="w-4 h-4" />
+                </a>
+                <a
+                  href="https://facebook.com/signaturetrims"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="p-2 rounded-full text-foreground/70 hover:text-primary hover:bg-primary/10 transition-colors"
+                  aria-label="Facebook"
+                >
+                  <Facebook className="w-4 h-4" />
+                </a>
+                <a
+                  href="https://wa.me/1234567890"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="p-2 rounded-full text-foreground/70 hover:text-primary hover:bg-primary/10 transition-colors"
+                  aria-label="WhatsApp"
+                >
+                  <WhatsAppIcon className="w-4 h-4" />
+                </a>
+                <a
+                  href="https://t.me/hair_salon_app_bot"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="p-2 rounded-full text-foreground/70 hover:text-primary hover:bg-primary/10 transition-colors"
+                  aria-label="Telegram"
+                >
+                  <TelegramIcon className="w-4 h-4" />
+                </a>
+              </div>
               <div className="h-6 w-px bg-gray-200 mx-2"></div>
               <Button
                 variant="outline"
@@ -336,11 +372,11 @@ export default function AppHeader({ view, onViewChange, serviceLinks }: AppHeade
                           Telegram
                         </span>
                       ) : (
-                        <span className="inline-block rounded-full border border-gray-200 px-2 py-0.5 text-[10px] font-medium text-gray-500">
+                        <span className="inline-block rounded-full border border-gray-200 px-2 py-0.5 text-sm font-medium text-gray-500">
                           {user.email}
                         </span>
                       )}
-                      <span className="inline-block rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">
+                      <span className="inline-block rounded-full bg-primary/10 px-2 py-0.5 text-sm font-medium text-primary">
                         {getPrimaryRole(user) === 'ADMIN'
                           ? 'Admin'
                           : getPrimaryRole(user) === 'STYLIST'
