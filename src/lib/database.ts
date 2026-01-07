@@ -591,6 +591,13 @@ export const getAdminSettings = async (): Promise<AdminSettings> => {
   const result = await db.select().from(schema.adminSettings).limit(1);
   const settings = result[0];
 
+  const defaultSocialLinks = {
+    instagram: { url: '', isActive: false },
+    facebook: { url: '', isActive: false },
+    whatsapp: { url: '', isActive: false },
+    telegram: { url: '', isActive: false },
+  };
+
   if (!settings) {
     return {
       weeklySchedule: getDefaultWeeklySchedule(),
@@ -603,6 +610,7 @@ export const getAdminSettings = async (): Promise<AdminSettings> => {
       depositPercentage: 15,
       depositTrustThreshold: 1,
       depositRefundWindowHours: 24,
+      socialLinks: defaultSocialLinks,
     };
   }
 
@@ -641,6 +649,10 @@ export const getAdminSettings = async (): Promise<AdminSettings> => {
     depositPercentage: settings.depositPercentage,
     depositTrustThreshold: settings.depositTrustThreshold,
     depositRefundWindowHours: settings.depositRefundWindowHours,
+    socialLinks:
+      settings.socialLinks && typeof settings.socialLinks === 'object'
+        ? (settings.socialLinks as any)
+        : defaultSocialLinks,
   };
 };
 
@@ -661,6 +673,7 @@ export const updateAdminSettings = async (
         businessAddress: newSettings.businessAddress ?? existing[0].businessAddress,
         businessPhone: newSettings.businessPhone ?? existing[0].businessPhone,
         blockedSlots: (newSettings.blockedSlots ?? currentSettings.blockedSlots) as any,
+        socialLinks: (newSettings.socialLinks ?? currentSettings.socialLinks) as any,
         updatedAt: new Date(),
       })
       .where(eq(schema.adminSettings.id, existing[0].id));
@@ -673,6 +686,7 @@ export const updateAdminSettings = async (
       businessAddress:
         newSettings.businessAddress ?? '930 Yishun Avenue 1 #01-127, Singapore 760930',
       businessPhone: newSettings.businessPhone ?? '(555) 123-4567',
+      socialLinks: (newSettings.socialLinks ?? {}) as any,
     });
   }
 

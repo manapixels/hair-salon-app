@@ -33,3 +33,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: error.message }, { status: 500 });
   }
 }
+
+// PATCH /api/admin/settings - Alias for POST (partial updates)
+export async function PATCH(request: Request) {
+  return POST(request);
+}
