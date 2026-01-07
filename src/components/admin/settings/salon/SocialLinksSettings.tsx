@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -9,6 +10,7 @@ import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
 import { Instagram, Facebook } from 'lucide-react';
 import { WhatsAppIcon, TelegramIcon } from '@/lib/icons';
+import { queryKeys } from '@/hooks/queryKeys';
 import type { SocialLinks } from '@/types';
 
 const defaultSocialLinks: SocialLinks = {
@@ -19,6 +21,7 @@ const defaultSocialLinks: SocialLinks = {
 };
 
 export default function SocialLinksSettings() {
+  const queryClient = useQueryClient();
   const [socialLinks, setSocialLinks] = useState<SocialLinks>(defaultSocialLinks);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -52,6 +55,10 @@ export default function SocialLinksSettings() {
       });
 
       if (!response.ok) throw new Error('Failed to save');
+
+      // Invalidate the admin settings cache so all components refetch
+      await queryClient.invalidateQueries({ queryKey: queryKeys.admin.settings });
+
       toast.success('Social links saved');
     } catch (error) {
       console.error('Failed to save settings:', error);
@@ -109,8 +116,8 @@ export default function SocialLinksSettings() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-semibold text-foreground">Social Links</h2>
-        <p className="text-muted-foreground mt-1">
+        <h2 className="text-2xl font-semibold text-foreground mb-1">Social Links</h2>
+        <p className="text-muted-foreground">
           Configure social media links displayed in the header, footer, and info popup
         </p>
       </div>

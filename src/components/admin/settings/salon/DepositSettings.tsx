@@ -78,8 +78,8 @@ export default function DepositSettings() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-semibold text-foreground">No-Show Protection</h2>
-        <p className="text-muted-foreground mt-1">
+        <h2 className="text-2xl font-semibold text-foreground mb-1">No-Show Protection</h2>
+        <p className="text-muted-foreground">
           Require deposits from first-time customers to reduce no-shows
         </p>
       </div>

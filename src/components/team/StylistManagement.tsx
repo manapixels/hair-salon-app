@@ -244,11 +244,11 @@ export default function StylistManagement({
                         'sunday',
                       ] as const
                     ).map(day => {
-                      const hours = stylist.workingHours[day];
+                      const hours = stylist.workingHours?.[day];
                       return (
                         <div key={day} className="flex justify-between">
                           <span className="capitalize font-medium">{day.slice(0, 3)}:</span>
-                          <span>{hours.isWorking ? `${hours.start}-${hours.end}` : t('off')}</span>
+                          <span>{hours?.isWorking ? `${hours.start}-${hours.end}` : t('off')}</span>
                         </div>
                       );
                     })}

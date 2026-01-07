@@ -148,10 +148,8 @@ export default function ServicesSettings() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-semibold text-foreground">Services & Pricing</h2>
-        <p className="text-muted-foreground mt-1">
-          Manage service details, pricing, and availability
-        </p>
+        <h2 className="text-2xl font-semibold text-foreground mb-1">Services & Pricing</h2>
+        <p className="text-muted-foreground">Manage service details, pricing, and availability</p>
       </div>
 
       <Tabs value={activeCategory} onValueChange={setActiveCategory}>

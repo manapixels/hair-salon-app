@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import Image from 'next/image';
 import { toast } from 'sonner';
 import type { DateRange } from 'react-day-picker';
 import * as Select from '@radix-ui/react-select';
@@ -9,7 +10,17 @@ import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import type { Stylist, BlockedPeriod } from '@/types';
-import { Plus, X, ChevronDown } from '@/lib/icons';
+import { Plus, X, ChevronDown, User } from '@/lib/icons';
+
+const DAYS_ORDER = [
+  'monday',
+  'tuesday',
+  'wednesday',
+  'thursday',
+  'friday',
+  'saturday',
+  'sunday',
+] as const;
 
 interface StylistAvailabilityProps {
   onNavigateToStylists?: () => void;
@@ -304,12 +315,29 @@ export default function StylistAvailability({ onNavigateToStylists }: StylistAva
           {/* Stylist Info Card */}
           <div className="bg-muted border border-border rounded-lg p-4">
             <div className="flex items-start justify-between">
-              <div>
-                <h4 className="text-base font-bold text-foreground mb-1">{selectedStylist.name}</h4>
-                <p className="text-sm text-muted-foreground mb-2">{selectedStylist.email}</p>
-                {selectedStylist.bio && (
-                  <p className="text-sm text-muted-foreground">{selectedStylist.bio}</p>
-                )}
+              <div className="flex items-center gap-3">
+                {/* Avatar */}
+                <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-200 flex-shrink-0">
+                  {selectedStylist.avatar ? (
+                    <Image
+                      src={selectedStylist.avatar}
+                      alt={selectedStylist.name}
+                      width={48}
+                      height={48}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <User className="w-6 h-6 text-gray-400" />
+                    </div>
+                  )}
+                </div>
+                <div>
+                  <h4 className="text-base font-bold text-foreground">{selectedStylist.name}</h4>
+                  {selectedStylist.email && (
+                    <p className="text-sm text-muted-foreground">{selectedStylist.email}</p>
+                  )}
+                </div>
               </div>
               {onNavigateToStylists && (
                 <button
@@ -324,21 +352,22 @@ export default function StylistAvailability({ onNavigateToStylists }: StylistAva
 
           {/* Working Hours */}
           <div>
-            <h4 className="text-[length:var(--font-size-3)] font-semibold text-foreground mb-[3]">
-              Working Hours
-            </h4>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1">
-              {Object.entries(selectedStylist.workingHours).map(([day, hours]) => (
-                <div
-                  key={day}
-                  className="flex items-center justify-between p-[3] bg-muted border border-border rounded-md"
-                >
-                  <span className="text-sm font-medium text-foreground capitalize">{day}</span>
-                  <span className="text-sm text-muted-foreground">
-                    {hours.isWorking ? `${hours.start} - ${hours.end}` : 'Off'}
-                  </span>
-                </div>
-              ))}
+            <h4 className="text-base font-semibold text-foreground mb-3">Working Hours</h4>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {DAYS_ORDER.map(day => {
+                const hours = selectedStylist.workingHours?.[day];
+                return (
+                  <div
+                    key={day}
+                    className="flex items-center justify-between px-3 py-2 bg-muted border border-border rounded-md"
+                  >
+                    <span className="text-sm font-medium text-foreground capitalize">{day}</span>
+                    <span className="text-sm text-muted-foreground">
+                      {hours?.isWorking ? `${hours.start} - ${hours.end}` : 'Off'}
+                    </span>
+                  </div>
+                );
+              })}
             </div>
           </div>
 
