@@ -22,6 +22,7 @@ import OAuthLoginModal from '../auth/OAuthLoginModal';
 import { LanguageSwitcher } from '../common/LanguageSwitcher';
 import { useTranslations } from 'next-intl';
 import { isAdmin, isStylist, isCustomer, getPrimaryRole } from '@/lib/roleHelpers';
+import { TelegramIcon, WhatsAppIcon } from '@/lib/icons';
 
 interface AccountPopupProps {
   isOpen: boolean;
@@ -107,27 +108,38 @@ export default function AccountPopup({ isOpen, onClose }: AccountPopupProps) {
                       </Avatar>
                       <div>
                         <p className="font-semibold text-gray-900 text-lg">{user.name}</p>
-                        <p className="text-sm text-gray-500">{user.email}</p>
-                        <div className="flex flex-wrap gap-1 mt-1">
-                          {user.roles?.map(role => (
-                            <span
-                              key={role}
-                              className={cn(
-                                'inline-block rounded-full px-2 py-0.5 text-[10px] font-medium border',
-                                role === 'ADMIN'
-                                  ? 'bg-purple-100 text-purple-700 border-purple-200'
-                                  : role === 'STYLIST'
-                                    ? 'bg-indigo-100 text-indigo-700 border-indigo-200'
-                                    : 'bg-blue-100 text-blue-700 border-blue-200',
-                              )}
-                            >
-                              {role === 'ADMIN'
-                                ? 'Admin'
-                                : role === 'STYLIST'
-                                  ? 'Stylist'
-                                  : 'Customer'}
+                        <div className="flex items-center gap-2 flex-wrap">
+                          {user.email.endsWith('@whatsapp.local') ? (
+                            <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-green-100 px-3 py-0.5 text-sm font-medium text-green-800">
+                              <WhatsAppIcon className="w-4 h-4 mr-1" />
+                              WhatsApp {user.email.split('@')[0]}
                             </span>
-                          ))}
+                          ) : user.email.endsWith('@telegram.local') ? (
+                            <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-blue-100 px-3 py-0.5 text-sm font-medium text-blue-800">
+                              <TelegramIcon className="w-4 h-4 mr-1" />
+                              Telegram
+                            </span>
+                          ) : (
+                            <span className="inline-block whitespace-nowrap rounded-full border border-gray-200 px-3 py-0.5 text-sm font-medium text-gray-500">
+                              {user.email}
+                            </span>
+                          )}
+                          <div className="flex flex-wrap gap-1">
+                            {user.roles?.map(role => (
+                              <span
+                                key={role}
+                                className={cn(
+                                  'inline-block rounded-full px-3 py-0.5 text-sm font-medium border border-primary text-primary',
+                                )}
+                              >
+                                {role === 'ADMIN'
+                                  ? 'Admin'
+                                  : role === 'STYLIST'
+                                    ? 'Stylist'
+                                    : 'Customer'}
+                              </span>
+                            ))}
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -174,7 +186,7 @@ export default function AccountPopup({ isOpen, onClose }: AccountPopupProps) {
                           className="flex items-center justify-between p-4 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors group"
                         >
                           <div className="flex items-center gap-3">
-                            <div className="p-2 bg-indigo-100 rounded-lg text-indigo-600">
+                            <div className="p-2 text-primary">
                               <CalendarDays className="w-5 h-5" />
                             </div>
                             <span className="font-medium text-gray-900">

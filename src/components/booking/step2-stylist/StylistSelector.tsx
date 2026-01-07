@@ -123,9 +123,7 @@ export const StylistSelector: React.FC<StylistSelectorProps> = ({
                 </div>
               </div>
               <h3 className="text-sm font-bold text-gray-900 leading-tight">
-                Anyone
-                <br />
-                available
+                {t('anyAvailableStylist')}
               </h3>
             </div>
 
@@ -162,7 +160,7 @@ export const StylistSelector: React.FC<StylistSelectorProps> = ({
                     {stylist.name}
                   </h3>
                   <p className="text-xs text-gray-500 mt-0.5 truncate w-full px-1">
-                    {stylist.role || 'Stylist'}
+                    {stylist.role || t('stylist')}
                   </p>
                 </div>
               );

@@ -13,7 +13,16 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Calendar, User, Shield, LogIn, LogOut, ChevronDown } from '@/lib/icons';
+import {
+  Calendar,
+  User,
+  Shield,
+  LogIn,
+  LogOut,
+  ChevronDown,
+  WhatsAppIcon,
+  TelegramIcon,
+} from '@/lib/icons';
 import Image from 'next/image';
 import Link from 'next/link';
 import Logo from './Logo';
@@ -323,15 +332,31 @@ export default function AppHeader({ view, onViewChange, serviceLinks }: AppHeade
                   align="end"
                 >
                   <div className="px-3 py-2.5 border-b border-gray-100">
-                    <p className="text-sm font-semibold text-gray-900">{user.name}</p>
-                    <p className="text-xs text-gray-500">{user.email}</p>
-                    <span className="mt-1.5 inline-block rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">
-                      {getPrimaryRole(user) === 'ADMIN'
-                        ? 'Admin'
-                        : getPrimaryRole(user) === 'STYLIST'
-                          ? 'Stylist'
-                          : 'Customer'}
-                    </span>
+                    <p className="text-sm font-semibold text-gray-900 mb-1">{user.name}</p>
+                    <div className="flex gap-1 items-center">
+                      {user.email.endsWith('@whatsapp.local') ? (
+                        <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-green-100 px-3 py-0.5 text-sm font-medium text-green-800">
+                          <WhatsAppIcon className="w-4 h-4 mr-1" />
+                          WhatsApp {user.email.split('@')[0]}
+                        </span>
+                      ) : user.email.endsWith('@telegram.local') ? (
+                        <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-blue-100 px-3 py-0.5 text-sm font-medium text-blue-800">
+                          <TelegramIcon className="w-4 h-4 mr-1" />
+                          Telegram
+                        </span>
+                      ) : (
+                        <span className="inline-block rounded-full border border-gray-200 px-2 py-0.5 text-[10px] font-medium text-gray-500">
+                          {user.email}
+                        </span>
+                      )}
+                      <span className="inline-block rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">
+                        {getPrimaryRole(user) === 'ADMIN'
+                          ? 'Admin'
+                          : getPrimaryRole(user) === 'STYLIST'
+                            ? 'Stylist'
+                            : 'Customer'}
+                      </span>
+                    </div>
                   </div>
 
                   {/* Customer Dashboard Link */}

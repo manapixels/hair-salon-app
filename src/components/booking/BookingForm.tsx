@@ -577,10 +577,10 @@ Please confirm availability. Thank you!`;
     <div className="relative">
       {/* Screen reader announcements */}
       <div role="status" aria-live="polite" aria-atomic="true" className="sr-only">
-        {currentStep === 1 && 'Step 1 of 4: Select Services'}
-        {currentStep === 2 && 'Step 2 of 4: Choose Your Stylist'}
-        {currentStep === 3 && 'Step 3 of 4: Select Date and Time'}
-        {currentStep === 4 && 'Step 4 of 4: Confirm Your Booking'}
+        {currentStep === 1 && t('ariaStep1')}
+        {currentStep === 2 && t('ariaStep2')}
+        {currentStep === 3 && t('ariaStep3')}
+        {currentStep === 4 && t('ariaStep4')}
       </div>
 
       <div className="gap-8 sm:p-6 pb-12 sm:pb-0">
@@ -639,7 +639,7 @@ Please confirm availability. Thank you!`;
                     <CollapsedStepSummary
                       selectionType={t('stylist')}
                       selection={
-                        selectedStylist ? selectedStylist.name : 'No preference (Quick Book)'
+                        selectedStylist ? selectedStylist.name : t('noPreferenceQuickBook')
                       }
                       onEdit={() => handleEditStep(2)}
                       id="step-2-heading"

@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
+import { useTranslations } from 'next-intl';
 import { groupSlotsByPeriod } from '@/lib/timeUtils';
 
 interface TimeSlot {
@@ -117,6 +118,7 @@ export const TimeSlotList: React.FC<TimeSlotListProps> = ({
   loading = false,
   isAnimatingSelection = false,
 }) => {
+  const t = useTranslations('BookingForm');
   const grouped = useMemo(() => groupSlotsByPeriod(slots), [slots]);
 
   if (loading) {
@@ -145,8 +147,8 @@ export const TimeSlotList: React.FC<TimeSlotListProps> = ({
             d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
           />
         </svg>
-        <p className="mt-4 text-gray-600 font-medium">No available time slots</p>
-        <p className="text-sm text-gray-500 mt-1">Try selecting a different date</p>
+        <p className="mt-4 text-gray-600 font-medium">{t('noSlotsForDate')}</p>
+        <p className="text-sm text-gray-500 mt-1">{t('tryDifferent')}</p>
       </div>
     );
   }
@@ -154,7 +156,7 @@ export const TimeSlotList: React.FC<TimeSlotListProps> = ({
   return (
     <div className="space-y-6" role="radiogroup" aria-label="Available time slots">
       <TimeSlotGroup
-        title="Morning"
+        title={t('morning')}
         icon={<SunIcon />}
         slots={grouped.morning}
         selectedTime={selectedTime}
@@ -163,7 +165,7 @@ export const TimeSlotList: React.FC<TimeSlotListProps> = ({
       />
 
       <TimeSlotGroup
-        title="Afternoon"
+        title={t('afternoon')}
         icon={<CloudIcon />}
         slots={grouped.afternoon}
         selectedTime={selectedTime}
@@ -172,7 +174,7 @@ export const TimeSlotList: React.FC<TimeSlotListProps> = ({
       />
 
       <TimeSlotGroup
-        title="Evening"
+        title={t('evening')}
         icon={<MoonIcon />}
         slots={grouped.evening}
         selectedTime={selectedTime}

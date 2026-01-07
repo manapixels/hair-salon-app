@@ -206,7 +206,7 @@
     "calendarTitle": "Google Calendar",
     "connected": "Connected",
     "connectedDescription": "Your appointments will automatically sync to your Google Calendar.",
-    "disconnect": "Disconnect Google Calendar",
+    "disconnect": "Disconnect",
     "disconnecting": "Disconnecting...",
     "notConnected": "Not Connected",
     "notConnectedDescription": "Connect your Google Calendar to automatically sync appointments assigned to you.",

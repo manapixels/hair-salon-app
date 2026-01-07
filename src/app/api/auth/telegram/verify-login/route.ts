@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
 </html>`,
       {
         status: 200,
-        headers: { 'Content-Type': 'text/html' },
+        headers: { 'Content-Type': 'text/html; charset=utf-8' },
       },
     );
   }
@@ -256,7 +256,7 @@ Thank you for choosing Signature Trims! 💇‍♀️`;
 
     return new NextResponse(successHtml, {
       status: 200,
-      headers: { 'Content-Type': 'text/html' },
+      headers: { 'Content-Type': 'text/html; charset=utf-8' },
     });
   } catch (error) {
     console.error('[VERIFY-LOGIN] EXCEPTION during verification:', error);

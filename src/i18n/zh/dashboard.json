@@ -206,7 +206,7 @@
     "calendarTitle": "谷歌日历",
     "connected": "已连接",
     "connectedDescription": "您的预约将自动同步到您的谷歌日历。",
-    "disconnect": "断开谷歌日历",
+    "disconnect": "断开",
     "disconnecting": "正在断开...",
     "notConnected": "未连接",
     "notConnectedDescription": "连接您的谷歌日历，自动同步分配给您的预约。",

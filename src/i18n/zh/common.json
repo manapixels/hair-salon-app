@@ -186,7 +186,12 @@
     "dismissBanner": "关闭",
     "addToCalendar": "添加到日历",
     "googleCalendar": "Google 日历",
-    "appleCalendar": "Apple 日历"
+    "appleCalendar": "Apple 日历",
+    "noPreferenceQuickBook": "无偏好（快速预约）",
+    "ariaStep1": "第 1 步，共 4 步：选择服务",
+    "ariaStep2": "第 2 步，共 4 步：选择发型师",
+    "ariaStep3": "第 3 步，共 4 步：选择日期和时间",
+    "ariaStep4": "第 4 步，共 4 步：确认您的预约"
   },
   "Layout": {
     "header": {
