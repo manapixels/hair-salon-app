@@ -317,7 +317,7 @@ export default function AppHeader({ view, onViewChange, serviceLinks }: AppHeade
                   <NotificationBadge count={appointmentCount} />
                 </div>
               )}
-              {/* Admin Panel Button */}
+              {/* Admin Dashboard Button */}
               {user && isAdmin(user) && (
                 <Button
                   variant={activeView === 'admin' ? 'default' : 'outline'}
@@ -326,7 +326,7 @@ export default function AppHeader({ view, onViewChange, serviceLinks }: AppHeade
                   onClick={() => handleNavigation('admin', '/admin')}
                 >
                   <Shield className="h-4 w-4" aria-hidden="true" />
-                  {tAccount('adminPanel')}
+                  {tAccount('adminDashboard')}
                 </Button>
               )}
               {/* Stylist Dashboard Button - Now visible to Admins who are also Stylists */}
@@ -422,14 +422,14 @@ export default function AppHeader({ view, onViewChange, serviceLinks }: AppHeade
                     </DropdownMenuItem>
                   )}
 
-                  {/* Admin Panel Link */}
+                  {/* Admin Dashboard Link */}
                   {isAdmin(user) && activeView !== 'admin' && (
                     <DropdownMenuItem
                       className="flex cursor-pointer items-center gap-2.5 rounded-md px-3 py-2 text-sm text-gray-700 outline-none transition-colors hover:bg-gray-100 focus:bg-gray-100"
                       onSelect={() => router.push('/admin')}
                     >
                       <Shield className="h-4 w-4" aria-hidden="true" />
-                      <span>{tAccount('adminPanel')}</span>
+                      <span>{tAccount('adminDashboard')}</span>
                     </DropdownMenuItem>
                   )}
 

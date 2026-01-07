@@ -37,7 +37,7 @@
   "AccountPopup": {
     "title": "账户",
     "dashboard": "仪表板",
-    "adminPanel": "管理面板",
+    "adminDashboard": "管理仪表板",
     "stylistDashboard": "发型师仪表板",
     "logOut": "退出登录",
     "loggingOut": "正在退出...",

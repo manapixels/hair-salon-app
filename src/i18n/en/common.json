@@ -37,7 +37,7 @@
   "AccountPopup": {
     "title": "Account",
     "dashboard": "Dashboard",
-    "adminPanel": "Admin Panel",
+    "adminDashboard": "Admin Dashboard",
     "stylistDashboard": "Stylist Dashboard",
     "logOut": "Log Out",
     "loggingOut": "Logging Out...",

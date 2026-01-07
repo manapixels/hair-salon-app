@@ -57,7 +57,7 @@ import { SERVICE_LINKS } from '@/config/navigation';
 
 - **Mental Model**: Desktop = Mega Menu + Actions; Mobile = Drawer.
 - **Social Links**: Desktop header includes direct icon links to Instagram, Facebook, WhatsApp.
-- **Roles**: Context-aware buttons (Admin Panel vs Customer Dashboard).
+- **Roles**: Context-aware buttons (Admin Dashboard vs Customer Dashboard).
 
 ### **Footer (`AppFooter.tsx`)**
 
@@ -175,7 +175,7 @@ The app has **separate dashboard experiences** for admins and stylists:
 
 | Route        | Layout                  | Access          | Component                                 |
 | ------------ | ----------------------- | --------------- | ----------------------------------------- |
-| `/admin/*`   | `AdminLayout` (sidebar) | `isAdmin(user)` | Full admin panel                          |
+| `/admin/*`   | `AdminLayout` (sidebar) | `isAdmin(user)` | Full admin dashboard                      |
 | `/dashboard` | Basic page (no sidebar) | Logged-in users | `StylistDashboard` or `CustomerDashboard` |
 
 **Key routing files:**
@@ -195,7 +195,7 @@ The app has **separate dashboard experiences** for admins and stylists:
 - Support: Chat, Knowledge Base
 - Settings: Business Info, Operating Hours, Closures, Services
 
-**Admin+Stylist users:** Can access "My Stylist Profile" link in admin sidebar to view stylist-specific features (Google Calendar, personal appointments) without leaving the admin panel.
+**Admin+Stylist users:** Can access "My Stylist Profile" link in admin sidebar to view stylist-specific features (Google Calendar, personal appointments) without leaving the admin dashboard.
 
 ---
 

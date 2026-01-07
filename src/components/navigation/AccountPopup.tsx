@@ -173,7 +173,7 @@ export default function AccountPopup({ isOpen, onClose }: AccountPopupProps) {
                             <div className="p-2 bg-purple-100 rounded-lg text-purple-600">
                               <Shield className="w-5 h-5" />
                             </div>
-                            <span className="font-medium text-gray-900">{t('adminPanel')}</span>
+                            <span className="font-medium text-gray-900">{t('adminDashboard')}</span>
                           </div>
                           <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-gray-600" />
                         </Link>

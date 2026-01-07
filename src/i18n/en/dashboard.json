@@ -1,7 +1,6 @@
 {
   "AdminNavigation": {
     "sections": {
-      "quickGlance": "Quick Glance",
       "bookings": "Bookings",
       "people": "People",
       "support": "Support",

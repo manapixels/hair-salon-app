@@ -93,9 +93,6 @@ export default function AdminLayout({
         {/* Desktop Sidebar */}
         <aside className="hidden lg:block w-64 border-r border-border bg-background shrink-0">
           <div className="sticky top-20 p-6">
-            <h1 className="text-xl font-serif font-light text-foreground mb-6">
-              {t('adminDashboard')}
-            </h1>
             <AdminNavigation badges={badges} />
           </div>
         </aside>

@@ -1,7 +1,6 @@
 {
   "AdminNavigation": {
     "sections": {
-      "quickGlance": "概览",
       "bookings": "预约",
       "people": "人员",
       "support": "支持",

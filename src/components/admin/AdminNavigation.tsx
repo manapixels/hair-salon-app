@@ -37,7 +37,7 @@ interface NavigationItem {
 }
 
 interface NavigationGroup {
-  label: string;
+  label?: string;
   items: NavigationItem[];
 }
 
@@ -58,16 +58,12 @@ export default function AdminNavigation({
   const pathname = usePathname();
   const router = useRouter();
   const locale = useLocale();
-  const { user } = useAuth();
 
   const t = useTranslations('AdminNavigation');
-
   const basePath = `/${locale}/admin`;
-  const showStylistProfile = user && isStylist(user);
 
   const navigationGroups: NavigationGroup[] = [
     {
-      label: t('sections.quickGlance'),
       items: [
         {
           id: 'home',
@@ -157,11 +153,13 @@ export default function AdminNavigation({
 
   return (
     <nav className={cn('space-y-6', className)}>
-      {navigationGroups.map(group => (
-        <div key={group.label}>
-          <h3 className="px-3 mb-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-            {group.label}
-          </h3>
+      {navigationGroups.map((group, index) => (
+        <div key={`nav-group-${index}`}>
+          {group.label && (
+            <h3 className="px-3 mb-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+              {group.label}
+            </h3>
+          )}
           <ul className="space-y-1">
             {group.items.map(item => {
               const active = isActive(item.href);
