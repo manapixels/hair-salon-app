@@ -153,15 +153,21 @@ export async function deleteService(serviceId: string) {
   try {
     const db = await getDb();
 
+    // Delete associated tag relations first
     await db
-      .update(schema.services)
-      .set({ isActive: false, updatedAt: new Date() })
-      .where(eq(schema.services.id, serviceId));
+      .delete(schema.serviceTagRelations)
+      .where(eq(schema.serviceTagRelations.serviceId, serviceId));
+
+    // Delete associated addons
+    await db.delete(schema.serviceAddons).where(eq(schema.serviceAddons.serviceId, serviceId));
+
+    // Delete the service itself (hard delete)
+    await db.delete(schema.services).where(eq(schema.services.id, serviceId));
 
     // Revalidate caches
     revalidateTag(CACHE_TAGS.SERVICES);
-    revalidateTag(CACHE_TAGS.SERVICE_BY_ID(serviceId));
     revalidateTag(CACHE_TAGS.SERVICE_CATEGORIES);
+    revalidateTag(CACHE_TAGS.SERVICE_BY_ID(serviceId));
 
     console.log(`[Revalidation] Service ${serviceId} deleted, caches invalidated`);
 
@@ -202,5 +208,113 @@ export async function updateServiceTags(serviceId: string, tagIds: string[]) {
   } catch (error) {
     console.error('Failed to update service tags:', error);
     throw new Error('Failed to update service tags');
+  }
+}
+
+/**
+ * Create a new addon for a service
+ */
+export async function createAddon(data: {
+  serviceId: string;
+  name: string;
+  price: string;
+  basePrice: number;
+  description?: string;
+  duration?: number;
+}) {
+  try {
+    const db = await getDb();
+
+    const result = await db
+      .insert(schema.serviceAddons)
+      .values({
+        serviceId: data.serviceId,
+        name: data.name,
+        price: data.price,
+        basePrice: data.basePrice,
+        description: data.description || null,
+        duration: data.duration || 0,
+        benefits: [],
+        isRecommended: false,
+        isPopular: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .returning();
+
+    // Revalidate caches
+    revalidateTag(CACHE_TAGS.SERVICES);
+    revalidateTag(CACHE_TAGS.SERVICE_CATEGORIES);
+
+    console.log(`[Revalidation] New addon created, caches invalidated`);
+
+    return { success: true, addon: result[0] };
+  } catch (error) {
+    console.error('Failed to create addon:', error);
+    throw new Error('Failed to create addon');
+  }
+}
+
+/**
+ * Update an addon
+ */
+export async function updateAddon(
+  addonId: string,
+  updates: {
+    name?: string;
+    description?: string;
+    price?: string;
+    basePrice?: number;
+    duration?: number;
+  },
+) {
+  try {
+    const db = await getDb();
+
+    const updateData: Record<string, any> = { updatedAt: new Date() };
+    if (updates.name !== undefined) updateData.name = updates.name;
+    if (updates.description !== undefined) updateData.description = updates.description;
+    if (updates.price !== undefined) updateData.price = updates.price;
+    if (updates.basePrice !== undefined) updateData.basePrice = updates.basePrice;
+    if (updates.duration !== undefined) updateData.duration = updates.duration;
+
+    const result = await db
+      .update(schema.serviceAddons)
+      .set(updateData)
+      .where(eq(schema.serviceAddons.id, addonId))
+      .returning();
+
+    // Revalidate caches
+    revalidateTag(CACHE_TAGS.SERVICES);
+    revalidateTag(CACHE_TAGS.SERVICE_CATEGORIES);
+
+    console.log(`[Revalidation] Addon ${addonId} updated, caches invalidated`);
+
+    return { success: true, addon: result[0] };
+  } catch (error) {
+    console.error('Failed to update addon:', error);
+    throw new Error('Failed to update addon');
+  }
+}
+
+/**
+ * Delete an addon
+ */
+export async function deleteAddon(addonId: string) {
+  try {
+    const db = await getDb();
+
+    await db.delete(schema.serviceAddons).where(eq(schema.serviceAddons.id, addonId));
+
+    // Revalidate caches
+    revalidateTag(CACHE_TAGS.SERVICES);
+    revalidateTag(CACHE_TAGS.SERVICE_CATEGORIES);
+
+    console.log(`[Revalidation] Addon ${addonId} deleted, caches invalidated`);
+
+    return { success: true };
+  } catch (error) {
+    console.error('Failed to delete addon:', error);
+    throw new Error('Failed to delete addon');
   }
 }

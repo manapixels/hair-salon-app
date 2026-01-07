@@ -758,10 +758,11 @@
     }
   },
   "ServiceItems": {
-    "womens-haircut": "Women's Haircut",
-    "mens-haircut": "Men's Haircut",
-    "kids-haircut-boys": "Kids' Haircut (Boys)",
-    "kids-haircut-girls": "Kids' Haircut (Girls)",
+    "women": "Women's Haircut",
+    "men": "Men's Haircut",
+    "boy": "Kids' Haircut (Boys)",
+    "girl": "Kids' Haircut (Girls)",
+    "haircut": "Haircut",
     "wash-blow-dry": "Wash & Blow Dry",
     "fringe-trim": "Fringe Trim",
     "special-occasion-styling": "Special Occasion Styling",
@@ -797,12 +798,9 @@
     "down-perm": "Down Perm"
   },
   "ServiceDescriptions": {
-    "womens-haircut": "Classic cut tailored for women",
-    "mens-haircut": "Precision cut tailored for men",
-    "kids-haircut-boys": "For children 12 and under",
-    "kids-haircut-girls": "For children 12 and under",
-    "wash-blow-dry": "Gentle cleanse and professional blow-dry for a polished finish",
-    "wash-blow-dry-kids": "Gentle cleansing and quick dry",
+    "boy": "For children 12 and under",
+    "girl": "For children 12 and under",
+    "haircut": "Includes wash & dry.",
     "fringe-trim": "Perfect shape-up for your bangs or fringe",
     "hair-straightening": "Professional heat styling for temporarily straightened hair",
     "special-occasion-styling": "Elegant updos and special styling for weddings, parties, and events",

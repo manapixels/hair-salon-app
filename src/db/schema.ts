@@ -15,7 +15,7 @@ import {
   unique,
   serial,
 } from 'drizzle-orm/pg-core';
-import { relations } from 'drizzle-orm';
+import { relations, sql } from 'drizzle-orm';
 
 // ============================================
 // ENUMS
@@ -127,7 +127,9 @@ export const serviceAddons = pgTable('service_addons', {
     .$defaultFn(() => crypto.randomUUID()),
   name: text('name').notNull(),
   description: text('description'),
-  benefits: json('benefits').$type<string[]>().default([]),
+  benefits: text('benefits')
+    .array()
+    .default(sql`ARRAY[]::text[]`),
   price: text('price').notNull(),
   basePrice: integer('basePrice').notNull(),
   duration: integer('duration').default(0).notNull(),

@@ -380,16 +380,23 @@ export const getServiceCategories = unstable_cache(
   async (): Promise<ServiceCategory[]> => {
     const db = await getDb();
 
-    // Get categories
-    const categories = await db.select().from(schema.serviceCategories);
+    // Get categories ordered by sortOrder
+    const categories = await db
+      .select()
+      .from(schema.serviceCategories)
+      .orderBy(asc(schema.serviceCategories.sortOrder));
 
     // Get services with addons for each category
     const servicesWithAddons = await db
       .select()
       .from(schema.services)
-      .where(eq(schema.services.isActive, true));
+      .where(eq(schema.services.isActive, true))
+      .orderBy(asc(schema.services.createdAt));
 
-    const addons = await db.select().from(schema.serviceAddons);
+    const addons = await db
+      .select()
+      .from(schema.serviceAddons)
+      .orderBy(asc(schema.serviceAddons.createdAt));
     const tagRelations = await db.select().from(schema.serviceTagRelations);
     const tags = await db.select().from(schema.serviceTags);
 

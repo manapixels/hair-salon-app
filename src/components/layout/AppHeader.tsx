@@ -186,16 +186,13 @@ export default function AppHeader({ view, onViewChange, serviceLinks }: AppHeade
             <LanguageSwitcher />
           </div>
           <div className="flex items-center gap-4">
-            <div className="hidden items-center gap-6 sm:flex">
+            <div className="hidden items-center gap-4 sm:flex">
               {/* Mega Menu / Dropdown for Services */}
               <div className="static group" onMouseEnter={() => setIsMegaMenuOpen(true)}>
-                <button
-                  className={`flex items-center gap-1 text-sm font-medium text-gray-600 hover:text-black transition-colors h-full py-3 text-black`}
-                  onClick={() => handleNavigation('services', '/services')}
-                >
+                <Button variant="ghost" className="px-2">
                   {t('services')}
                   <ChevronDown className="w-3 h-3" />
-                </button>
+                </Button>
 
                 {/* Full Width Mega Menu Overlay */}
                 <div
@@ -239,19 +236,13 @@ export default function AppHeader({ view, onViewChange, serviceLinks }: AppHeade
                   </div>
                 </div>
               </div>
-              <button
-                className="text-sm font-medium text-gray-600 hover:text-black transition-colors"
-                onClick={() => router.push('/prices')}
-              >
+              <Button variant="ghost" className="px-2" onClick={() => router.push('/prices')}>
                 {t('prices')}
-              </button>
+              </Button>
 
-              <button
-                className="text-sm font-medium text-gray-600 hover:text-black transition-colors"
-                onClick={() => router.push('/#contact')}
-              >
+              <Button variant="ghost" className="px-2" onClick={() => router.push('/#contact')}>
                 {t('contact')}
-              </button>
+              </Button>
               <div className="h-6 w-px bg-gray-200 mx-2"></div>
               <Button
                 variant="outline"

@@ -80,7 +80,7 @@ export default async function PricesPage() {
   return (
     <div className="min-h-screen bg-white">
       {/* Hero Section */}
-      <div className="bg-gradient-to-b from-primary/5 to-white py-16 px-4">
+      <div className="bg-gradient-to-b from-primary/5 to-white pt-32 pb-16 px-4">
         <div className="container mx-auto max-w-6xl text-center">
           <h1 className="text-4xl md:text-5xl font-serif font-light text-gray-900 mb-4">
             {t('hero.title')}
@@ -159,23 +159,27 @@ export default async function PricesPage() {
                         {/* Add-on Rows */}
                         {service.addons &&
                           service.addons.length > 0 &&
-                          service.addons.map(addon => (
-                            <TableRow
-                              key={addon.id}
-                              className="bg-muted/30 hover:bg-muted/40 border-l-2 border-l-primary/30"
-                            >
-                              <TableCell className="pl-8 text-sm text-gray-700">
-                                <span className="text-primary mr-1">+</span>
-                                {getServiceName(addon.name)}
-                              </TableCell>
-                              <TableCell className="text-xs text-gray-500">
-                                {getServiceDescription(addon.name, addon.description)}
-                              </TableCell>
-                              <TableCell className="text-right text-sm text-gray-700">
-                                {formatPrice(addon.price)}
-                              </TableCell>
-                            </TableRow>
-                          ))}
+                          service.addons.map(addon => {
+                            // Only show "+" prefix if parent service has a real price (not a placeholder)
+                            const isVariant = service.price === '-' || service.price === '';
+                            return (
+                              <TableRow
+                                key={addon.id}
+                                className="bg-muted/30 hover:bg-muted/40 border-l-2 border-l-primary/30"
+                              >
+                                <TableCell className="pl-8 text-sm text-gray-700">
+                                  {!isVariant && <span className="text-primary mr-1">+</span>}
+                                  {getServiceName(addon.name)}
+                                </TableCell>
+                                <TableCell className="text-xs text-gray-500">
+                                  {getServiceDescription(addon.name, addon.description)}
+                                </TableCell>
+                                <TableCell className="text-right text-sm text-gray-700">
+                                  {formatPrice(addon.price)}
+                                </TableCell>
+                              </TableRow>
+                            );
+                          })}
                       </>
                     ))}
                 </TableBody>

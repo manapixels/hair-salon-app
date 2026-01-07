@@ -750,10 +750,11 @@
     }
   },
   "ServiceItems": {
-    "womens-haircut": "女士剪发",
-    "mens-haircut": "男士剪发",
-    "kids-haircut-boys": "儿童剪发（男孩）",
-    "kids-haircut-girls": "儿童剪发（女孩）",
+    "women": "女士剪发",
+    "men": "男士剪发",
+    "boy": "儿童剪发（男孩）",
+    "girl": "儿童剪发（女孩）",
+    "haircut": "剪发",
     "wash-blow-dry": "洗吹造型",
     "fringe-trim": "刘海修剪",
     "special-occasion-styling": "特殊场合造型",
@@ -789,12 +790,9 @@
     "down-perm": "服帖烫"
   },
   "ServiceDescriptions": {
-    "womens-haircut": "专为女士设计的经典剪发",
-    "mens-haircut": "专为男士设计的精准剪发",
-    "kids-haircut-boys": "适合12岁及以下儿童",
-    "kids-haircut-girls": "适合12岁及以下儿童",
-    "wash-blow-dry": "温和洁净配合专业吹干，打造精致效果",
-    "wash-blow-dry-kids": "温和洁净，快速吹干",
+    "boy": "适合12岁及以下儿童",
+    "girl": "适合12岁及以下儿童",
+    "haircut": "包括洗发和吹干。",
     "fringe-trim": "完美修剪您的刘海",
     "hair-straightening": "专业热造型，实现暂时性直发效果",
     "special-occasion-styling": "婚礼、派对和活动的优雅盘发及特殊造型",
