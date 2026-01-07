@@ -1,0 +1,136 @@
+{
+  "pages": {
+    "home": {
+      "title": "Signature Trims 美发沙龙",
+      "description": "新加坡专业美发沙龙 - 在线预约"
+    },
+    "prices": {
+      "title": "价格表",
+      "description": "查看我们的服务完整价格"
+    },
+    "privacy": {
+      "title": "隐私政策",
+      "description": "我们如何处理您的个人数据"
+    },
+    "terms": {
+      "title": "服务条款",
+      "description": "我们的条款和条件"
+    },
+    "services": {
+      "hairColouring": {
+        "title": "染发服务",
+        "description": "专业染发和挑染服务"
+      },
+      "hairPerm": {
+        "title": "烫发服务",
+        "description": "专业烫发打造美丽卷发"
+      },
+      "hairRebonding": {
+        "title": "离子烫服务",
+        "description": "离子烫打造柔顺直发"
+      },
+      "keratinTreatment": {
+        "title": "角蛋白护理",
+        "description": "角蛋白护理打造顺滑秀发"
+      },
+      "scalpTreatment": {
+        "title": "头皮护理",
+        "description": "健康头皮护理服务"
+      }
+    },
+    "booking": {
+      "status": {
+        "title": "预约状态",
+        "description": "查看您的预约状态"
+      },
+      "paymentSuccess": {
+        "title": "支付成功",
+        "description": "您的支付已处理完成"
+      }
+    },
+    "dashboard": {
+      "title": "控制面板",
+      "description": "您的个人控制面板"
+    },
+    "customer": {
+      "title": "我的预约",
+      "description": "查看和管理您的预约"
+    },
+    "stylist": {
+      "title": "发型师控制面板",
+      "description": "管理您的发型师资料和日程"
+    }
+  },
+  "admin": {
+    "dashboard": {
+      "title": "管理仪表板",
+      "description": "沙龙管理概览"
+    },
+    "appointments": {
+      "title": "预约管理",
+      "description": "查看和管理所有预约"
+    },
+    "customers": {
+      "title": "客户管理",
+      "description": "查看和管理客户资料"
+    },
+    "stylists": {
+      "title": "发型师管理",
+      "description": "添加和编辑发型师资料"
+    },
+    "chat": {
+      "title": "标记的对话",
+      "description": "查看标记的客户对话"
+    },
+    "knowledgeBase": {
+      "title": "知识库",
+      "description": "管理常见问题和帮助内容"
+    },
+    "myProfile": {
+      "title": "我的发型师资料",
+      "description": "编辑您的发型师资料"
+    },
+    "availability": {
+      "main": {
+        "title": "排班管理",
+        "description": "管理沙龙可用时间"
+      },
+      "stylists": {
+        "title": "发型师排班",
+        "description": "管理各发型师日程"
+      },
+      "hours": {
+        "title": "营业时间",
+        "description": "设置沙龙营业时间"
+      },
+      "closures": {
+        "title": "特殊休息日",
+        "description": "管理节假日休息"
+      }
+    },
+    "settings": {
+      "main": {
+        "title": "沙龙设置",
+        "description": "配置沙龙设置"
+      },
+      "business": {
+        "title": "商家信息",
+        "description": "更新商家信息"
+      },
+      "services": {
+        "title": "服务与价格",
+        "description": "管理服务和价格"
+      },
+      "deposits": {
+        "title": "订金设置",
+        "description": "配置爽约保护"
+      },
+      "social": {
+        "title": "社交链接",
+        "description": "管理社交媒体链接"
+      }
+    }
+  },
+  "suffix": " - Signature Trims",
+  "adminSuffix": " - 管理"
+}

@@ -1,0 +1,136 @@
+{
+  "pages": {
+    "home": {
+      "title": "Signature Trims Hair Salon",
+      "description": "Professional hair salon in Singapore - Book your appointment online"
+    },
+    "prices": {
+      "title": "Our Prices",
+      "description": "View our complete service pricing"
+    },
+    "privacy": {
+      "title": "Privacy Policy",
+      "description": "How we handle your personal data"
+    },
+    "terms": {
+      "title": "Terms of Service",
+      "description": "Our terms and conditions"
+    },
+    "services": {
+      "hairColouring": {
+        "title": "Hair Colouring Services",
+        "description": "Professional hair colouring and highlights"
+      },
+      "hairPerm": {
+        "title": "Hair Perm Services",
+        "description": "Expert perming for beautiful curls"
+      },
+      "hairRebonding": {
+        "title": "Hair Rebonding Services",
+        "description": "Sleek, straight hair with rebonding"
+      },
+      "keratinTreatment": {
+        "title": "Keratin Treatment",
+        "description": "Smooth, frizz-free hair with keratin"
+      },
+      "scalpTreatment": {
+        "title": "Scalp Treatment",
+        "description": "Healthy scalp treatments and care"
+      }
+    },
+    "booking": {
+      "status": {
+        "title": "Booking Status",
+        "description": "Check your appointment status"
+      },
+      "paymentSuccess": {
+        "title": "Payment Successful",
+        "description": "Your payment has been processed"
+      }
+    },
+    "dashboard": {
+      "title": "Dashboard",
+      "description": "Your personal dashboard"
+    },
+    "customer": {
+      "title": "My Appointments",
+      "description": "View and manage your appointments"
+    },
+    "stylist": {
+      "title": "Stylist Dashboard",
+      "description": "Manage your stylist profile and schedule"
+    }
+  },
+  "admin": {
+    "dashboard": {
+      "title": "Admin Dashboard",
+      "description": "Salon management overview"
+    },
+    "appointments": {
+      "title": "Manage Appointments",
+      "description": "View and manage all appointments"
+    },
+    "customers": {
+      "title": "Manage Customers",
+      "description": "View and manage customer profiles"
+    },
+    "stylists": {
+      "title": "Manage Stylists",
+      "description": "Add and edit stylist profiles"
+    },
+    "chat": {
+      "title": "Flagged Chats",
+      "description": "Review flagged customer conversations"
+    },
+    "knowledgeBase": {
+      "title": "Knowledge Base",
+      "description": "Manage FAQ and help content"
+    },
+    "myProfile": {
+      "title": "My Stylist Profile",
+      "description": "Edit your stylist profile"
+    },
+    "availability": {
+      "main": {
+        "title": "Availability",
+        "description": "Manage salon availability"
+      },
+      "stylists": {
+        "title": "Stylist Availability",
+        "description": "Manage individual stylist schedules"
+      },
+      "hours": {
+        "title": "Business Hours",
+        "description": "Set salon operating hours"
+      },
+      "closures": {
+        "title": "Special Closures",
+        "description": "Manage holiday closures"
+      }
+    },
+    "settings": {
+      "main": {
+        "title": "Salon Settings",
+        "description": "Configure salon settings"
+      },
+      "business": {
+        "title": "Business Info",
+        "description": "Update business information"
+      },
+      "services": {
+        "title": "Services & Pricing",
+        "description": "Manage services and prices"
+      },
+      "deposits": {
+        "title": "Deposit Settings",
+        "description": "Configure no-show protection"
+      },
+      "social": {
+        "title": "Social Links",
+        "description": "Manage social media links"
+      }
+    }
+  },
+  "suffix": " - Signature Trims",
+  "adminSuffix": " - Admin"
+}

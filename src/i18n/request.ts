@@ -8,15 +8,17 @@ import enCommon from './en/common.json';
 import enDashboard from './en/dashboard.json';
 import enServices from './en/services.json';
 import enLegal from './en/legal.json';
+import enMetadata from './en/metadata.json';
 
 import zhCommon from './zh/common.json';
 import zhDashboard from './zh/dashboard.json';
 import zhServices from './zh/services.json';
 import zhLegal from './zh/legal.json';
+import zhMetadata from './zh/metadata.json';
 
 const messages: Record<string, any> = {
-  en: { ...enCommon, ...enDashboard, Services: enServices, Legal: enLegal },
-  zh: { ...zhCommon, ...zhDashboard, Services: zhServices, Legal: zhLegal },
+  en: { ...enCommon, ...enDashboard, Services: enServices, Legal: enLegal, Metadata: enMetadata },
+  zh: { ...zhCommon, ...zhDashboard, Services: zhServices, Legal: zhLegal, Metadata: zhMetadata },
 };
 
 export default getRequestConfig(async ({ requestLocale }) => {

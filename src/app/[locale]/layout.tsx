@@ -7,6 +7,7 @@ import { Toaster } from 'sonner';
 import { autoConfigureTelegramBotMenu } from '@/lib/telegramBotSetup';
 import { getAdminSettings, getServiceCategories } from '@/lib/database';
 import { getNavigationLinks } from '@/lib/categories';
+import { publicPageMetadata } from '@/lib/metadata';
 import '@/styles/globals.css';
 import 'dotenv/config';
 import { AppFooter, AppHeader } from '@/components/layout';
@@ -18,10 +19,14 @@ export const viewport: Viewport = {
   initialScale: 1.0,
 };
 
-export const metadata: Metadata = {
-  title: 'Signature Trims - Salon Booking',
-  description: 'Professional hair salon booking system',
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  return publicPageMetadata(locale, 'home');
+}
 
 // Auto-configure Telegram bot menu on server startup
 // This runs once when the Next.js server starts

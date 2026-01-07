@@ -1,11 +1,16 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
+import { publicPageMetadata } from '@/lib/metadata';
 
-export const metadata: Metadata = {
-  title: 'Privacy Policy | Signature Trims',
-  description: 'Privacy policy for Signature Trims hair salon website and services.',
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  return publicPageMetadata(locale, 'privacy');
+}
 
 export default function PrivacyPolicyPage() {
   const t = useTranslations('Legal.Privacy');

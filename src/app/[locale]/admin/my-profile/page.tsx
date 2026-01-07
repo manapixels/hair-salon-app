@@ -1,26 +1,16 @@
-'use client';
+import type { Metadata } from 'next';
+import { adminPageMetadata } from '@/lib/metadata';
+import MyProfileClient from './MyProfileClient';
 
-import StylistDashboard from '@/components/views/StylistDashboard';
-import { useAuth } from '@/context/AuthContext';
-import { isStylist } from '@/lib/roleHelpers';
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  return adminPageMetadata(locale, 'myProfile');
+}
 
-export default function AdminStylistProfilePage() {
-  const { user, isLoading } = useAuth();
-  const router = useRouter();
-
-  // Redirect if user is not a stylist
-  useEffect(() => {
-    if (!isLoading && user && !isStylist(user)) {
-      router.push('/admin');
-    }
-  }, [user, isLoading, router]);
-
-  // If not a stylist, don't render
-  if (!user || !isStylist(user)) {
-    return null;
-  }
-
-  return <StylistDashboard />;
+export default function MyProfilePage() {
+  return <MyProfileClient />;
 }

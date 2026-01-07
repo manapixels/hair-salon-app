@@ -92,6 +92,33 @@ Touch devices lack a true "hover" state. Tapping an element can cause "sticky" h
 
 ---
 
+## 📄 Next.js Page Architecture
+
+Admin and authenticated pages use the **server component → client component** pattern:
+
+```
+src/app/[locale]/admin/customers/
+├── page.tsx          ← Server component (metadata + SSR data)
+└── CustomersClient.tsx ← Client component ('use client', interactivity)
+```
+
+**Benefits**: i18n page metadata, smaller JS bundle, SSR data fetching.
+
+**Metadata Helper** (`src/lib/metadata.ts`):
+
+```typescript
+import { adminPageMetadata, publicPageMetadata } from '@/lib/metadata';
+
+export async function generateMetadata({ params }) {
+  const { locale } = await params;
+  return adminPageMetadata(locale, 'customers'); // or publicPageMetadata()
+}
+```
+
+**Translations**: `src/i18n/{en,zh}/metadata.json`
+
+---
+
 ## 💰 No-Show Protection (Deposits)
 
 First-time customers (0 completed visits) must pay a deposit to secure their booking.

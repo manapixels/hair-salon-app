@@ -1,11 +1,16 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
+import { publicPageMetadata } from '@/lib/metadata';
 
-export const metadata: Metadata = {
-  title: 'Terms of Service | Signature Trims',
-  description: 'Terms and conditions for using Signature Trims hair salon services and website.',
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  return publicPageMetadata(locale, 'terms');
+}
 
 export default function TermsOfServicePage() {
   const t = useTranslations('Legal.Terms');
