@@ -3,23 +3,23 @@
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { useLocale } from 'next-intl';
-import { Building2, Scissors, Shield, Link2 } from 'lucide-react';
+import { Users, Clock, XCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const tabs = [
-  { id: 'business', label: 'Business', icon: Building2, href: 'business' },
-  { id: 'services', label: 'Services', icon: Scissors, href: 'services' },
-  { id: 'deposits', label: 'Deposits', icon: Shield, href: 'deposits' },
-  { id: 'social', label: 'Social', icon: Link2, href: 'social' },
+  { id: 'stylists', label: 'Stylist Availability', icon: Users, href: 'stylists' },
+  { id: 'hours', label: 'Business Hours', icon: Clock, href: 'hours' },
+  { id: 'closures', label: 'Special Closures', icon: XCircle, href: 'closures' },
 ];
 
-export default function SettingsTabNav() {
+export default function AvailabilityTabNav() {
   const pathname = usePathname();
   const locale = useLocale();
-  const basePath = `/${locale}/admin/settings`;
+  const basePath = `/${locale}/admin/availability`;
 
   // Determine active tab from pathname
-  const activeTab = tabs.find(tab => pathname.includes(`/settings/${tab.href}`))?.id || 'business';
+  const activeTab =
+    tabs.find(tab => pathname.includes(`/availability/${tab.href}`))?.id || 'stylists';
 
   return (
     <div className="flex flex-wrap gap-2">

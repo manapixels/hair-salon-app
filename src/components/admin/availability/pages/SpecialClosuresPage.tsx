@@ -4,17 +4,18 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useBooking } from '@/context/BookingContext';
 import { LoadingSpinner } from '@/components/feedback/loaders/LoadingSpinner';
-import ScheduleSettings from '@/components/admin/settings/salon/ScheduleSettings';
+import ClosuresSettings from '@/components/admin/settings/salon/ClosuresSettings';
 import { LoadingButton } from '@/components/feedback/loaders/LoadingButton';
 import { toast } from 'sonner';
+import type { BlockedPeriod } from '@/types';
 
-export default function ScheduleSettingsPage() {
+export default function SpecialClosuresPage() {
   const { adminSettings, fetchAndSetAdminSettings, saveAdminSettings } = useBooking();
   const router = useRouter();
 
   const [loading, setLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [weeklySchedule, setWeeklySchedule] = useState<any>({});
+  const [specialClosures, setSpecialClosures] = useState<BlockedPeriod[]>([]);
 
   useEffect(() => {
     const loadData = async () => {
@@ -26,29 +27,21 @@ export default function ScheduleSettingsPage() {
   }, [fetchAndSetAdminSettings]);
 
   useEffect(() => {
-    const DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
-    const defaultDay = { isOpen: true, openingTime: '09:00', closingTime: '17:00' };
-    const schedule: any = {};
-    DAYS.forEach(day => {
-      schedule[day] =
-        adminSettings.weeklySchedule?.[day as keyof typeof adminSettings.weeklySchedule] ||
-        defaultDay;
-    });
-    setWeeklySchedule(schedule);
+    setSpecialClosures(adminSettings.specialClosures || []);
   }, [adminSettings]);
 
   const handleSave = async () => {
     setIsSaving(true);
-    const toastId = toast.loading('Saving settings...');
+    const toastId = toast.loading('Saving special closures...');
     try {
       await saveAdminSettings({
         ...adminSettings,
-        weeklySchedule,
+        specialClosures,
       });
-      toast.success('Settings saved!', { id: toastId });
+      toast.success('Special closures saved!', { id: toastId });
       router.refresh();
     } catch {
-      toast.error('Failed to save settings', { id: toastId });
+      toast.error('Failed to save special closures', { id: toastId });
     } finally {
       setIsSaving(false);
     }
@@ -57,14 +50,14 @@ export default function ScheduleSettingsPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <LoadingSpinner size="md" message="Loading settings..." />
+        <LoadingSpinner size="md" message="Loading special closures..." />
       </div>
     );
   }
 
   return (
     <div className="max-w-2xl">
-      <ScheduleSettings weeklySchedule={weeklySchedule} onChange={setWeeklySchedule} />
+      <ClosuresSettings closures={specialClosures} onChange={setSpecialClosures} />
       <div className="mt-8 pt-6 border-t border-border flex justify-end">
         <LoadingButton
           loading={isSaving}

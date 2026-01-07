@@ -4,63 +4,62 @@
 
 ## Summary
 
-Consolidated admin dashboard navigation from 14 items to 8 items, reducing cognitive overload while maintaining full functionality. Implemented route-based code splitting for settings pages.
+Reorganized admin dashboard navigation for better UX and implemented route-based code splitting for performance.
+
+## Final Navigation Structure
+
+```
+Dashboard (standalone)
+
+CUSTOMERS
+├── Appointments
+├── Customers
+└── Flagged Chats (renamed from Chat)
+
+MANAGE SALON
+├── Stylists
+├── Availability (3 tabs)
+│   ├── Stylist Availability
+│   ├── Business Hours (moved from Settings)
+│   └── Special Closures (moved from Settings)
+├── Salon Info (4 tabs, renamed from Settings)
+│   ├── Business
+│   ├── Services
+│   ├── Deposits
+│   └── Social
+└── Knowledge Base
+```
 
 ## Changes Made
 
-### Navigation Reduction (14 → 8 items)
+### Navigation (`AdminNavigation.tsx`)
 
-| Before (14 items) | After (8 items)        |
-| ----------------- | ---------------------- |
-| Dashboard         | Dashboard              |
-| Appointments      | Appointments           |
-| Availability      | Availability           |
-| Stylists          | Stylists               |
-| Customers         | Customers              |
-| Chat              | Chat                   |
-| Knowledge Base    | Knowledge Base         |
-| Business Info     | **Settings** (unified) |
-| Operating Hours   | → Business tab         |
-| Closures          | → Schedule tab         |
-| Services          | → Closures tab         |
-| Deposits          | → Services tab         |
-| Social Links      | → Deposits tab         |
-|                   | → Social tab           |
+- Reorganized from 5 groups to 3 groups
+- Renamed "Chat" to "Flagged Chats"
+- Renamed "Settings" to "Salon Info"
+- Moved Schedule/Closures from Settings to Availability
 
-### Route-Based Settings Architecture
+### Availability Routes
 
-Refactored settings from query-param tabs (`?tab=social`) to route-based (`/settings/social`) for:
+- Created `/admin/availability/layout.tsx` (server)
+- Created `/admin/availability/page.tsx` (redirect to /stylists)
+- Created 3 sub-routes: stylists, hours, closures
+- Created `AvailabilityTabNav.tsx` (client)
+- Created page components in `components/admin/availability/pages/`
 
-- **Code splitting**: Each route loads only its component
-- **Faster initial loads**: Less JavaScript on first visit
-- **Clean URLs**: Bookmarkable deep links
+### Settings Routes
 
-### Files Created
+- Reduced from 6 tabs to 4 tabs (Business, Services, Deposits, Social)
+- Removed Schedule and Closures (moved to Availability)
 
-- `src/app/[locale]/admin/settings/layout.tsx` - Server layout with tab nav
-- `src/app/[locale]/admin/settings/page.tsx` - Redirect to /business
-- `src/app/[locale]/admin/settings/{section}/page.tsx` - 6 route pages (server)
-- `src/components/admin/settings/SettingsTabNav.tsx` - Client tab navigation
-- `src/components/admin/settings/pages/BusinessSettingsPage.tsx` - Client page
-- `src/components/admin/settings/pages/ScheduleSettingsPage.tsx` - Client page
-- `src/components/admin/settings/pages/ClosuresSettingsPage.tsx` - Client page
+### i18n Updates
 
-### Files Deleted
-
-- `src/components/views/AdminDashboard.tsx` (legacy ~1900 lines)
-- `src/components/admin/settings/SettingsLayout.tsx` (legacy)
-- `src/components/admin/settings/SettingsSidebar.tsx` (legacy)
-
-### Updated
-
-- `src/components/admin/AdminNavigation.tsx` - Single "Settings" nav item
-- `src/i18n/en/dashboard.json` - Added `items.settings` translation
-- `src/i18n/zh/dashboard.json` - Added Chinese translation
-- `AGENTS.md` - Documented admin dashboard architecture
+- EN: Added `customers`, `manageSalon`, `flaggedChats`, `salonInfo`
+- ZH: Added corresponding Chinese translations
 
 ## Best Practices Applied
 
-1. **5-6 max primary categories** - Reduced from 14 to 8
-2. **Progressive disclosure** - Settings consolidated behind single entry
-3. **Route-based code splitting** - Better performance than tab state
-4. **Server components for pages** - Only client components where hooks needed
+1. **Route-based code splitting** - Each tab loads only its component
+2. **Server components for pages** - Client components only where hooks needed
+3. **Logical grouping** - Customer-facing vs salon management tasks
+4. **Progressive disclosure** - Tabbed interfaces for related settings

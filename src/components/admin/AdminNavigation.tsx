@@ -64,6 +64,7 @@ export default function AdminNavigation({
 
   const navigationGroups: NavigationGroup[] = [
     {
+      // Dashboard - standalone, no group label
       items: [
         {
           id: 'home',
@@ -74,7 +75,7 @@ export default function AdminNavigation({
       ],
     },
     {
-      label: t('sections.bookings'),
+      label: t('sections.customers'),
       items: [
         {
           id: 'appointments',
@@ -84,15 +85,22 @@ export default function AdminNavigation({
           badge: badges.appointments,
         },
         {
-          id: 'availability',
-          label: t('items.availability'),
-          icon: <Clock className="w-5 h-5" />,
-          href: `${basePath}/availability`,
+          id: 'customers',
+          label: t('items.customers'),
+          icon: <UserCircle className="w-5 h-5" />,
+          href: `${basePath}/customers`,
+        },
+        {
+          id: 'chat',
+          label: t('items.flaggedChats'),
+          icon: <MessageSquare className="w-5 h-5" />,
+          href: `${basePath}/chat`,
+          badge: badges.chat,
         },
       ],
     },
     {
-      label: t('sections.people'),
+      label: t('sections.manageSalon'),
       items: [
         {
           id: 'stylists',
@@ -101,39 +109,22 @@ export default function AdminNavigation({
           href: `${basePath}/stylists`,
         },
         {
-          id: 'customers',
-          label: t('items.customers'),
-          icon: <UserCircle className="w-5 h-5" />,
-          href: `${basePath}/customers`,
+          id: 'availability',
+          label: t('items.availability'),
+          icon: <Clock className="w-5 h-5" />,
+          href: `${basePath}/availability`,
         },
-      ],
-    },
-    {
-      label: t('sections.support'),
-      items: [
         {
-          id: 'chat',
-          label: t('items.chat'),
-          icon: <MessageSquare className="w-5 h-5" />,
-          href: `${basePath}/chat`,
-          badge: badges.chat,
+          id: 'settings',
+          label: t('items.salonInfo'),
+          icon: <Settings className="w-5 h-5" />,
+          href: `${basePath}/settings`,
         },
         {
           id: 'knowledge-base',
           label: t('items.knowledgeBase'),
           icon: <BookOpen className="w-5 h-5" />,
           href: `${basePath}/knowledge-base`,
-        },
-      ],
-    },
-    {
-      label: t('sections.settings'),
-      items: [
-        {
-          id: 'settings',
-          label: t('items.settings'),
-          icon: <Settings className="w-5 h-5" />,
-          href: `${basePath}/settings`,
         },
       ],
     },
