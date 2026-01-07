@@ -19,7 +19,10 @@
       "businessInfo": "Business Info",
       "operatingHours": "Operating Hours",
       "closures": "Closures",
-      "services": "Services"
+      "services": "Services",
+      "deposits": "Deposits",
+      "socialLinks": "Social Links",
+      "settings": "Settings"
     },
     "logout": "Log Out"
   },

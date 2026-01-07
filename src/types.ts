@@ -192,6 +192,21 @@ export interface AdminSettings {
   depositPercentage: number;
   depositTrustThreshold: number;
   depositRefundWindowHours: number;
+  // Social media links
+  socialLinks?: SocialLinks;
+}
+
+// Social link types
+export interface SocialLink {
+  url: string;
+  isActive: boolean;
+}
+
+export interface SocialLinks {
+  instagram: SocialLink;
+  facebook: SocialLink;
+  whatsapp: SocialLink;
+  telegram: SocialLink;
 }
 
 // Deposit types for no-show protection

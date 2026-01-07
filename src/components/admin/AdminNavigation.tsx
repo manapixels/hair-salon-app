@@ -9,13 +9,9 @@ import {
   UserCircle,
   MessageSquare,
   BookOpen,
-  Building2,
-  CalendarClock,
-  XCircle,
-  Scissors,
+  Settings,
   LayoutDashboard,
   ChevronRight,
-  User,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/context/AuthContext';
@@ -30,10 +26,7 @@ export type AdminSection =
   | 'customers'
   | 'chat'
   | 'knowledge-base'
-  | 'settings-business'
-  | 'settings-hours'
-  | 'settings-closures'
-  | 'settings-services';
+  | 'settings';
 
 interface NavigationItem {
   id: AdminSection;
@@ -141,28 +134,10 @@ export default function AdminNavigation({
       label: t('sections.settings'),
       items: [
         {
-          id: 'settings-business',
-          label: t('items.businessInfo'),
-          icon: <Building2 className="w-5 h-5" />,
-          href: `${basePath}/settings/business`,
-        },
-        {
-          id: 'settings-hours',
-          label: t('items.operatingHours'),
-          icon: <CalendarClock className="w-5 h-5" />,
-          href: `${basePath}/settings/hours`,
-        },
-        {
-          id: 'settings-closures',
-          label: t('items.closures'),
-          icon: <XCircle className="w-5 h-5" />,
-          href: `${basePath}/settings/closures`,
-        },
-        {
-          id: 'settings-services',
-          label: t('items.services'),
-          icon: <Scissors className="w-5 h-5" />,
-          href: `${basePath}/settings/services`,
+          id: 'settings',
+          label: t('items.settings'),
+          icon: <Settings className="w-5 h-5" />,
+          href: `${basePath}/settings`,
         },
       ],
     },

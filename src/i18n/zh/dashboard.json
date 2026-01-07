@@ -19,7 +19,10 @@
       "businessInfo": "业务信息",
       "operatingHours": "营业时间",
       "closures": "停业日期",
-      "services": "服务项目"
+      "services": "服务项目",
+      "deposits": "订金设置",
+      "socialLinks": "社交链接",
+      "settings": "设置"
     },
     "logout": "退出登录"
   },

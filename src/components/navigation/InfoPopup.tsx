@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { SkeletonLoader } from '@/components/feedback/loaders/SkeletonLoader';
 import { useTranslations } from 'next-intl';
 import { WhatsAppIcon, TelegramIcon } from '@/lib/icons';
+import type { SocialLinks } from '@/types';
 
 interface InfoPopupProps {
   isOpen: boolean;
@@ -22,6 +23,7 @@ interface AdminSettings {
       closingTime: string;
     };
   };
+  socialLinks?: SocialLinks;
 }
 
 export default function InfoPopup({ isOpen, onClose }: InfoPopupProps) {
@@ -167,48 +169,60 @@ export default function InfoPopup({ isOpen, onClose }: InfoPopupProps) {
                 <h3 className="text-sm font-semibold text-gray-900 mb-3">{t('connectWithUs')}</h3>
                 <div className="flex items-center gap-3">
                   {/* Instagram */}
-                  <a
-                    href="https://instagram.com/signaturetrims"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="p-2 rounded-xl text-primary hover:bg-primary/10 transition-colors touch-target"
-                    aria-label="Follow us on Instagram"
-                  >
-                    <Instagram className="w-4 h-4" />
-                  </a>
+                  {settings?.socialLinks?.instagram?.isActive &&
+                    settings.socialLinks.instagram.url && (
+                      <a
+                        href={settings.socialLinks.instagram.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-2 rounded-xl text-primary hover:bg-primary/10 transition-colors touch-target"
+                        aria-label="Follow us on Instagram"
+                      >
+                        <Instagram className="w-4 h-4" />
+                      </a>
+                    )}
 
                   {/* Facebook */}
-                  <a
-                    href="https://facebook.com/signaturetrims"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="p-2 rounded-xl text-primary hover:bg-primary/10 transition-colors touch-target"
-                    aria-label="Follow us on Facebook"
-                  >
-                    <Facebook className="w-4 h-4" />
-                  </a>
+                  {settings?.socialLinks?.facebook?.isActive &&
+                    settings.socialLinks.facebook.url && (
+                      <a
+                        href={settings.socialLinks.facebook.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-2 rounded-xl text-primary hover:bg-primary/10 transition-colors touch-target"
+                        aria-label="Follow us on Facebook"
+                      >
+                        <Facebook className="w-4 h-4" />
+                      </a>
+                    )}
 
                   {/* WhatsApp */}
-                  <a
-                    href="https://wa.me/1234567890"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="p-2 rounded-xl text-primary hover:bg-primary/10 transition-colors touch-target"
-                    aria-label="Chat with us on WhatsApp"
-                  >
-                    <WhatsAppIcon className="w-4 h-4" />
-                  </a>
+                  {settings?.socialLinks?.whatsapp?.isActive &&
+                    settings.socialLinks.whatsapp.url && (
+                      <a
+                        href={settings.socialLinks.whatsapp.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-2 rounded-xl text-primary hover:bg-primary/10 transition-colors touch-target"
+                        aria-label="Chat with us on WhatsApp"
+                      >
+                        <WhatsAppIcon className="w-4 h-4" />
+                      </a>
+                    )}
 
                   {/* Telegram */}
-                  <a
-                    href="https://t.me/hair_salon_app_bot"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="p-2 rounded-xl text-primary hover:bg-primary/10 transition-colors touch-target"
-                    aria-label="Chat with us on Telegram"
-                  >
-                    <TelegramIcon className="w-4 h-4" />
-                  </a>
+                  {settings?.socialLinks?.telegram?.isActive &&
+                    settings.socialLinks.telegram.url && (
+                      <a
+                        href={settings.socialLinks.telegram.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-2 rounded-xl text-primary hover:bg-primary/10 transition-colors touch-target"
+                        aria-label="Chat with us on Telegram"
+                      >
+                        <TelegramIcon className="w-4 h-4" />
+                      </a>
+                    )}
                 </div>
               </section>
 

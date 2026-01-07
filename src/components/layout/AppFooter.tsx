@@ -94,48 +94,60 @@ export default function AppFooter({ adminSettings }: AppFooterProps) {
               <h4 className="text-lg font-serif mb-6 text-brand-primary">{t('connectWithUs')}</h4>
               <div className="flex gap-4">
                 {/* Instagram */}
-                <a
-                  href="https://instagram.com/signaturetrims"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white/70 hover:bg-brand-primary hover:text-white transition-all duration-300"
-                  aria-label="Follow us on Instagram"
-                >
-                  <Instagram className="w-5 h-5" />
-                </a>
+                {adminSettings.socialLinks?.instagram?.isActive &&
+                  adminSettings.socialLinks.instagram.url && (
+                    <a
+                      href={adminSettings.socialLinks.instagram.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white/70 hover:bg-brand-primary hover:text-white transition-all duration-300"
+                      aria-label="Follow us on Instagram"
+                    >
+                      <Instagram className="w-5 h-5" />
+                    </a>
+                  )}
 
                 {/* Facebook */}
-                <a
-                  href="https://facebook.com/signaturetrims"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white/70 hover:bg-brand-primary hover:text-white transition-all duration-300"
-                  aria-label="Follow us on Facebook"
-                >
-                  <Facebook className="w-5 h-5" />
-                </a>
+                {adminSettings.socialLinks?.facebook?.isActive &&
+                  adminSettings.socialLinks.facebook.url && (
+                    <a
+                      href={adminSettings.socialLinks.facebook.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white/70 hover:bg-brand-primary hover:text-white transition-all duration-300"
+                      aria-label="Follow us on Facebook"
+                    >
+                      <Facebook className="w-5 h-5" />
+                    </a>
+                  )}
 
                 {/* WhatsApp */}
-                <a
-                  href="https://wa.me/1234567890"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white/70 hover:bg-brand-primary hover:text-white transition-all duration-300"
-                  aria-label="Chat with us on WhatsApp"
-                >
-                  <WhatsAppIcon className="w-5 h-5" />
-                </a>
+                {adminSettings.socialLinks?.whatsapp?.isActive &&
+                  adminSettings.socialLinks.whatsapp.url && (
+                    <a
+                      href={adminSettings.socialLinks.whatsapp.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white/70 hover:bg-brand-primary hover:text-white transition-all duration-300"
+                      aria-label="Chat with us on WhatsApp"
+                    >
+                      <WhatsAppIcon className="w-5 h-5" />
+                    </a>
+                  )}
 
                 {/* Telegram */}
-                <a
-                  href="https://t.me/hair_salon_app_bot"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white/70 hover:bg-brand-primary hover:text-white transition-all duration-300"
-                  aria-label="Chat with us on Telegram"
-                >
-                  <TelegramIcon className="w-5 h-5" />
-                </a>
+                {adminSettings.socialLinks?.telegram?.isActive &&
+                  adminSettings.socialLinks.telegram.url && (
+                    <a
+                      href={adminSettings.socialLinks.telegram.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white/70 hover:bg-brand-primary hover:text-white transition-all duration-300"
+                      aria-label="Chat with us on Telegram"
+                    >
+                      <TelegramIcon className="w-5 h-5" />
+                    </a>
+                  )}
               </div>
             </div>
           </div>

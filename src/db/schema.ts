@@ -260,6 +260,20 @@ export const adminSettings = pgTable('admin_settings', {
   depositPercentage: integer('depositPercentage').default(15).notNull(),
   depositTrustThreshold: integer('depositTrustThreshold').default(1).notNull(),
   depositRefundWindowHours: integer('depositRefundWindowHours').default(24).notNull(),
+  // Social media links
+  socialLinks: json('socialLinks')
+    .$type<{
+      instagram: { url: string; isActive: boolean };
+      facebook: { url: string; isActive: boolean };
+      whatsapp: { url: string; isActive: boolean };
+      telegram: { url: string; isActive: boolean };
+    }>()
+    .default({
+      instagram: { url: '', isActive: false },
+      facebook: { url: '', isActive: false },
+      whatsapp: { url: '', isActive: false },
+      telegram: { url: '', isActive: false },
+    }),
   updatedAt: timestamp('updatedAt').defaultNow().notNull(),
 });
 

@@ -43,6 +43,13 @@
       "when": 1767403124004,
       "tag": "0005_add_deposits",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1767771283284,
+      "tag": "0006_past_nomad",
+      "breakpoints": true
     }
   ]
 }

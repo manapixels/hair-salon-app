@@ -34,6 +34,7 @@ import { LanguageSwitcher } from '../common/LanguageSwitcher';
 import { useTranslations } from 'next-intl';
 import { useBookingModal } from '@/context/BookingModalContext';
 import { isAdmin, isStylist, isCustomer, getPrimaryRole } from '@/lib/roleHelpers';
+import { useAdminSettings } from '@/hooks/queries/useAdminSettings';
 
 type View = 'booking' | 'admin' | 'dashboard' | 'services';
 
@@ -69,6 +70,7 @@ export default function AppHeader({ view, onViewChange, serviceLinks }: AppHeade
   const [categories, setCategories] = useState<ServiceCategory[]>([]);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isMegaMenuOpen, setIsMegaMenuOpen] = useState(false);
+  const { data: adminSettings } = useAdminSettings();
 
   const activeView: View = useMemo(() => {
     if (pathname?.startsWith('/admin')) return 'admin';
@@ -242,42 +244,54 @@ export default function AppHeader({ view, onViewChange, serviceLinks }: AppHeade
               </Button>
 
               <div className="flex items-center gap-1 mx-2">
-                <a
-                  href="https://instagram.com/signaturetrims"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="p-2 rounded-full text-foreground/70 hover:text-primary hover:bg-primary/10 transition-colors"
-                  aria-label="Instagram"
-                >
-                  <Instagram className="w-4 h-4" />
-                </a>
-                <a
-                  href="https://facebook.com/signaturetrims"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="p-2 rounded-full text-foreground/70 hover:text-primary hover:bg-primary/10 transition-colors"
-                  aria-label="Facebook"
-                >
-                  <Facebook className="w-4 h-4" />
-                </a>
-                <a
-                  href="https://wa.me/1234567890"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="p-2 rounded-full text-foreground/70 hover:text-primary hover:bg-primary/10 transition-colors"
-                  aria-label="WhatsApp"
-                >
-                  <WhatsAppIcon className="w-4 h-4" />
-                </a>
-                <a
-                  href="https://t.me/hair_salon_app_bot"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="p-2 rounded-full text-foreground/70 hover:text-primary hover:bg-primary/10 transition-colors"
-                  aria-label="Telegram"
-                >
-                  <TelegramIcon className="w-4 h-4" />
-                </a>
+                {adminSettings?.socialLinks?.instagram?.isActive &&
+                  adminSettings.socialLinks.instagram.url && (
+                    <a
+                      href={adminSettings.socialLinks.instagram.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="p-2 rounded-full text-foreground/70 hover:text-primary hover:bg-primary/10 transition-colors"
+                      aria-label="Instagram"
+                    >
+                      <Instagram className="w-4 h-4" />
+                    </a>
+                  )}
+                {adminSettings?.socialLinks?.facebook?.isActive &&
+                  adminSettings.socialLinks.facebook.url && (
+                    <a
+                      href={adminSettings.socialLinks.facebook.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="p-2 rounded-full text-foreground/70 hover:text-primary hover:bg-primary/10 transition-colors"
+                      aria-label="Facebook"
+                    >
+                      <Facebook className="w-4 h-4" />
+                    </a>
+                  )}
+                {adminSettings?.socialLinks?.whatsapp?.isActive &&
+                  adminSettings.socialLinks.whatsapp.url && (
+                    <a
+                      href={adminSettings.socialLinks.whatsapp.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="p-2 rounded-full text-foreground/70 hover:text-primary hover:bg-primary/10 transition-colors"
+                      aria-label="WhatsApp"
+                    >
+                      <WhatsAppIcon className="w-4 h-4" />
+                    </a>
+                  )}
+                {adminSettings?.socialLinks?.telegram?.isActive &&
+                  adminSettings.socialLinks.telegram.url && (
+                    <a
+                      href={adminSettings.socialLinks.telegram.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="p-2 rounded-full text-foreground/70 hover:text-primary hover:bg-primary/10 transition-colors"
+                      aria-label="Telegram"
+                    >
+                      <TelegramIcon className="w-4 h-4" />
+                    </a>
+                  )}
               </div>
               <div className="h-6 w-px bg-gray-200 mx-2"></div>
               <Button
