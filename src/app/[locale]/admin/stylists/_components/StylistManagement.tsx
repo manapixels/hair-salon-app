@@ -137,7 +137,7 @@ export default function StylistManagement({
       <div>
         <div className="space-y-8">
           {/* Roster View (Top) */}
-          <StylistRosterView stylists={stylists} />
+          <StylistRosterView stylists={stylists} onStylistUpdate={fetchStylists} />
 
           {/* Grid View (Bottom) */}
           <div>

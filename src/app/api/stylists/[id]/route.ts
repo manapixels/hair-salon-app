@@ -40,9 +40,11 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       avatar?: string;
       specialtyCategoryIds?: string[];
       workingHours?: any;
+      blockedDates?: any[];
       isActive?: boolean;
     };
-    const { name, email, bio, avatar, specialtyCategoryIds, workingHours, isActive } = body;
+    const { name, email, bio, avatar, specialtyCategoryIds, workingHours, blockedDates, isActive } =
+      body;
 
     // Validate category IDs if provided
     if (specialtyCategoryIds && Array.isArray(specialtyCategoryIds)) {
@@ -63,6 +65,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       avatar,
       specialtyCategoryIds,
       workingHours,
+      blockedDates,
       isActive,
     });
 
