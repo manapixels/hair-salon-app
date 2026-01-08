@@ -13,7 +13,7 @@
       "customers": "Customers",
       "flaggedChats": "Flagged Chats",
       "knowledgeBase": "Knowledge Base",
-      "salonInfo": "Salon Info"
+      "salonSettings": "Salon Settings"
     },
     "logout": "Log Out",
     "ariaLabel": "Admin navigation"
@@ -188,11 +188,6 @@
       "no": "No"
     },
     "Availability": {
-      "tabs": {
-        "stylists": "Stylist Availability",
-        "hours": "Business Hours",
-        "closures": "Special Closures"
-      },
       "loading": "Loading stylists...",
       "loadingAdmin": "Loading admin resources...",
       "noStylistsYet": "No Stylists Yet",
@@ -259,7 +254,9 @@
         "business": "Business",
         "services": "Services",
         "deposits": "Deposits",
-        "social": "Social"
+        "social": "Social",
+        "hours": "Operating Hours",
+        "closures": "Special Closures"
       },
       "saveChanges": "Save Changes",
       "saving": "Saving...",

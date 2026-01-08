@@ -3,7 +3,7 @@
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { useLocale, useTranslations } from 'next-intl';
-import { Building2, Scissors, Shield, Link2 } from 'lucide-react';
+import { Building2, Scissors, Shield, Link2, Clock, XCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export default function SettingsTabNav() {
@@ -14,6 +14,8 @@ export default function SettingsTabNav() {
 
   const tabs = [
     { id: 'business', label: t('business'), icon: Building2, href: 'business' },
+    { id: 'hours', label: t('hours'), icon: Clock, href: 'hours' },
+    { id: 'closures', label: t('closures'), icon: XCircle, href: 'closures' },
     { id: 'services', label: t('services'), icon: Scissors, href: 'services' },
     { id: 'deposits', label: t('deposits'), icon: Shield, href: 'deposits' },
     { id: 'social', label: t('social'), icon: Link2, href: 'social' },

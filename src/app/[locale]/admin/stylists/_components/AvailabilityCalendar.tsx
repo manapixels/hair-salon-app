@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import Image from 'next/image';
 import { toast } from 'sonner';
 import type { DateRange } from 'react-day-picker';
@@ -23,8 +23,9 @@ const DAYS_ORDER = [
   'sunday',
 ] as const;
 
-interface StylistAvailabilityProps {
+interface AvailabilityCalendarProps {
   onNavigateToStylists?: () => void;
+  stylistId?: string; // Optional: if provided, locks the calendar to this stylist
 }
 
 // Helper to get date string from either string or BlockedPeriod
@@ -43,14 +44,17 @@ const normalizeBlockedDates = (dates: (string | BlockedPeriod)[] | undefined): B
   });
 };
 
-export default function StylistAvailability({ onNavigateToStylists }: StylistAvailabilityProps) {
+export default function AvailabilityCalendar({
+  onNavigateToStylists,
+  stylistId: propStylistId,
+}: AvailabilityCalendarProps) {
   const t = useTranslations('Admin.Availability');
   const tCommon = useTranslations('Common');
   const locale = useLocale();
   const format = useFormatter();
 
   const [stylists, setStylists] = useState<Stylist[]>([]);
-  const [selectedStylistId, setSelectedStylistId] = useState<string>('');
+  const [selectedStylistId, setSelectedStylistId] = useState<string>(propStylistId || '');
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -76,17 +80,19 @@ export default function StylistAvailability({ onNavigateToStylists }: StylistAva
   }, []);
 
   useEffect(() => {
-    fetchStylists();
-  }, []);
+    if (propStylistId) {
+      setSelectedStylistId(propStylistId);
+    }
+  }, [propStylistId]);
 
-  const fetchStylists = async () => {
+  const fetchStylists = useCallback(async () => {
     try {
       const response = await fetch('/api/stylists');
       if (!response.ok) throw new Error('Failed to load stylists');
       const data = (await response.json()) as Stylist[];
       if (Array.isArray(data)) {
         setStylists(data);
-        if (data.length > 0) {
+        if (data.length > 0 && !propStylistId) {
           setSelectedStylistId(data[0].id);
         }
       }
@@ -95,7 +101,11 @@ export default function StylistAvailability({ onNavigateToStylists }: StylistAva
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [propStylistId]);
+
+  useEffect(() => {
+    fetchStylists();
+  }, [fetchStylists]);
 
   const selectedStylist = stylists.find(s => s.id === selectedStylistId);
 
@@ -277,41 +287,43 @@ export default function StylistAvailability({ onNavigateToStylists }: StylistAva
       </div>
 
       {/* Stylist Selector */}
-      <div>
-        <label className="block text-sm font-medium text-foreground mb-[2]">
-          {t('selectStylist')}
-        </label>
-        <Select.Root value={selectedStylistId} onValueChange={setSelectedStylistId}>
-          <Select.Trigger className="inline-flex items-center justify-between gap-[2] px-3 py-2 rounded-md border border-gray-300 bg-background text-sm text-foreground hover:border-gray-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary min-w-[250px]">
-            <Select.Value />
-            <Select.Icon>
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M19 9l-7 7-7-7"
-                />
-              </svg>
-            </Select.Icon>
-          </Select.Trigger>
-          <Select.Portal>
-            <Select.Content className="overflow-hidden bg-card rounded-md border border-border shadow-lg">
-              <Select.Viewport className="p-[0.5]">
-                {stylists.map(stylist => (
-                  <Select.Item
-                    key={stylist.id}
-                    value={stylist.id}
-                    className="relative flex items-center px-3 py-2 rounded-sm text-sm text-foreground hover:bg-primary/20 focus:bg-primary/20 outline-none cursor-pointer data-[highlighted]:bg-primary/20"
-                  >
-                    <Select.ItemText>{stylist.name}</Select.ItemText>
-                  </Select.Item>
-                ))}
-              </Select.Viewport>
-            </Select.Content>
-          </Select.Portal>
-        </Select.Root>
-      </div>
+      {!propStylistId && (
+        <div>
+          <label className="block text-sm font-medium text-foreground mb-[2]">
+            {t('selectStylist')}
+          </label>
+          <Select.Root value={selectedStylistId} onValueChange={setSelectedStylistId}>
+            <Select.Trigger className="inline-flex items-center justify-between gap-[2] px-3 py-2 rounded-md border border-gray-300 bg-background text-sm text-foreground hover:border-gray-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary min-w-[250px]">
+              <Select.Value />
+              <Select.Icon>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 9l-7 7-7-7"
+                  />
+                </svg>
+              </Select.Icon>
+            </Select.Trigger>
+            <Select.Portal>
+              <Select.Content className="overflow-hidden bg-card rounded-md border border-border shadow-lg">
+                <Select.Viewport className="p-[0.5]">
+                  {stylists.map(stylist => (
+                    <Select.Item
+                      key={stylist.id}
+                      value={stylist.id}
+                      className="relative flex items-center px-3 py-2 rounded-sm text-sm text-foreground hover:bg-primary/20 focus:bg-primary/20 outline-none cursor-pointer data-[highlighted]:bg-primary/20"
+                    >
+                      <Select.ItemText>{stylist.name}</Select.ItemText>
+                    </Select.Item>
+                  ))}
+                </Select.Viewport>
+              </Select.Content>
+            </Select.Portal>
+          </Select.Root>
+        </div>
+      )}
 
       {selectedStylist && (
         <>

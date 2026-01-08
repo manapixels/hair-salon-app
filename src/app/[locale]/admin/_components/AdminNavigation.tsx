@@ -106,14 +106,8 @@ export default function AdminNavigation({
           href: `${basePath}/stylists`,
         },
         {
-          id: 'availability',
-          label: t('items.availability'),
-          icon: <Clock className="w-5 h-5" />,
-          href: `${basePath}/availability`,
-        },
-        {
           id: 'settings',
-          label: t('items.salonInfo'),
+          label: t('items.salonSettings'), // Updated key
           icon: <Settings className="w-5 h-5" />,
           href: `${basePath}/settings`,
         },

@@ -13,7 +13,7 @@
       "customers": "客户管理",
       "flaggedChats": "标记的对话",
       "knowledgeBase": "知识库",
-      "salonInfo": "沙龙信息"
+      "salonSettings": "沙龙设置"
     },
     "logout": "退出登录",
     "ariaLabel": "管理导航"
@@ -188,11 +188,6 @@
       "no": "否"
     },
     "Availability": {
-      "tabs": {
-        "stylists": "发型师排班",
-        "hours": "营业时间",
-        "closures": "特殊休业"
-      },
       "loading": "正在加载发型师...",
       "loadingAdmin": "正在加载管理资源...",
       "noStylistsYet": "暂无发型师",
@@ -256,7 +251,9 @@
         "business": "商家信息",
         "services": "服务项目",
         "deposits": "定金设置",
-        "social": "社交媒体"
+        "social": "社交媒体",
+        "hours": "营业时间",
+        "closures": "特殊休业"
       },
       "saveChanges": "保存更改",
       "saving": "保存中...",
