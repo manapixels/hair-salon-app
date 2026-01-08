@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { adminPageMetadata } from '@/lib/metadata';
-import StylistAvailabilityPage from '@/components/admin/availability/pages/StylistAvailabilityPage';
+import StylistAvailability from './_components/StylistAvailability';
 
 export async function generateMetadata({
   params,
@@ -12,5 +12,5 @@ export async function generateMetadata({
 }
 
 export default function AvailabilityStylistsRoute() {
-  return <StylistAvailabilityPage />;
+  return <StylistAvailability />;
 }

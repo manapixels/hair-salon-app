@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { adminPageMetadata } from '@/lib/metadata';
-import SpecialClosuresPage from '@/components/admin/availability/pages/SpecialClosuresPage';
+import SpecialClosures from './_components/SpecialClosures';
 
 export async function generateMetadata({
   params,
@@ -12,5 +12,5 @@ export async function generateMetadata({
 }
 
 export default function AvailabilityClosuresRoute() {
-  return <SpecialClosuresPage />;
+  return <SpecialClosures />;
 }

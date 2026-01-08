@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { adminPageMetadata } from '@/lib/metadata';
-import StylistsClient from './StylistsClient';
+import StylistManagement from './_components/StylistManagement';
 
 export async function generateMetadata({
   params,
@@ -12,5 +12,5 @@ export async function generateMetadata({
 }
 
 export default function StylistsPage() {
-  return <StylistsClient />;
+  return <StylistManagement onClose={() => {}} showAddModal={false} setShowAddModal={() => {}} />;
 }

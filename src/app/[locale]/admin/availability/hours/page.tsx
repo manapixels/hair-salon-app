@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { adminPageMetadata } from '@/lib/metadata';
-import BusinessHoursPage from '@/components/admin/availability/pages/BusinessHoursPage';
+import BusinessHours from './_components/BusinessHours';
 
 export async function generateMetadata({
   params,
@@ -12,5 +12,5 @@ export async function generateMetadata({
 }
 
 export default function AvailabilityHoursRoute() {
-  return <BusinessHoursPage />;
+  return <BusinessHours />;
 }

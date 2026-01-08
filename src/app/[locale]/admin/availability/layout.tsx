@@ -1,4 +1,4 @@
-import AvailabilityTabNav from '@/components/admin/availability/AvailabilityTabNav';
+import AvailabilityTabNav from './_components/AvailabilityTabNav';
 
 export default function AvailabilityLayout({ children }: { children: React.ReactNode }) {
   return (

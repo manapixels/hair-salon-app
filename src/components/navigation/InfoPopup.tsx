@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, MapPin, Clock, Instagram, Facebook, FileText, Shield } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { SkeletonLoader } from '@/components/feedback/loaders/SkeletonLoader';
+import { LoadingSkeleton } from '@/components/feedback/loaders/LoadingSkeleton';
 import { useTranslations } from 'next-intl';
 import { WhatsAppIcon, TelegramIcon } from '@/lib/icons';
 import type { SocialLinks } from '@/types';
@@ -88,11 +88,11 @@ export default function InfoPopup({ isOpen, onClose }: InfoPopupProps) {
               {!settings ? (
                 <section>
                   <div className="flex items-start gap-3">
-                    <SkeletonLoader height="h-9" className="w-9" />
+                    <LoadingSkeleton height="h-9" className="w-9" />
                     <div className="flex-1 space-y-2">
-                      <SkeletonLoader height="h-4" className="w-24" />
-                      <SkeletonLoader height="h-4" className="w-full" />
-                      <SkeletonLoader height="h-4" className="w-2/3" />
+                      <LoadingSkeleton height="h-4" className="w-24" />
+                      <LoadingSkeleton height="h-4" className="w-full" />
+                      <LoadingSkeleton height="h-4" className="w-2/3" />
                     </div>
                   </div>
                 </section>
@@ -118,15 +118,15 @@ export default function InfoPopup({ isOpen, onClose }: InfoPopupProps) {
               {!settings ? (
                 <section>
                   <div className="flex items-start gap-3">
-                    <SkeletonLoader height="h-9" className="w-9" />
+                    <LoadingSkeleton height="h-9" className="w-9" />
                     <div className="flex-1 space-y-3">
-                      <SkeletonLoader height="h-4" className="w-32" />
+                      <LoadingSkeleton height="h-4" className="w-32" />
                       <div className="space-y-2">
                         {/* 7 days of hours */}
                         {Array.from({ length: 7 }).map((_, i) => (
                           <div key={i} className="flex justify-between items-center">
-                            <SkeletonLoader height="h-4" className="w-20" />
-                            <SkeletonLoader height="h-4" className="w-24" />
+                            <LoadingSkeleton height="h-4" className="w-20" />
+                            <LoadingSkeleton height="h-4" className="w-24" />
                           </div>
                         ))}
                       </div>

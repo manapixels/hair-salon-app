@@ -10,8 +10,8 @@ import {
   ServiceTypeCard,
   ServiceFAQ,
   ServiceCTA,
-} from '@/components/services';
-import LineWithDiamondDivider from '@/components/services/LineWithDiamondDivider';
+  LineWithDiamondDivider,
+} from '../_components';
 
 // --- Services: Hair Perm Page ---
 

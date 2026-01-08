@@ -94,15 +94,21 @@ Touch devices lack a true "hover" state. Tapping an element can cause "sticky" h
 
 ## 📄 Next.js Page Architecture
 
-Admin and authenticated pages use the **server component → client component** pattern:
+Admin and authenticated pages use the **server component → `_components` folder** pattern:
 
 ```
-src/app/[locale]/admin/customers/
-├── page.tsx          ← Server component (metadata + SSR data)
-└── CustomersClient.tsx ← Client component ('use client', interactivity)
+src/app/[locale]/admin/stylists/
+├── _components/               ← Private folder (client components)
+│   └── StylistManagement.tsx  ← 'use client'
+└── page.tsx                   ← Server component (metadata + SSR data)
 ```
 
-**Benefits**: i18n page metadata, smaller JS bundle, SSR data fetching.
+**Benefits**: i18n page metadata, smaller JS bundle, SSR data fetching, co-located components.
+
+**Naming Convention**:
+
+- ❌ `*Page.tsx`, `*Client.tsx` - Remove these suffixes
+- ✅ `*Settings.tsx`, `*Dashboard.tsx`, `*Manager.tsx` - Purpose-based names
 
 **Metadata Helper** (`src/lib/metadata.ts`):
 
@@ -1495,7 +1501,6 @@ When creating a new page or component, ask:
 - **Implementation Plan**: `../implementation-plans/ai-agents-plan.md`
 - **Design System**: `../design/DESIGN_SYSTEM.md` - UI components
 - **Telegram Testing**: `../telegram/TELEGRAM_TESTING_GUIDE.md`
-- **Coding Guidelines**: `../../CLAUDE.md`
 - **Services Directory**: `../../src/services/`
 - **API Routes**: `../../src/app/api/chat/`, `../../src/app/api/telegram/`
 

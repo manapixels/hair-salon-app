@@ -3,7 +3,7 @@
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
-import StylistDashboard from '@/components/views/StylistDashboard';
+import StylistDashboard from './_components/StylistDashboard';
 import { LoadingSpinner } from '@/components/feedback/loaders/LoadingSpinner';
 import { isStylist } from '@/lib/roleHelpers';
 

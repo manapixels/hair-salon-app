@@ -8,7 +8,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { BookCategoryButton } from '@/components/prices/BookCategoryButton';
+import { BookCategoryButton } from './_components/BookCategoryButton';
 import { toServiceKey } from '@/lib/i18n/toServiceKey';
 
 export default async function PricesPage() {

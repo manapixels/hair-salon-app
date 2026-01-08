@@ -3,7 +3,7 @@
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
-import AdminLayout from '@/components/admin/AdminLayout';
+import AdminLayout from './_components/AdminLayout';
 import { LoadingSpinner } from '@/components/feedback/loaders/LoadingSpinner';
 import { useTranslations } from 'next-intl';
 import { isAdmin } from '@/lib/roleHelpers';

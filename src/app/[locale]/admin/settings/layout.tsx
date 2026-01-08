@@ -1,4 +1,4 @@
-import SettingsTabNav from '@/components/admin/settings/SettingsTabNav';
+import SettingsTabNav from './_components/SettingsTabNav';
 
 export default function SettingsLayout({ children }: { children: React.ReactNode }) {
   return (

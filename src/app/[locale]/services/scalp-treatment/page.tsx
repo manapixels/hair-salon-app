@@ -9,9 +9,9 @@ import {
   MaintenanceTip,
   ServiceFAQ,
   ServiceCTA,
-} from '@/components/services';
+  LineWithDiamondDivider,
+} from '../_components';
 import { BeforeAfterSlider } from '@/components/ui/BeforeAfterSlider';
-import LineWithDiamondDivider from '@/components/services/LineWithDiamondDivider';
 
 // --- Local Components ---
 

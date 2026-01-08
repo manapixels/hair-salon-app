@@ -5,6 +5,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { Check, Calendar, Clock, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
+import { LoadingSpinner } from '@/components/feedback/loaders/LoadingSpinner';
 
 interface AppointmentDetails {
   date: string;
@@ -50,6 +51,14 @@ export default function PaymentSuccessPage() {
       setLoading(false);
     }
   }, [appointmentId, fetchAppointmentDetails]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+        <LoadingSpinner size="lg" message="Loading your booking details..." />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">

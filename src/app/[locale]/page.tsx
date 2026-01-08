@@ -9,15 +9,16 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { TeamCard } from '@/components/team';
-import LocationCard from '@/components/locations/LocationCard';
 import { Sparkles } from '@/lib/icons';
 import type { ServiceLink } from '@/lib/categories';
 import { useBookingModal } from '@/context/BookingModalContext';
-import { FindByConcernModal } from '@/components/services/FindByConcernModal';
+import TeamCard from './_components/TeamCard';
+import LocationCard from './_components/LocationCard';
+import { FindByConcernModal } from './_components/FindByConcernModal';
 import { useState, useEffect } from 'react';
-import type { ServiceCategory, AdminSettings } from '@/types';
+import type { AdminSettings } from '@/types';
 import { useTranslations } from 'next-intl';
+import { LoadingSpinner } from '@/components/feedback/loaders/LoadingSpinner';
 
 export default function HomePage() {
   const t = useTranslations('HomePage');
@@ -51,7 +52,11 @@ export default function HomePage() {
     }));
 
   if (!adminSettings) {
-    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <LoadingSpinner size="lg" />
+      </div>
+    );
   }
 
   return (

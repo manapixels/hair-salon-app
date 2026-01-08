@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { adminPageMetadata } from '@/lib/metadata';
-import KnowledgeBaseClient from './KnowledgeBaseClient';
+import KnowledgeBaseManager from './_components/KnowledgeBaseManager';
 
 export async function generateMetadata({
   params,
@@ -12,5 +12,5 @@ export async function generateMetadata({
 }
 
 export default function KnowledgeBasePage() {
-  return <KnowledgeBaseClient />;
+  return <KnowledgeBaseManager />;
 }

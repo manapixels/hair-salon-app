@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { adminPageMetadata } from '@/lib/metadata';
-import ChatClient from './ChatClient';
+import ChatDashboard from './_components/ChatDashboard';
 
 export async function generateMetadata({
   params,
@@ -12,5 +12,5 @@ export async function generateMetadata({
 }
 
 export default function ChatPage() {
-  return <ChatClient />;
+  return <ChatDashboard />;
 }

@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { adminPageMetadata } from '@/lib/metadata';
-import CustomersClient from './CustomersClient';
+import CustomersList from './_components/CustomersList';
 
 export async function generateMetadata({
   params,
@@ -12,5 +12,5 @@ export async function generateMetadata({
 }
 
 export default function CustomersPage() {
-  return <CustomersClient />;
+  return <CustomersList />;
 }
