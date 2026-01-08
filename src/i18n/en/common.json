@@ -43,7 +43,10 @@
     "loggingOut": "Logging Out...",
     "logIn": "Log In",
     "logInSignUp": "Log In / Sign Up",
-    "loginPrompt": "Log in to manage your appointments and view your history."
+    "loginPrompt": "Log in to manage your appointments and view your history.",
+    "loginSuccess": "Logged in successfully!",
+    "logoutSuccess": "Logged out successfully",
+    "authFailed": "Authentication failed"
   },
   "LoginComplete": {
     "title": "Login Complete",
@@ -327,5 +330,21 @@
     "tryAgain": "Try Again",
     "goHome": "Go Home",
     "backToAdmin": "Back to Admin"
+  },
+  "OAuthLoginErrors": {
+    "whatsapp_oauth_denied": "WhatsApp login was cancelled",
+    "telegram_auth_failed": "Telegram authentication failed",
+    "invalid_telegram_data": "Invalid Telegram data received",
+    "telegram_data_expired": "Telegram authentication data expired",
+    "invalid_telegram_auth": "Telegram authentication verification failed",
+    "whatsapp_oauth_failed": "WhatsApp authentication failed",
+    "invalid_oauth_response": "Invalid OAuth response",
+    "invalid_state": "Invalid OAuth state parameter",
+    "missing_token": "Login link is missing authentication token",
+    "invalid_or_expired_token": "Login link is invalid or has expired",
+    "token_expired": "Login link has expired. Please try logging in again",
+    "user_not_found": "User account not found. Please contact support",
+    "login_failed": "Authentication failed",
+    "default": "Authentication failed"
   }
 }

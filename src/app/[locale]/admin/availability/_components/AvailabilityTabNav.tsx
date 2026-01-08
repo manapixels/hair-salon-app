@@ -2,20 +2,21 @@
 
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { useLocale } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { Users, Clock, XCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
-
-const tabs = [
-  { id: 'stylists', label: 'Stylist Availability', icon: Users, href: 'stylists' },
-  { id: 'hours', label: 'Business Hours', icon: Clock, href: 'hours' },
-  { id: 'closures', label: 'Special Closures', icon: XCircle, href: 'closures' },
-];
 
 export default function AvailabilityTabNav() {
   const pathname = usePathname();
   const locale = useLocale();
+  const t = useTranslations('Admin.Availability');
   const basePath = `/${locale}/admin/availability`;
+
+  const tabs = [
+    { id: 'stylists', labelKey: 'tabs.stylists', icon: Users, href: 'stylists' },
+    { id: 'hours', labelKey: 'tabs.hours', icon: Clock, href: 'hours' },
+    { id: 'closures', labelKey: 'tabs.closures', icon: XCircle, href: 'closures' },
+  ] as const;
 
   // Determine active tab from pathname
   const activeTab =
@@ -38,7 +39,7 @@ export default function AvailabilityTabNav() {
             )}
           >
             <Icon className="w-4 h-4" />
-            <span>{tab.label}</span>
+            <span>{t(tab.labelKey)}</span>
           </Link>
         );
       })}

@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
 import { LoadingSpinner } from '@/components/feedback/loaders/LoadingSpinner';
+import { useTranslations } from 'next-intl';
 
 interface DepositSettings {
   depositEnabled: boolean;
@@ -17,6 +18,10 @@ interface DepositSettings {
 }
 
 export default function DepositSettings() {
+  const t = useTranslations('Admin.Settings.Deposits');
+  const tSettings = useTranslations('Admin.Settings');
+  const tCommon = useTranslations('Admin.Common');
+
   const [settings, setSettings] = useState<DepositSettings>({
     depositEnabled: true,
     depositPercentage: 15,
@@ -27,31 +32,31 @@ export default function DepositSettings() {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    fetchSettings();
-  }, []);
+    const fetchSettings = async () => {
+      try {
+        const response = await fetch('/api/admin/settings');
+        const data = (await response.json()) as {
+          depositEnabled?: boolean;
+          depositPercentage?: number;
+          depositTrustThreshold?: number;
+          depositRefundWindowHours?: number;
+        };
+        setSettings({
+          depositEnabled: data.depositEnabled ?? true,
+          depositPercentage: data.depositPercentage ?? 15,
+          depositTrustThreshold: data.depositTrustThreshold ?? 1,
+          depositRefundWindowHours: data.depositRefundWindowHours ?? 24,
+        });
+      } catch (error) {
+        console.error('Failed to fetch settings:', error);
+        toast.error(t('loadError'));
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const fetchSettings = async () => {
-    try {
-      const response = await fetch('/api/admin/settings');
-      const data = (await response.json()) as {
-        depositEnabled?: boolean;
-        depositPercentage?: number;
-        depositTrustThreshold?: number;
-        depositRefundWindowHours?: number;
-      };
-      setSettings({
-        depositEnabled: data.depositEnabled ?? true,
-        depositPercentage: data.depositPercentage ?? 15,
-        depositTrustThreshold: data.depositTrustThreshold ?? 1,
-        depositRefundWindowHours: data.depositRefundWindowHours ?? 24,
-      });
-    } catch (error) {
-      console.error('Failed to fetch settings:', error);
-      toast.error('Failed to load deposit settings');
-    } finally {
-      setLoading(false);
-    }
-  };
+    fetchSettings();
+  }, [t]);
 
   const handleSave = async () => {
     setSaving(true);
@@ -63,10 +68,10 @@ export default function DepositSettings() {
       });
 
       if (!response.ok) throw new Error('Failed to save');
-      toast.success('Deposit settings saved');
+      toast.success(t('saved'));
     } catch (error) {
       console.error('Failed to save settings:', error);
-      toast.error('Failed to save settings');
+      toast.error(t('saveError'));
     } finally {
       setSaving(false);
     }
@@ -75,7 +80,7 @@ export default function DepositSettings() {
   if (loading) {
     return (
       <div className="flex justify-center py-8">
-        <LoadingSpinner size="md" message="Loading settings..." />
+        <LoadingSpinner size="md" message={tCommon('loading')} />
       </div>
     );
   }
@@ -83,25 +88,21 @@ export default function DepositSettings() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-semibold text-foreground mb-1">No-Show Protection</h2>
-        <p className="text-muted-foreground">
-          Require deposits from first-time customers to reduce no-shows
-        </p>
+        <h2 className="text-2xl font-semibold text-foreground mb-1">{t('title')}</h2>
+        <p className="text-muted-foreground">{t('description')}</p>
       </div>
 
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
-            <span>Deposit Requirements</span>
+            <span>{t('requirementsTitle')}</span>
             <Switch
               checked={settings.depositEnabled}
               onCheckedChange={checked => setSettings({ ...settings, depositEnabled: checked })}
             />
           </CardTitle>
           <CardDescription>
-            {settings.depositEnabled
-              ? 'First-time customers must pay a deposit when booking'
-              : 'Deposits are disabled - all customers can book without payment'}
+            {settings.depositEnabled ? t('enabledDesc') : t('disabledDesc')}
           </CardDescription>
         </CardHeader>
 
@@ -109,7 +110,7 @@ export default function DepositSettings() {
           <CardContent className="space-y-6">
             <div className="grid grid-cols-2 gap-6">
               <div className="space-y-2">
-                <Label htmlFor="percentage">Deposit Percentage</Label>
+                <Label htmlFor="percentage">{t('percentageLabel')}</Label>
                 <div className="flex items-center space-x-2">
                   <Input
                     id="percentage"
@@ -127,13 +128,11 @@ export default function DepositSettings() {
                   />
                   <span className="text-muted-foreground">%</span>
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  Percentage of service price required as deposit
-                </p>
+                <p className="text-xs text-muted-foreground">{t('percentageDesc')}</p>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="threshold">Trust Threshold</Label>
+                <Label htmlFor="threshold">{t('thresholdLabel')}</Label>
                 <div className="flex items-center space-x-2">
                   <Input
                     id="threshold"
@@ -149,16 +148,14 @@ export default function DepositSettings() {
                     }
                     className="w-24"
                   />
-                  <span className="text-muted-foreground">visits</span>
+                  <span className="text-muted-foreground">{t('visits')}</span>
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  Completed visits before customer can skip deposit
-                </p>
+                <p className="text-xs text-muted-foreground">{t('thresholdDesc')}</p>
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="refundWindow">Refund Window</Label>
+              <Label htmlFor="refundWindow">{t('refundWindowLabel')}</Label>
               <div className="flex items-center space-x-2">
                 <Input
                   id="refundWindow"
@@ -174,20 +171,20 @@ export default function DepositSettings() {
                   }
                   className="w-24"
                 />
-                <span className="text-muted-foreground">hours before appointment</span>
+                <span className="text-muted-foreground">{t('hoursBefore')}</span>
               </div>
-              <p className="text-xs text-muted-foreground">
-                Cancellations within this window will forfeit the deposit
-              </p>
+              <p className="text-xs text-muted-foreground">{t('refundWindowDesc')}</p>
             </div>
 
             <div className="pt-4 border-t">
-              <h4 className="font-medium mb-2">Example</h4>
+              <h4 className="font-medium mb-2">{t('exampleTitle')}</h4>
               <p className="text-sm text-muted-foreground">
-                A first-time customer booking a $100 service will pay a{' '}
-                <strong>${((100 * settings.depositPercentage) / 100).toFixed(2)}</strong> deposit.
-                After {settings.depositTrustThreshold} completed visit
-                {settings.depositTrustThreshold > 1 ? 's' : ''}, they can book without a deposit.
+                {t.rich('exampleText', {
+                  depositAmount: ((100 * settings.depositPercentage) / 100).toFixed(2),
+                  threshold: settings.depositTrustThreshold,
+                  plural: settings.depositTrustThreshold > 1 ? 's' : '',
+                  strong: chunks => <strong>{chunks}</strong>,
+                })}
               </p>
             </div>
           </CardContent>
@@ -196,7 +193,7 @@ export default function DepositSettings() {
 
       <div className="flex justify-end">
         <Button onClick={handleSave} disabled={saving}>
-          {saving ? 'Saving...' : 'Save Changes'}
+          {saving ? tSettings('saving') : tSettings('saveChanges')}
         </Button>
       </div>
     </div>

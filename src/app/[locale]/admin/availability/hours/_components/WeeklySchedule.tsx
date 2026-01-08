@@ -1,3 +1,4 @@
+import { useTranslations } from 'next-intl';
 import { Checkbox } from '@/components/ui/checkbox';
 import type { AdminSettings } from '@/types';
 
@@ -30,6 +31,9 @@ const generateTimeOptions = () => {
 const timeOptions = generateTimeOptions();
 
 export default function WeeklySchedule({ weeklySchedule, onChange }: WeeklyScheduleProps) {
+  const t = useTranslations('Admin.Availability');
+  const tCommon = useTranslations('Common');
+
   // Helper to ensure all days exist in schedule
   const getCompleteSchedule = (): AdminSettings['weeklySchedule'] => {
     const defaultDay = { isOpen: true, openingTime: '09:00', closingTime: '17:00' };
@@ -65,11 +69,8 @@ export default function WeeklySchedule({ weeklySchedule, onChange }: WeeklySched
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-lg font-bold text-foreground mb-2">Default Business Hours</h3>
-        <p className="text-sm text-muted-foreground">
-          Set your salon&apos;s standard operating hours. These apply salon-wide unless overridden
-          by stylist-specific schedules.
-        </p>
+        <h3 className="text-lg font-bold text-foreground mb-2">{t('defaultBusinessHours')}</h3>
+        <p className="text-sm text-muted-foreground">{t('defaultBusinessHoursDesc')}</p>
       </div>
 
       <div className="border border-gray-200 rounded-md p-3 space-y-2 bg-muted/30">
@@ -91,7 +92,7 @@ export default function WeeklySchedule({ weeklySchedule, onChange }: WeeklySched
                     onCheckedChange={checked => handleDayToggle(day, checked === true)}
                     className="mr-2"
                   />
-                  <span className="text-sm font-medium capitalize">{day.slice(0, 3)}</span>
+                  <span className="text-sm font-medium">{tCommon(`days.${day}`)}</span>
                 </label>
               </div>
               {schedule.isOpen ? (
@@ -107,7 +108,7 @@ export default function WeeklySchedule({ weeklySchedule, onChange }: WeeklySched
                       </option>
                     ))}
                   </select>
-                  <span className="text-gray-500">to</span>
+                  <span className="text-gray-500">{t('to')}</span>
                   <select
                     value={schedule.closingTime || '17:00'}
                     onChange={e => handleTimeChange(day, 'closingTime', e.target.value)}
@@ -121,7 +122,7 @@ export default function WeeklySchedule({ weeklySchedule, onChange }: WeeklySched
                   </select>
                 </div>
               ) : (
-                <span className="text-sm text-gray-400 italic">Closed</span>
+                <span className="text-sm text-gray-400 italic">{t('closed')}</span>
               )}
             </div>
           );
@@ -144,12 +145,8 @@ export default function WeeklySchedule({ weeklySchedule, onChange }: WeeklySched
             />
           </svg>
           <div className="text-sm text-foreground">
-            <p className="font-medium mb-1">About Default Hours</p>
-            <p className="text-muted-foreground">
-              These hours serve as the baseline for appointment booking. Individual stylists can
-              have their own schedules that override these defaults. Manage stylist-specific hours
-              in the <strong>Stylists</strong> tab.
-            </p>
+            <p className="font-medium mb-1">{t('aboutDefaultHours')}</p>
+            <p className="text-muted-foreground">{t('aboutDefaultHoursDesc')}</p>
           </div>
         </div>
       </div>

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { useBooking } from '@/context/BookingContext';
 import { LoadingSpinner } from '@/components/feedback/loaders/LoadingSpinner';
 import ClosuresManager from './ClosuresManager';
@@ -10,6 +11,7 @@ import { toast } from 'sonner';
 import type { BlockedPeriod } from '@/types';
 
 export default function SpecialClosures() {
+  const t = useTranslations('Admin.Availability');
   const { adminSettings, fetchAndSetAdminSettings, saveAdminSettings } = useBooking();
   const router = useRouter();
 
@@ -32,16 +34,16 @@ export default function SpecialClosures() {
 
   const handleSave = async () => {
     setIsSaving(true);
-    const toastId = toast.loading('Saving special closures...');
+    const toastId = toast.loading(t('savingSpecialClosures'));
     try {
       await saveAdminSettings({
         ...adminSettings,
         specialClosures,
       });
-      toast.success('Special closures saved!', { id: toastId });
+      toast.success(t('specialClosuresSaved'), { id: toastId });
       router.refresh();
     } catch {
-      toast.error('Failed to save special closures', { id: toastId });
+      toast.error(t('saveSpecialClosuresFailed'), { id: toastId });
     } finally {
       setIsSaving(false);
     }
@@ -50,7 +52,7 @@ export default function SpecialClosures() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <LoadingSpinner size="md" message="Loading special closures..." />
+        <LoadingSpinner size="md" message={t('loadingSpecialClosures')} />
       </div>
     );
   }
@@ -61,11 +63,11 @@ export default function SpecialClosures() {
       <div className="mt-8 pt-6 border-t border-border flex justify-end">
         <LoadingButton
           loading={isSaving}
-          loadingText="Saving..."
+          loadingText={t('saving')}
           onClick={handleSave}
           className="px-6 py-2 bg-primary text-white rounded-md font-medium hover:bg-primary/90"
         >
-          Save Changes
+          {t('saveChanges')}
         </LoadingButton>
       </div>
     </div>

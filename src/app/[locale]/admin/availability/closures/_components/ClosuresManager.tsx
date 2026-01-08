@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { useFormatter } from 'next-intl';
+import { useFormatter, useTranslations } from 'next-intl';
 import { Checkbox } from '@/components/ui/checkbox';
+import { toast } from 'sonner';
 import type { BlockedPeriod } from '@/types';
 
 interface ClosuresManagerProps {
@@ -22,6 +23,7 @@ const generateTimeOptions = () => {
 const timeOptions = generateTimeOptions();
 
 export default function ClosuresManager({ closures, onChange }: ClosuresManagerProps) {
+  const t = useTranslations('Admin.Availability');
   const format = useFormatter();
   const [newDate, setNewDate] = useState('');
   const [isFullDay, setIsFullDay] = useState(true);
@@ -41,7 +43,7 @@ export default function ClosuresManager({ closures, onChange }: ClosuresManagerP
     // Check if date already exists as full-day closure
     const existingFullDay = closures.find(c => c.date === newDate && c.isFullDay);
     if (existingFullDay) {
-      alert('This date already has a full-day closure.');
+      toast.error(t('closureExists'));
       return;
     }
 
@@ -84,7 +86,7 @@ export default function ClosuresManager({ closures, onChange }: ClosuresManagerP
 
   const formatClosure = (closure: BlockedPeriod) => {
     if (closure.isFullDay) {
-      return 'Full Day';
+      return t('fullDay');
     }
     return `${closure.startTime} - ${closure.endTime}`;
   };
@@ -92,20 +94,17 @@ export default function ClosuresManager({ closures, onChange }: ClosuresManagerP
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-lg font-bold text-foreground mb-2">Special Closures</h3>
-        <p className="text-sm text-muted-foreground">
-          Mark specific dates when the salon will be closed. You can close for the full day or
-          specific hours.
-        </p>
+        <h3 className="text-lg font-bold text-foreground mb-2">{t('specialClosuresTitle')}</h3>
+        <p className="text-sm text-muted-foreground">{t('specialClosuresDesc')}</p>
       </div>
 
       {/* Add New Closure */}
       <div className="bg-muted border border-border rounded-lg p-4 space-y-4">
-        <label className="block text-sm font-medium text-foreground">Add Closure</label>
+        <label className="block text-sm font-medium text-foreground">{t('addClosure')}</label>
 
         {/* Date Input */}
         <div>
-          <label className="block text-xs text-muted-foreground mb-1">Date</label>
+          <label className="block text-xs text-muted-foreground mb-1">{t('date')}</label>
           <input
             type="date"
             value={newDate}
@@ -118,14 +117,14 @@ export default function ClosuresManager({ closures, onChange }: ClosuresManagerP
         {/* Full Day Toggle */}
         <label className="flex items-center gap-2 cursor-pointer">
           <Checkbox checked={isFullDay} onCheckedChange={checked => setIsFullDay(!!checked)} />
-          <span className="text-sm font-medium">Full Day Closure</span>
+          <span className="text-sm font-medium">{t('fullDayClosure')}</span>
         </label>
 
         {/* Time Range (only shown for partial day) */}
         {!isFullDay && (
           <div className="flex items-center gap-2">
             <div className="flex-1">
-              <label className="block text-xs text-muted-foreground mb-1">From</label>
+              <label className="block text-xs text-muted-foreground mb-1">{t('from')}</label>
               <select
                 value={startTime}
                 onChange={e => setStartTime(e.target.value)}
@@ -138,9 +137,9 @@ export default function ClosuresManager({ closures, onChange }: ClosuresManagerP
                 ))}
               </select>
             </div>
-            <span className="text-gray-500 pt-5">to</span>
+            <span className="text-gray-500 pt-5">{t('to')}</span>
             <div className="flex-1">
-              <label className="block text-xs text-muted-foreground mb-1">To</label>
+              <label className="block text-xs text-muted-foreground mb-1">{t('toLabel')}</label>
               <select
                 value={endTime}
                 onChange={e => setEndTime(e.target.value)}
@@ -158,12 +157,12 @@ export default function ClosuresManager({ closures, onChange }: ClosuresManagerP
 
         {/* Reason (optional) */}
         <div>
-          <label className="block text-xs text-muted-foreground mb-1">Reason (optional)</label>
+          <label className="block text-xs text-muted-foreground mb-1">{t('reasonOptional')}</label>
           <input
             type="text"
             value={reason}
             onChange={e => setReason(e.target.value)}
-            placeholder="e.g., Staff meeting, Holiday"
+            placeholder={t('closureReasonPlaceholder')}
             className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
           />
         </div>
@@ -173,7 +172,7 @@ export default function ClosuresManager({ closures, onChange }: ClosuresManagerP
           disabled={!newDate}
           className="w-full px-4 py-2 bg-primary text-white rounded-md text-sm font-medium hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
         >
-          Add Closure
+          {t('addClosure')}
         </button>
       </div>
 
@@ -181,7 +180,7 @@ export default function ClosuresManager({ closures, onChange }: ClosuresManagerP
       {upcomingClosures.length > 0 && (
         <div>
           <h4 className="text-sm font-semibold text-foreground mb-3">
-            Upcoming Closures ({upcomingClosures.length})
+            {t('upcomingClosures')} ({upcomingClosures.length})
           </h4>
           <div className="space-y-2">
             {upcomingClosures.map((closure, index) => (
@@ -218,7 +217,7 @@ export default function ClosuresManager({ closures, onChange }: ClosuresManagerP
                   onClick={() => handleRemoveClosure(closure)}
                   className="text-sm text-destructive hover:text-destructive/80 font-medium"
                 >
-                  Remove
+                  {t('remove')}
                 </button>
               </div>
             ))}
@@ -244,7 +243,9 @@ export default function ClosuresManager({ closures, onChange }: ClosuresManagerP
                   d="M9 5l7 7-7 7"
                 />
               </svg>
-              <span>Past Closures ({pastClosures.length})</span>
+              <span>
+                {t('pastClosures')} ({pastClosures.length})
+              </span>
             </div>
           </summary>
           <div className="mt-3 space-y-2">
@@ -282,7 +283,7 @@ export default function ClosuresManager({ closures, onChange }: ClosuresManagerP
                   onClick={() => handleRemoveClosure(closure)}
                   className="text-sm text-muted-foreground hover:text-foreground"
                 >
-                  Remove
+                  {t('remove')}
                 </button>
               </div>
             ))}
@@ -306,12 +307,8 @@ export default function ClosuresManager({ closures, onChange }: ClosuresManagerP
               d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
             />
           </svg>
-          <p className="text-sm font-medium text-muted-foreground mb-1">
-            No closure dates scheduled
-          </p>
-          <p className="text-sm text-gray-500">
-            Add dates when your salon will be closed for holidays or special events.
-          </p>
+          <p className="text-sm font-medium text-muted-foreground mb-1">{t('noClosures')}</p>
+          <p className="text-sm text-gray-500">{t('noClosuresDesc')}</p>
         </div>
       )}
     </div>

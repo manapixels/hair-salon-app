@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { useBooking } from '@/context/BookingContext';
 import { LoadingSpinner } from '@/components/feedback/loaders/LoadingSpinner';
 import WeeklySchedule from './WeeklySchedule';
@@ -9,6 +10,7 @@ import { LoadingButton } from '@/components/feedback/loaders/LoadingButton';
 import { toast } from 'sonner';
 
 export default function BusinessHours() {
+  const t = useTranslations('Admin.Availability');
   const { adminSettings, fetchAndSetAdminSettings, saveAdminSettings } = useBooking();
   const router = useRouter();
 
@@ -39,16 +41,16 @@ export default function BusinessHours() {
 
   const handleSave = async () => {
     setIsSaving(true);
-    const toastId = toast.loading('Saving business hours...');
+    const toastId = toast.loading(t('savingBusinessHours'));
     try {
       await saveAdminSettings({
         ...adminSettings,
         weeklySchedule,
       });
-      toast.success('Business hours saved!', { id: toastId });
+      toast.success(t('businessHoursSaved'), { id: toastId });
       router.refresh();
     } catch {
-      toast.error('Failed to save business hours', { id: toastId });
+      toast.error(t('saveBusinessHoursFailed'), { id: toastId });
     } finally {
       setIsSaving(false);
     }
@@ -57,7 +59,7 @@ export default function BusinessHours() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <LoadingSpinner size="md" message="Loading business hours..." />
+        <LoadingSpinner size="md" message={t('loadingBusinessHours')} />
       </div>
     );
   }
@@ -68,11 +70,11 @@ export default function BusinessHours() {
       <div className="mt-8 pt-6 border-t border-border flex justify-end">
         <LoadingButton
           loading={isSaving}
-          loadingText="Saving..."
+          loadingText={t('saving')}
           onClick={handleSave}
           className="px-6 py-2 bg-primary text-white rounded-md font-medium hover:bg-primary/90"
         >
-          Save Changes
+          {t('saveChanges')}
         </LoadingButton>
       </div>
     </div>

@@ -13,6 +13,7 @@ import { WhatsAppIcon, TelegramIcon } from '@/lib/icons';
 import { queryKeys } from '@/hooks/queryKeys';
 import type { SocialLinks } from '@/types';
 import { LoadingSpinner } from '@/components/feedback/loaders/LoadingSpinner';
+import { useTranslations } from 'next-intl';
 
 const defaultSocialLinks: SocialLinks = {
   instagram: { url: '', isActive: false },
@@ -23,28 +24,32 @@ const defaultSocialLinks: SocialLinks = {
 
 export default function SocialLinks() {
   const queryClient = useQueryClient();
+  const t = useTranslations('Admin.Settings.Social');
+  const tSettings = useTranslations('Admin.Settings');
+  const tCommon = useTranslations('Admin.Common');
+
   const [socialLinks, setSocialLinks] = useState<SocialLinks>(defaultSocialLinks);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    fetchSettings();
-  }, []);
-
-  const fetchSettings = async () => {
-    try {
-      const response = await fetch('/api/admin/settings');
-      const data = (await response.json()) as { socialLinks?: SocialLinks };
-      if (data.socialLinks) {
-        setSocialLinks(data.socialLinks);
+    const fetchSettings = async () => {
+      try {
+        const response = await fetch('/api/admin/settings');
+        const data = (await response.json()) as { socialLinks?: SocialLinks };
+        if (data.socialLinks) {
+          setSocialLinks(data.socialLinks);
+        }
+      } catch (error) {
+        console.error('Failed to fetch settings:', error);
+        toast.error(t('loadError'));
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.error('Failed to fetch settings:', error);
-      toast.error('Failed to load social links settings');
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
+
+    fetchSettings();
+  }, [t]);
 
   const handleSave = async () => {
     setSaving(true);
@@ -60,10 +65,10 @@ export default function SocialLinks() {
       // Invalidate the admin settings cache so all components refetch
       await queryClient.invalidateQueries({ queryKey: queryKeys.admin.settings });
 
-      toast.success('Social links saved');
+      toast.success(t('saved'));
     } catch (error) {
       console.error('Failed to save settings:', error);
-      toast.error('Failed to save settings');
+      toast.error(t('saveError'));
     } finally {
       setSaving(false);
     }
@@ -86,7 +91,7 @@ export default function SocialLinks() {
   if (loading) {
     return (
       <div className="flex justify-center py-8">
-        <LoadingSpinner size="md" message="Loading settings..." />
+        <LoadingSpinner size="md" message={tCommon('loading')} />
       </div>
     );
   }
@@ -121,10 +126,8 @@ export default function SocialLinks() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-semibold text-foreground mb-1">Social Links</h2>
-        <p className="text-muted-foreground">
-          Configure social media links displayed in the header, footer, and info popup
-        </p>
+        <h2 className="text-2xl font-semibold text-foreground mb-1">{t('title')}</h2>
+        <p className="text-muted-foreground">{t('description')}</p>
       </div>
 
       <div className="space-y-4">
@@ -142,16 +145,14 @@ export default function SocialLinks() {
                 />
               </CardTitle>
               <CardDescription>
-                {socialLinks[key].isActive
-                  ? 'Link is visible to customers'
-                  : 'Link is hidden from customers'}
+                {socialLinks[key].isActive ? t('visible') : t('hidden')}
               </CardDescription>
             </CardHeader>
 
             {socialLinks[key].isActive && (
               <CardContent>
                 <div className="space-y-2">
-                  <Label htmlFor={`${key}-url`}>URL</Label>
+                  <Label htmlFor={`${key}-url`}>{t('urlLabel')}</Label>
                   <Input
                     id={`${key}-url`}
                     type="url"
@@ -168,7 +169,7 @@ export default function SocialLinks() {
 
       <div className="flex justify-end">
         <Button onClick={handleSave} disabled={saving}>
-          {saving ? 'Saving...' : 'Save Changes'}
+          {saving ? tSettings('saving') : tSettings('saveChanges')}
         </Button>
       </div>
     </div>

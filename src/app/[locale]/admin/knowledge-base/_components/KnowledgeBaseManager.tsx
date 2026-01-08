@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { LoadingSpinner } from '@/components/feedback/loaders/LoadingSpinner';
 import { toast } from 'sonner';
 import { Delete, Plus } from '@/lib/icons';
+import { useTranslations } from 'next-intl';
 
 interface KBItem {
   id: string;
@@ -16,6 +17,7 @@ interface KBItem {
 }
 
 export default function KnowledgeBaseManager() {
+  const t = useTranslations('Admin.KnowledgeBase');
   const [items, setItems] = useState<KBItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isAdding, setIsAdding] = useState(false);
@@ -24,29 +26,29 @@ export default function KnowledgeBaseManager() {
   const [newTags, setNewTags] = useState('');
 
   useEffect(() => {
-    fetchItems();
-  }, []);
-
-  const fetchItems = async () => {
-    try {
-      setIsLoading(true);
-      const response = await fetch('/api/admin/knowledge-base');
-      if (response.ok) {
-        const data = (await response.json()) as KBItem[];
-        setItems(data);
-      } else {
-        toast.error('Failed to load knowledge base');
+    const fetchItems = async () => {
+      try {
+        setIsLoading(true);
+        const response = await fetch('/api/admin/knowledge-base');
+        if (response.ok) {
+          const data = (await response.json()) as KBItem[];
+          setItems(data);
+        } else {
+          toast.error(t('toasts.loadError'));
+        }
+      } catch (error) {
+        toast.error(t('toasts.loadError'));
+      } finally {
+        setIsLoading(false);
       }
-    } catch (error) {
-      toast.error('Error loading knowledge base');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    };
+
+    fetchItems();
+  }, [t]);
 
   const handleAdd = async () => {
     if (!newQuestion.trim() || !newAnswer.trim()) {
-      toast.error('Question and Answer are required');
+      toast.error(t('toasts.requiredFields'));
       return;
     }
 
@@ -65,22 +67,22 @@ export default function KnowledgeBaseManager() {
       });
 
       if (response.ok) {
-        toast.success('Item added successfully');
+        toast.success(t('toasts.addSuccess'));
         setNewQuestion('');
         setNewAnswer('');
         setNewTags('');
         setIsAdding(false);
         fetchItems();
       } else {
-        toast.error('Failed to add item');
+        toast.error(t('toasts.addError'));
       }
     } catch (error) {
-      toast.error('Error adding item');
+      toast.error(t('toasts.addError'));
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this item?')) return;
+    if (!confirm(t('deleteConfirm'))) return;
 
     try {
       const response = await fetch(`/api/admin/knowledge-base?id=${id}`, {
@@ -88,63 +90,62 @@ export default function KnowledgeBaseManager() {
       });
 
       if (response.ok) {
-        toast.success('Item deleted');
+        toast.success(t('toasts.deleteSuccess'));
         setItems(items.filter(item => item.id !== id));
       } else {
-        toast.error('Failed to delete item');
+        toast.error(t('toasts.deleteError'));
       }
     } catch (error) {
-      toast.error('Error deleting item');
+      toast.error(t('toasts.deleteError'));
     }
   };
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-xl font-bold text-gray-900">Knowledge Base</h2>
+      <div className="flex justify-end items-center">
         <Button onClick={() => setIsAdding(!isAdding)}>
           <Plus className="w-4 h-4 mr-2" />
-          Add New
+          {t('addNew')}
         </Button>
       </div>
 
       {isAdding && (
         <Card>
           <CardHeader>
-            <CardTitle>Add New Q&A</CardTitle>
+            <CardTitle>{t('addNewDialogTitle')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <label className="block text-sm font-medium mb-1">Question</label>
+              <label className="block text-sm font-medium mb-1">{t('questionLabel')}</label>
               <Input
                 value={newQuestion}
                 onChange={(e: any) => setNewQuestion(e.target.value)}
-                placeholder="e.g., What is your cancellation policy?"
+                placeholder={t('questionPlaceholder')}
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Answer</label>
+              <label className="block text-sm font-medium mb-1">{t('answerLabel')}</label>
               <textarea
                 className="w-full p-2 border rounded-md"
                 rows={4}
                 value={newAnswer}
                 onChange={e => setNewAnswer(e.target.value)}
-                placeholder="The answer the AI should give..."
+                placeholder={t('answerPlaceholder')}
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Tags (comma separated)</label>
+              <label className="block text-sm font-medium mb-1">{t('tagsLabel')}</label>
               <Input
                 value={newTags}
                 onChange={(e: any) => setNewTags(e.target.value)}
-                placeholder="policy, booking, general"
+                placeholder={t('tagsPlaceholder')}
               />
             </div>
             <div className="flex justify-end space-x-2">
               <Button variant="outline" onClick={() => setIsAdding(false)}>
-                Cancel
+                {t('cancel')}
               </Button>
-              <Button onClick={handleAdd}>Save</Button>
+              <Button onClick={handleAdd}>{t('save')}</Button>
             </div>
           </CardContent>
         </Card>
@@ -179,9 +180,7 @@ export default function KnowledgeBaseManager() {
             </Card>
           ))}
           {items.length === 0 && !isLoading && (
-            <div className="text-center py-8 text-gray-500">
-              No items in knowledge base. Add one to get started!
-            </div>
+            <div className="text-center py-8 text-gray-500">{t('emptyState')}</div>
           )}
         </div>
       )}

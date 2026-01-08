@@ -2,21 +2,22 @@
 
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { useLocale } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { Building2, Scissors, Shield, Link2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-const tabs = [
-  { id: 'business', label: 'Business', icon: Building2, href: 'business' },
-  { id: 'services', label: 'Services', icon: Scissors, href: 'services' },
-  { id: 'deposits', label: 'Deposits', icon: Shield, href: 'deposits' },
-  { id: 'social', label: 'Social', icon: Link2, href: 'social' },
-];
-
 export default function SettingsTabNav() {
+  const t = useTranslations('Admin.Settings.Nav');
   const pathname = usePathname();
   const locale = useLocale();
   const basePath = `/${locale}/admin/settings`;
+
+  const tabs = [
+    { id: 'business', label: t('business'), icon: Building2, href: 'business' },
+    { id: 'services', label: t('services'), icon: Scissors, href: 'services' },
+    { id: 'deposits', label: t('deposits'), icon: Shield, href: 'deposits' },
+    { id: 'social', label: t('social'), icon: Link2, href: 'social' },
+  ];
 
   // Determine active tab from pathname
   const activeTab = tabs.find(tab => pathname.includes(`/settings/${tab.href}`))?.id || 'business';

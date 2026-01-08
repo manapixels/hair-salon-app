@@ -61,9 +61,12 @@ const NotificationBadge: React.FC<{ count: number }> = ({ count }) => {
 
 export default function AppHeader({ view, onViewChange, serviceLinks }: AppHeaderProps) {
   const t = useTranslations('Layout.header');
+  const tNav = useTranslations('Navigation');
   const tAccount = useTranslations('AccountPopup');
+  const tErrors = useTranslations('OAuthLoginErrors');
   const { user, logout } = useAuth();
   const { openModal } = useBookingModal();
+
   const router = useRouter();
   const pathname = usePathname();
   const [appointmentCount, setAppointmentCount] = useState(0);
@@ -141,32 +144,38 @@ export default function AppHeader({ view, onViewChange, serviceLinks }: AppHeade
       // Force AuthContext to re-check session without full page reload
       window.dispatchEvent(new Event('auth-refresh'));
       // Show success toast
-      toast.success('Logged in successfully!');
+      toast.success(tAccount('loginSuccess'));
     } else if (error) {
       // Handle OAuth errors
-      const errorMessages: { [key: string]: string } = {
-        whatsapp_oauth_denied: 'WhatsApp login was cancelled',
-        telegram_auth_failed: 'Telegram authentication failed',
-        invalid_telegram_data: 'Invalid Telegram data received',
-        telegram_data_expired: 'Telegram authentication data expired',
-        invalid_telegram_auth: 'Telegram authentication verification failed',
-        whatsapp_oauth_failed: 'WhatsApp authentication failed',
-        invalid_oauth_response: 'Invalid OAuth response',
-        invalid_state: 'Invalid OAuth state parameter',
-        missing_token: 'Login link is missing authentication token',
-        invalid_or_expired_token: 'Login link is invalid or has expired',
-        token_expired: 'Login link has expired. Please try logging in again',
-        user_not_found: 'User account not found. Please contact support',
-        login_failed: 'Login failed. Please try again or contact support',
-      };
+      // Use translation logic: try to get specific error, fallback to default if key might not exist?
+      // Since we know the keys, we can just use tErrors(error) if we trust the error code matches the key.
+      // Ideally we check if it's a valid key or fallback.
+      // For simplicity, we can do this:
 
-      const errorMessage = errorMessages[error] || 'Authentication failed';
+      const errorMessage = [
+        'whatsapp_oauth_denied',
+        'telegram_auth_failed',
+        'invalid_telegram_data',
+        'telegram_data_expired',
+        'invalid_telegram_auth',
+        'whatsapp_oauth_failed',
+        'invalid_oauth_response',
+        'invalid_state',
+        'missing_token',
+        'invalid_or_expired_token',
+        'token_expired',
+        'user_not_found',
+        'login_failed',
+      ].includes(error)
+        ? tErrors(error)
+        : tErrors('default');
+
       toast.error(errorMessage);
 
       // Clear URL parameters
       window.history.replaceState({}, document.title, window.location.pathname);
     }
-  }, []);
+  }, [tAccount, tErrors]);
 
   const handleNavigation = (targetView: View, path: string) => {
     if (activeView !== targetView) {
@@ -219,6 +228,7 @@ export default function AppHeader({ view, onViewChange, serviceLinks }: AppHeade
                       {/* Right Column: Featured Services List */}
                       <div className="col-span-5 space-y-2 px-6 lg:px-16 py-12">
                         {/* Featured Services - Direct links to service detail pages */}
+
                         {serviceLinks.map(service => (
                           <Link
                             key={service.href}
@@ -227,7 +237,16 @@ export default function AppHeader({ view, onViewChange, serviceLinks }: AppHeade
                             className="group/item flex items-center justify-between py-4 border-b border-primary hover:border-white transition-colors"
                           >
                             <span className="text-2xl font-light tracking-wide group-hover/item:text-white text-white/90 transition-colors">
-                              {service.title}
+                              {[
+                                'haircut',
+                                'hair-colouring',
+                                'hair-perm',
+                                'hair-rebonding',
+                                'keratin-treatment',
+                                'scalp-treatment',
+                              ].includes(service.slug)
+                                ? tNav(`serviceNames.${service.slug}`)
+                                : service.title}
                             </span>
                             <div className="w-10 h-10 rounded-full border border-primary flex items-center justify-center group-hover/item:border-white group-hover/item:bg-white group-hover/item:text-primary transition-all">
                               <ChevronDown className="w-5 h-5 -rotate-90" />
@@ -454,7 +473,7 @@ export default function AppHeader({ view, onViewChange, serviceLinks }: AppHeade
                     onSelect={async () => {
                       await logout();
                       router.push('/');
-                      toast.success('Logged out successfully');
+                      toast.success(tAccount('logoutSuccess'));
                     }}
                   >
                     <LogOut className="h-4 w-4" aria-hidden="true" />

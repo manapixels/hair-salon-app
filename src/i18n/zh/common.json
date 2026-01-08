@@ -43,7 +43,10 @@
     "loggingOut": "正在退出...",
     "logIn": "登录",
     "logInSignUp": "登录 / 注册",
-    "loginPrompt": "登录以管理您的预约并查看历史记录。"
+    "loginPrompt": "登录以管理您的预约并查看历史记录。",
+    "loginSuccess": "登录成功！",
+    "logoutSuccess": "退出登录成功",
+    "authFailed": "认证失败"
   },
   "LoginComplete": {
     "title": "登录完成",
@@ -327,5 +330,21 @@
     "tryAgain": "重试",
     "goHome": "返回首页",
     "backToAdmin": "返回管理面板"
+  },
+  "OAuthLoginErrors": {
+    "whatsapp_oauth_denied": "WhatsApp 登录已取消",
+    "telegram_auth_failed": "Telegram 认证失败",
+    "invalid_telegram_data": "接收到的 Telegram 数据无效",
+    "telegram_data_expired": "Telegram 认证数据已过期",
+    "invalid_telegram_auth": "Telegram 认证验证失败",
+    "whatsapp_oauth_failed": "WhatsApp 认证失败",
+    "invalid_oauth_response": "OAuth 响应无效",
+    "invalid_state": "OAuth state 参数无效",
+    "missing_token": "登录链接缺少认证令牌",
+    "invalid_or_expired_token": "登录链接无效或已过期",
+    "token_expired": "登录链接已过期。请尝试重新登录",
+    "user_not_found": "未找到用户账户。请联系支持",
+    "login_failed": "认证失败",
+    "default": "认证失败"
   }
 }

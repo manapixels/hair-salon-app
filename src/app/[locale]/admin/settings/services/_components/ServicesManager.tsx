@@ -30,8 +30,11 @@ import {
 import { toast } from 'sonner';
 import { Plus, Trash2 } from 'lucide-react';
 import { LoadingSpinner } from '@/components/feedback/loaders/LoadingSpinner';
+import { useTranslations } from 'next-intl';
 
 export default function ServicesManager() {
+  const t = useTranslations('Admin.Settings.Services');
+  const tCommon = useTranslations('Admin.Common');
   const [categories, setCategories] = useState<ServiceCategory[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState<string>('');
@@ -42,25 +45,28 @@ export default function ServicesManager() {
     activeCategoryRef.current = activeCategory;
   }, [activeCategory]);
 
-  const fetchCategories = useCallback(async (preserveTab = false) => {
-    const currentTab = activeCategoryRef.current; // Use ref to avoid dependency loop
-    try {
-      const response = await fetch('/api/services');
-      const data = (await response.json()) as ServiceCategory[];
-      setCategories(data);
-      // Preserve tab position if requested and tab still exists
-      if (preserveTab && currentTab && data.some(c => c.id === currentTab)) {
-        // Tab is preserved - do nothing
-      } else if (data.length > 0 && !activeCategoryRef.current) {
-        setActiveCategory(data[0].id);
+  const fetchCategories = useCallback(
+    async (preserveTab = false) => {
+      const currentTab = activeCategoryRef.current; // Use ref to avoid dependency loop
+      try {
+        const response = await fetch('/api/services');
+        const data = (await response.json()) as ServiceCategory[];
+        setCategories(data);
+        // Preserve tab position if requested and tab still exists
+        if (preserveTab && currentTab && data.some(c => c.id === currentTab)) {
+          // Tab is preserved - do nothing
+        } else if (data.length > 0 && !activeCategoryRef.current) {
+          setActiveCategory(data[0].id);
+        }
+      } catch (error) {
+        console.error('Failed to fetch services:', error);
+        toast.error(t('failedLoad'));
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.error('Failed to fetch services:', error);
-      toast.error('Failed to load services');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+    },
+    [t],
+  );
 
   useEffect(() => {
     fetchCategories();
@@ -69,22 +75,22 @@ export default function ServicesManager() {
   const handleServiceUpdate = async (serviceId: string, updates: Partial<Service>) => {
     try {
       await updateService(serviceId, updates);
-      toast.success('Service updated successfully');
+      toast.success(t('updatedService'));
       fetchCategories(true); // Preserve tab position
     } catch (error) {
       console.error('Failed to update service:', error);
-      toast.error('Failed to update service');
+      toast.error(t('failedUpdateService'));
     }
   };
 
   const handleCategoryUpdate = async (categoryId: string, updates: Partial<ServiceCategory>) => {
     try {
       await updateServiceCategory(categoryId, updates);
-      toast.success('Category updated successfully');
+      toast.success(t('updatedCategory'));
       fetchCategories(true); // Preserve tab position
     } catch (error) {
       console.error('Failed to update category:', error);
-      toast.error('Failed to update category');
+      toast.error(t('failedUpdateCategory'));
     }
   };
 
@@ -100,52 +106,52 @@ export default function ServicesManager() {
   ) => {
     try {
       await createAddon({ serviceId, ...data });
-      toast.success('Addon created successfully');
+      toast.success(t('createdAddon'));
       fetchCategories(true); // Preserve tab position
     } catch (error) {
       console.error('Failed to create addon:', error);
-      toast.error('Failed to create addon');
+      toast.error(t('failedCreateAddon'));
     }
   };
 
   const handleUpdateAddon = async (addonId: string, updates: Partial<ServiceAddon>) => {
     try {
       await updateAddon(addonId, updates);
-      toast.success('Addon updated successfully');
+      toast.success(t('updatedAddon'));
       fetchCategories(true); // Preserve tab position
     } catch (error) {
       console.error('Failed to update addon:', error);
-      toast.error('Failed to update addon');
+      toast.error(t('failedUpdateAddon'));
     }
   };
 
   const handleDeleteAddon = async (addonId: string) => {
-    if (!confirm('Are you sure you want to delete this addon?')) return;
+    if (!confirm(t('deleteAddonConfirm'))) return;
     try {
       await deleteAddon(addonId);
-      toast.success('Addon deleted successfully');
+      toast.success(t('deletedAddon'));
       fetchCategories(true); // Preserve tab position
     } catch (error) {
       console.error('Failed to delete addon:', error);
-      toast.error('Failed to delete addon');
+      toast.error(t('failedDeleteAddon'));
     }
   };
 
   const handleDeleteService = async (serviceId: string) => {
     try {
       await deleteService(serviceId);
-      toast.success('Service deleted successfully');
+      toast.success(t('deletedService'));
       fetchCategories(true);
     } catch (error) {
       console.error('Failed to delete service:', error);
-      toast.error('Failed to delete service');
+      toast.error(t('failedDeleteService'));
     }
   };
 
   if (loading) {
     return (
       <div className="flex justify-center py-8">
-        <LoadingSpinner size="md" message="Loading services..." />
+        <LoadingSpinner size="md" message={tCommon('loading')} />
       </div>
     );
   }
@@ -153,8 +159,8 @@ export default function ServicesManager() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-semibold text-foreground mb-1">Services & Pricing</h2>
-        <p className="text-muted-foreground">Manage service details, pricing, and availability</p>
+        <h2 className="text-2xl font-semibold text-foreground mb-1">{t('title')}</h2>
+        <p className="text-muted-foreground">{t('description')}</p>
       </div>
 
       <Tabs value={activeCategory} onValueChange={setActiveCategory}>
@@ -174,9 +180,9 @@ export default function ServicesManager() {
             {/* Category Settings Card */}
             <Card>
               <CardHeader>
-                <CardTitle>{category.title} - Category Settings</CardTitle>
+                <CardTitle>{t('categorySettings', { title: category.title })}</CardTitle>
                 <CardDescription>
-                  Overall settings for the {category.title} category
+                  {t('categorySettingsDesc', { title: category.title })}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -189,7 +195,7 @@ export default function ServicesManager() {
 
             {/* Individual Services */}
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Services in this category</h3>
+              <h3 className="text-lg font-semibold">{t('servicesInCategory')}</h3>
               {category.items.map(service => (
                 <Card key={service.id}>
                   <CardHeader>
@@ -205,7 +211,7 @@ export default function ServicesManager() {
                     {/* Addons Section */}
                     <div className="border-t pt-4">
                       <div className="flex items-center justify-between mb-3">
-                        <h4 className="font-medium text-sm text-gray-700">Addons / Variants</h4>
+                        <h4 className="font-medium text-sm text-gray-700">{t('addonsVariants')}</h4>
                         <AddAddonButton serviceId={service.id} onAdd={handleCreateAddon} />
                       </div>
                       {service.addons && service.addons.length > 0 ? (
@@ -220,7 +226,7 @@ export default function ServicesManager() {
                           ))}
                         </div>
                       ) : (
-                        <p className="text-sm text-gray-500 italic">No addons configured</p>
+                        <p className="text-sm text-gray-500 italic">{t('noAddons')}</p>
                       )}
                     </div>
                   </CardContent>
@@ -242,6 +248,8 @@ function CategoryForm({
   category: ServiceCategory;
   onSave: (updates: Partial<ServiceCategory>) => Promise<void> | void;
 }) {
+  const t = useTranslations('Admin.Settings.Services');
+  const tSettings = useTranslations('Admin.Settings');
   const [isSaving, setIsSaving] = useState(false);
   const [formData, setFormData] = useState({
     title: category.title,
@@ -266,7 +274,7 @@ function CategoryForm({
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="title">Category Title</Label>
+          <Label htmlFor="title">{t('categoryTitle')}</Label>
           <Input
             id="title"
             value={formData.title}
@@ -274,7 +282,7 @@ function CategoryForm({
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="estimatedDuration">Estimated Duration (minutes)</Label>
+          <Label htmlFor="estimatedDuration">{t('estimatedDuration')}</Label>
           <Input
             id="estimatedDuration"
             type="number"
@@ -287,7 +295,7 @@ function CategoryForm({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="description">Description</Label>
+        <Label htmlFor="description">{t('descriptionLabel')}</Label>
         <Textarea
           id="description"
           value={formData.description}
@@ -298,7 +306,7 @@ function CategoryForm({
 
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="priceMin">Price Range Min ($)</Label>
+          <Label htmlFor="priceMin">{t('priceMin')}</Label>
           <Input
             id="priceMin"
             type="number"
@@ -307,7 +315,7 @@ function CategoryForm({
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="priceMax">Price Range Max ($)</Label>
+          <Label htmlFor="priceMax">{t('priceMax')}</Label>
           <Input
             id="priceMax"
             type="number"
@@ -318,7 +326,7 @@ function CategoryForm({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="priceNote">Price Note (shown in booking)</Label>
+        <Label htmlFor="priceNote">{t('priceNote')}</Label>
         <Input
           id="priceNote"
           value={formData.priceNote}
@@ -328,7 +336,7 @@ function CategoryForm({
       </div>
 
       <Button type="submit" disabled={isSaving}>
-        {isSaving ? 'Saving...' : 'Save Category Settings'}
+        {isSaving ? tSettings('saving') : t('saveCategory')}
       </Button>
     </form>
   );
@@ -344,6 +352,8 @@ function ServiceForm({
   onSave: (updates: Partial<Service>) => Promise<void> | void;
   onDelete: () => Promise<void>;
 }) {
+  const t = useTranslations('Admin.Settings.Services');
+  const tSettings = useTranslations('Admin.Settings');
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [formData, setFormData] = useState({
@@ -381,7 +391,7 @@ function ServiceForm({
     <>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="name">Service Name</Label>
+          <Label htmlFor="name">{t('serviceName')}</Label>
           <Input
             id="name"
             value={formData.name}
@@ -390,7 +400,7 @@ function ServiceForm({
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="description">Description</Label>
+          <Label htmlFor="description">{t('descriptionLabel')}</Label>
           <Textarea
             id="description"
             value={formData.description}
@@ -401,7 +411,7 @@ function ServiceForm({
 
         <div className="grid grid-cols-3 gap-4">
           <div className="space-y-2">
-            <Label htmlFor="price">Display Price</Label>
+            <Label htmlFor="price">{t('displayPrice')}</Label>
             <Input
               id="price"
               value={formData.price}
@@ -410,7 +420,7 @@ function ServiceForm({
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="basePrice">Base Price ($)</Label>
+            <Label htmlFor="basePrice">{t('basePrice')}</Label>
             <Input
               id="basePrice"
               type="number"
@@ -419,7 +429,7 @@ function ServiceForm({
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="maxPrice">Max Price ($)</Label>
+            <Label htmlFor="maxPrice">{t('maxPriceInt')}</Label>
             <Input
               id="maxPrice"
               type="number"
@@ -431,7 +441,7 @@ function ServiceForm({
 
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label htmlFor="duration">Duration (minutes)</Label>
+            <Label htmlFor="duration">{t('estimatedDuration')}</Label>
             <Input
               id="duration"
               type="number"
@@ -440,15 +450,15 @@ function ServiceForm({
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="isActive">Status</Label>
+            <Label htmlFor="isActive">{t('status')}</Label>
             <select
               id="isActive"
               value={formData.isActive ? 'active' : 'inactive'}
               onChange={e => setFormData({ ...formData, isActive: e.target.value === 'active' })}
               className="w-full px-3 py-2 border border-gray-300 rounded-md"
             >
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
+              <option value="active">{t('active')}</option>
+              <option value="inactive">{t('inactive')}</option>
             </select>
           </div>
         </div>
@@ -456,7 +466,7 @@ function ServiceForm({
         {/* Concurrent Scheduling Fields */}
         <div className="grid grid-cols-2 gap-4 pt-2 border-t">
           <div className="space-y-2">
-            <Label htmlFor="processingWaitTime">Processing Wait Time (min)</Label>
+            <Label htmlFor="processingWaitTime">{t('processingWaitTime')}</Label>
             <Input
               id="processingWaitTime"
               type="number"
@@ -465,12 +475,10 @@ function ServiceForm({
                 setFormData({ ...formData, processingWaitTime: parseInt(e.target.value) || 0 })
               }
             />
-            <p className="text-xs text-muted-foreground">
-              Time from start until the stylist is free (e.g., application time)
-            </p>
+            <p className="text-xs text-muted-foreground">{t('processingWaitTimeDesc')}</p>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="processingDuration">Gap Duration (min)</Label>
+            <Label htmlFor="processingDuration">{t('gapDuration')}</Label>
             <Input
               id="processingDuration"
               type="number"
@@ -479,9 +487,7 @@ function ServiceForm({
                 setFormData({ ...formData, processingDuration: parseInt(e.target.value) || 0 })
               }
             />
-            <p className="text-xs text-muted-foreground">
-              Duration stylist is free to take other clients
-            </p>
+            <p className="text-xs text-muted-foreground">{t('gapDurationDesc')}</p>
           </div>
         </div>
 
@@ -489,19 +495,16 @@ function ServiceForm({
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button type="button" variant="destructive" disabled={isDeleting || isSaving}>
-                {isDeleting ? 'Deleting...' : 'Delete Service'}
+                {isDeleting ? 'Deleting...' : t('deleteService')}
               </Button>
             </AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader>
-                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  This action cannot be undone. This will permanently delete the service and all its
-                  addons from the database.
-                </AlertDialogDescription>
+                <AlertDialogTitle>{t('deleteConfirmTitle')}</AlertDialogTitle>
+                <AlertDialogDescription>{t('deleteConfirmDesc')}</AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogCancel>{tSettings('cancel')}</AlertDialogCancel>
                 <AlertDialogAction
                   onClick={e => {
                     e.preventDefault();
@@ -509,13 +512,13 @@ function ServiceForm({
                   }}
                   className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                 >
-                  {isDeleting ? 'Deleting...' : 'Delete'}
+                  {isDeleting ? 'Deleting...' : tSettings('delete')}
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
           <Button type="submit" disabled={isSaving || isDeleting}>
-            {isSaving ? 'Saving...' : 'Save Service'}
+            {isSaving ? tSettings('saving') : t('saveService')}
           </Button>
         </div>
       </form>
@@ -540,6 +543,8 @@ function AddAddonButton({
     },
   ) => Promise<void>;
 }) {
+  const t = useTranslations('Admin.Settings.Services');
+  const tSettings = useTranslations('Admin.Settings');
   const [isAdding, setIsAdding] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [formData, setFormData] = useState({
@@ -553,7 +558,7 @@ function AddAddonButton({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name || !formData.price) {
-      toast.error('Name and price are required');
+      toast.error(t('requiredNamePrice'));
       return;
     }
     setIsSaving(true);
@@ -570,7 +575,7 @@ function AddAddonButton({
     return (
       <Button variant="outline" size="sm" onClick={() => setIsAdding(true)}>
         <Plus className="h-4 w-4 mr-1" />
-        Add Addon
+        {t('addAddon')}
       </Button>
     );
   }
@@ -578,7 +583,7 @@ function AddAddonButton({
   return (
     <form onSubmit={handleSubmit} className="flex items-end gap-2 w-full bg-gray-50 p-3 rounded-md">
       <div className="w-[30%] space-y-1">
-        <Label className="text-xs">Name</Label>
+        <Label className="text-xs">{t('addonName')}</Label>
         <Input
           value={formData.name}
           onChange={e => setFormData({ ...formData, name: e.target.value })}
@@ -587,7 +592,7 @@ function AddAddonButton({
         />
       </div>
       <div className="flex-1 space-y-1">
-        <Label className="text-xs">Description (Optional)</Label>
+        <Label className="text-xs">{t('addonDescription')}</Label>
         <Input
           value={formData.description}
           onChange={e => setFormData({ ...formData, description: e.target.value })}
@@ -596,7 +601,7 @@ function AddAddonButton({
         />
       </div>
       <div className="w-20 space-y-1">
-        <Label className="text-xs">Price</Label>
+        <Label className="text-xs">{t('addonPrice')}</Label>
         <Input
           value={formData.price}
           onChange={e => setFormData({ ...formData, price: e.target.value })}
@@ -605,7 +610,7 @@ function AddAddonButton({
         />
       </div>
       <div className="w-20 space-y-1">
-        <Label className="text-xs">Base $</Label>
+        <Label className="text-xs">{t('addonBasePrice')}</Label>
         <Input
           type="number"
           value={formData.basePrice}
@@ -614,10 +619,10 @@ function AddAddonButton({
         />
       </div>
       <Button type="submit" size="sm" disabled={isSaving}>
-        {isSaving ? '...' : 'Add'}
+        {isSaving ? '...' : t('add')}
       </Button>
       <Button type="button" variant="ghost" size="sm" onClick={() => setIsAdding(false)}>
-        Cancel
+        {tSettings('cancel')}
       </Button>
     </form>
   );
@@ -633,6 +638,7 @@ function AddonRow({
   onUpdate: (addonId: string, updates: Partial<ServiceAddon>) => Promise<void>;
   onDelete: (addonId: string) => Promise<void>;
 }) {
+  const tSettings = useTranslations('Admin.Settings');
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [formData, setFormData] = useState({
@@ -678,10 +684,10 @@ function AddonRow({
           className="h-8 w-16"
         />
         <Button size="sm" onClick={handleSave} disabled={isSaving}>
-          {isSaving ? '...' : 'Save'}
+          {isSaving ? '...' : tSettings('saveChanges')}
         </Button>
         <Button size="sm" variant="ghost" onClick={() => setIsEditing(false)}>
-          Cancel
+          {tSettings('cancel')}
         </Button>
       </div>
     );

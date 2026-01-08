@@ -3,6 +3,7 @@ import Image from 'next/image';
 import { toast } from 'sonner';
 import type { DateRange } from 'react-day-picker';
 import * as Select from '@radix-ui/react-select';
+import { useTranslations, useLocale, useFormatter } from 'next-intl';
 import { LoadingSpinner } from '@/components/feedback/loaders/LoadingSpinner';
 import { Calendar } from '@/components/ui/calendar';
 import { Button } from '@/components/ui/button';
@@ -43,6 +44,11 @@ const normalizeBlockedDates = (dates: (string | BlockedPeriod)[] | undefined): B
 };
 
 export default function StylistAvailability({ onNavigateToStylists }: StylistAvailabilityProps) {
+  const t = useTranslations('Admin.Availability');
+  const tCommon = useTranslations('Common');
+  const locale = useLocale();
+  const format = useFormatter();
+
   const [stylists, setStylists] = useState<Stylist[]>([]);
   const [selectedStylistId, setSelectedStylistId] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
@@ -194,7 +200,7 @@ export default function StylistAvailability({ onNavigateToStylists }: StylistAva
     if (!selectedStylist) return;
 
     setIsSaving(true);
-    const toastId = toast.loading('Saving blocked dates...');
+    const toastId = toast.loading(t('savingBlockedDates'));
 
     try {
       const response = await fetch(`/api/stylists/${selectedStylist.id}`, {
@@ -208,16 +214,16 @@ export default function StylistAvailability({ onNavigateToStylists }: StylistAva
       });
 
       if (!response.ok) {
-        throw new Error('Failed to save blocked dates');
+        throw new Error(t('saveFailed'));
       }
 
       // Refresh stylists to get updated data
       await fetchStylists();
       setHasUnsavedChanges(false);
-      toast.success('Blocked dates saved!', { id: toastId });
+      toast.success(t('savedSuccess'), { id: toastId });
     } catch (error) {
       console.error('Failed to save blocked dates:', error);
-      toast.error('Failed to save blocked dates', { id: toastId });
+      toast.error(t('saveFailed'), { id: toastId });
     } finally {
       setIsSaving(false);
     }
@@ -226,7 +232,7 @@ export default function StylistAvailability({ onNavigateToStylists }: StylistAva
   if (isLoading) {
     return (
       <div className="flex items-center justify-center p-8">
-        <LoadingSpinner size="md" message="Loading stylists..." />
+        <LoadingSpinner size="md" message={t('loading')} />
       </div>
     );
   }
@@ -248,17 +254,15 @@ export default function StylistAvailability({ onNavigateToStylists }: StylistAva
           />
         </svg>
         <p className="text-[length:var(--font-size-3)] font-medium text-muted-foreground mb-1">
-          No Stylists Yet
+          {t('noStylistsYet')}
         </p>
-        <p className="text-sm text-gray-500 mb-4">
-          Add stylists to manage their individual availability schedules.
-        </p>
+        <p className="text-sm text-gray-500 mb-4">{t('noStylistsDesc')}</p>
         {onNavigateToStylists && (
           <button
             onClick={onNavigateToStylists}
             className="px-[4] py-2 bg-primary text-white rounded-md text-sm font-medium hover:opacity-90 transition-opacity"
           >
-            Go to Stylists Tab
+            {t('goToStylists')}
           </button>
         )}
       </div>
@@ -268,16 +272,15 @@ export default function StylistAvailability({ onNavigateToStylists }: StylistAva
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-lg font-bold text-foreground mb-[2]">Per-Stylist Availability</h3>
-        <p className="text-sm text-muted-foreground">
-          Manage individual stylist schedules and blocked dates. Use this page to block specific
-          days off for vacations, appointments, etc.
-        </p>
+        <h3 className="text-lg font-bold text-foreground mb-[2]">{t('perStylistTitle')}</h3>
+        <p className="text-sm text-muted-foreground">{t('perStylistDesc')}</p>
       </div>
 
       {/* Stylist Selector */}
       <div>
-        <label className="block text-sm font-medium text-foreground mb-[2]">Select Stylist</label>
+        <label className="block text-sm font-medium text-foreground mb-[2]">
+          {t('selectStylist')}
+        </label>
         <Select.Root value={selectedStylistId} onValueChange={setSelectedStylistId}>
           <Select.Trigger className="inline-flex items-center justify-between gap-[2] px-3 py-2 rounded-md border border-gray-300 bg-background text-sm text-foreground hover:border-gray-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary min-w-[250px]">
             <Select.Value />
@@ -344,7 +347,7 @@ export default function StylistAvailability({ onNavigateToStylists }: StylistAva
                   onClick={onNavigateToStylists}
                   className="px-3 py-2 text-sm text-primary hover:text-primary font-medium transition-colors"
                 >
-                  Edit Full Profile →
+                  {t('editFullProfile')}
                 </button>
               )}
             </div>
@@ -352,7 +355,7 @@ export default function StylistAvailability({ onNavigateToStylists }: StylistAva
 
           {/* Working Hours */}
           <div>
-            <h4 className="text-base font-semibold text-foreground mb-3">Working Hours</h4>
+            <h4 className="text-base font-semibold text-foreground mb-3">{t('workingHours')}</h4>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {DAYS_ORDER.map(day => {
                 const hours = selectedStylist.workingHours?.[day];
@@ -361,9 +364,11 @@ export default function StylistAvailability({ onNavigateToStylists }: StylistAva
                     key={day}
                     className="flex items-center justify-between px-3 py-2 bg-muted border border-border rounded-md"
                   >
-                    <span className="text-sm font-medium text-foreground capitalize">{day}</span>
+                    <span className="text-sm font-medium text-foreground">
+                      {tCommon(`days.${day}`)}
+                    </span>
                     <span className="text-sm text-muted-foreground">
-                      {hours?.isWorking ? `${hours.start} - ${hours.end}` : 'Off'}
+                      {hours?.isWorking ? `${hours.start} - ${hours.end}` : t('off')}
                     </span>
                   </div>
                 );
@@ -375,25 +380,21 @@ export default function StylistAvailability({ onNavigateToStylists }: StylistAva
           <div className="bg-card border border-border rounded-lg p-4">
             <div className="flex items-center justify-between mb-4">
               <h4 className="text-[length:var(--font-size-3)] font-semibold text-foreground">
-                Manage Blocked Dates
+                {t('manageBlockedDates')}
               </h4>
               {hasUnsavedChanges && (
                 <Button onClick={saveBlockedDates} disabled={isSaving} size="sm">
-                  {isSaving ? 'Saving...' : 'Save Changes'}
+                  {isSaving ? t('saving') : t('saveChanges')}
                 </Button>
               )}
             </div>
 
-            <p className="text-sm text-muted-foreground mb-4">
-              Block specific dates for vacations, appointments, or other time off.
-            </p>
+            <p className="text-sm text-muted-foreground mb-4">{t('blockedDatesDesc')}</p>
 
             {/* Current blocked dates as chips */}
             <div className="mb-4">
               {blockedDates.length === 0 ? (
-                <p className="text-sm text-gray-500 italic py-2">
-                  No blocked dates. This stylist is available according to their regular schedule.
-                </p>
+                <p className="text-sm text-gray-500 italic py-2">{t('noBlockedDates')}</p>
               ) : (
                 <div className="flex flex-wrap gap-2">
                   {blockedDates.map(bp => (
@@ -512,7 +513,7 @@ export default function StylistAvailability({ onNavigateToStylists }: StylistAva
                     variant="outline"
                   >
                     <Plus className="w-4 h-4 mr-1" />
-                    Add Blocked Period
+                    {t('addBlockedPeriod')}
                   </Button>
                 </div>
               )}
@@ -523,7 +524,7 @@ export default function StylistAvailability({ onNavigateToStylists }: StylistAva
           <div>
             <div className="flex items-center justify-between mb-[4]">
               <h4 className="text-[length:var(--font-size-3)] font-semibold text-foreground">
-                Monthly Calendar View
+                {t('monthlyCalendarView')}
               </h4>
               <div className="flex items-center space-x-[3]">
                 <button
@@ -599,7 +600,7 @@ export default function StylistAvailability({ onNavigateToStylists }: StylistAva
                     } ${isToday ? 'ring-2 ring-primary' : ''}`}
                   >
                     <div className="font-medium">{date.getDate()}</div>
-                    {isBlocked && <div className="text-xs mt-0.5">Blocked</div>}
+                    {isBlocked && <div className="text-xs mt-0.5">{t('blocked')}</div>}
                   </div>
                 );
               })}
@@ -609,15 +610,15 @@ export default function StylistAvailability({ onNavigateToStylists }: StylistAva
             <div className="mt-[4] flex items-center space-x-6 text-sm">
               <div className="flex items-center space-x-[2]">
                 <div className="w-4 h-4 rounded-sm bg-muted border border-gray-300"></div>
-                <span className="text-muted-foreground">Working Day</span>
+                <span className="text-muted-foreground">{t('workingDay')}</span>
               </div>
               <div className="flex items-center space-x-[2]">
                 <div className="w-4 h-4 rounded-sm bg-gray-100 border border-border"></div>
-                <span className="text-muted-foreground">Day Off</span>
+                <span className="text-muted-foreground">{t('dayOff')}</span>
               </div>
               <div className="flex items-center space-x-[2]">
                 <div className="w-4 h-4 rounded-sm bg-destructive/10 border border-destructive"></div>
-                <span className="text-muted-foreground">Blocked Date</span>
+                <span className="text-muted-foreground">{t('blockedDate')}</span>
               </div>
             </div>
           </div>
