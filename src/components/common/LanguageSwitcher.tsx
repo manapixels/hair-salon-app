@@ -43,7 +43,7 @@ export function LanguageSwitcher() {
           activeLocale === 'zh' ? 'text-primary' : 'text-gray-500 hover:text-gray-900'
         }`}
       >
-        ZH
+        中
       </button>
     </div>
   );

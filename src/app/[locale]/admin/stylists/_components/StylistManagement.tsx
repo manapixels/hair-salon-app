@@ -145,7 +145,7 @@ export default function StylistManagement({
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-xl font-semibold text-gray-900">{t('title')}</h2>
                 <div className="flex space-x-3">
-                  <Button onClick={() => setShowAddModal(true)} className="bg-primary text-white">
+                  <Button onClick={() => setShowAddModal(true)} variant="outline">
                     <Plus className="h-4 w-4 mr-2" />
                     {t('addStylist')}
                   </Button>

@@ -5,13 +5,23 @@ import Image from 'next/image';
 import { toast } from 'sonner';
 import { useTranslations, useFormatter } from 'next-intl';
 import { User, ChevronLeft, ChevronRight } from '@/lib/icons';
+import { CalendarDays } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import MonthlyRosterDialog from './MonthlyRosterDialog';
 import type { Stylist, BlockedPeriod } from '@/types';
 
 interface StylistRosterViewProps {
   stylists: Stylist[];
   onStylistUpdate?: () => Promise<void>; // Callback to refresh stylists after update
 }
+
+// Helper to format date as YYYY-MM-DD in local timezone
+const formatLocalDate = (date: Date): string => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
 
 export default function StylistRosterView({ stylists, onStylistUpdate }: StylistRosterViewProps) {
   const t = useTranslations('Admin.Availability');
@@ -20,6 +30,7 @@ export default function StylistRosterView({ stylists, onStylistUpdate }: Stylist
 
   const [currentDate, setCurrentDate] = useState(new Date());
   const [savingCells, setSavingCells] = useState<Set<string>>(new Set()); // Track multiple cells
+  const [monthlyDialogOpen, setMonthlyDialogOpen] = useState(false);
 
   // Track pending changes per stylist to handle rapid clicks
   const pendingChangesRef = useRef<Map<string, BlockedPeriod[]>>(new Map());
@@ -53,7 +64,7 @@ export default function StylistRosterView({ stylists, onStylistUpdate }: Stylist
   };
 
   const getDayStatus = (stylist: Stylist, date: Date) => {
-    const dateStr = date.toISOString().split('T')[0];
+    const dateStr = formatLocalDate(date);
 
     // Check pending changes first (for optimistic UI during rapid clicks)
     const pendingBlocked = pendingChangesRef.current.get(stylist.id);
@@ -85,7 +96,7 @@ export default function StylistRosterView({ stylists, onStylistUpdate }: Stylist
 
   const toggleDayAvailability = useCallback(
     async (stylist: Stylist, date: Date) => {
-      const dateStr = date.toISOString().split('T')[0];
+      const dateStr = formatLocalDate(date);
       const cellKey = `${stylist.id}-${dateStr}`;
 
       // Get status based on pending changes (optimistic)
@@ -171,7 +182,13 @@ export default function StylistRosterView({ stylists, onStylistUpdate }: Stylist
     <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
       {/* Header - stacks on mobile */}
       <div className="p-3 sm:p-4 border-b border-gray-200 flex flex-row sm:items-center justify-between gap-2">
-        <h3 className="font-semibold text-base sm:text-lg">{t('weeklyRoster')}</h3>
+        <div className="flex items-center gap-3">
+          <h3 className="font-semibold text-base sm:text-lg">{t('weeklyRoster')}</h3>
+          <Button variant="outline" size="sm" onClick={() => setMonthlyDialogOpen(true)}>
+            <CalendarDays className="h-4 w-4 sm:mr-1" />
+            <span className="hidden sm:flex">{t('viewMonth')}</span>
+          </Button>
+        </div>
         <div className="flex items-center gap-2 sm:gap-4">
           <Button
             variant="outline"
@@ -181,8 +198,11 @@ export default function StylistRosterView({ stylists, onStylistUpdate }: Stylist
           >
             <ChevronLeft className="h-4 w-4" />
           </Button>
-          <span className="font-medium text-xs sm:text-sm min-w-[100px] sm:min-w-[140px] text-center">
-            {format.dateTime(startOfWeek, { month: 'short', day: 'numeric' })} -{' '}
+          <span className="font-medium text-xs sm:text-sm min-w-[80px] sm:min-w-[140px] text-center">
+            {format.dateTime(startOfWeek, { month: 'short', day: 'numeric' })} -
+            <span className="inline sm:hidden">
+              <br />
+            </span>{' '}
             {format.dateTime(weekDays[6], { month: 'short', day: 'numeric', year: 'numeric' })}
           </span>
           <Button
@@ -246,7 +266,7 @@ export default function StylistRosterView({ stylists, onStylistUpdate }: Stylist
                 </td>
                 {weekDays.map(day => {
                   const status = getDayStatus(stylist, day);
-                  const dateStr = day.toISOString().split('T')[0];
+                  const dateStr = formatLocalDate(day);
                   const cellKey = `${stylist.id}-${dateStr}`;
                   const isSaving = savingCells.has(cellKey);
 
@@ -318,6 +338,13 @@ export default function StylistRosterView({ stylists, onStylistUpdate }: Stylist
           </tbody>
         </table>
       </div>
+
+      {/* Monthly Roster Dialog */}
+      <MonthlyRosterDialog
+        stylists={stylists}
+        open={monthlyDialogOpen}
+        onOpenChange={setMonthlyDialogOpen}
+      />
     </div>
   );
 }

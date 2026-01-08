@@ -13,7 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Instagram, Facebook } from 'lucide-react';
+import { Instagram, Facebook, Scissors } from 'lucide-react';
 import {
   Calendar,
   User,
@@ -315,12 +315,7 @@ export default function AppHeader({ view, onViewChange, serviceLinks }: AppHeade
                   )}
               </div>
               <div className="h-6 w-px bg-gray-200 mx-2"></div>
-              <Button
-                variant="outline"
-                size="default"
-                className="border-primary/50 bg-white/80 backdrop-blur-xs text-primary"
-                onClick={() => openModal()}
-              >
+              <Button variant="outline" onClick={() => openModal()}>
                 <Calendar className="h-4 w-4" aria-hidden="true" />
                 {t('bookNow')}
               </Button>
@@ -328,10 +323,7 @@ export default function AppHeader({ view, onViewChange, serviceLinks }: AppHeade
               {user && isCustomer(user) && (
                 <div className="relative">
                   <Link href="/customer">
-                    <Button
-                      variant={activeView === 'dashboard' ? 'default' : 'ghost'}
-                      size="default"
-                    >
+                    <Button variant={activeView === 'dashboard' ? 'default' : 'outline'}>
                       <User className="h-4 w-4" aria-hidden="true" />
                       {tAccount('dashboard')}
                     </Button>
@@ -342,11 +334,7 @@ export default function AppHeader({ view, onViewChange, serviceLinks }: AppHeade
               {/* Admin Dashboard Button */}
               {user && isAdmin(user) && (
                 <Link href="/admin">
-                  <Button
-                    variant={activeView === 'admin' ? 'default' : 'outline'}
-                    size="default"
-                    className="bg-primary-50 hover:bg-primary-100"
-                  >
+                  <Button variant={activeView === 'admin' ? 'default' : 'outline'}>
                     <Shield className="h-4 w-4" aria-hidden="true" />
                     {tAccount('adminDashboard')}
                   </Button>
@@ -355,12 +343,8 @@ export default function AppHeader({ view, onViewChange, serviceLinks }: AppHeade
               {/* Stylist Dashboard Button - Now visible to Admins who are also Stylists */}
               {user && isStylist(user) && (
                 <Link href="/stylist">
-                  <Button
-                    variant={activeView === 'dashboard' ? 'default' : 'outline'}
-                    size="default"
-                    className="bg-primary-50 hover:bg-primary-100"
-                  >
-                    <User className="h-4 w-4" aria-hidden="true" />
+                  <Button variant={activeView === 'dashboard' ? 'default' : 'outline'}>
+                    <Scissors className="h-4 w-4" aria-hidden="true" />
                     {tAccount('stylistDashboard')}
                   </Button>
                 </Link>

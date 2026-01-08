@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useMemo, useRef, useCallback } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useBooking } from '@/context/BookingContext';
 import { LoadingSpinner } from '@/components/feedback/loaders/LoadingSpinner';
 import EditAppointmentModal from '@/components/booking/EditAppointmentModal';
@@ -8,6 +9,7 @@ import type { Appointment, Stylist } from '@/types';
 import CalendarGridView from '@/components/appointments/CalendarGridView';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import {
   Select,
   SelectContent,
@@ -15,7 +17,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -37,7 +38,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Refresh } from '@/lib/icons';
-import { MoreHorizontal, SlidersHorizontal, List, CalendarDays } from 'lucide-react';
+import { MoreHorizontal, SlidersHorizontal, List, CalendarDays, X } from 'lucide-react';
 import AppointmentCard from '@/components/appointments/AppointmentCard';
 import { useTranslations, useFormatter } from 'next-intl';
 
@@ -45,6 +46,11 @@ export default function AppointmentsList() {
   const { appointments, fetchAndSetAppointments } = useBooking();
   const t = useTranslations('Admin.Appointments');
   const format = useFormatter();
+  const searchParams = useSearchParams();
+
+  // Get initial values from URL params
+  const initialFilter = searchParams.get('filter') as 'all' | 'today' | 'week' | 'month' | null;
+  const initialTab = searchParams.get('tab') as 'upcoming' | 'past' | null;
 
   // i18n date/time formatting helpers
   const formatDate = (date: Date | string) => {
@@ -74,8 +80,14 @@ export default function AppointmentsList() {
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [dateFilter, setDateFilter] = useState<'all' | 'today' | 'week' | 'month'>('all');
-  const [activeTab, setActiveTab] = useState<'upcoming' | 'past'>('upcoming');
+  const [dateFilter, setDateFilter] = useState<'all' | 'today' | 'week' | 'month'>(
+    initialFilter && ['all', 'today', 'week', 'month'].includes(initialFilter)
+      ? initialFilter
+      : 'all',
+  );
+  const [activeTab, setActiveTab] = useState<'upcoming' | 'past'>(
+    initialTab && ['upcoming', 'past'].includes(initialTab) ? initialTab : 'upcoming',
+  );
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(25);
   const [selectedAppointments, setSelectedAppointments] = useState<Set<string>>(new Set());
@@ -225,12 +237,12 @@ export default function AppointmentsList() {
     });
   }, [filteredAppointments, activeTab]);
 
-  // Count appointments by tab (independent of active tab, but respecting search/date filters)
+  // Count appointments by tab (independent of active tab and date filter, only respecting search)
   const { upcomingCount, pastCount } = useMemo(() => {
     const today = new Date();
     const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
 
-    // Apply search and date filters only (not tab filter)
+    // Apply search filter only - tab counts should NOT be affected by date filter
     const baseFiltered = (Array.isArray(appointments) ? appointments : []).filter(appointment => {
       if (searchTerm) {
         const term = searchTerm.toLowerCase();
@@ -240,33 +252,6 @@ export default function AppointmentsList() {
           appointment.services.some(s => s.name.toLowerCase().includes(term));
         if (!matchesSearch) return false;
       }
-
-      if (dateFilter === 'today') {
-        const aptDate = new Date(appointment.date);
-        const endOfToday = new Date(
-          today.getFullYear(),
-          today.getMonth(),
-          today.getDate(),
-          23,
-          59,
-          59,
-        );
-        if (aptDate < startOfToday || aptDate > endOfToday) return false;
-      } else if (dateFilter === 'week') {
-        const startOfWeek = new Date(today);
-        startOfWeek.setDate(today.getDate() - today.getDay());
-        const endOfWeek = new Date(startOfWeek);
-        endOfWeek.setDate(startOfWeek.getDate() + 6);
-        endOfWeek.setHours(23, 59, 59);
-        const aptDate = new Date(appointment.date);
-        if (aptDate < startOfWeek || aptDate > endOfWeek) return false;
-      } else if (dateFilter === 'month') {
-        const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-        const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0, 23, 59, 59);
-        const aptDate = new Date(appointment.date);
-        if (aptDate < startOfMonth || aptDate > endOfMonth) return false;
-      }
-
       return true;
     });
 
@@ -281,7 +266,7 @@ export default function AppointmentsList() {
     });
 
     return { upcomingCount: upcoming, pastCount: past };
-  }, [appointments, searchTerm, dateFilter]);
+  }, [appointments, searchTerm]);
 
   // Pagination
   const totalPages = Math.ceil(sortedAppointments.length / itemsPerPage);
@@ -356,25 +341,38 @@ export default function AppointmentsList() {
 
   return (
     <div className="space-y-6">
-      {/* Tabs for Upcoming/Past */}
-      <Tabs
-        value={activeTab}
-        onValueChange={v => {
-          setActiveTab(v as 'upcoming' | 'past');
-          setCurrentPage(1);
-        }}
-      >
+      {/* Header with tabs and controls */}
+      <div>
         <div className="flex flex-wrap justify-between items-center gap-4">
-          <TabsList className="w-auto">
-            <TabsTrigger value="upcoming">
+          {/* Tab buttons styled like Customers page filter bar */}
+          <div className="flex flex-wrap gap-2">
+            <Button
+              variant={activeTab === 'upcoming' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => {
+                setActiveTab('upcoming');
+                setCurrentPage(1);
+              }}
+            >
               {t('upcoming')}
-              <span className="ml-1.5 text-xs text-muted-foreground">{upcomingCount}</span>
-            </TabsTrigger>
-            <TabsTrigger value="past">
+              <Badge variant="secondary" className="ml-2 text-xs">
+                {upcomingCount}
+              </Badge>
+            </Button>
+            <Button
+              variant={activeTab === 'past' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => {
+                setActiveTab('past');
+                setCurrentPage(1);
+              }}
+            >
               {t('past')}
-              <span className="ml-1.5 text-xs text-muted-foreground">{pastCount}</span>
-            </TabsTrigger>
-          </TabsList>
+              <Badge variant="secondary" className="ml-2 text-xs">
+                {pastCount}
+              </Badge>
+            </Button>
+          </div>
           <div className="flex items-center gap-2">
             {/* View Toggle */}
             <div className="flex border border-border rounded-md overflow-hidden">
@@ -463,6 +461,22 @@ export default function AppointmentsList() {
           </div>
         </div>
 
+        {/* Active Filter Chip */}
+        {dateFilter !== 'all' && (
+          <div className="flex items-center gap-2 mb-4">
+            <span className="text-sm text-muted-foreground">{t('filtering')}:</span>
+            <button
+              onClick={() => setDateFilter('all')}
+              className="inline-flex items-center gap-1.5 px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-medium hover:bg-primary/20 transition-colors"
+            >
+              {dateFilter === 'today' && t('today')}
+              {dateFilter === 'week' && t('thisWeek')}
+              {dateFilter === 'month' && t('thisMonth')}
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        )}
+
         {/* Appointments View - List or Calendar */}
         {viewMode === 'calendar' ? (
           <CalendarGridView
@@ -481,7 +495,25 @@ export default function AppointmentsList() {
               </div>
             ) : paginatedAppointments.length === 0 ? (
               <div className="bg-white border border-border rounded-lg p-12 text-center">
-                <p className="text-muted-foreground">{t('noAppointmentsFound')}</p>
+                {dateFilter !== 'all' ? (
+                  <>
+                    <p className="text-muted-foreground mb-3">
+                      {t('noAppointmentsFoundFiltered', {
+                        filter:
+                          dateFilter === 'today'
+                            ? t('today').toLowerCase()
+                            : dateFilter === 'week'
+                              ? t('thisWeek').toLowerCase()
+                              : t('thisMonth').toLowerCase(),
+                      })}
+                    </p>
+                    <Button onClick={() => setDateFilter('all')} variant="outline">
+                      {t('viewUpcoming')} →
+                    </Button>
+                  </>
+                ) : (
+                  <p className="text-muted-foreground">{t('noAppointmentsFound')}</p>
+                )}
               </div>
             ) : (
               <div className="space-y-4">
@@ -576,7 +608,7 @@ export default function AppointmentsList() {
             </div>
           </div>
         )}
-      </Tabs>
+      </div>
 
       {/* Modals */}
       <EditAppointmentModal

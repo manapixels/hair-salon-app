@@ -123,6 +123,7 @@ function getTitleFromPath(pathname: string, basePath: string, t: any): string {
     appointments: t('appointments'),
     availability: t('availability'),
     stylists: t('stylists'),
+    customers: t('customers'),
     chat: t('chat'),
     'knowledge-base': t('knowledgeBase'),
     settings: t('settings'),

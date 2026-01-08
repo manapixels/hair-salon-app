@@ -82,7 +82,7 @@ export default function AppointmentCard({
   return (
     <div
       className={cn(
-        'p-4 flex items-center justify-between hover:bg-muted/50 transition-colors',
+        'p-4 md:px-6 flex items-center justify-between hover:bg-muted/50 transition-colors',
         className,
       )}
       onClick={onClick}

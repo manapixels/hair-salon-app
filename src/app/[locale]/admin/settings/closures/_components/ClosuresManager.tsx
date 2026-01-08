@@ -79,7 +79,8 @@ export default function ClosuresManager({ closures, onChange }: ClosuresManagerP
     );
   };
 
-  const today = new Date().toISOString().split('T')[0];
+  const now = new Date();
+  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
   const sortedClosures = [...closures].sort((a, b) => a.date.localeCompare(b.date));
   const upcomingClosures = sortedClosures.filter(c => c.date >= today);
   const pastClosures = sortedClosures.filter(c => c.date < today);

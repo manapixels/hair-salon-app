@@ -87,13 +87,13 @@ export default function AdminNavigation({
           icon: <UserCircle className="w-5 h-5" />,
           href: `${basePath}/customers`,
         },
-        {
-          id: 'chat',
-          label: t('items.flaggedChats'),
-          icon: <MessageSquare className="w-5 h-5" />,
-          href: `${basePath}/chat`,
-          badge: badges.chat,
-        },
+        // {
+        //   id: 'chat',
+        //   label: t('items.flaggedChats'),
+        //   icon: <MessageSquare className="w-5 h-5" />,
+        //   href: `${basePath}/chat`,
+        //   badge: badges.chat,
+        // },
       ],
     },
     {
@@ -111,12 +111,12 @@ export default function AdminNavigation({
           icon: <Settings className="w-5 h-5" />,
           href: `${basePath}/settings`,
         },
-        {
-          id: 'knowledge-base',
-          label: t('items.knowledgeBase'),
-          icon: <BookOpen className="w-5 h-5" />,
-          href: `${basePath}/knowledge-base`,
-        },
+        // {
+        //   id: 'knowledge-base',
+        //   label: t('items.knowledgeBase'),
+        //   icon: <BookOpen className="w-5 h-5" />,
+        //   href: `${basePath}/knowledge-base`,
+        // },
       ],
     },
   ];

@@ -137,9 +137,19 @@ export default function AdminDashboard({
         {/* KPI Cards */}
         <section>
           <div className="grid grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-4">
-            <KPICard title={t('today')} value={kpis.today} subtitle={t('appointments')} />
+            <KPICard
+              title={t('today')}
+              value={kpis.today}
+              subtitle={t('appointments')}
+              href={`${basePath}/appointments?filter=today`}
+            />
 
-            <KPICard title={t('upcoming')} value={kpis.upcoming} subtitle={t('futureBookings')} />
+            <KPICard
+              title={t('upcoming')}
+              value={kpis.upcoming}
+              subtitle={t('futureBookings')}
+              href={`${basePath}/appointments`}
+            />
           </div>
         </section>
 
@@ -179,7 +189,7 @@ export default function AdminDashboard({
 
           {kpis.todayAppointments.length === 0 ? (
             <div className="bg-white border border-border rounded-lg p-8 text-center">
-              <Calendar className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
+              <Calendar className="w-6 h-6 text-muted-foreground mx-auto mb-3" />
               <p className="text-muted-foreground">{t('noAppointmentsToday')}</p>
             </div>
           ) : (
@@ -224,15 +234,9 @@ export default function AdminDashboard({
           <h2 className="text-lg font-semibold text-foreground mb-4">{t('quickActions')}</h2>
           <div className="grid grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-3">
             <QuickActionCard
-              href={`${basePath}/availability`}
-              title={t('blockTime')}
-              description={t('manageAvailability')}
-              icon={<Clock className="w-5 h-5" />}
-            />
-            <QuickActionCard
               href={`${basePath}/stylists`}
-              title={t('manageStylist')}
-              description={t('manageTeam')}
+              title={t('manageStylists')}
+              description={t('manageStylistsDescription')}
               icon={<TrendingUp className="w-5 h-5" />}
             />
             <QuickActionCard
@@ -276,20 +280,36 @@ function KPICard({
   title,
   value,
   subtitle,
+  href,
 }: {
   title: string;
   value: string | number;
   subtitle: string;
+  href?: string;
 }) {
-  return (
-    <div className="bg-white p-4 lg:p-5 border border-border rounded-lg">
+  const content = (
+    <>
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-sm font-medium text-muted-foreground">{title}</h3>
+        {href && <ChevronRight className="w-4 h-4 text-muted-foreground" />}
       </div>
       <p className="text-2xl lg:text-3xl font-bold text-foreground">{value}</p>
       <p className="text-xs text-muted-foreground mt-1">{subtitle}</p>
-    </div>
+    </>
   );
+
+  if (href) {
+    return (
+      <Link
+        href={href}
+        className="bg-white p-4 lg:p-5 border border-border rounded-lg hover:border-primary/50 hover:shadow-sm transition-all block"
+      >
+        {content}
+      </Link>
+    );
+  }
+
+  return <div className="bg-white p-4 lg:p-5 border border-border rounded-lg">{content}</div>;
 }
 
 function QuickActionCard({

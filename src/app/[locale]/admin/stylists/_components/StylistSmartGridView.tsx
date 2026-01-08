@@ -13,10 +13,17 @@ import {
   TelegramIcon,
 } from '@/lib/icons';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
 import type { Stylist, ServiceCategory } from '@/types';
 import StylistForm from './StylistForm';
-import AvailabilityCalendar from './AvailabilityCalendar';
+import ManageBlockedDates from './ManageBlockedDates';
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 
 interface StylistSmartGridViewProps {
   stylists: Stylist[];
@@ -144,7 +151,7 @@ export default function StylistSmartGridView({
 
             {/* Mini-Week Viz */}
             <div className="mb-4">
-              <div className="flex justify-between items-end h-8 gap-1">
+              <div className="flex justify-between items-end gap-1">
                 {daysOfWeek.map(day => {
                   const isWorking = stylist.workingHours[day]?.isWorking;
                   const dayLabel = tCommon(`days.${day}`).slice(0, 1);
@@ -172,7 +179,7 @@ export default function StylistSmartGridView({
                 onClick={() => setAvailabilityStylist(stylist)}
               >
                 <CalendarIcon className="h-3.5 w-3.5" />
-                {tAvail('perStylistTitle').split(' ')[0]}
+                {tAvail('blockedDates')}
               </Button>
             </div>
           </div>
@@ -203,11 +210,11 @@ export default function StylistSmartGridView({
         onOpenChange={open => !open && setAvailabilityStylist(null)}
       >
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader className="mb-6">
-            <DialogTitle>{availabilityStylist?.name} - Schedule</DialogTitle>
-            <div className="text-sm text-gray-500">Manage working hours and blocked dates.</div>
-          </DialogHeader>
-          {availabilityStylist && <AvailabilityCalendar stylistId={availabilityStylist.id} />}
+          <VisuallyHidden>
+            <DialogTitle>{tAvail('blockedDates')}</DialogTitle>
+            <DialogDescription>{tAvail('blockedDatesDesc')}</DialogDescription>
+          </VisuallyHidden>
+          {availabilityStylist && <ManageBlockedDates stylistId={availabilityStylist.id} />}
         </DialogContent>
       </Dialog>
     </>
