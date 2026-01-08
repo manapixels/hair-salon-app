@@ -137,21 +137,9 @@ export default function AdminDashboard({
         {/* KPI Cards */}
         <section>
           <div className="grid grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-4">
-            <KPICard
-              title={t('today')}
-              value={kpis.today}
-              subtitle={t('appointments')}
-              icon={<Calendar className="w-5 h-5 text-blue-600" />}
-              iconBg="bg-blue-100"
-            />
+            <KPICard title={t('today')} value={kpis.today} subtitle={t('appointments')} />
 
-            <KPICard
-              title={t('upcoming')}
-              value={kpis.upcoming}
-              subtitle={t('futureBookings')}
-              icon={<Clock className="w-5 h-5 text-amber-600" />}
-              iconBg="bg-amber-100"
-            />
+            <KPICard title={t('upcoming')} value={kpis.upcoming} subtitle={t('futureBookings')} />
           </div>
         </section>
 
@@ -288,22 +276,15 @@ function KPICard({
   title,
   value,
   subtitle,
-  icon,
-  iconBg,
 }: {
   title: string;
   value: string | number;
   subtitle: string;
-  icon: React.ReactNode;
-  iconBg: string;
 }) {
   return (
     <div className="bg-white p-4 lg:p-5 border border-border rounded-lg">
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-sm font-medium text-muted-foreground">{title}</h3>
-        <div className={`w-10 h-10 rounded-full ${iconBg} flex items-center justify-center`}>
-          {icon}
-        </div>
       </div>
       <p className="text-2xl lg:text-3xl font-bold text-foreground">{value}</p>
       <p className="text-xs text-muted-foreground mt-1">{subtitle}</p>

@@ -116,8 +116,7 @@ export default function AccountPopup({ isOpen, onClose }: AccountPopupProps) {
                             </span>
                           ) : user.email.endsWith('@telegram.local') ? (
                             <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-blue-100 px-3 py-0.5 text-sm font-medium text-blue-800">
-                              <TelegramIcon className="w-4 h-4 mr-1" />
-                              Telegram
+                              <TelegramIcon className="w-4 h-4 mr-1" />@{user.email.split('@')[0]}
                             </span>
                           ) : (
                             <span className="inline-block whitespace-nowrap rounded-full border border-gray-200 px-3 py-0.5 text-sm font-medium text-gray-500">
@@ -170,7 +169,7 @@ export default function AccountPopup({ isOpen, onClose }: AccountPopupProps) {
                           className="flex items-center justify-between p-4 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors group"
                         >
                           <div className="flex items-center gap-3">
-                            <div className="p-2 bg-purple-100 rounded-lg text-purple-600">
+                            <div className="p-2 rounded-lg text-primary">
                               <Shield className="w-5 h-5" />
                             </div>
                             <span className="font-medium text-gray-900">{t('adminDashboard')}</span>

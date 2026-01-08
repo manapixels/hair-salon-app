@@ -3,7 +3,15 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import { useTranslations } from 'next-intl';
-import { User, Edit, Delete, Calendar as CalendarIcon, Clock } from '@/lib/icons';
+import {
+  User,
+  Edit,
+  Delete,
+  Calendar as CalendarIcon,
+  Clock,
+  WhatsAppIcon,
+  TelegramIcon,
+} from '@/lib/icons';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import type { Stylist, ServiceCategory } from '@/types';
@@ -26,6 +34,7 @@ export default function StylistSmartGridView({
   const t = useTranslations('Admin.Stylists');
   const tNav = useTranslations('Navigation');
   const tCommon = useTranslations('Common');
+  const tAvail = useTranslations('Admin.Availability');
 
   const [editingStylist, setEditingStylist] = useState<Stylist | null>(null);
   const [availabilityStylist, setAvailabilityStylist] = useState<Stylist | null>(null);
@@ -39,6 +48,32 @@ export default function StylistSmartGridView({
     'saturday',
     'sunday',
   ] as const;
+
+  // Helper to render contact badge (WhatsApp/Telegram/Email)
+  const renderContactBadge = (email: string | undefined) => {
+    if (!email) return null;
+
+    if (email.endsWith('@whatsapp.local')) {
+      const phone = email.split('@')[0];
+      return (
+        <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800">
+          <WhatsAppIcon className="w-3 h-3" />
+          {phone}
+        </span>
+      );
+    }
+
+    if (email.endsWith('@telegram.local')) {
+      const username = email.split('@')[0];
+      return (
+        <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800">
+          <TelegramIcon className="w-3 h-3" />@{username}
+        </span>
+      );
+    }
+
+    return <p className="text-xs text-gray-500">{email}</p>;
+  };
 
   return (
     <>
@@ -65,7 +100,7 @@ export default function StylistSmartGridView({
                 )}
                 <div>
                   <h3 className="font-semibold text-gray-900">{stylist.name}</h3>
-                  <p className="text-xs text-gray-500">{stylist.email}</p>
+                  {renderContactBadge(stylist.email)}
                 </div>
               </div>
               <div className="flex space-x-1">
@@ -137,7 +172,7 @@ export default function StylistSmartGridView({
                 onClick={() => setAvailabilityStylist(stylist)}
               >
                 <CalendarIcon className="h-3.5 w-3.5" />
-                Availability
+                {tAvail('perStylistTitle').split(' ')[0]}
               </Button>
             </div>
           </div>

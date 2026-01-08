@@ -85,18 +85,30 @@ export default function CustomerCard({
 
   const getContactMethodIcon = () => {
     if (customer.authProvider === 'telegram' || customer.telegramId) {
+      const username = customer.email?.endsWith('@telegram.local')
+        ? customer.email.split('@')[0]
+        : null;
       return (
-        <Badge variant="outline" className="gap-1 text-xs font-normal">
+        <Badge
+          variant="outline"
+          className="gap-1 text-xs font-normal bg-blue-50 text-blue-800 border-blue-200"
+        >
           <TelegramIcon width={12} height={12} />
-          Telegram
+          {username ? `@${username}` : 'Telegram'}
         </Badge>
       );
     }
     if (customer.authProvider === 'whatsapp' || customer.whatsappPhone) {
+      const phone = customer.email?.endsWith('@whatsapp.local')
+        ? customer.email.split('@')[0]
+        : customer.whatsappPhone;
       return (
-        <Badge variant="outline" className="gap-1 text-xs font-normal">
+        <Badge
+          variant="outline"
+          className="gap-1 text-xs font-normal bg-green-50 text-green-800 border-green-200"
+        >
           <WhatsappIcon width={12} height={12} />
-          WhatsApp
+          {phone || 'WhatsApp'}
         </Badge>
       );
     }

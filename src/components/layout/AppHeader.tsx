@@ -406,8 +406,7 @@ export default function AppHeader({ view, onViewChange, serviceLinks }: AppHeade
                         </span>
                       ) : user.email.endsWith('@telegram.local') ? (
                         <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-blue-100 px-3 py-0.5 text-sm font-medium text-blue-800">
-                          <TelegramIcon className="w-4 h-4 mr-1" />
-                          Telegram
+                          <TelegramIcon className="w-4 h-4 mr-1" />@{user.email.split('@')[0]}
                         </span>
                       ) : (
                         <span className="inline-block rounded-full border border-gray-200 px-2 py-0.5 text-sm font-medium text-gray-500">
