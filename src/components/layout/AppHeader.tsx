@@ -239,9 +239,11 @@ export default function AppHeader({ view, onViewChange, serviceLinks }: AppHeade
                   </div>
                 </div>
               </div>
-              <Button variant="ghost" className="px-2" onClick={() => router.push('/prices')}>
-                {t('prices')}
-              </Button>
+              <Link href="/prices">
+                <Button variant="ghost" className="px-2">
+                  {t('prices')}
+                </Button>
+              </Link>
 
               <div className="flex items-center gap-1 mx-2">
                 {adminSettings?.socialLinks?.instagram?.isActive &&
@@ -306,40 +308,43 @@ export default function AppHeader({ view, onViewChange, serviceLinks }: AppHeade
               {/* Customer Dashboard Button */}
               {user && isCustomer(user) && (
                 <div className="relative">
-                  <Button
-                    variant={activeView === 'dashboard' ? 'default' : 'ghost'}
-                    size="default"
-                    onClick={() => handleNavigation('dashboard', '/customer')}
-                  >
-                    <User className="h-4 w-4" aria-hidden="true" />
-                    {tAccount('dashboard')}
-                  </Button>
+                  <Link href="/customer">
+                    <Button
+                      variant={activeView === 'dashboard' ? 'default' : 'ghost'}
+                      size="default"
+                    >
+                      <User className="h-4 w-4" aria-hidden="true" />
+                      {tAccount('dashboard')}
+                    </Button>
+                  </Link>
                   <NotificationBadge count={appointmentCount} />
                 </div>
               )}
               {/* Admin Dashboard Button */}
               {user && isAdmin(user) && (
-                <Button
-                  variant={activeView === 'admin' ? 'default' : 'outline'}
-                  size="default"
-                  className="bg-primary-50 hover:bg-primary-100"
-                  onClick={() => handleNavigation('admin', '/admin')}
-                >
-                  <Shield className="h-4 w-4" aria-hidden="true" />
-                  {tAccount('adminDashboard')}
-                </Button>
+                <Link href="/admin">
+                  <Button
+                    variant={activeView === 'admin' ? 'default' : 'outline'}
+                    size="default"
+                    className="bg-primary-50 hover:bg-primary-100"
+                  >
+                    <Shield className="h-4 w-4" aria-hidden="true" />
+                    {tAccount('adminDashboard')}
+                  </Button>
+                </Link>
               )}
               {/* Stylist Dashboard Button - Now visible to Admins who are also Stylists */}
               {user && isStylist(user) && (
-                <Button
-                  variant={activeView === 'dashboard' ? 'default' : 'outline'}
-                  size="default"
-                  className="bg-primary-50 hover:bg-primary-100"
-                  onClick={() => handleNavigation('dashboard', '/stylist')}
-                >
-                  <User className="h-4 w-4" aria-hidden="true" />
-                  {tAccount('stylistDashboard')}
-                </Button>
+                <Link href="/stylist">
+                  <Button
+                    variant={activeView === 'dashboard' ? 'default' : 'outline'}
+                    size="default"
+                    className="bg-primary-50 hover:bg-primary-100"
+                  >
+                    <User className="h-4 w-4" aria-hidden="true" />
+                    {tAccount('stylistDashboard')}
+                  </Button>
+                </Link>
               )}
             </div>
             {user ? (
@@ -403,33 +408,39 @@ export default function AppHeader({ view, onViewChange, serviceLinks }: AppHeade
                   {/* Customer Dashboard Link */}
                   {isCustomer(user) && activeView !== 'dashboard' && (
                     <DropdownMenuItem
+                      asChild
                       className="flex cursor-pointer items-center gap-2.5 rounded-md px-3 py-2 text-sm text-gray-700 outline-none transition-colors hover:bg-gray-100 focus:bg-gray-100"
-                      onSelect={() => router.push('/customer')}
                     >
-                      <User className="h-4 w-4" aria-hidden="true" />
-                      <span>{tAccount('dashboard')}</span>
+                      <Link href="/customer">
+                        <User className="h-4 w-4" aria-hidden="true" />
+                        <span>{tAccount('dashboard')}</span>
+                      </Link>
                     </DropdownMenuItem>
                   )}
 
                   {/* Stylist Dashboard Link - Added for Stylists */}
                   {isStylist(user) && activeView !== 'dashboard' && (
                     <DropdownMenuItem
+                      asChild
                       className="flex cursor-pointer items-center gap-2.5 rounded-md px-3 py-2 text-sm text-gray-700 outline-none transition-colors hover:bg-gray-100 focus:bg-gray-100"
-                      onSelect={() => router.push('/stylist')}
                     >
-                      <User className="h-4 w-4" aria-hidden="true" />
-                      <span>{tAccount('stylistDashboard')}</span>
+                      <Link href="/stylist">
+                        <User className="h-4 w-4" aria-hidden="true" />
+                        <span>{tAccount('stylistDashboard')}</span>
+                      </Link>
                     </DropdownMenuItem>
                   )}
 
                   {/* Admin Dashboard Link */}
                   {isAdmin(user) && activeView !== 'admin' && (
                     <DropdownMenuItem
+                      asChild
                       className="flex cursor-pointer items-center gap-2.5 rounded-md px-3 py-2 text-sm text-gray-700 outline-none transition-colors hover:bg-gray-100 focus:bg-gray-100"
-                      onSelect={() => router.push('/admin')}
                     >
-                      <Shield className="h-4 w-4" aria-hidden="true" />
-                      <span>{tAccount('adminDashboard')}</span>
+                      <Link href="/admin">
+                        <Shield className="h-4 w-4" aria-hidden="true" />
+                        <span>{tAccount('adminDashboard')}</span>
+                      </Link>
                     </DropdownMenuItem>
                   )}
 

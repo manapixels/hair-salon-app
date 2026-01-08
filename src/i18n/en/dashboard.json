@@ -15,7 +15,8 @@
       "knowledgeBase": "Knowledge Base",
       "salonInfo": "Salon Info"
     },
-    "logout": "Log Out"
+    "logout": "Log Out",
+    "ariaLabel": "Admin navigation"
   },
   "Admin": {
     "Navigation": {

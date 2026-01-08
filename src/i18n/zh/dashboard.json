@@ -15,7 +15,8 @@
       "knowledgeBase": "知识库",
       "salonInfo": "沙龙信息"
     },
-    "logout": "退出登录"
+    "logout": "退出登录",
+    "ariaLabel": "管理导航"
   },
   "Admin": {
     "Navigation": {

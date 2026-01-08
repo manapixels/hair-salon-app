@@ -228,6 +228,11 @@
       "friday": "周五",
       "saturday": "周六",
       "sunday": "周日"
+    },
+    "duration": {
+      "hoursShort": "{hours}小时",
+      "minutesShort": "{minutes}分钟",
+      "hoursMinutesShort": "{hours}小时{minutes}分钟"
     }
   },
   "Team": {
@@ -285,7 +290,9 @@
     "telegram": "Telegram",
     "whatsapp": "WhatsApp",
     "web": "网页",
-    "with": "发型师"
+    "with": "发型师",
+    "customer": "顾客",
+    "stylist": "发型师"
   },
   "EditAppointmentModal": {
     "title": "编辑预约",

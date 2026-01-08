@@ -228,6 +228,11 @@
       "friday": "Friday",
       "saturday": "Saturday",
       "sunday": "Sunday"
+    },
+    "duration": {
+      "hoursShort": "{hours}h",
+      "minutesShort": "{minutes}m",
+      "hoursMinutesShort": "{hours}h {minutes}m"
     }
   },
   "Team": {
@@ -285,7 +290,9 @@
     "telegram": "Telegram",
     "whatsapp": "WhatsApp",
     "web": "Web",
-    "with": "with"
+    "with": "with",
+    "customer": "Customer",
+    "stylist": "Stylist"
   },
   "EditAppointmentModal": {
     "title": "Edit Appointment",

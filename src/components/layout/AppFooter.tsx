@@ -36,6 +36,13 @@ export default function AppFooter({ adminSettings }: AppFooterProps) {
   const formatTime = (time: string) => {
     const [hours, minutes] = time.split(':');
     const hour = parseInt(hours);
+
+    // Use 24-hour format for Chinese locale
+    if (locale === 'zh') {
+      return `${hour}:${minutes}`;
+    }
+
+    // Use 12-hour AM/PM format for English
     const ampm = hour >= 12 ? 'pm' : 'am';
     const displayHour = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
     return `${displayHour}${minutes !== '00' ? ':' + minutes : ''}${ampm}`;

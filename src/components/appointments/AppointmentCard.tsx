@@ -1,6 +1,6 @@
 'use client';
 
-import { useFormatter, useTranslations } from 'next-intl';
+import { useFormatter, useTranslations, useLocale } from 'next-intl';
 import { Badge } from '@/components/ui/badge';
 import { Earth } from 'lucide-react';
 import TelegramIcon from '@/components/icons/telegram';
@@ -8,7 +8,7 @@ import WhatsappIcon from '@/components/icons/whatsapp';
 import type { Appointment } from '@/types';
 import { cn } from '@/lib/utils';
 import React from 'react';
-import { formatDuration } from '@/lib/timeUtils';
+import Link from 'next/link';
 
 interface AppointmentCardProps {
   appointment: Appointment;
@@ -31,13 +31,25 @@ export default function AppointmentCard({
 }: AppointmentCardProps) {
   const format = useFormatter();
   const t = useTranslations('AppointmentCard');
+  const tNav = useTranslations('Navigation');
+  const tCommon = useTranslations('Common');
+  const locale = useLocale();
 
-  // Format time as single string (e.g., "2:30 PM")
+  // Format time as single string (e.g., "2:30 PM" or "14:30")
   const formatTimeSimple = (time: string) => {
     const [hours, minutes] = time.split(':').map(Number);
     const date = new Date();
     date.setHours(hours, minutes);
-    return format.dateTime(date, { hour: 'numeric', minute: '2-digit', hour12: true });
+    return format.dateTime(date, { hour: 'numeric', minute: '2-digit' });
+  };
+
+  // Format duration with i18n (e.g., "2h" or "2小时")
+  const formatDurationI18n = (minutes: number) => {
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    if (hours === 0) return tCommon('duration.minutesShort', { minutes: mins });
+    if (mins === 0) return tCommon('duration.hoursShort', { hours });
+    return tCommon('duration.hoursMinutesShort', { hours, minutes: mins });
   };
 
   const getSourceIcon = (source?: string) => {
@@ -81,15 +93,44 @@ export default function AppointmentCard({
             {formatTimeSimple(appointment.time)}
           </div>
           <div className="text-sm text-muted-foreground">
-            {formatDuration(appointment.totalDuration)}
+            {formatDurationI18n(appointment.totalDuration)}
           </div>
         </div>
         <div>
-          <p className="font-medium text-foreground">{appointment?.category?.title}</p>
-          <p className="text-sm text-muted-foreground">
-            {!hideCustomer && appointment.customerName}
-            {!hideCustomer && showStylist && appointment?.stylist?.name && ` ${t('with')} `}
-            {showStylist && appointment?.stylist?.name}
+          <p className="font-medium text-foreground">
+            {appointment?.category?.slug
+              ? tNav(`serviceNames.${appointment.category.slug}` as any) ||
+                appointment?.category?.title
+              : appointment?.category?.title}
+          </p>
+          <p className="text-sm text-muted-foreground flex items-center flex-wrap gap-x-1">
+            {!hideCustomer && (
+              <>
+                <span className="text-muted-foreground/70">{t('customer')}:</span>
+                <Link
+                  href={`/${locale}/admin/customers?search=${encodeURIComponent(appointment.customerName)}`}
+                  className="text-primary hover:underline"
+                  onClick={e => e.stopPropagation()}
+                >
+                  {appointment.customerName}
+                </Link>
+              </>
+            )}
+            {!hideCustomer && showStylist && appointment?.stylist?.name && (
+              <span className="text-muted-foreground/50">|</span>
+            )}
+            {showStylist && appointment?.stylist && (
+              <>
+                <span className="text-muted-foreground/70">{t('stylist')}:</span>
+                <Link
+                  href={`/${locale}/admin/stylists?id=${appointment.stylist.id}`}
+                  className="text-primary hover:underline"
+                  onClick={e => e.stopPropagation()}
+                >
+                  {appointment.stylist.name}
+                </Link>
+              </>
+            )}
           </p>
 
           <div className="flex items-center gap-2 mt-1">

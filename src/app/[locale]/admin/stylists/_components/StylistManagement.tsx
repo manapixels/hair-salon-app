@@ -35,6 +35,8 @@ export default function StylistManagement({
   setShowAddModal: externalSetShowAddModal,
 }: StylistManagementProps) {
   const t = useTranslations('Admin.Stylists');
+  const tCommon = useTranslations('Common');
+  const tNav = useTranslations('Navigation');
   const [stylists, setStylists] = useState<Stylist[]>([]);
   const [availableCategories, setAvailableCategories] = useState<ServiceCategory[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -225,7 +227,9 @@ export default function StylistManagement({
                         key={category.id}
                         className="inline-block bg-primary-100 text-yellow-800 text-xs px-2 py-1 rounded"
                       >
-                        {category.title}
+                        {category.slug
+                          ? tNav(`serviceNames.${category.slug}` as any) || category.title
+                          : category.title}
                       </span>
                     ))}
                   </div>
@@ -247,7 +251,9 @@ export default function StylistManagement({
                       const hours = stylist.workingHours?.[day];
                       return (
                         <div key={day} className="flex justify-between">
-                          <span className="capitalize font-medium">{day.slice(0, 3)}:</span>
+                          <span className="capitalize font-medium">
+                            {tCommon(`days.${day}`).slice(0, 2)}:
+                          </span>
                           <span>{hours?.isWorking ? `${hours.start}-${hours.end}` : t('off')}</span>
                         </div>
                       );
@@ -322,6 +328,8 @@ function StylistModal({
   onAvatarChange,
 }: StylistModalProps) {
   const t = useTranslations('Admin.Stylists');
+  const tNav = useTranslations('Navigation');
+  const tCommon = useTranslations('Common');
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -924,12 +932,11 @@ function StylistModal({
                       className="mr-3"
                     />
                     <div className="flex-1">
-                      <h4 className="font-medium text-gray-900">{category.title}</h4>
-                      {category.description && (
-                        <p className="text-xs text-gray-500 mt-0.5 line-clamp-1">
-                          {category.description}
-                        </p>
-                      )}
+                      <h4 className="font-medium text-gray-900">
+                        {category.slug
+                          ? tNav(`serviceNames.${category.slug}` as any) || category.title
+                          : category.title}
+                      </h4>
                     </div>
                   </label>
                 );
@@ -946,7 +953,11 @@ function StylistModal({
             <p className="text-xs text-gray-500 mb-2">{t('workingHoursDesc')}</p>
             <div className="border border-gray-200 rounded-md p-3 space-y-2">
               {daysOfWeek.map(day => {
-                const hours = formData.workingHours[day];
+                const hours = formData.workingHours[day] || {
+                  start: '09:00',
+                  end: '17:00',
+                  isWorking: false,
+                };
                 return (
                   <div
                     key={day}
@@ -961,7 +972,7 @@ function StylistModal({
                           }
                           className="mr-2"
                         />
-                        <span className="text-sm font-medium capitalize">{day.slice(0, 3)}</span>
+                        <span className="text-sm font-medium">{tCommon(`days.${day}`)}</span>
                       </label>
                     </div>
                     {hours.isWorking ? (

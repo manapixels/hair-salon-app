@@ -40,7 +40,6 @@ import { Refresh } from '@/lib/icons';
 import { MoreHorizontal, SlidersHorizontal, List, CalendarDays } from 'lucide-react';
 import AppointmentCard from '@/components/appointments/AppointmentCard';
 import { useTranslations, useFormatter } from 'next-intl';
-import { formatShortDate } from '@/lib/timeUtils';
 
 export default function AppointmentsList() {
   const { appointments, fetchAndSetAppointments } = useBooking();
@@ -57,7 +56,18 @@ export default function AppointmentsList() {
     const [hours, minutes] = time.split(':').map(Number);
     const date = new Date();
     date.setHours(hours, minutes);
-    return format.dateTime(date, { hour: 'numeric', minute: '2-digit', hour12: true });
+    return format.dateTime(date, { hour: 'numeric', minute: '2-digit' });
+  };
+
+  // Format date header with weekday (e.g., "Fri, 9 Jan 2026" or "周五, 2026年1月9日")
+  const formatDateHeader = (date: Date | string) => {
+    const dateObj = typeof date === 'string' ? new Date(date) : date;
+    return format.dateTime(dateObj, {
+      weekday: 'short',
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    });
   };
 
   const [appointmentsLoading, setAppointmentsLoading] = useState(true);
@@ -498,7 +508,7 @@ export default function AppointmentsList() {
                   .map(([dateKey, dateAppointments]) => (
                     <div key={dateKey}>
                       <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3 px-1">
-                        {formatShortDate(new Date(dateKey))}
+                        {formatDateHeader(new Date(dateKey))}
                       </h3>
                       <div className="bg-white border border-border rounded-lg divide-y divide-border">
                         {dateAppointments.map(appointment => (

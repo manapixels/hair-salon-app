@@ -1,6 +1,7 @@
 'use client';
 
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
+import Link from 'next/link';
 import { useLocale, useTranslations } from 'next-intl';
 import {
   Calendar,
@@ -53,7 +54,6 @@ export default function AdminNavigation({
   badges = {},
 }: AdminNavigationProps) {
   const pathname = usePathname();
-  const router = useRouter();
   const locale = useLocale();
 
   const t = useTranslations('AdminNavigation');
@@ -134,13 +134,8 @@ export default function AdminNavigation({
     return pathname.startsWith(href);
   };
 
-  const handleNavigate = (href: string) => {
-    router.push(href);
-    onNavigate?.();
-  };
-
   return (
-    <nav className={cn('space-y-6', className)}>
+    <nav className={cn('space-y-6', className)} aria-label={t('ariaLabel')}>
       {navigationGroups.map((group, index) => (
         <div key={`nav-group-${index}`}>
           {group.label && (
@@ -153,13 +148,15 @@ export default function AdminNavigation({
               const active = isActive(item.href);
               return (
                 <li key={item.id}>
-                  <button
-                    onClick={() => handleNavigate(item.href)}
+                  <Link
+                    href={item.href}
+                    onClick={onNavigate}
                     className={cn(
                       'w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-all',
                       'hover:bg-muted active:scale-[0.98]',
                       active ? 'bg-primary/10 text-primary font-medium' : 'text-foreground/80',
                     )}
+                    aria-current={active ? 'page' : undefined}
                   >
                     <span className="flex items-center gap-3">
                       <span className={cn(active ? 'text-primary' : 'text-muted-foreground')}>
@@ -180,7 +177,7 @@ export default function AdminNavigation({
                         )}
                       />
                     </span>
-                  </button>
+                  </Link>
                 </li>
               );
             })}

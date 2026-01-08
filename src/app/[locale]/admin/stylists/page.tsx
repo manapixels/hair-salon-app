@@ -12,5 +12,5 @@ export async function generateMetadata({
 }
 
 export default function StylistsPage() {
-  return <StylistManagement onClose={() => {}} showAddModal={false} setShowAddModal={() => {}} />;
+  return <StylistManagement />;
 }
