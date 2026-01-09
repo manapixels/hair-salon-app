@@ -505,14 +505,15 @@ Please confirm availability. Thank you!`;
         <h2 className="mt-4 text-2xl font-bold text-gray-900">{t('bookingConfirmed')}</h2>
 
         <div className="mt-6 text-left bg-primary-50 p-4 rounded-md space-y-2 text-gray-700">
-          {t('thankYou')}, {bookingConfirmed.customerName}. Your{' '}
-          <strong>
-            {bookingConfirmed.category
+          {t.rich('confirmationMessage', {
+            serviceName: bookingConfirmed.category
               ? getCategoryName(bookingConfirmed.category as ServiceCategory)
-              : 'N/A'}
-          </strong>{' '}
-          appointment has been confirmed with {bookingConfirmed.stylist?.name} on{' '}
-          {format(new Date(bookingConfirmed.date), 'MMMM d, yyyy')} at {bookingConfirmed.time}.
+              : 'N/A',
+            stylistName: bookingConfirmed.stylist?.name || t('stylist'),
+            date: format(new Date(bookingConfirmed.date), 'MMMM d, yyyy'),
+            time: bookingConfirmed.time,
+            bold: chunks => <strong>{chunks}</strong>,
+          })}
         </div>
         <p className="mt-2 text-sm text-gray-500">
           {bookingConfirmed.customerEmail.endsWith('@whatsapp.local')

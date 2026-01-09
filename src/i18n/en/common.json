@@ -160,6 +160,7 @@
     "noStylistsDesc": "No stylists can perform the selected services. Try selecting different services or contact us for assistance.",
     "bookingConfirmed": "Booking Confirmed",
     "thankYou": "Thank you",
+    "confirmationMessage": "Your <bold>{serviceName}</bold> appointment has been confirmed with {stylistName} on {date} at {time}.",
     "serviceCategoryLabel": "Service Category",
     "stylistLabel": "Stylist",
     "dateLabel": "Date",

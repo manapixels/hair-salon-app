@@ -160,6 +160,7 @@
     "noStylistsDesc": "没有发型师可以提供所选服务。尝试选择其他服务或联系我们寻求帮助。",
     "bookingConfirmed": "预约已确认",
     "thankYou": "谢谢",
+    "confirmationMessage": "您的 <bold>{serviceName}</bold> 预约已确认，发型师为 {stylistName}，时间为 {date} {time}。",
     "serviceCategoryLabel": "服务类别",
     "stylistLabel": "发型师",
     "dateLabel": "日期",
