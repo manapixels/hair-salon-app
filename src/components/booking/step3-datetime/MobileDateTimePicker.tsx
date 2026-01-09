@@ -7,6 +7,7 @@ import { CalendarView } from './CalendarView';
 import type { TimeSlot } from '@/types';
 import { groupSlotsByPeriod } from '@/lib/timeUtils';
 import { useTranslations, useFormatter } from 'next-intl';
+import { getTodayInSalonTimezone } from '@/components/booking/shared';
 
 interface MobileDateTimePickerProps {
   selectedDate: Date;
@@ -31,29 +32,43 @@ export function MobileDateTimePicker({
   onTimeSelect,
   timeSlots,
   loading = false,
-  minDate = new Date(),
+  minDate,
   currentMonth,
   daysInMonth,
   onPreviousMonth,
   onNextMonth,
   isAnimatingSelection = false,
 }: MobileDateTimePickerProps) {
-  /* Layout Prototyping State */
-  const [layoutVariant, setLayoutVariant] = useState<
-    'horizontal' | 'grid-3' | 'grid-4' | 'unified' | 'list'
-  >('horizontal');
-
   const [isCalendarExpanded, setIsCalendarExpanded] = useState(false);
   const dateScrollRef = useRef<HTMLDivElement>(null);
   const t = useTranslations('BookingForm');
   const format = useFormatter();
 
-  // Generate dates for the horizontal scroll
-  const today = startOfDay(new Date());
-  const startDate = today;
-  const endDate = addDays(today, 60);
+  // Generate dates for the horizontal scroll - use salon timezone for "today"
+  // Use useState + useEffect to ensure this runs ONLY on client (not during SSR)
+  const [dateState, setDateState] = useState<{
+    dates: Date[];
+    today: Date;
+    effectiveMinDate: Date;
+  } | null>(null);
 
-  const dates = eachDayOfInterval({ start: startDate, end: endDate });
+  useEffect(() => {
+    // This runs only on client after hydration
+    const salonToday = getTodayInSalonTimezone();
+    const todayStart = startOfDay(salonToday);
+    const minDateVal = minDate ?? todayStart;
+    const endDate = addDays(todayStart, 60);
+    setDateState({
+      dates: eachDayOfInterval({ start: todayStart, end: endDate }),
+      today: todayStart,
+      effectiveMinDate: minDateVal,
+    });
+  }, [minDate]);
+
+  // Fallback for SSR/initial render - use selectedDate as starting point
+  const dates = dateState?.dates ?? [selectedDate];
+  const today = dateState?.today ?? selectedDate;
+  const effectiveMinDate = dateState?.effectiveMinDate ?? selectedDate;
 
   // Scroll to selected date on mount or change
   useEffect(() => {
@@ -164,7 +179,7 @@ export function MobileDateTimePicker({
             <CalendarView
               selectedDate={selectedDate}
               onDateChange={handleDateClick}
-              minDate={minDate}
+              minDate={effectiveMinDate}
               loading={false}
               currentMonth={currentMonth}
               daysInMonth={daysInMonth}

@@ -8,6 +8,53 @@ import { getAvailability, getStylistAvailability } from '../../../lib/database';
 
 export const dynamic = 'force-dynamic';
 
+// Salon timezone for filtering past slots
+const SALON_TIMEZONE = process.env.NEXT_PUBLIC_GOOGLE_CALENDAR_TIMEZONE || 'Asia/Singapore';
+
+/**
+ * Check if the target date is today in the salon's timezone
+ */
+function isTodayInSalonTimezone(targetDate: Date): boolean {
+  const now = new Date();
+  const salonFormatter = new Intl.DateTimeFormat('en-CA', {
+    timeZone: SALON_TIMEZONE,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  });
+  const todayInSalon = salonFormatter.format(now); // "YYYY-MM-DD"
+  const targetDateStr = targetDate.toISOString().split('T')[0]; // "YYYY-MM-DD"
+  return todayInSalon === targetDateStr;
+}
+
+/**
+ * Get current time in salon timezone as HH:mm string
+ */
+function getCurrentTimeInSalonTimezone(): string {
+  const now = new Date();
+  const salonFormatter = new Intl.DateTimeFormat('en-GB', {
+    timeZone: SALON_TIMEZONE,
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  });
+  return salonFormatter.format(now); // "HH:mm"
+}
+
+/**
+ * Filter out past time slots if the date is today
+ */
+function filterPastSlots(slots: string[], targetDate: Date): string[] {
+  if (!isTodayInSalonTimezone(targetDate)) {
+    return slots; // Not today, return all slots
+  }
+
+  const currentTime = getCurrentTimeInSalonTimezone();
+  console.log(`[Availability] Filtering past slots. Current time in salon: ${currentTime}`);
+
+  return slots.filter(slot => slot > currentTime);
+}
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -34,6 +81,9 @@ export async function GET(request: NextRequest) {
       // Return general salon availability
       slots = await getAvailability(targetDate);
     }
+
+    // Filter out past time slots if the date is today
+    slots = filterPastSlots(slots, targetDate);
 
     // Filter slots based on duration if provided
     // Only return slots that have enough consecutive time for the service
