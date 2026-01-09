@@ -276,6 +276,16 @@ const users = await db.select().from(schema.users).where(eq(schema.users.email, 
 | Update Category              | `service-categories`, `category-{id}`                                    |
 | Update Service Tags          | `services`, `service-{id}`, `service-categories`                         |
 | Book/Cancel Appointment      | `availability`, `availability-{date}`, `availability-{stylistId}-{date}` |
+| Update Admin Settings        | `admin-settings`                                                         |
+
+### **Admin Appointments Filtering**
+
+The `getAppointments()` function defaults to 30 days past + 30 days future for performance. Use API query params to customize:
+
+```typescript
+// API: /api/appointments?fromDate=2026-01-01&toDate=2026-02-01
+// API: /api/appointments?all=true  // Load all appointments (admin use only)
+```
 
 ### **Availability Caching**
 

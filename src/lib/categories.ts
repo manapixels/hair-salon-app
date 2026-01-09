@@ -8,6 +8,7 @@
 import { getDb } from '@/db';
 import * as schema from '@/db/schema';
 import { eq, asc } from 'drizzle-orm';
+import { unstable_cache } from 'next/cache';
 
 /**
  * Category data structure matching database schema
@@ -175,17 +176,21 @@ export interface ServiceLink {
  * Get navigation links from featured categories
  * Transforms database format to navigation format
  */
-export async function getNavigationLinks(): Promise<ServiceLink[]> {
-  const featured = await getFeaturedCategories();
+export const getNavigationLinks = unstable_cache(
+  async (): Promise<ServiceLink[]> => {
+    const featured = await getFeaturedCategories();
 
-  return featured.map(cat => ({
-    id: cat.id,
-    slug: cat.slug,
-    title: cat.title,
-    short_title: cat.shortTitle || cat.title,
-    href: `/services/${cat.slug}`,
-    description: cat.description || undefined,
-    image: cat.imageUrl || undefined,
-    illustration: cat.illustrationUrl || undefined,
-  }));
-}
+    return featured.map(cat => ({
+      id: cat.id,
+      slug: cat.slug,
+      title: cat.title,
+      short_title: cat.shortTitle || cat.title,
+      href: `/services/${cat.slug}`,
+      description: cat.description || undefined,
+      image: cat.imageUrl || undefined,
+      illustration: cat.illustrationUrl || undefined,
+    }));
+  },
+  ['navigation-links'],
+  { tags: ['service-categories'], revalidate: false },
+);

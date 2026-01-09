@@ -15,7 +15,26 @@ import { sendAppointmentConfirmation } from '../../../services/messagingService'
 
 export async function GET(request: NextRequest) {
   try {
-    const appointments = await getAppointments();
+    const { searchParams } = new URL(request.url);
+    const fromDateParam = searchParams.get('fromDate');
+    const toDateParam = searchParams.get('toDate');
+
+    const options: { fromDate?: Date; toDate?: Date } = {};
+
+    if (fromDateParam) {
+      options.fromDate = new Date(fromDateParam);
+    }
+    if (toDateParam) {
+      options.toDate = new Date(toDateParam);
+    }
+
+    // If 'all' parameter is set, fetch all appointments (no date filter)
+    const fetchAll = searchParams.get('all') === 'true';
+
+    const appointments = fetchAll
+      ? await getAppointments({ fromDate: new Date(0), toDate: new Date('2100-01-01') })
+      : await getAppointments(options);
+
     return NextResponse.json(appointments, { status: 200 });
   } catch (error: any) {
     return NextResponse.json(

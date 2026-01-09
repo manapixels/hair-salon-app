@@ -31,6 +31,7 @@ const CACHE_TAGS = {
   AVAILABILITY: 'availability',
   AVAILABILITY_BY_DATE: (date: string) => `availability-${date}`,
   AVAILABILITY_BY_STYLIST: (stylistId: string, date: string) => `availability-${stylistId}-${date}`,
+  ADMIN_SETTINGS: 'admin-settings',
 } as const;
 
 /**
@@ -516,12 +517,29 @@ export async function getServiceById(id: string): Promise<Service | null> {
 }
 
 // --- APPOINTMENT MANAGEMENT ---
+export interface GetAppointmentsOptions {
+  fromDate?: Date;
+  toDate?: Date;
+}
 
-export const getAppointments = async (): Promise<Appointment[]> => {
+export const getAppointments = async (options?: GetAppointmentsOptions): Promise<Appointment[]> => {
   const db = await getDb();
+
+  // Default: 30 days past to 30 days future
+  const now = new Date();
+  const defaultFromDate = new Date(now);
+  defaultFromDate.setDate(defaultFromDate.getDate() - 30);
+  const defaultToDate = new Date(now);
+  defaultToDate.setDate(defaultToDate.getDate() + 30);
+
+  const fromDate = options?.fromDate ?? defaultFromDate;
+  const toDate = options?.toDate ?? defaultToDate;
+
+  // Build query with date filtering
   const appointments = await db
     .select()
     .from(schema.appointments)
+    .where(and(gte(schema.appointments.date, fromDate), lt(schema.appointments.date, toDate)))
     .orderBy(asc(schema.appointments.date));
   const stylists = await db.select().from(schema.stylists);
   const categories = await db.select().from(schema.serviceCategories);
@@ -586,75 +604,79 @@ const getDefaultWeeklySchedule = () => ({
   sunday: { isOpen: true, openingTime: '11:00', closingTime: '19:00' },
 });
 
-export const getAdminSettings = async (): Promise<AdminSettings> => {
-  const db = await getDb();
-  const result = await db.select().from(schema.adminSettings).limit(1);
-  const settings = result[0];
+export const getAdminSettings = unstable_cache(
+  async (): Promise<AdminSettings> => {
+    const db = await getDb();
+    const result = await db.select().from(schema.adminSettings).limit(1);
+    const settings = result[0];
 
-  const defaultSocialLinks = {
-    instagram: { url: '', isActive: false },
-    facebook: { url: '', isActive: false },
-    whatsapp: { url: '', isActive: false },
-    telegram: { url: '', isActive: false },
-  };
-
-  if (!settings) {
-    return {
-      weeklySchedule: getDefaultWeeklySchedule(),
-      specialClosures: [],
-      blockedSlots: {},
-      businessName: 'Signature Trims Hair Salon',
-      businessAddress: '930 Yishun Avenue 1 #01-127, Singapore 760930',
-      businessPhone: '(555) 123-4567',
-      depositEnabled: true,
-      depositPercentage: 15,
-      depositTrustThreshold: 1,
-      depositRefundWindowHours: 24,
-      socialLinks: defaultSocialLinks,
+    const defaultSocialLinks = {
+      instagram: { url: '', isActive: false },
+      facebook: { url: '', isActive: false },
+      whatsapp: { url: '', isActive: false },
+      telegram: { url: '', isActive: false },
     };
-  }
 
-  // Migrate legacy closedDates to specialClosures
-  let specialClosures: BlockedPeriod[] = [];
-  if (settings.closedDates && Array.isArray(settings.closedDates)) {
-    specialClosures = (settings.closedDates as any[])
-      .map(item => {
-        if (typeof item === 'object' && item !== null && 'date' in item) {
-          return item as BlockedPeriod;
-        }
-        if (typeof item === 'string') {
-          return { date: item, isFullDay: true, reason: undefined };
-        }
-        return null;
-      })
-      .filter((item): item is BlockedPeriod => item !== null);
-  }
+    if (!settings) {
+      return {
+        weeklySchedule: getDefaultWeeklySchedule(),
+        specialClosures: [],
+        blockedSlots: {},
+        businessName: 'Signature Trims Hair Salon',
+        businessAddress: '930 Yishun Avenue 1 #01-127, Singapore 760930',
+        businessPhone: '(555) 123-4567',
+        depositEnabled: true,
+        depositPercentage: 15,
+        depositTrustThreshold: 1,
+        depositRefundWindowHours: 24,
+        socialLinks: defaultSocialLinks,
+      };
+    }
 
-  return {
-    weeklySchedule:
-      settings.weeklySchedule && typeof settings.weeklySchedule === 'object'
-        ? (settings.weeklySchedule as any)
-        : getDefaultWeeklySchedule(),
-    specialClosures,
-    blockedSlots:
-      settings.blockedSlots &&
-      typeof settings.blockedSlots === 'object' &&
-      !Array.isArray(settings.blockedSlots)
-        ? (settings.blockedSlots as { [date: string]: string[] })
-        : {},
-    businessName: settings.businessName,
-    businessAddress: settings.businessAddress,
-    businessPhone: settings.businessPhone,
-    depositEnabled: settings.depositEnabled,
-    depositPercentage: settings.depositPercentage,
-    depositTrustThreshold: settings.depositTrustThreshold,
-    depositRefundWindowHours: settings.depositRefundWindowHours,
-    socialLinks:
-      settings.socialLinks && typeof settings.socialLinks === 'object'
-        ? (settings.socialLinks as any)
-        : defaultSocialLinks,
-  };
-};
+    // Migrate legacy closedDates to specialClosures
+    let specialClosures: BlockedPeriod[] = [];
+    if (settings.closedDates && Array.isArray(settings.closedDates)) {
+      specialClosures = (settings.closedDates as any[])
+        .map(item => {
+          if (typeof item === 'object' && item !== null && 'date' in item) {
+            return item as BlockedPeriod;
+          }
+          if (typeof item === 'string') {
+            return { date: item, isFullDay: true, reason: undefined };
+          }
+          return null;
+        })
+        .filter((item): item is BlockedPeriod => item !== null);
+    }
+
+    return {
+      weeklySchedule:
+        settings.weeklySchedule && typeof settings.weeklySchedule === 'object'
+          ? (settings.weeklySchedule as any)
+          : getDefaultWeeklySchedule(),
+      specialClosures,
+      blockedSlots:
+        settings.blockedSlots &&
+        typeof settings.blockedSlots === 'object' &&
+        !Array.isArray(settings.blockedSlots)
+          ? (settings.blockedSlots as { [date: string]: string[] })
+          : {},
+      businessName: settings.businessName,
+      businessAddress: settings.businessAddress,
+      businessPhone: settings.businessPhone,
+      depositEnabled: settings.depositEnabled,
+      depositPercentage: settings.depositPercentage,
+      depositTrustThreshold: settings.depositTrustThreshold,
+      depositRefundWindowHours: settings.depositRefundWindowHours,
+      socialLinks:
+        settings.socialLinks && typeof settings.socialLinks === 'object'
+          ? (settings.socialLinks as any)
+          : defaultSocialLinks,
+    };
+  },
+  ['admin-settings'],
+  { tags: [CACHE_TAGS.ADMIN_SETTINGS], revalidate: 60 },
+);
 
 export const updateAdminSettings = async (
   newSettings: Partial<AdminSettings>,
@@ -689,6 +711,9 @@ export const updateAdminSettings = async (
       socialLinks: (newSettings.socialLinks ?? {}) as any,
     });
   }
+
+  // Revalidate the cache after updating settings
+  revalidateTag(CACHE_TAGS.ADMIN_SETTINGS);
 
   return await getAdminSettings();
 };
