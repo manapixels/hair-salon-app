@@ -23,6 +23,7 @@ import { LanguageSwitcher } from '../common/LanguageSwitcher';
 import { useTranslations } from 'next-intl';
 import { isAdmin, isStylist, isCustomer, getPrimaryRole } from '@/lib/roleHelpers';
 import { TelegramIcon, WhatsAppIcon } from '@/lib/icons';
+import { Badge } from '../ui/badge';
 
 interface AccountPopupProps {
   isOpen: boolean;
@@ -110,33 +111,38 @@ export default function AccountPopup({ isOpen, onClose }: AccountPopupProps) {
                         <p className="font-semibold text-gray-900 text-lg">{user.name}</p>
                         <div className="flex items-center gap-2 flex-wrap">
                           {user.email.endsWith('@whatsapp.local') ? (
-                            <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-green-100 px-3 py-0.5 text-sm font-medium text-green-800">
+                            <Badge
+                              variant="secondary"
+                              className="inline-flex items-center whitespace-nowrap bg-green-100 text-green-800"
+                            >
                               <WhatsAppIcon className="w-4 h-4 mr-1" />
                               WhatsApp {user.email.split('@')[0]}
-                            </span>
+                            </Badge>
                           ) : user.email.endsWith('@telegram.local') ? (
-                            <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-blue-100 px-3 py-0.5 text-sm font-medium text-blue-800">
+                            <Badge
+                              variant="secondary"
+                              className="inline-flex items-center whitespace-nowrap bg-blue-100 text-blue-800"
+                            >
                               <TelegramIcon className="w-4 h-4 mr-1" />@{user.email.split('@')[0]}
-                            </span>
+                            </Badge>
                           ) : (
-                            <span className="inline-block whitespace-nowrap rounded-full border border-gray-200 px-3 py-0.5 text-sm font-medium text-gray-500">
+                            <Badge
+                              variant="outline"
+                              className="inline-block whitespace-nowrap max-w-[200px] truncate"
+                              title={user.email}
+                            >
                               {user.email}
-                            </span>
+                            </Badge>
                           )}
                           <div className="flex flex-wrap gap-1">
                             {user.roles?.map(role => (
-                              <span
-                                key={role}
-                                className={cn(
-                                  'inline-block rounded-full px-3 py-0.5 text-sm font-medium border border-primary text-primary',
-                                )}
-                              >
+                              <Badge key={role} variant="outline">
                                 {role === 'ADMIN'
                                   ? 'Admin'
                                   : role === 'STYLIST'
                                     ? 'Stylist'
                                     : 'Customer'}
-                              </span>
+                              </Badge>
                             ))}
                           </div>
                         </div>

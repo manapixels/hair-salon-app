@@ -39,7 +39,7 @@ export default function AppointmentCard({
     const [hours, minutes] = time.split(':').map(Number);
     const date = new Date();
     date.setHours(hours, minutes);
-    return format.dateTime(date, { hour: 'numeric', minute: '2-digit' });
+    return format.dateTime(date, { hour: 'numeric', minute: '2-digit', hour12: true });
   };
 
   // Format duration with i18n (e.g., "2h" or "2小时")

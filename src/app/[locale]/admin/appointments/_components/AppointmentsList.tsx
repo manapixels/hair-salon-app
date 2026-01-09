@@ -37,7 +37,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Refresh } from '@/lib/icons';
 import { MoreHorizontal, SlidersHorizontal, List, CalendarDays, X } from 'lucide-react';
 import AppointmentCard from '@/components/appointments/AppointmentCard';
 import { useTranslations, useFormatter } from 'next-intl';
@@ -90,8 +89,6 @@ export default function AppointmentsList() {
   );
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(25);
-  const [selectedAppointments, setSelectedAppointments] = useState<Set<string>>(new Set());
-  const [isRefreshing, setIsRefreshing] = useState(false);
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const [appointmentToCancel, setAppointmentToCancel] = useState<Appointment | null>(null);
   const lastFetchTime = useRef<number>(0);
@@ -104,24 +101,14 @@ export default function AppointmentsList() {
   // Throttled refresh - won't refetch if data was fetched within last 30 seconds
   const REFRESH_THROTTLE_MS = 30000;
 
-  const refreshAppointments = useCallback(
-    async (showLoadingState = false) => {
-      const now = Date.now();
-      if (now - lastFetchTime.current < REFRESH_THROTTLE_MS) {
-        return; // Skip if recently fetched
-      }
-
-      if (showLoadingState) {
-        setIsRefreshing(true);
-      }
-      await fetchAndSetAppointments();
-      lastFetchTime.current = Date.now();
-      if (showLoadingState) {
-        setIsRefreshing(false);
-      }
-    },
-    [fetchAndSetAppointments],
-  );
+  const refreshAppointments = useCallback(async () => {
+    const now = Date.now();
+    if (now - lastFetchTime.current < REFRESH_THROTTLE_MS) {
+      return; // Skip if recently fetched
+    }
+    await fetchAndSetAppointments();
+    lastFetchTime.current = Date.now();
+  }, [fetchAndSetAppointments]);
 
   // Initial load
   useEffect(() => {
@@ -273,14 +260,6 @@ export default function AppointmentsList() {
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedAppointments = sortedAppointments.slice(startIndex, startIndex + itemsPerPage);
 
-  const handleRefresh = async () => {
-    setIsRefreshing(true);
-    await fetchAndSetAppointments();
-    lastFetchTime.current = Date.now();
-    setIsRefreshing(false);
-    toast.success(t('refreshed'));
-  };
-
   const handleEditAppointment = (appointment: Appointment) => {
     setSelectedAppointment(appointment);
     setEditModalOpen(true);
@@ -395,10 +374,6 @@ export default function AppointmentsList() {
                 {t('calendarView')}
               </Button>
             </div>
-            <Button variant="outline" size="sm" onClick={handleRefresh} disabled={isRefreshing}>
-              <Refresh className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-              {t('refresh')}
-            </Button>
           </div>
         </div>
 

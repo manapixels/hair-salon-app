@@ -16,6 +16,10 @@
     --primary: 48 100% 24%;
     --primary-foreground: 0 0% 98%;
 
+    /* Secondary brand color - Gray */
+    --secondary: 0 0% 93%;
+    --secondary-foreground: 0 0% 40%;
+
     /* Muted - Subtle gold tint */
     --muted: 48 20% 96%;
     --muted-foreground: 0 0% 45.1%;

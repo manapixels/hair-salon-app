@@ -328,14 +328,19 @@ export default function StylistDashboard() {
             <CardContent>
               {isGoogleConnected && !needsReconnect ? (
                 <div className="bg-green-50/50 rounded-xl border border-green-100 p-6">
-                  <div className="flex items-start sm:items-center justify-between gap-4 flex-col xl:flex-row mb-6">
+                  <div className="flex items-start sm:items-center justify-between gap-4 flex-col xl:flex-row mb-6 truncate">
                     <div className="flex items-center gap-4">
                       <div className="bg-green-100 p-3 rounded-full shrink-0">
                         <CheckIcon className="h-4 w-4 text-green-600" />
                       </div>
                       <div>
                         <h3 className="font-bold text-green-900 text-md">{t('connected')}</h3>
-                        <p className="text-green-800 font-medium">{stylistProfile?.googleEmail}</p>
+                        <p
+                          className="text-green-800 font-medium truncate"
+                          title={stylistProfile?.googleEmail}
+                        >
+                          {stylistProfile?.googleEmail}
+                        </p>
                       </div>
                     </div>
                     <div className="flex gap-2 w-full sm:w-auto">
@@ -400,7 +405,12 @@ export default function StylistDashboard() {
                             ? t('connectionExpired')
                             : t('connectionExpiringSoon')}
                         </h3>
-                        <p className="text-amber-800 font-medium">{stylistProfile?.googleEmail}</p>
+                        <p
+                          className="text-amber-800 font-medium truncate max-w-[140px] sm:max-w-[200px]"
+                          title={stylistProfile?.googleEmail}
+                        >
+                          {stylistProfile?.googleEmail}
+                        </p>
                       </div>
                     </div>
                     <Button
