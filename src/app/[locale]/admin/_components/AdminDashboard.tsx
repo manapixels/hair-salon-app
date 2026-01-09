@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import Link from 'next/link';
+import { Link } from '@/i18n/routing';
 import { useLocale, useTranslations } from 'next-intl';
 import {
   Calendar,
@@ -38,8 +38,7 @@ export default function AdminDashboard({
   onAppointmentsChange,
 }: AdminDashboardProps) {
   const t = useTranslations('Admin.Dashboard');
-  const locale = useLocale();
-  const basePath = `/${locale}/admin`;
+  const basePath = '/admin';
 
   // State for edit modal
   const [editModalOpen, setEditModalOpen] = useState(false);

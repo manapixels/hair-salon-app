@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { usePathname } from 'next/navigation';
-import { useLocale, useTranslations } from 'next-intl';
+import { useTranslations } from 'next-intl';
 import { Menu, X, ChevronLeft } from 'lucide-react';
 import AdminNavigation from './AdminNavigation';
 
@@ -26,12 +26,12 @@ export default function AdminLayout({
 }: AdminLayoutProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const pathname = usePathname();
-  const locale = useLocale();
 
   const t = useTranslations('Admin.Navigation');
 
-  const basePath = `/${locale}/admin`;
-  const isHomePage = pathname === basePath;
+  // Check if on admin home by looking for /admin or /en/admin or /zh/admin
+  const basePath = '/admin';
+  const isHomePage = pathname === '/admin' || pathname === '/en/admin' || pathname === '/zh/admin';
 
   // Derive title from pathname if not provided
   const derivedTitle = title || getTitleFromPath(pathname, basePath, t);

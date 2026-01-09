@@ -10,7 +10,7 @@ interface AppFooterProps {
 export default function AppFooter({ adminSettings }: AppFooterProps) {
   const t = useTranslations('Layout.footer');
   const tCommon = useTranslations('Common');
-  const locale = useLocale();
+  const locale = useLocale(); // Needed for time format (12h vs 24h)
   const { businessName, businessAddress, businessPhone, weeklySchedule } = adminSettings;
 
   // Format business hours from weeklySchedule
@@ -75,11 +75,11 @@ export default function AppFooter({ adminSettings }: AppFooterProps) {
               &copy; {new Date().getFullYear()} {businessName}. {t('allRightsReserved')}
             </p>
             <div className="mt-4 flex gap-4 text-sm">
-              <a href={`/${locale}/terms`} className="hover:text-white transition-colors">
+              <a href="/terms" className="hover:text-white transition-colors">
                 {t('termsOfService')}
               </a>
               <span className="text-white/30">|</span>
-              <a href={`/${locale}/privacy`} className="hover:text-white transition-colors">
+              <a href="/privacy" className="hover:text-white transition-colors">
                 {t('privacyPolicy')}
               </a>
             </div>

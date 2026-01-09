@@ -1,6 +1,6 @@
 'use client';
 
-import { useFormatter, useTranslations, useLocale } from 'next-intl';
+import { useFormatter, useTranslations } from 'next-intl';
 import { Badge } from '@/components/ui/badge';
 import { Earth } from 'lucide-react';
 import TelegramIcon from '@/components/icons/telegram';
@@ -8,7 +8,7 @@ import WhatsappIcon from '@/components/icons/whatsapp';
 import type { Appointment } from '@/types';
 import { cn } from '@/lib/utils';
 import React from 'react';
-import Link from 'next/link';
+import { Link } from '@/i18n/routing';
 
 interface AppointmentCardProps {
   appointment: Appointment;
@@ -33,7 +33,6 @@ export default function AppointmentCard({
   const t = useTranslations('AppointmentCard');
   const tNav = useTranslations('Navigation');
   const tCommon = useTranslations('Common');
-  const locale = useLocale();
 
   // Format time as single string (e.g., "2:30 PM" or "14:30")
   const formatTimeSimple = (time: string) => {
@@ -108,7 +107,7 @@ export default function AppointmentCard({
               <>
                 <span className="text-muted-foreground/70">{t('customer')}:</span>
                 <Link
-                  href={`/${locale}/admin/customers?search=${encodeURIComponent(appointment.customerName)}`}
+                  href={`/admin/customers?search=${encodeURIComponent(appointment.customerName)}`}
                   className="text-primary hover:underline"
                   onClick={e => e.stopPropagation()}
                 >
@@ -123,7 +122,7 @@ export default function AppointmentCard({
               <>
                 <span className="text-muted-foreground/70">{t('stylist')}:</span>
                 <Link
-                  href={`/${locale}/admin/stylists?id=${appointment.stylist.id}`}
+                  href={`/admin/stylists?id=${appointment.stylist.id}`}
                   className="text-primary hover:underline"
                   onClick={e => e.stopPropagation()}
                 >

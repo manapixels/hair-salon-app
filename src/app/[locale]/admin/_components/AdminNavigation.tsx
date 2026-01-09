@@ -1,8 +1,8 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
-import Link from 'next/link';
-import { useLocale, useTranslations } from 'next-intl';
+import { Link } from '@/i18n/routing';
+import { useTranslations } from 'next-intl';
 import {
   Calendar,
   Clock,
@@ -54,10 +54,9 @@ export default function AdminNavigation({
   badges = {},
 }: AdminNavigationProps) {
   const pathname = usePathname();
-  const locale = useLocale();
 
   const t = useTranslations('AdminNavigation');
-  const basePath = `/${locale}/admin`;
+  const basePath = '/admin';
 
   const navigationGroups: NavigationGroup[] = [
     {

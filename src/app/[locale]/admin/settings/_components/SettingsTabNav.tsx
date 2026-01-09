@@ -1,16 +1,15 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
-import Link from 'next/link';
-import { useLocale, useTranslations } from 'next-intl';
+import { Link } from '@/i18n/routing';
+import { useTranslations } from 'next-intl';
 import { Building2, Scissors, Shield, Link2, Clock, XCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export default function SettingsTabNav() {
   const t = useTranslations('Admin.Settings.Nav');
   const pathname = usePathname();
-  const locale = useLocale();
-  const basePath = `/${locale}/admin/settings`;
+  const basePath = '/admin/settings';
 
   const tabs = [
     { id: 'business', label: t('business'), icon: Building2, href: 'business' },
