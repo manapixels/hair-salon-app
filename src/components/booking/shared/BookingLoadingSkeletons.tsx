@@ -14,7 +14,7 @@ export const StylistSelectorLoading = () => {
           <LoadingSpinner size="sm" />
           <p className="text-sm text-gray-600">{t('loadingStylists')}</p>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="flex flex-row gap-4 overflow-x-auto pb-4 no-scrollbar">
           <StylistCardSkeleton count={3} />
         </div>
       </div>

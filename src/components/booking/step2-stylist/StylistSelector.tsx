@@ -74,7 +74,7 @@ export const StylistSelector: React.FC<StylistSelectorProps> = ({
 
       <div className="px-4 pb-4">
         {showLoader || isLoading ? (
-          <div className="flex gap-4 overflow-x-auto pb-4 no-scrollbar">
+          <div className="flex flex-row gap-4 overflow-x-auto pb-4 no-scrollbar">
             <StylistCardSkeleton count={3} />
           </div>
         ) : error ? (

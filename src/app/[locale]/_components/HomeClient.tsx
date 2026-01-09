@@ -148,8 +148,8 @@ export default function HomeClient({ adminSettings }: HomeClientProps) {
                         src={category.illustrationUrl || ''}
                         alt={category.title}
                         fill
-                        className="object-cover"
-                        sizes="64px"
+                        className="object-none"
+                        sizes="96px"
                       />
                     </div>
                     <span className="text-md text-center leading-[1.1] text-primary font-medium flex-1 flex items-center justify-center w-full">

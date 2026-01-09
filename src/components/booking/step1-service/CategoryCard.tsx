@@ -49,8 +49,8 @@ export const CategoryCard: React.FC<CategoryCardProps> = ({
           src={`/images/illustrations/${category.slug}.png` || ''}
           alt={categoryName}
           fill
-          className="object-cover"
-          sizes="128px"
+          className="object-none"
+          sizes="96px"
         />
       </div>
       <span
