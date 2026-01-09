@@ -61,7 +61,7 @@ export const AnimatedStepContainer: React.FC<AnimatedStepContainerProps> = ({
         setShowCollapsed(true);
         setIsAnimating(false);
         setHeight('auto');
-      }, 350);
+      }, 300);
 
       return () => clearTimeout(timer);
     } else if (!isCollapsed && showCollapsed) {
@@ -74,10 +74,10 @@ export const AnimatedStepContainer: React.FC<AnimatedStepContainerProps> = ({
   return (
     <div
       ref={containerRef}
-      className="relative overflow-hidden transition-[height] duration-350 ease-out motion-reduce:transition-none"
+      className="relative motion-reduce:transition-none"
       style={{
         height: height === 'auto' ? 'auto' : `${height}px`,
-        transitionDuration: isAnimating ? '350ms' : '0ms',
+        transition: isAnimating ? 'height 300ms cubic-bezier(0.4, 0, 0.2, 1)' : 'none',
       }}
     >
       {/* Hidden collapsed content for measurement */}

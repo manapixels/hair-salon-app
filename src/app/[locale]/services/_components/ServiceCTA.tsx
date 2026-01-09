@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { useBookingModal } from '@/context/BookingModalContext';
 
 interface ServiceCTAProps {
@@ -11,6 +12,13 @@ interface ServiceCTAProps {
 
 export function ServiceCTA({ title, description, serviceName, serviceSlug }: ServiceCTAProps) {
   const { openModal } = useBookingModal();
+  const t = useTranslations('Services.Shared');
+  const tNav = useTranslations('Navigation');
+
+  // Use translated service name if slug is available, otherwise fallback to provided name
+  const translatedServiceName = serviceSlug
+    ? tNav(`serviceNames.${serviceSlug}`, { default: serviceName })
+    : serviceName;
 
   return (
     <section className="py-12 md:py-20 px-4 md:px-6 bg-stone-900 text-white">
@@ -21,7 +29,7 @@ export function ServiceCTA({ title, description, serviceName, serviceSlug }: Ser
           onClick={() => openModal({ preSelectedCategorySlug: serviceSlug })}
           className="min-h-touch-lg bg-white text-stone-900 px-10 py-4 rounded-full hover:bg-stone-100 active-scale transition-all duration-300 text-base md:text-lg font-semibold"
         >
-          Book {serviceName}
+          {t('bookCta', { serviceName: translatedServiceName })}
         </button>
       </div>
     </section>

@@ -74,7 +74,7 @@ export function BookingModal() {
               <BookingProgress currentStep={currentStep} />
             </div>
           </DrawerHeader>
-          <div className="px-4 flex-1 overflow-y-auto pb-safe-bottom">{content}</div>
+          <div className="p-4 flex-1 overflow-y-auto">{content}</div>
         </DrawerContent>
       </Drawer>
     );
@@ -82,8 +82,8 @@ export function BookingModal() {
 
   return (
     <Dialog open={isOpen} onOpenChange={open => !open && closeModal()}>
-      <DialogContent className="max-h-[95vh] w-full max-w-3xl flex flex-col overflow-hidden p-0 gap-0">
-        <DialogHeader className="border-b p-6 text-left shrink-0">
+      <DialogContent className="max-h-[95vh] w-full max-w-3xl flex flex-col overflow-hidden">
+        <DialogHeader className="border-b pb-4 text-left shrink-0">
           <div className="flex flex-col landscape:flex-row landscape:items-center landscape:gap-8">
             <DialogTitle className="text-lg font-semibold whitespace-nowrap">
               {t('bookYourAppointment')}

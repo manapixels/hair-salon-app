@@ -89,6 +89,7 @@ const BookingForm: React.FC<BookingFormProps> = ({
 
   // Common state
   const [selectedStylist, setSelectedStylist] = useState<Stylist | null>(null);
+  const [stylistSelectionMade, setStylistSelectionMade] = useState(false); // Track if user made a choice (including 'any available')
   const [selectedDate, setSelectedDate] = useState(getTodayInSalonTimezone());
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -209,10 +210,10 @@ const BookingForm: React.FC<BookingFormProps> = ({
     setSelectedTime(null);
   }, [selectedDate]);
 
-  // Reset stylist only when category is cleared
   useEffect(() => {
     if (!selectedCategory) {
       setSelectedStylist(null);
+      setStylistSelectionMade(false);
     }
   }, [selectedCategory]);
 
@@ -223,7 +224,7 @@ const BookingForm: React.FC<BookingFormProps> = ({
       newStep = 4; // Completed
     } else if (selectedTime) {
       newStep = 4; // Confirmation
-    } else if (selectedCategory && selectedStylist) {
+    } else if (selectedCategory && stylistSelectionMade) {
       newStep = 3; // Date & Time
     } else if (selectedCategory) {
       newStep = 2; // Stylist
@@ -233,7 +234,14 @@ const BookingForm: React.FC<BookingFormProps> = ({
 
     setCurrentStep(newStep);
     onStepChange?.(newStep);
-  }, [selectedCategory, selectedStylist, selectedTime, bookingConfirmed, onStepChange]);
+  }, [
+    selectedCategory,
+    selectedStylist,
+    stylistSelectionMade,
+    selectedTime,
+    bookingConfirmed,
+    onStepChange,
+  ]);
 
   // Scroll helper
   const scrollToSection = (ref: React.RefObject<HTMLDivElement>) => {
@@ -291,36 +299,37 @@ Please confirm availability. Thank you!`;
     setSelectedCategory(category);
     setEditingStep(null);
 
-    // Pulse animation + delay before collapse (same pattern as Steps 2 and 3)
+    // Brief pulse animation, then advance
     setIsPreSelectionAnimating(true);
     setTimeout(() => {
       setIsPreSelectionAnimating(false);
       scrollToSection(stylistSectionRef);
-    }, 1200); // 1.2s to show pulse before advancing
+    }, 600); // 600ms for quick feedback before advancing
   };
 
   const handleStylistSelect = (stylist: Stylist | null) => {
     setSelectedStylist(stylist);
+    setStylistSelectionMade(true); // Mark that a selection was made (even if it's 'any available')
     setEditingStep(null);
 
-    // Pulse animation + delay before collapse
+    // Brief pulse animation, then advance
     setIsStylistAnimating(true);
     setTimeout(() => {
       setIsStylistAnimating(false);
       scrollToSection(dateTimeSectionRef);
-    }, 1200); // 1.2s to show pulse before advancing
+    }, 600); // 600ms for quick feedback before advancing
   };
 
   const handleTimeSelect = (time: string | null) => {
     setSelectedTime(time);
     setEditingStep(null);
     if (time) {
-      // Pulse animation + delay before collapse
+      // Brief pulse animation, then advance
       setIsTimeAnimating(true);
       setTimeout(() => {
         setIsTimeAnimating(false);
         scrollToSection(confirmationSectionRef);
-      }, 1200); // 1.2s to show pulse before advancing
+      }, 600); // 600ms for quick feedback before advancing
     }
   };
 
@@ -395,6 +404,7 @@ Please confirm availability. Thank you!`;
   const handleReset = () => {
     setSelectedCategory(null);
     setSelectedStylist(null);
+    setStylistSelectionMade(false);
     setSelectedDate(getTodayInSalonTimezone());
     setSelectedTime(null);
     setBookingConfirmed(null);
@@ -412,9 +422,11 @@ Please confirm availability. Thank you!`;
     if (step === 1) {
       // Editing services - clear stylist and time
       setSelectedStylist(null);
+      setStylistSelectionMade(false);
       setSelectedTime(null);
     } else if (step === 2) {
-      // Editing stylist - clear time only
+      // Editing stylist - clear time only, reset stylist selection
+      setStylistSelectionMade(false);
       setSelectedTime(null);
     } else if (step === 3) {
       // Editing date/time - clear time
@@ -576,13 +588,13 @@ Please confirm availability. Thank you!`;
         {currentStep === 4 && t('ariaStep4')}
       </div>
 
-      <div className="gap-8 sm:p-6 pb-12 sm:pb-0">
+      <div className="gap-8">
         <div className="w-full">
           {/* Step 1: Services */}
           <div
             ref={serviceSectionRef}
             tabIndex={-1}
-            className="outline-none -mx-4 sm:-mx-6 sm:-mt-6"
+            className="outline-none"
             role="group"
             aria-labelledby="step-1-heading"
             aria-current={currentStep === 1 ? 'step' : undefined}
@@ -595,14 +607,12 @@ Please confirm availability. Thank you!`;
                 !isPreSelectionAnimating
               }
               collapsedContent={
-                <div className="px-4 sm:px-6 pt-6">
-                  <CollapsedStepSummary
-                    selectionType={t('service')}
-                    selection={getCategoryName(selectedCategory!)}
-                    onEdit={() => handleEditStep(1)}
-                    id="step-1-heading"
-                  />
-                </div>
+                <CollapsedStepSummary
+                  selectionType={t('service')}
+                  selection={getCategoryName(selectedCategory!)}
+                  onEdit={() => handleEditStep(1)}
+                  id="step-1-heading"
+                />
               }
               expandedContent={
                 <SimpleCategorySelector
@@ -618,26 +628,25 @@ Please confirm availability. Thank you!`;
           {selectedCategory && editingStep !== 1 && !isPreSelectionAnimating && (
             <div
               ref={stylistSectionRef}
-              className="outline-none -mx-4 sm:-mx-6"
+              className="outline-none"
               role="group"
               aria-labelledby="step-2-heading"
               aria-current={currentStep === 2 ? 'step' : undefined}
             >
               <AnimatedStepContainer
                 isCollapsed={
-                  currentStep > 2 && !!selectedStylist && editingStep !== 2 && !isStylistAnimating
+                  currentStep > 2 &&
+                  stylistSelectionMade &&
+                  editingStep !== 2 &&
+                  !isStylistAnimating
                 }
                 collapsedContent={
-                  <div className="px-4 sm:px-6">
-                    <CollapsedStepSummary
-                      selectionType={t('stylist')}
-                      selection={
-                        selectedStylist ? selectedStylist.name : t('noPreferenceQuickBook')
-                      }
-                      onEdit={() => handleEditStep(2)}
-                      id="step-2-heading"
-                    />
-                  </div>
+                  <CollapsedStepSummary
+                    selectionType={t('stylist')}
+                    selection={selectedStylist ? selectedStylist.name : t('noPreferenceQuickBook')}
+                    onEdit={() => handleEditStep(2)}
+                    id="step-2-heading"
+                  />
                 }
                 expandedContent={
                   <div className="animate-slide-in-bottom">
@@ -655,14 +664,14 @@ Please confirm availability. Thank you!`;
           )}
 
           {/* Step 3: Date & Time */}
-          {selectedStylist &&
+          {stylistSelectionMade &&
             selectedCategory &&
             editingStep !== 1 &&
             editingStep !== 2 &&
             !isStylistAnimating && (
               <div
                 ref={dateTimeSectionRef}
-                className="outline-none -mx-4 sm:-mx-6"
+                className="outline-none"
                 role="group"
                 aria-labelledby="step-3-heading"
                 aria-current={currentStep === 3 ? 'step' : undefined}
@@ -672,29 +681,25 @@ Please confirm availability. Thank you!`;
                     currentStep > 3 && !!selectedTime && editingStep !== 3 && !isTimeAnimating
                   }
                   collapsedContent={
-                    <div className="px-4 sm:px-6">
-                      <CollapsedStepSummary
-                        selectionType={t('dateAndTime')}
-                        selection={`${formatDate(selectedDate)}, ${formatTime(selectedTime || '')}`}
-                        onEdit={() => handleEditStep(3)}
-                        id="step-3-heading"
-                      />
-                    </div>
+                    <CollapsedStepSummary
+                      selectionType={t('dateAndTime')}
+                      selection={`${formatDate(selectedDate)}, ${formatTime(selectedTime || '')}`}
+                      onEdit={() => handleEditStep(3)}
+                      id="step-3-heading"
+                    />
                   }
                   expandedContent={
                     <div className="animate-slide-in-bottom">
                       <StepHeader title={t('step3')} />
-                      <div className="px-4 sm:px-6">
-                        <DateTimePicker
-                          selectedDate={selectedDate}
-                          onDateChange={setSelectedDate}
-                          selectedTime={selectedTime}
-                          onTimeSelect={handleTimeSelect}
-                          totalDuration={totalDuration}
-                          selectedStylist={selectedStylist}
-                          isAnimatingSelection={isTimeAnimating}
-                        />
-                      </div>
+                      <DateTimePicker
+                        selectedDate={selectedDate}
+                        onDateChange={setSelectedDate}
+                        selectedTime={selectedTime}
+                        onTimeSelect={handleTimeSelect}
+                        totalDuration={totalDuration}
+                        selectedStylist={selectedStylist}
+                        isAnimatingSelection={isTimeAnimating}
+                      />
                     </div>
                   }
                 />

@@ -7,7 +7,7 @@ interface StepHeaderProps {
 
 export const StepHeader = ({ title, className = '' }: StepHeaderProps) => {
   return (
-    <div className={`bg-primary text-white w-full px-4 py-3 mb-6 ${className}`}>
+    <div className={`bg-primary text-white w-full px-4 py-3 mb-6 rounded-lg ${className}`}>
       <h2 className="text-base font-semibold tracking-wide">{title}</h2>
     </div>
   );

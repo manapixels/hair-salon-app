@@ -1,4 +1,7 @@
 {
+  "Shared": {
+    "bookCta": "Book {serviceName}"
+  },
   "HairColouring": {
     "meta": {
       "title": "Hair Colouring | Signature Trims",

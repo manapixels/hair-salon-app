@@ -110,19 +110,19 @@ export const StylistSelector: React.FC<StylistSelectorProps> = ({
             <div
               onClick={() => onStylistSelect(null)}
               className={`
-                relative shrink-0 snap-start cursor-pointer rounded-2xl border-2 transition-all duration-200
-                flex flex-col items-center justify-center py-3 px-4 text-center
+                relative shrink-0 snap-start cursor-pointer rounded-2xl border-2 transition-all
+                flex flex-col items-center justify-center py-3 px-4 text-center w-28 
                 ${!selectedStylist ? 'border-primary bg-primary/5' : 'border-gray-200 bg-white hover:border-primary/50'}
+                ${!selectedStylist && isAnimatingSelection ? 'animate-pulse-selection' : ''}
+                motion-reduce:animate-none motion-reduce:scale-100
               `}
             >
-              <div className="w-16 h-16 rounded-full bg-white border border-gray-100 flex items-center justify-center mb-3 shadow-sm">
-                <div className="w-14 h-14 rounded-full bg-stone-900 flex items-center justify-center">
-                  <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-                  </svg>
-                </div>
+              <div className="w-16 h-16 rounded-full bg-stone-900 flex items-center justify-center mb-3 shadow-sm">
+                <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                </svg>
               </div>
-              <h3 className="text-sm font-bold text-gray-900 leading-tight">
+              <h3 className="text-sm font-bold text-gray-900 leading-tight max-w-full break-words">
                 {t('anyAvailableStylist')}
               </h3>
             </div>
@@ -135,10 +135,11 @@ export const StylistSelector: React.FC<StylistSelectorProps> = ({
                   key={stylist.id}
                   onClick={() => onStylistSelect(stylist)}
                   className={`
-                    relative shrink-0 snap-start cursor-pointer rounded-2xl border-2 transition-all duration-200
-                    flex flex-col items-center justify-center py-3 px-4 text-center
+                    relative shrink-0 snap-start cursor-pointer rounded-2xl border-2 transition-all
+                    flex flex-col items-center justify-center py-3 px-4 text-center w-28
                     ${isSelected ? 'border-primary bg-primary/5' : 'border-gray-200 bg-white hover:border-primary/50'}
-                    ${isSelected && isAnimatingSelection ? 'animate-pulse' : ''}
+                    ${isSelected && isAnimatingSelection ? 'animate-pulse-selection' : ''}
+                    motion-reduce:animate-none motion-reduce:scale-100
                   `}
                 >
                   {stylist.avatar ? (

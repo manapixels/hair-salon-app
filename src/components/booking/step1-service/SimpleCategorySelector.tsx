@@ -35,13 +35,13 @@ export const SimpleCategorySelector: React.FC<SimpleCategorySelectorProps> = ({
     <div id="service-selector" className="space-y-4">
       <StepHeader title={t('step1')} />
 
-      <p className="text-sm text-gray-600 mb-6 px-4 sm:px-6">{t('chooseCategoryDesc')}</p>
+      <p className="text-sm text-gray-600 mb-6">{t('chooseCategoryDesc')}</p>
 
       <div
         ref={containerRef}
         role="radiogroup"
         aria-label={t('serviceCategories')}
-        className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 bg-white p-4 mx-4 sm:mx-6"
+        className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 bg-white"
       >
         {bookingCategories.map((category, index) => (
           <CategoryCard
