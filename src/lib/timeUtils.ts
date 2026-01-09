@@ -116,6 +116,35 @@ export function getDurationPercentage(minutes: number): number {
 }
 
 /**
+ * Generate an array of dates from a start date, all set to noon local time.
+ *
+ * WHY NOON? When dates are at midnight (00:00), timezone conversions can shift
+ * them ±1 day. For example:
+ * - Singapore: 2026-01-09T00:00:00+08:00
+ * - UTC: 2026-01-08T16:00:00Z ← Different day!
+ *
+ * Using noon (12:00) provides a 12-hour buffer on both sides, ensuring the
+ * date stays the same regardless of timezone. This is a standard pattern
+ * used by Google Calendar and other date-handling libraries.
+ *
+ * @param startDate - The starting date (time component will be normalized to noon)
+ * @param days - Number of days to generate (inclusive of start date)
+ * @returns Array of Date objects, all at 12:00:00 local time
+ */
+export function generateNoonDateRange(startDate: Date, days: number): Date[] {
+  const dates: Date[] = [];
+  const noon = new Date(startDate);
+  noon.setHours(12, 0, 0, 0);
+
+  for (let i = 0; i <= days; i++) {
+    const d = new Date(noon);
+    d.setDate(noon.getDate() + i);
+    dates.push(d);
+  }
+  return dates;
+}
+
+/**
  * Group time slots by period of day
  * @param slots - Array of time slot objects
  * @returns Object with morning, afternoon, and evening arrays

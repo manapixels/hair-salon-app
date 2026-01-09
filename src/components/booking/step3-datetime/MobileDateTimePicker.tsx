@@ -1,11 +1,11 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { isSameDay, startOfDay, eachDayOfInterval, addDays } from 'date-fns';
+import { isSameDay } from 'date-fns';
 import { ChevronRight, ChevronDown, Check } from 'lucide-react';
 import { CalendarView } from './CalendarView';
 import type { TimeSlot } from '@/types';
-import { groupSlotsByPeriod } from '@/lib/timeUtils';
+import { groupSlotsByPeriod, generateNoonDateRange } from '@/lib/timeUtils';
 import { useTranslations, useFormatter } from 'next-intl';
 import { getTodayInSalonTimezone } from '@/components/booking/shared';
 
@@ -55,12 +55,16 @@ export function MobileDateTimePicker({
   useEffect(() => {
     // This runs only on client after hydration
     const salonToday = getTodayInSalonTimezone();
-    const todayStart = startOfDay(salonToday);
-    const minDateVal = minDate ?? todayStart;
-    const endDate = addDays(todayStart, 60);
+
+    // Create dates at noon to avoid timezone boundary issues
+    // Using centralized utility from timeUtils
+    const generatedDates = generateNoonDateRange(salonToday, 60);
+    const todayNoon = generatedDates[0];
+
+    const minDateVal = minDate ?? todayNoon;
     setDateState({
-      dates: eachDayOfInterval({ start: todayStart, end: endDate }),
-      today: todayStart,
+      dates: generatedDates,
+      today: todayNoon,
       effectiveMinDate: minDateVal,
     });
   }, [minDate]);
