@@ -67,7 +67,7 @@ export async function requiresDeposit(customerEmail: string): Promise<{
  */
 export async function getDepositSettings(): Promise<{
   enabled: boolean;
-  percentage: number;
+  amount: number;
   trustThreshold: number;
   refundWindowHours: number;
 }> {
@@ -77,21 +77,20 @@ export async function getDepositSettings(): Promise<{
 
   return {
     enabled: settings?.depositEnabled ?? true,
-    percentage: settings?.depositPercentage ?? 15,
+    amount: settings?.depositAmount ?? 500, // Fixed amount in cents
     trustThreshold: settings?.depositTrustThreshold ?? 1,
     refundWindowHours: settings?.depositRefundWindowHours ?? 24,
   };
 }
 
 /**
- * Calculate deposit amount based on total price and percentage
+ * Get deposit amount (fixed)
  * Enforces minimum of 50 cents (Stripe requirement for SGD)
  */
-export function calculateDepositAmount(totalPrice: number, percentage: number): number {
-  // totalPrice is in cents, return deposit in cents
-  const calculated = Math.ceil(totalPrice * (percentage / 100));
+export function calculateDepositAmount(depositAmount: number): number {
+  // depositAmount is in cents
   // Stripe requires minimum $0.50 SGD = 50 cents
-  return Math.max(calculated, 50);
+  return Math.max(depositAmount, 50);
 }
 
 /**

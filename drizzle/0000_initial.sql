@@ -26,7 +26,7 @@ CREATE TABLE "admin_settings" (
 	"businessPhone" text DEFAULT '(555) 123-4567' NOT NULL,
 	"socialLinks" json DEFAULT '{"instagram":{"url":"","isActive":false},"facebook":{"url":"","isActive":false},"whatsapp":{"url":"","isActive":false},"telegram":{"url":"","isActive":false}}'::json,
 	"depositEnabled" boolean DEFAULT true NOT NULL,
-	"depositPercentage" integer DEFAULT 15 NOT NULL,
+	"depositAmount" integer DEFAULT 500 NOT NULL,
 	"depositTrustThreshold" integer DEFAULT 1 NOT NULL,
 	"depositRefundWindowHours" integer DEFAULT 24 NOT NULL,
 	"updatedAt" timestamp DEFAULT now() NOT NULL

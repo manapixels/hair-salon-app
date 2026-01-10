@@ -258,7 +258,7 @@ export const adminSettings = pgTable('admin_settings', {
   businessPhone: text('businessPhone').default('(555) 123-4567').notNull(),
   // Deposit settings for no-show protection
   depositEnabled: boolean('depositEnabled').default(true).notNull(),
-  depositPercentage: integer('depositPercentage').default(15).notNull(),
+  depositAmount: integer('depositAmount').default(500).notNull(), // in cents, default $5.00
   depositTrustThreshold: integer('depositTrustThreshold').default(1).notNull(),
   depositRefundWindowHours: integer('depositRefundWindowHours').default(24).notNull(),
   // Social media links

@@ -190,7 +190,7 @@ export interface AdminSettings {
   businessPhone: string;
   // Deposit settings for no-show protection
   depositEnabled: boolean;
-  depositPercentage: number;
+  depositAmount: number; // in cents
   depositTrustThreshold: number;
   depositRefundWindowHours: number;
   // Social media links

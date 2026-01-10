@@ -626,7 +626,7 @@ export const getAdminSettings = unstable_cache(
         businessAddress: '930 Yishun Avenue 1 #01-127, Singapore 760930',
         businessPhone: '(555) 123-4567',
         depositEnabled: true,
-        depositPercentage: 15,
+        depositAmount: 500, // Default $5.00
         depositTrustThreshold: 1,
         depositRefundWindowHours: 24,
         socialLinks: defaultSocialLinks,
@@ -665,7 +665,7 @@ export const getAdminSettings = unstable_cache(
       businessAddress: settings.businessAddress,
       businessPhone: settings.businessPhone,
       depositEnabled: settings.depositEnabled,
-      depositPercentage: settings.depositPercentage,
+      depositAmount: settings.depositAmount,
       depositTrustThreshold: settings.depositTrustThreshold,
       depositRefundWindowHours: settings.depositRefundWindowHours,
       socialLinks:
@@ -696,7 +696,7 @@ export const updateAdminSettings = async (
         businessPhone: newSettings.businessPhone ?? existing[0].businessPhone,
         blockedSlots: (newSettings.blockedSlots ?? currentSettings.blockedSlots) as any,
         depositEnabled: newSettings.depositEnabled ?? existing[0].depositEnabled,
-        depositPercentage: newSettings.depositPercentage ?? existing[0].depositPercentage,
+        depositAmount: newSettings.depositAmount ?? existing[0].depositAmount,
         depositTrustThreshold:
           newSettings.depositTrustThreshold ?? existing[0].depositTrustThreshold,
         depositRefundWindowHours:
@@ -715,7 +715,7 @@ export const updateAdminSettings = async (
         newSettings.businessAddress ?? '930 Yishun Avenue 1 #01-127, Singapore 760930',
       businessPhone: newSettings.businessPhone ?? '(555) 123-4567',
       depositEnabled: newSettings.depositEnabled ?? true,
-      depositPercentage: newSettings.depositPercentage ?? 15,
+      depositAmount: newSettings.depositAmount ?? 500, // Default $5.00
       depositTrustThreshold: newSettings.depositTrustThreshold ?? 1,
       depositRefundWindowHours: newSettings.depositRefundWindowHours ?? 24,
       socialLinks: (newSettings.socialLinks ?? {}) as any,

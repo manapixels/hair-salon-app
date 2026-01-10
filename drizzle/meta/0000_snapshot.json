@@ -1,5 +1,5 @@
 {
-  "id": "2b347d64-be67-47b0-8ba6-a6e7940cd22a",
+  "id": "8d79a382-b3da-47de-8045-93a4e25ece50",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -55,6 +55,41 @@
           "primaryKey": false,
           "notNull": true,
           "default": "'(555) 123-4567'"
+        },
+        "depositEnabled": {
+          "name": "depositEnabled",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "depositAmount": {
+          "name": "depositAmount",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 500
+        },
+        "depositTrustThreshold": {
+          "name": "depositTrustThreshold",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 1
+        },
+        "depositRefundWindowHours": {
+          "name": "depositRefundWindowHours",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 24
+        },
+        "socialLinks": {
+          "name": "socialLinks",
+          "type": "json",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'{\"instagram\":{\"url\":\"\",\"isActive\":false},\"facebook\":{\"url\":\"\",\"isActive\":false},\"whatsapp\":{\"url\":\"\",\"isActive\":false},\"telegram\":{\"url\":\"\",\"isActive\":false}}'::json"
         },
         "updatedAt": {
           "name": "updatedAt",
@@ -175,6 +210,14 @@
           "notNull": true,
           "default": false
         },
+        "bookingSource": {
+          "name": "bookingSource",
+          "type": "BookingSource",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'WEB'"
+        },
         "createdAt": {
           "name": "createdAt",
           "type": "timestamp",
@@ -216,12 +259,253 @@
           "tableTo": "users",
           "columnsFrom": ["userId"],
           "columnsTo": ["id"],
-          "onDelete": "set null",
+          "onDelete": "cascade",
           "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.conversation_sessions": {
+      "name": "conversation_sessions",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "chatId": {
+          "name": "chatId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "platform": {
+          "name": "platform",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'telegram'"
+        },
+        "context": {
+          "name": "context",
+          "type": "json",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{}'::json"
+        },
+        "lastActivityAt": {
+          "name": "lastActivityAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "expiresAt": {
+          "name": "expiresAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "conversation_sessions_chatId_platform_idx": {
+          "name": "conversation_sessions_chatId_platform_idx",
+          "columns": [
+            {
+              "expression": "chatId",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "platform",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "conversation_sessions_expiresAt_idx": {
+          "name": "conversation_sessions_expiresAt_idx",
+          "columns": [
+            {
+              "expression": "expiresAt",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.deposits": {
+      "name": "deposits",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "appointmentId": {
+          "name": "appointmentId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "userId": {
+          "name": "userId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "customerEmail": {
+          "name": "customerEmail",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "amount": {
+          "name": "amount",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "currency": {
+          "name": "currency",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'SGD'"
+        },
+        "stripePaymentIntentId": {
+          "name": "stripePaymentIntentId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "status": {
+          "name": "status",
+          "type": "DepositStatus",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'PENDING'"
+        },
+        "expiresAt": {
+          "name": "expiresAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "paidAt": {
+          "name": "paidAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "refundedAt": {
+          "name": "refundedAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "deposits_appointmentId_idx": {
+          "name": "deposits_appointmentId_idx",
+          "columns": [
+            {
+              "expression": "appointmentId",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "deposits_status_idx": {
+          "name": "deposits_status_idx",
+          "columns": [
+            {
+              "expression": "status",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "deposits_appointmentId_appointments_id_fk": {
+          "name": "deposits_appointmentId_appointments_id_fk",
+          "tableFrom": "deposits",
+          "tableTo": "appointments",
+          "columnsFrom": ["appointmentId"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "deposits_userId_users_id_fk": {
+          "name": "deposits_userId_users_id_fk",
+          "tableFrom": "deposits",
+          "tableTo": "users",
+          "columnsFrom": ["userId"],
+          "columnsTo": ["id"],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "deposits_stripePaymentIntentId_unique": {
+          "name": "deposits_stripePaymentIntentId_unique",
+          "nullsNotDistinct": false,
+          "columns": ["stripePaymentIntentId"]
+        }
+      },
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
@@ -487,8 +771,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.LoginToken": {
-      "name": "LoginToken",
+    "public.login_tokens": {
+      "name": "login_tokens",
       "schema": "",
       "columns": {
         "id": {
@@ -515,6 +799,13 @@
           "primaryKey": false,
           "notNull": true
         },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'PENDING'"
+        },
         "createdAt": {
           "name": "createdAt",
           "type": "timestamp",
@@ -524,8 +815,8 @@
         }
       },
       "indexes": {
-        "logintoken_userId_idx": {
-          "name": "logintoken_userId_idx",
+        "login_tokens_userId_idx": {
+          "name": "login_tokens_userId_idx",
           "columns": [
             {
               "expression": "userId",
@@ -541,9 +832,9 @@
         }
       },
       "foreignKeys": {
-        "LoginToken_userId_users_id_fk": {
-          "name": "LoginToken_userId_users_id_fk",
-          "tableFrom": "LoginToken",
+        "login_tokens_userId_users_id_fk": {
+          "name": "login_tokens_userId_users_id_fk",
+          "tableFrom": "login_tokens",
           "tableTo": "users",
           "columnsFrom": ["userId"],
           "columnsTo": ["id"],
@@ -553,8 +844,8 @@
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
-        "LoginToken_token_unique": {
-          "name": "LoginToken_token_unique",
+        "login_tokens_token_unique": {
+          "name": "login_tokens_token_unique",
           "nullsNotDistinct": false,
           "columns": ["token"]
         }
@@ -655,10 +946,10 @@
         },
         "benefits": {
           "name": "benefits",
-          "type": "json",
+          "type": "text[]",
           "primaryKey": false,
           "notNull": false,
-          "default": "'[]'::json"
+          "default": "ARRAY[]::text[]"
         },
         "price": {
           "name": "price",
@@ -1047,12 +1338,6 @@
           "primaryKey": false,
           "notNull": true
         },
-        "subtitle": {
-          "name": "subtitle",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
         "description": {
           "name": "description",
           "type": "text",
@@ -1082,6 +1367,20 @@
           "type": "integer",
           "primaryKey": false,
           "notNull": true
+        },
+        "processingWaitTime": {
+          "name": "processingWaitTime",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "processingDuration": {
+          "name": "processingDuration",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
         },
         "imageUrl": {
           "name": "imageUrl",
@@ -1245,6 +1544,19 @@
           "primaryKey": false,
           "notNull": false
         },
+        "googleTokenInvalid": {
+          "name": "googleTokenInvalid",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "lastCalendarReminderSent": {
+          "name": "lastCalendarReminderSent",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
         "createdAt": {
           "name": "createdAt",
           "type": "timestamp",
@@ -1312,13 +1624,12 @@
           "primaryKey": false,
           "notNull": false
         },
-        "role": {
-          "name": "role",
-          "type": "Role",
-          "typeSchema": "public",
+        "roles": {
+          "name": "roles",
+          "type": "text[]",
           "primaryKey": false,
           "notNull": true,
-          "default": "'CUSTOMER'"
+          "default": "'{\"CUSTOMER\"}'"
         },
         "authProvider": {
           "name": "authProvider",
@@ -1328,7 +1639,7 @@
         },
         "telegramId": {
           "name": "telegramId",
-          "type": "integer",
+          "type": "bigint",
           "primaryKey": false,
           "notNull": false
         },
@@ -1423,7 +1734,17 @@
     "public.AppointmentStatus": {
       "name": "AppointmentStatus",
       "schema": "public",
-      "values": ["SCHEDULED", "COMPLETED", "CANCELLED", "NO_SHOW"]
+      "values": ["SCHEDULED", "COMPLETED", "CANCELLED", "NO_SHOW", "PENDING_PAYMENT"]
+    },
+    "public.BookingSource": {
+      "name": "BookingSource",
+      "schema": "public",
+      "values": ["WEB", "TELEGRAM", "WHATSAPP"]
+    },
+    "public.DepositStatus": {
+      "name": "DepositStatus",
+      "schema": "public",
+      "values": ["PENDING", "PAID", "REFUNDED", "FORFEITED"]
     },
     "public.RetentionMessageType": {
       "name": "RetentionMessageType",

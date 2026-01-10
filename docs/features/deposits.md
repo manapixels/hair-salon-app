@@ -20,12 +20,12 @@ First-time customers (0 completed visits) must pay a deposit to secure their boo
 
 Configurable in Admin Dashboard → Deposits:
 
-| Setting                    | Default | Description                 |
-| -------------------------- | ------- | --------------------------- |
-| `depositEnabled`           | true    | Toggle deposit requirement  |
-| `depositPercentage`        | 15%     | Percentage of service total |
-| `depositTrustThreshold`    | 1       | Visits before trusted       |
-| `depositRefundWindowHours` | 24      | Cancellation deadline       |
+| Setting                    | Default | Description                |
+| -------------------------- | ------- | -------------------------- |
+| `depositEnabled`           | true    | Toggle deposit requirement |
+| `depositAmount`            | 500     | Fixed amount in cents ($5) |
+| `depositTrustThreshold`    | 1       | Visits before trusted      |
+| `depositRefundWindowHours` | 24      | Cancellation deadline      |
 
 ---
 

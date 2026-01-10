@@ -46,7 +46,7 @@ export const BookingProvider: React.FC<{ children: ReactNode }> = ({ children })
     businessAddress: '930 Yishun Avenue 1 #01-127, Singapore 760930',
     businessPhone: '(555) 123-4567',
     depositEnabled: true,
-    depositPercentage: 15,
+    depositAmount: 500,
     depositTrustThreshold: 1,
     depositRefundWindowHours: 24,
   });

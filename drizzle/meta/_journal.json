@@ -8,62 +8,6 @@
       "when": 1765200796364,
       "tag": "0000_faithful_juggernaut",
       "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1766973850525,
-      "tag": "0001_conversation_sessions",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1767152893350,
-      "tag": "0002_add_calendar_reminder_fields",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1767155327629,
-      "tag": "0003_telegram_id_bigint",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
-      "when": 1767335108595,
-      "tag": "0004_low_valeria_richards",
-      "breakpoints": true
-    },
-    {
-      "idx": 5,
-      "version": "7",
-      "when": 1767403124004,
-      "tag": "0005_add_deposits",
-      "breakpoints": true
-    },
-    {
-      "idx": 6,
-      "version": "7",
-      "when": 1767771283284,
-      "tag": "0006_past_nomad",
-      "breakpoints": true
-    },
-    {
-      "idx": 7,
-      "version": "7",
-      "when": 1768025101594,
-      "tag": "0007_user-cascade-delete",
-      "breakpoints": true
-    },
-    {
-      "idx": 8,
-      "version": "7",
-      "when": 1768031765859,
-      "tag": "0008_violet_edwin_jarvis",
-      "breakpoints": true
     }
   ]
 }

@@ -12,7 +12,7 @@ import { useTranslations } from 'next-intl';
 
 interface DepositSettings {
   depositEnabled: boolean;
-  depositPercentage: number;
+  depositAmount: number;
   depositTrustThreshold: number;
   depositRefundWindowHours: number;
 }
@@ -22,14 +22,24 @@ export default function DepositSettings() {
   const tSettings = useTranslations('Admin.Settings');
   const tCommon = useTranslations('Admin.Common');
 
+  const getOrdinal = (n: number) => {
+    const s = ['th', 'st', 'nd', 'rd'];
+    const v = n % 100;
+    return n + (s[(v - 20) % 10] || s[v] || s[0]);
+  };
+
   const [settings, setSettings] = useState<DepositSettings>({
     depositEnabled: true,
-    depositPercentage: 15,
+    depositAmount: 500, // Default 500 cents ($5.00)
     depositTrustThreshold: 1,
     depositRefundWindowHours: 24,
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  // Local string state for inputs to allow flexible typing
+  const [amountInput, setAmountInput] = useState('5.00');
+  const [refundWindowInput, setRefundWindowInput] = useState('24');
+  const [thresholdInput, setThresholdInput] = useState('1');
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -37,16 +47,20 @@ export default function DepositSettings() {
         const response = await fetch('/api/admin/settings');
         const data = (await response.json()) as {
           depositEnabled?: boolean;
-          depositPercentage?: number;
+          depositAmount?: number;
           depositTrustThreshold?: number;
           depositRefundWindowHours?: number;
         };
         setSettings({
           depositEnabled: data.depositEnabled ?? true,
-          depositPercentage: data.depositPercentage ?? 15,
+          depositAmount: data.depositAmount ?? 500,
           depositTrustThreshold: data.depositTrustThreshold ?? 1,
           depositRefundWindowHours: data.depositRefundWindowHours ?? 24,
         });
+        // Sync local input state
+        setAmountInput(((data.depositAmount ?? 500) / 100).toFixed(2));
+        setRefundWindowInput((data.depositRefundWindowHours ?? 24).toString());
+        setThresholdInput((data.depositTrustThreshold ?? 1).toString());
       } catch (error) {
         console.error('Failed to fetch settings:', error);
         toast.error(t('loadError'));
@@ -108,32 +122,49 @@ export default function DepositSettings() {
 
         {settings.depositEnabled && (
           <CardContent className="space-y-6">
-            {/* Deposit Percentage Row */}
+            {/* Deposit Amount Row */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 items-start">
               <div className="space-y-2">
-                <Label htmlFor="percentage">{t('percentageLabel')}</Label>
+                <Label htmlFor="amount">{t('amountLabel')}</Label>
                 <div className="flex items-center space-x-2">
+                  <span className="text-muted-foreground">$</span>
                   <Input
-                    id="percentage"
+                    id="amount"
                     type="number"
-                    min={1}
-                    max={100}
-                    value={settings.depositPercentage}
-                    onChange={e =>
-                      setSettings({
-                        ...settings,
-                        depositPercentage: parseInt(e.target.value) || 15,
-                      })
-                    }
+                    min={0.5}
+                    step={0.5}
+                    value={amountInput}
+                    onChange={e => {
+                      setAmountInput(e.target.value);
+                      // Optional: Live update the settings state if valid, or just wait for blur.
+                      // Doing live update lets the example text change immediately.
+                      const val = parseFloat(e.target.value);
+                      if (!isNaN(val)) {
+                        setSettings({
+                          ...settings,
+                          depositAmount: Math.round(val * 100),
+                        });
+                      }
+                    }}
+                    onBlur={() => {
+                      // On blur, format properly and ensure min value
+                      const val = parseFloat(amountInput);
+                      const finalAmount = isNaN(val) ? 500 : Math.round(val * 100);
+                      // Ensure minimum 50 cents
+                      const safeAmount = Math.max(finalAmount, 50);
+
+                      setSettings({ ...settings, depositAmount: safeAmount });
+                      setAmountInput((safeAmount / 100).toFixed(2));
+                    }}
                     className="w-24"
                   />
-                  <span className="text-muted-foreground">%</span>
+                  <span className="text-muted-foreground">SGD</span>
                 </div>
               </div>
               <div className="text-sm text-muted-foreground bg-muted/50 p-3 rounded-lg">
-                {t.rich('percentageExample', {
-                  depositAmount: ((100 * settings.depositPercentage) / 100).toFixed(2),
-                  threshold: settings.depositTrustThreshold,
+                {t.rich('amountExample', {
+                  amount: (settings.depositAmount / 100).toFixed(2),
+                  ordinal: getOrdinal(settings.depositTrustThreshold),
                   strong: chunks => <strong className="text-foreground">{chunks}</strong>,
                 })}
               </div>
@@ -149,13 +180,23 @@ export default function DepositSettings() {
                     type="number"
                     min={1}
                     max={72}
-                    value={settings.depositRefundWindowHours}
-                    onChange={e =>
-                      setSettings({
-                        ...settings,
-                        depositRefundWindowHours: parseInt(e.target.value) || 24,
-                      })
-                    }
+                    value={refundWindowInput}
+                    onChange={e => {
+                      setRefundWindowInput(e.target.value);
+                      const val = parseInt(e.target.value);
+                      if (!isNaN(val)) {
+                        setSettings({
+                          ...settings,
+                          depositRefundWindowHours: val,
+                        });
+                      }
+                    }}
+                    onBlur={() => {
+                      const val = parseInt(refundWindowInput);
+                      const finalVal = isNaN(val) ? 24 : Math.max(1, Math.min(72, val));
+                      setSettings({ ...settings, depositRefundWindowHours: finalVal });
+                      setRefundWindowInput(finalVal.toString());
+                    }}
                     className="w-24"
                   />
                   <span className="text-muted-foreground">{t('hoursBefore')}</span>
@@ -179,13 +220,23 @@ export default function DepositSettings() {
                     type="number"
                     min={1}
                     max={10}
-                    value={settings.depositTrustThreshold}
-                    onChange={e =>
-                      setSettings({
-                        ...settings,
-                        depositTrustThreshold: parseInt(e.target.value) || 1,
-                      })
-                    }
+                    value={thresholdInput}
+                    onChange={e => {
+                      setThresholdInput(e.target.value);
+                      const val = parseInt(e.target.value);
+                      if (!isNaN(val)) {
+                        setSettings({
+                          ...settings,
+                          depositTrustThreshold: val,
+                        });
+                      }
+                    }}
+                    onBlur={() => {
+                      const val = parseInt(thresholdInput);
+                      const finalVal = isNaN(val) ? 1 : Math.max(1, Math.min(10, val));
+                      setSettings({ ...settings, depositTrustThreshold: finalVal });
+                      setThresholdInput(finalVal.toString());
+                    }}
                     className="w-24"
                   />
                   <span className="text-muted-foreground">{t('visits')}</span>
@@ -194,14 +245,7 @@ export default function DepositSettings() {
               <div className="text-sm text-muted-foreground bg-muted/50 p-3 rounded-lg">
                 {t.rich('thresholdExample', {
                   threshold: settings.depositTrustThreshold,
-                  ordinal:
-                    settings.depositTrustThreshold === 1
-                      ? '1st'
-                      : settings.depositTrustThreshold === 2
-                        ? '2nd'
-                        : settings.depositTrustThreshold === 3
-                          ? '3rd'
-                          : `${settings.depositTrustThreshold}th`,
+                  ordinal: getOrdinal(settings.depositTrustThreshold),
                   strong: chunks => <strong className="text-foreground">{chunks}</strong>,
                 })}
               </div>

@@ -48,8 +48,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ required: false });
     }
 
-    // Calculate deposit amount
-    const depositAmount = calculateDepositAmount(totalPrice, settings.percentage);
+    // Calculate deposit amount (ensure min 50 cents)
+    const depositAmount = calculateDepositAmount(settings.amount);
 
     // Build URLs for Telegram flow
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || request.nextUrl.origin;
@@ -75,7 +75,6 @@ export async function POST(request: NextRequest) {
         depositId: result.depositId,
         paymentUrl: result.checkoutUrl, // For Telegram - external link
         amount: depositAmount,
-        percentage: settings.percentage,
       });
     }
 
@@ -97,7 +96,6 @@ export async function POST(request: NextRequest) {
       depositId: result.depositId,
       clientSecret: result.clientSecret, // For web - use with Stripe Elements
       amount: depositAmount,
-      percentage: settings.percentage,
     });
   } catch (error: any) {
     console.error('[API] Payment create error:', error);
