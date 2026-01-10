@@ -20,6 +20,7 @@ function PaymentContent() {
 
   const appointmentId = searchParams.get('appointmentId');
   const clientSecret = searchParams.get('clientSecret');
+  const amount = parseInt(searchParams.get('amount') || '0', 10);
 
   useEffect(() => {
     if (!appointmentId || !clientSecret) {
@@ -128,7 +129,7 @@ function PaymentContent() {
               }}
             >
               <StripePaymentForm
-                amount={0} // Amount will be shown by Stripe
+                amount={amount}
                 onSuccess={handlePaymentSuccess}
                 onError={handlePaymentError}
               />

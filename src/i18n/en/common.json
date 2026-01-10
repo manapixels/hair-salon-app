@@ -360,5 +360,18 @@
     "user_not_found": "User account not found. Please contact support",
     "login_failed": "Authentication failed",
     "default": "Authentication failed"
+  },
+  "Deposit": {
+    "checkingRequirements": "Checking booking requirements...",
+    "paymentSuccess": "Payment Successful!",
+    "bookingConfirmed": "Your booking is now confirmed.",
+    "depositRequired": "Deposit Required",
+    "firstTimeMessage": "As a first-time customer, a small deposit is required to secure your booking.",
+    "depositAmount": "Deposit",
+    "refundPolicy": "Fully refundable if cancelled 24+ hours before your appointment.",
+    "trustNote": "After your first completed visit, future bookings won't require a deposit.",
+    "payDeposit": "Pay Deposit",
+    "processing": "Processing...",
+    "securePayment": "Secure payment powered by Stripe"
   }
 }

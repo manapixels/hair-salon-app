@@ -382,6 +382,7 @@ Please confirm availability. Thank you!`;
         clientSecret?: string;
         paymentUrl?: string;
         error?: string;
+        amount?: number;
       };
 
       // Handle API errors
@@ -393,7 +394,9 @@ Please confirm availability. Thank you!`;
       if (depositData.required && depositData.clientSecret) {
         // Redirect to payment page with embedded Stripe Elements
         toast.loading('Redirecting to payment...', { id: toastId });
-        window.location.href = `/booking/payment?appointmentId=${confirmedAppt.id}&clientSecret=${encodeURIComponent(depositData.clientSecret)}`;
+        window.location.href = `/booking/payment?appointmentId=${confirmedAppt.id}&clientSecret=${encodeURIComponent(
+          depositData.clientSecret,
+        )}&amount=${depositData.amount || 0}`;
         return;
       }
 

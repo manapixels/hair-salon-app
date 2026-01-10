@@ -359,6 +359,19 @@
     "token_expired": "登录链接已过期。请尝试重新登录",
     "user_not_found": "未找到用户账户。请联系支持",
     "login_failed": "认证失败",
-    "default": "认证失败"
+    "default": "认证失败",
+    "Deposit": {
+      "checkingRequirements": "正在检查预约要求...",
+      "paymentSuccess": "支付成功！",
+      "bookingConfirmed": "您的预约已确认。",
+      "depositRequired": "需支付定金",
+      "firstTimeMessage": "作为首次预约的客户，需支付少量定金以确保留位。",
+      "depositAmount": "定金",
+      "refundPolicy": "如在预约前 24 小时以上取消，定金可全额退还。",
+      "trustNote": "完成首次服务后，未来的预约将不再需要定金。",
+      "payDeposit": "支付定金",
+      "processing": "处理中...",
+      "securePayment": "由 Stripe 提供安全支付"
+    }
   }
 }
