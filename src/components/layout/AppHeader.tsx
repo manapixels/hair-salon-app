@@ -35,6 +35,7 @@ import { useTranslations } from 'next-intl';
 import { useBookingModal } from '@/context/BookingModalContext';
 import { isAdmin, isStylist, isCustomer, getPrimaryRole } from '@/lib/roleHelpers';
 import { useAdminSettings } from '@/hooks/queries/useAdminSettings';
+import { Badge } from '../ui/badge';
 
 type View = 'booking' | 'admin' | 'dashboard' | 'services';
 
@@ -384,26 +385,36 @@ export default function AppHeader({ view, onViewChange, serviceLinks }: AppHeade
                     <p className="text-sm font-semibold text-gray-900 mb-1">{user.name}</p>
                     <div className="flex gap-1 items-center">
                       {user.email.endsWith('@whatsapp.local') ? (
-                        <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-green-100 px-3 py-0.5 text-sm font-medium text-green-800">
+                        <Badge
+                          variant="secondary"
+                          className="inline-flex items-center whitespace-nowrap bg-green-100 hover:bg-green-100 text-green-800"
+                        >
                           <WhatsAppIcon className="w-4 h-4 mr-1" />
                           WhatsApp {user.email.split('@')[0]}
-                        </span>
+                        </Badge>
                       ) : user.email.endsWith('@telegram.local') ? (
-                        <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-blue-100 px-3 py-0.5 text-sm font-medium text-blue-800">
+                        <Badge
+                          variant="secondary"
+                          className="inline-flex items-center whitespace-nowrap bg-blue-100 hover:bg-blue-100 text-blue-800"
+                        >
                           <TelegramIcon className="w-4 h-4 mr-1" />@{user.email.split('@')[0]}
-                        </span>
+                        </Badge>
                       ) : (
-                        <span className="inline-block rounded-full border border-gray-200 px-2 py-0.5 text-sm font-medium text-gray-500">
+                        <Badge
+                          variant="outline"
+                          className="inline-block whitespace-nowrap max-w-[200px] truncate"
+                          title={user.email}
+                        >
                           {user.email}
-                        </span>
+                        </Badge>
                       )}
-                      <span className="inline-block rounded-full bg-primary/10 px-2 py-0.5 text-sm font-medium text-primary">
+                      <Badge variant="outline">
                         {getPrimaryRole(user) === 'ADMIN'
                           ? 'Admin'
                           : getPrimaryRole(user) === 'STYLIST'
                             ? 'Stylist'
                             : 'Customer'}
-                      </span>
+                      </Badge>
                     </div>
                   </div>
 

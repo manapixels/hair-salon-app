@@ -198,3 +198,48 @@ export async function sendWelcomeEmail(
     return { success: false, error: 'Template render error' };
   }
 }
+
+/**
+ * Send cancellation email to customer
+ */
+export async function sendCancellationEmail(params: {
+  customerEmail: string;
+  customerName: string;
+  serviceName: string;
+  date: string;
+  time: string;
+  stylistName?: string;
+  reason?: string;
+  settings?: AdminSettingsProps;
+}): Promise<EmailResult> {
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://signaturetrims.com';
+
+  try {
+    // Dynamic import to avoid circular dependencies
+    const { default: CancellationEmail } = await import('@/emails/Cancellation');
+
+    const html = await render(
+      CancellationEmail({
+        customerName: params.customerName,
+        date: params.date,
+        time: params.time,
+        serviceName: params.serviceName,
+        stylistName: params.stylistName,
+        reason: params.reason,
+        businessName: params.settings?.businessName,
+        businessAddress: params.settings?.businessAddress,
+        businessPhone: params.settings?.businessPhone,
+        baseUrl,
+      }),
+    );
+
+    return sendEmail({
+      to: params.customerEmail,
+      subject: `Appointment Cancelled - ${params.date}`,
+      html,
+    });
+  } catch (error) {
+    console.error('[Email] Error sending cancellation email:', error);
+    return { success: false, error: 'Template render error' };
+  }
+}

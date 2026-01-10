@@ -108,7 +108,8 @@ export default function DepositSettings() {
 
         {settings.depositEnabled && (
           <CardContent className="space-y-6">
-            <div className="grid grid-cols-2 gap-6">
+            {/* Deposit Percentage Row */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 items-start">
               <div className="space-y-2">
                 <Label htmlFor="percentage">{t('percentageLabel')}</Label>
                 <div className="flex items-center space-x-2">
@@ -128,9 +129,48 @@ export default function DepositSettings() {
                   />
                   <span className="text-muted-foreground">%</span>
                 </div>
-                <p className="text-xs text-muted-foreground">{t('percentageDesc')}</p>
               </div>
+              <div className="text-sm text-muted-foreground bg-muted/50 p-3 rounded-lg">
+                {t.rich('percentageExample', {
+                  depositAmount: ((100 * settings.depositPercentage) / 100).toFixed(2),
+                  threshold: settings.depositTrustThreshold,
+                  strong: chunks => <strong className="text-foreground">{chunks}</strong>,
+                })}
+              </div>
+            </div>
 
+            {/* Refund Window Row */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 items-start border-t pt-6">
+              <div className="space-y-2">
+                <Label htmlFor="refundWindow">{t('refundWindowLabel')}</Label>
+                <div className="flex items-center space-x-2">
+                  <Input
+                    id="refundWindow"
+                    type="number"
+                    min={1}
+                    max={72}
+                    value={settings.depositRefundWindowHours}
+                    onChange={e =>
+                      setSettings({
+                        ...settings,
+                        depositRefundWindowHours: parseInt(e.target.value) || 24,
+                      })
+                    }
+                    className="w-24"
+                  />
+                  <span className="text-muted-foreground">{t('hoursBefore')}</span>
+                </div>
+              </div>
+              <div className="text-sm text-muted-foreground bg-muted/50 p-3 rounded-lg">
+                {t.rich('refundWindowExample', {
+                  hours: settings.depositRefundWindowHours,
+                  strong: chunks => <strong className="text-foreground">{chunks}</strong>,
+                })}
+              </div>
+            </div>
+
+            {/* Trust Threshold Row */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 items-start border-t pt-6">
               <div className="space-y-2">
                 <Label htmlFor="threshold">{t('thresholdLabel')}</Label>
                 <div className="flex items-center space-x-2">
@@ -150,42 +190,21 @@ export default function DepositSettings() {
                   />
                   <span className="text-muted-foreground">{t('visits')}</span>
                 </div>
-                <p className="text-xs text-muted-foreground">{t('thresholdDesc')}</p>
               </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="refundWindow">{t('refundWindowLabel')}</Label>
-              <div className="flex items-center space-x-2">
-                <Input
-                  id="refundWindow"
-                  type="number"
-                  min={1}
-                  max={72}
-                  value={settings.depositRefundWindowHours}
-                  onChange={e =>
-                    setSettings({
-                      ...settings,
-                      depositRefundWindowHours: parseInt(e.target.value) || 24,
-                    })
-                  }
-                  className="w-24"
-                />
-                <span className="text-muted-foreground">{t('hoursBefore')}</span>
-              </div>
-              <p className="text-xs text-muted-foreground">{t('refundWindowDesc')}</p>
-            </div>
-
-            <div className="pt-4 border-t">
-              <h4 className="font-medium mb-2">{t('exampleTitle')}</h4>
-              <p className="text-sm text-muted-foreground">
-                {t.rich('exampleText', {
-                  depositAmount: ((100 * settings.depositPercentage) / 100).toFixed(2),
+              <div className="text-sm text-muted-foreground bg-muted/50 p-3 rounded-lg">
+                {t.rich('thresholdExample', {
                   threshold: settings.depositTrustThreshold,
-                  plural: settings.depositTrustThreshold > 1 ? 's' : '',
-                  strong: chunks => <strong>{chunks}</strong>,
+                  ordinal:
+                    settings.depositTrustThreshold === 1
+                      ? '1st'
+                      : settings.depositTrustThreshold === 2
+                        ? '2nd'
+                        : settings.depositTrustThreshold === 3
+                          ? '3rd'
+                          : `${settings.depositTrustThreshold}th`,
+                  strong: chunks => <strong className="text-foreground">{chunks}</strong>,
                 })}
-              </p>
+              </div>
             </div>
           </CardContent>
         )}

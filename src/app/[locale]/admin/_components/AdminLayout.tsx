@@ -116,7 +116,10 @@ export default function AdminLayout({
 }
 
 function getTitleFromPath(pathname: string, basePath: string, t: any): string {
-  const segment = pathname.replace(basePath, '').split('/').filter(Boolean)[0];
+  // Handle locale prefix (e.g., /zh/admin/appointments -> appointments)
+  const segments = pathname.split('/').filter(Boolean);
+  const adminIndex = segments.indexOf('admin');
+  const segment = adminIndex !== -1 ? segments[adminIndex + 1] || '' : '';
 
   const titles: Record<string, string> = {
     '': t('dashboard'),
@@ -129,5 +132,5 @@ function getTitleFromPath(pathname: string, basePath: string, t: any): string {
     settings: t('settings'),
   };
 
-  return titles[segment || ''] || 'Admin';
+  return titles[segment] || t('dashboard');
 }

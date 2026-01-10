@@ -146,6 +146,7 @@ export interface Appointment {
   calendarEventId?: string | null; // Google Calendar event ID
   userId?: string | null; // User who booked the appointment
   user?: User; // Populated user data (for reminders)
+  status?: 'SCHEDULED' | 'COMPLETED' | 'CANCELLED' | 'NO_SHOW'; // Appointment status
   bookingSource?: BookingSource; // WEB, TELEGRAM, WHATSAPP
   createdAt: Date;
   updatedAt: Date;

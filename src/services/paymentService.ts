@@ -85,10 +85,13 @@ export async function getDepositSettings(): Promise<{
 
 /**
  * Calculate deposit amount based on total price and percentage
+ * Enforces minimum of 50 cents (Stripe requirement for SGD)
  */
 export function calculateDepositAmount(totalPrice: number, percentage: number): number {
   // totalPrice is in cents, return deposit in cents
-  return Math.ceil(totalPrice * (percentage / 100));
+  const calculated = Math.ceil(totalPrice * (percentage / 100));
+  // Stripe requires minimum $0.50 SGD = 50 cents
+  return Math.max(calculated, 50);
 }
 
 /**

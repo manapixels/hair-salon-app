@@ -7,6 +7,16 @@ import { useAuth } from '@/hooks/queries';
 import { LoadingSpinner } from '../../../../components/feedback/loaders/LoadingSpinner';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import type { Appointment } from '@/types';
 import {
   InputGroup,
@@ -19,7 +29,7 @@ import { Edit, Check, X, Spinner } from '@/lib/icons';
 import { toast } from 'sonner';
 import { useTranslations } from 'next-intl';
 import { Badge } from '../../../../components/ui/badge';
-import { CheckIcon, CalendarDays } from 'lucide-react';
+import { CheckIcon, CalendarDays, XCircle } from 'lucide-react';
 import AppointmentCard from '@/components/appointments/AppointmentCard';
 import CalendarGridView from '@/components/appointments/CalendarGridView';
 import { formatShortDate } from '@/lib/timeUtils';
@@ -53,6 +63,9 @@ export default function StylistDashboard() {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [appointmentsLoading, setAppointmentsLoading] = useState(true);
   const [calendarDate, setCalendarDate] = useState(new Date());
+  const [cancellingId, setCancellingId] = useState<string | null>(null);
+  const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
+  const [appointmentToCancel, setAppointmentToCancel] = useState<string | null>(null);
 
   const handleNameEdit = () => {
     setNewName(user?.name || '');
@@ -148,6 +161,49 @@ export default function StylistDashboard() {
     }
   }, [user]);
 
+  // Open cancel confirmation dialog
+  const openCancelDialog = (appointmentId: string) => {
+    setAppointmentToCancel(appointmentId);
+    setCancelDialogOpen(true);
+  };
+
+  // Handle appointment cancellation
+  const handleCancelAppointment = async () => {
+    if (!appointmentToCancel) return;
+
+    setCancelDialogOpen(false);
+    setCancellingId(appointmentToCancel);
+    try {
+      const response = await fetch('/api/stylists/me/cancel-appointment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ appointmentId: appointmentToCancel }),
+      });
+
+      const data = (await response.json()) as {
+        success?: boolean;
+        error?: string;
+        notificationSent?: boolean;
+      };
+
+      if (response.ok && data.success) {
+        // Remove from local state
+        setAppointments(prev => prev.filter(a => a.id !== appointmentToCancel));
+        toast.success(
+          data.notificationSent ? t('cancelledWithNotification') : t('cancelledNoNotification'),
+        );
+      } else {
+        toast.error(data.error || t('cancelFailed'));
+      }
+    } catch (error) {
+      console.error('Failed to cancel appointment:', error);
+      toast.error(t('cancelFailed'));
+    } finally {
+      setCancellingId(null);
+      setAppointmentToCancel(null);
+    }
+  };
+
   const handleConnectGoogle = () => {
     // Redirect to OAuth flow
     window.location.href = '/api/auth/google/connect';
@@ -230,247 +286,367 @@ export default function StylistDashboard() {
   const needsReconnect = tokenStatus === 'expired' || tokenStatus === 'expiring_soon';
 
   return (
-    <div className="max-w-7xl mx-auto">
-      {/* Welcome Header */}
-      <div className="p-4">
-        <div className="flex items-center space-x-6">
-          {user?.avatar && (
-            <Image
-              src={user.avatar}
-              alt={user.name}
-              width={80}
-              height={80}
-              className="w-20 h-20 rounded-full object-cover ring-4 ring-primary/20"
-            />
-          )}
-          <div>
-            <h1 className="text-xl font-bold text-gray-900">
-              {t('welcome', { name: user?.name || '' })}
-            </h1>
-            <p className="text-gray-600 mt-1">{t('subtitle')}</p>
+    <>
+      <div className="max-w-7xl mx-auto">
+        {/* Welcome Header */}
+        <div className="p-4">
+          <div className="flex items-center space-x-6">
+            {user?.avatar && (
+              <Image
+                src={user.avatar}
+                alt={user.name}
+                width={80}
+                height={80}
+                className="w-20 h-20 rounded-full object-cover ring-4 ring-primary/20"
+              />
+            )}
+            <div>
+              <h1 className="text-xl font-bold text-gray-900">
+                {t('welcome', { name: user?.name || '' })}
+              </h1>
+              <p className="text-gray-600 mt-1">{t('subtitle')}</p>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-        {/* Profile Section */}
-        <div className="lg:col-span-1">
-          <Card>
-            <CardHeader>
-              <CardTitle>{t('profileTitle')}</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div>
-                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
-                  {t('displayName')}
-                </label>
-                {isEditingName ? (
-                  <InputGroup className="p-3 bg-gray-50 rounded-lg border border-gray-100 h-auto">
-                    <InputGroupInput
-                      type="text"
-                      value={newName}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                        setNewName(e.target.value)
-                      }
-                      placeholder={t('enterDisplayName')}
-                      maxLength={50}
-                      className="text-gray-900 font-medium text-lg pl-0"
-                    />
-                    <InputGroupAddon align="inline-end" className="py-0">
-                      <InputGroupButton
-                        onClick={handleNameSave}
-                        variant="default"
-                        size="icon-sm"
-                        disabled={updateProfileMutation.isPending}
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+          {/* Profile Section */}
+          <div className="lg:col-span-1">
+            <Card>
+              <CardHeader>
+                <CardTitle>{t('profileTitle')}</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                    {t('displayName')}
+                  </label>
+                  {isEditingName ? (
+                    <InputGroup className="p-3 bg-gray-50 rounded-lg border border-gray-100 h-auto">
+                      <InputGroupInput
+                        type="text"
+                        value={newName}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                          setNewName(e.target.value)
+                        }
+                        placeholder={t('enterDisplayName')}
+                        maxLength={50}
+                        className="text-gray-900 font-medium text-lg pl-0"
+                      />
+                      <InputGroupAddon align="inline-end" className="py-0">
+                        <InputGroupButton
+                          onClick={handleNameSave}
+                          variant="default"
+                          size="icon-sm"
+                          disabled={updateProfileMutation.isPending}
+                        >
+                          {updateProfileMutation.isPending ? (
+                            <Spinner className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Check className="h-4 w-4" />
+                          )}
+                        </InputGroupButton>
+                        <InputGroupButton
+                          onClick={handleNameCancel}
+                          variant="outline"
+                          size="icon-sm"
+                          disabled={updateProfileMutation.isPending}
+                        >
+                          <X className="h-4 w-4" />
+                        </InputGroupButton>
+                      </InputGroupAddon>
+                    </InputGroup>
+                  ) : (
+                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100">
+                      <div className="text-gray-900 font-medium text-lg">{user?.name}</div>
+                      <Button variant="ghost" size="sm" onClick={handleNameEdit}>
+                        <Edit className="h-4 w-4" aria-hidden="true" />
+                      </Button>
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                    {t('role')}
+                  </label>
+                  <Badge variant="outline">{user ? getPrimaryRole(user) : ''}</Badge>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Google Calendar Section */}
+          <div className="lg:col-span-2">
+            <Card>
+              <CardHeader>
+                <CardTitle>{t('calendarTitle')}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {isGoogleConnected && !needsReconnect ? (
+                  <div className="bg-green-50/50 rounded-xl border border-green-100 p-6">
+                    <div className="flex items-start sm:items-center justify-between gap-4 flex-col xl:flex-row mb-6 truncate">
+                      <div className="flex items-center gap-4">
+                        <div className="bg-green-100 p-3 rounded-full shrink-0">
+                          <CheckIcon className="h-4 w-4 text-green-600" />
+                        </div>
+                        <div>
+                          <h3 className="font-bold text-green-900 text-md">{t('connected')}</h3>
+                          <p
+                            className="text-green-800 font-medium truncate"
+                            title={stylistProfile?.googleEmail}
+                          >
+                            {stylistProfile?.googleEmail}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex gap-2 w-full sm:w-auto">
+                        <Button
+                          variant="outline"
+                          className="border-green-200 text-green-600 hover:bg-green-50 hover:text-green-700 hover:border-green-300 transition-colors flex-1 sm:flex-none"
+                          onClick={handleSyncCalendar}
+                          disabled={syncing}
+                        >
+                          {syncing ? t('syncing') : t('syncNow')}
+                        </Button>
+                        <Button
+                          variant="outline"
+                          className="border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 hover:border-red-300 transition-colors flex-1 sm:flex-none"
+                          onClick={handleDisconnectGoogle}
+                          disabled={disconnecting}
+                        >
+                          {disconnecting ? t('disconnecting') : t('disconnect')}
+                        </Button>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-3 text-green-800/80 bg-green-100/50 p-4 rounded-lg text-sm">
+                      <svg
+                        className="w-5 h-5 shrink-0"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
                       >
-                        {updateProfileMutation.isPending ? (
-                          <Spinner className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <Check className="h-4 w-4" />
-                        )}
-                      </InputGroupButton>
-                      <InputGroupButton
-                        onClick={handleNameCancel}
-                        variant="outline"
-                        size="icon-sm"
-                        disabled={updateProfileMutation.isPending}
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                        />
+                      </svg>
+                      {t('connectedDescription')}
+                    </div>
+                  </div>
+                ) : isGoogleConnected && needsReconnect ? (
+                  <div className="bg-amber-50/50 rounded-xl border border-amber-200 p-6">
+                    <div className="flex items-start sm:items-center justify-between gap-4 flex-col xl:flex-row mb-6">
+                      <div className="flex items-center gap-4">
+                        <div className="bg-amber-100 p-3 rounded-full shrink-0">
+                          <svg
+                            className="h-4 w-4 text-amber-600"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth="2"
+                              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                            />
+                          </svg>
+                        </div>
+                        <div>
+                          <h3 className="font-bold text-amber-900 text-md">
+                            {tokenStatus === 'expired'
+                              ? t('connectionExpired')
+                              : t('connectionExpiringSoon')}
+                          </h3>
+                          <p
+                            className="text-amber-800 font-medium truncate max-w-[140px] sm:max-w-[200px]"
+                            title={stylistProfile?.googleEmail}
+                          >
+                            {stylistProfile?.googleEmail}
+                          </p>
+                        </div>
+                      </div>
+                      <Button
+                        className="bg-amber-600 hover:bg-amber-700 text-white w-full sm:w-auto"
+                        onClick={handleConnectGoogle}
                       >
-                        <X className="h-4 w-4" />
-                      </InputGroupButton>
-                    </InputGroupAddon>
-                  </InputGroup>
+                        {t('reconnect')}
+                      </Button>
+                    </div>
+
+                    <div className="flex gap-3 text-amber-800/80 bg-amber-100/50 p-4 rounded-lg text-sm">
+                      <svg
+                        className="w-5 h-5 shrink-0"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                        />
+                      </svg>
+                      {t('reconnectDescription')}
+                    </div>
+                  </div>
                 ) : (
-                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100">
-                    <div className="text-gray-900 font-medium text-lg">{user?.name}</div>
-                    <Button variant="ghost" size="sm" onClick={handleNameEdit}>
-                      <Edit className="h-4 w-4" aria-hidden="true" />
+                  <div className="flex flex-col items-center justify-center text-center p-8 bg-gray-50/50 rounded-xl border-2 border-dashed border-gray-200 hover:border-blue-200 hover:bg-blue-50/30 transition-all duration-300 group">
+                    <div className="bg-white p-4 rounded-full shadow-sm mb-4 group-hover:scale-110 transition-transform duration-300">
+                      <svg
+                        className="w-10 h-10 text-gray-400 group-hover:text-blue-500 transition-colors"
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                      >
+                        <path d="M19.5 3h-15A1.5 1.5 0 003 4.5v15A1.5 1.5 0 004.5 21h15a1.5 1.5 0 001.5-1.5v-15A1.5 1.5 0 0019.5 3zM12 18.75a.75.75 0 110-1.5.75.75 0 010 1.5zm.75-4.5v-9a.75.75 0 00-1.5 0v9a.75.75 0 001.5 0z" />
+                      </svg>
+                    </div>
+                    <h3 className="text-lg font-bold text-gray-900 mb-2">{t('notConnected')}</h3>
+                    <p className="text-gray-500 max-w-md mb-8">{t('notConnectedDescription')}</p>
+
+                    <Button
+                      className="w-full sm:w-auto min-w-[200px]"
+                      size="lg"
+                      onClick={handleConnectGoogle}
+                    >
+                      <svg
+                        className="w-5 h-5 mr-2"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                      >
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                        <line x1="16" y1="2" x2="16" y2="6" />
+                        <line x1="8" y1="2" x2="8" y2="6" />
+                        <line x1="3" y1="10" x2="21" y2="10" />
+                      </svg>
+                      {t('connectGoogle')}
                     </Button>
                   </div>
                 )}
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
-                  {t('role')}
-                </label>
-                <Badge variant="outline">{user ? getPrimaryRole(user) : ''}</Badge>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </div>
         </div>
 
-        {/* Google Calendar Section */}
-        <div className="lg:col-span-2">
+        {/* Appointments Section - 2 column layout on desktop */}
+        <div className="mt-8 grid grid-cols-1 xl:grid-cols-2 gap-8">
+          {/* Calendar Grid View */}
           <Card>
             <CardHeader>
-              <CardTitle>{t('calendarTitle')}</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <CalendarDays className="h-5 w-5" />
+                {t('scheduleView')}
+              </CardTitle>
             </CardHeader>
-            <CardContent>
-              {isGoogleConnected && !needsReconnect ? (
-                <div className="bg-green-50/50 rounded-xl border border-green-100 p-6">
-                  <div className="flex items-start sm:items-center justify-between gap-4 flex-col xl:flex-row mb-6 truncate">
-                    <div className="flex items-center gap-4">
-                      <div className="bg-green-100 p-3 rounded-full shrink-0">
-                        <CheckIcon className="h-4 w-4 text-green-600" />
-                      </div>
-                      <div>
-                        <h3 className="font-bold text-green-900 text-md">{t('connected')}</h3>
-                        <p
-                          className="text-green-800 font-medium truncate"
-                          title={stylistProfile?.googleEmail}
-                        >
-                          {stylistProfile?.googleEmail}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex gap-2 w-full sm:w-auto">
-                      <Button
-                        variant="outline"
-                        className="border-green-200 text-green-600 hover:bg-green-50 hover:text-green-700 hover:border-green-300 transition-colors flex-1 sm:flex-none"
-                        onClick={handleSyncCalendar}
-                        disabled={syncing}
-                      >
-                        {syncing ? t('syncing') : t('syncNow')}
-                      </Button>
-                      <Button
-                        variant="outline"
-                        className="border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 hover:border-red-300 transition-colors flex-1 sm:flex-none"
-                        onClick={handleDisconnectGoogle}
-                        disabled={disconnecting}
-                      >
-                        {disconnecting ? t('disconnecting') : t('disconnect')}
-                      </Button>
-                    </div>
-                  </div>
-
-                  <div className="flex gap-3 text-green-800/80 bg-green-100/50 p-4 rounded-lg text-sm">
-                    <svg
-                      className="w-5 h-5 shrink-0"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                      />
-                    </svg>
-                    {t('connectedDescription')}
-                  </div>
-                </div>
-              ) : isGoogleConnected && needsReconnect ? (
-                <div className="bg-amber-50/50 rounded-xl border border-amber-200 p-6">
-                  <div className="flex items-start sm:items-center justify-between gap-4 flex-col xl:flex-row mb-6">
-                    <div className="flex items-center gap-4">
-                      <div className="bg-amber-100 p-3 rounded-full shrink-0">
-                        <svg
-                          className="h-4 w-4 text-amber-600"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="2"
-                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                          />
-                        </svg>
-                      </div>
-                      <div>
-                        <h3 className="font-bold text-amber-900 text-md">
-                          {tokenStatus === 'expired'
-                            ? t('connectionExpired')
-                            : t('connectionExpiringSoon')}
-                        </h3>
-                        <p
-                          className="text-amber-800 font-medium truncate max-w-[140px] sm:max-w-[200px]"
-                          title={stylistProfile?.googleEmail}
-                        >
-                          {stylistProfile?.googleEmail}
-                        </p>
-                      </div>
-                    </div>
-                    <Button
-                      className="bg-amber-600 hover:bg-amber-700 text-white w-full sm:w-auto"
-                      onClick={handleConnectGoogle}
-                    >
-                      {t('reconnect')}
-                    </Button>
-                  </div>
-
-                  <div className="flex gap-3 text-amber-800/80 bg-amber-100/50 p-4 rounded-lg text-sm">
-                    <svg
-                      className="w-5 h-5 shrink-0"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                      />
-                    </svg>
-                    {t('reconnectDescription')}
-                  </div>
+            <CardContent className="p-0">
+              {appointmentsLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <LoadingSpinner size="sm" message={t('loadingAppointments')} />
                 </div>
               ) : (
-                <div className="flex flex-col items-center justify-center text-center p-8 bg-gray-50/50 rounded-xl border-2 border-dashed border-gray-200 hover:border-blue-200 hover:bg-blue-50/30 transition-all duration-300 group">
-                  <div className="bg-white p-4 rounded-full shadow-sm mb-4 group-hover:scale-110 transition-transform duration-300">
-                    <svg
-                      className="w-10 h-10 text-gray-400 group-hover:text-blue-500 transition-colors"
-                      viewBox="0 0 24 24"
-                      fill="currentColor"
-                    >
-                      <path d="M19.5 3h-15A1.5 1.5 0 003 4.5v15A1.5 1.5 0 004.5 21h15a1.5 1.5 0 001.5-1.5v-15A1.5 1.5 0 0019.5 3zM12 18.75a.75.75 0 110-1.5.75.75 0 010 1.5zm.75-4.5v-9a.75.75 0 00-1.5 0v9a.75.75 0 001.5 0z" />
-                    </svg>
-                  </div>
-                  <h3 className="text-lg font-bold text-gray-900 mb-2">{t('notConnected')}</h3>
-                  <p className="text-gray-500 max-w-md mb-8">{t('notConnectedDescription')}</p>
+                <CalendarGridView
+                  appointments={appointments}
+                  stylists={
+                    stylistProfile
+                      ? [
+                          {
+                            id: stylistProfile.id,
+                            name: stylistProfile.name,
+                            specialties: [],
+                            workingHours: {},
+                            blockedDates: [],
+                            isActive: true,
+                            createdAt: new Date(),
+                            updatedAt: new Date(),
+                          } as Stylist,
+                        ]
+                      : []
+                  }
+                  selectedDate={calendarDate}
+                  onDateChange={setCalendarDate}
+                />
+              )}
+            </CardContent>
+          </Card>
 
-                  <Button
-                    className="w-full sm:w-auto min-w-[200px]"
-                    size="lg"
-                    onClick={handleConnectGoogle}
-                  >
-                    <svg
-                      className="w-5 h-5 mr-2"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                    >
-                      <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-                      <line x1="16" y1="2" x2="16" y2="6" />
-                      <line x1="8" y1="2" x2="8" y2="6" />
-                      <line x1="3" y1="10" x2="21" y2="10" />
-                    </svg>
-                    {t('connectGoogle')}
-                  </Button>
+          {/* Appointment List */}
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <CalendarDays className="h-5 w-5" />
+                {t('upcomingAppointments')}
+              </CardTitle>
+              <Badge variant="secondary">{appointments.length}</Badge>
+            </CardHeader>
+            <CardContent>
+              {appointmentsLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <LoadingSpinner size="sm" message={t('loadingAppointments')} />
+                </div>
+              ) : appointments.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  <CalendarDays className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+                  <p>{t('noAppointments')}</p>
+                </div>
+              ) : (
+                <div className="space-y-6 max-h-[600px] overflow-y-auto">
+                  {/* Group appointments by date */}
+                  {Object.entries(
+                    appointments.reduce(
+                      (groups, appointment) => {
+                        const dateKey = new Date(appointment.date).toDateString();
+                        if (!groups[dateKey]) {
+                          groups[dateKey] = [];
+                        }
+                        groups[dateKey].push(appointment);
+                        return groups;
+                      },
+                      {} as Record<string, Appointment[]>,
+                    ),
+                  )
+                    .sort(([a], [b]) => new Date(a).getTime() - new Date(b).getTime())
+                    .map(([dateKey, dateAppointments]) => (
+                      <div key={dateKey}>
+                        <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3 px-1">
+                          {formatShortDate(new Date(dateKey))}
+                        </h3>
+                        <div className="bg-white border border-border rounded-lg divide-y divide-border">
+                          {dateAppointments.map(appointment => (
+                            <AppointmentCard
+                              key={appointment.id}
+                              appointment={appointment}
+                              showSource={false}
+                              hideCustomer={true}
+                              actions={
+                                appointment.status === 'SCHEDULED' && (
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                                    onClick={() => openCancelDialog(appointment.id)}
+                                    disabled={cancellingId === appointment.id}
+                                  >
+                                    {cancellingId === appointment.id ? (
+                                      <Spinner className="h-4 w-4 animate-spin" />
+                                    ) : (
+                                      <XCircle className="h-4 w-4" />
+                                    )}
+                                    <span className="ml-1 hidden sm:inline">{t('cancel')}</span>
+                                  </Button>
+                                )
+                              }
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    ))}
                 </div>
               )}
             </CardContent>
@@ -478,104 +654,24 @@ export default function StylistDashboard() {
         </div>
       </div>
 
-      {/* Appointments Section - 2 column layout on desktop */}
-      <div className="mt-8 grid grid-cols-1 xl:grid-cols-2 gap-8">
-        {/* Calendar Grid View */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <CalendarDays className="h-5 w-5" />
-              {t('scheduleView')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-0">
-            {appointmentsLoading ? (
-              <div className="flex items-center justify-center py-8">
-                <LoadingSpinner size="sm" message={t('loadingAppointments')} />
-              </div>
-            ) : (
-              <CalendarGridView
-                appointments={appointments}
-                stylists={
-                  stylistProfile
-                    ? [
-                        {
-                          id: stylistProfile.id,
-                          name: stylistProfile.name,
-                          specialties: [],
-                          workingHours: {},
-                          blockedDates: [],
-                          isActive: true,
-                          createdAt: new Date(),
-                          updatedAt: new Date(),
-                        } as Stylist,
-                      ]
-                    : []
-                }
-                selectedDate={calendarDate}
-                onDateChange={setCalendarDate}
-              />
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Appointment List */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <CalendarDays className="h-5 w-5" />
-              {t('upcomingAppointments')}
-            </CardTitle>
-            <Badge variant="secondary">{appointments.length}</Badge>
-          </CardHeader>
-          <CardContent>
-            {appointmentsLoading ? (
-              <div className="flex items-center justify-center py-8">
-                <LoadingSpinner size="sm" message={t('loadingAppointments')} />
-              </div>
-            ) : appointments.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
-                <CalendarDays className="h-12 w-12 mx-auto mb-3 text-gray-300" />
-                <p>{t('noAppointments')}</p>
-              </div>
-            ) : (
-              <div className="space-y-6 max-h-[600px] overflow-y-auto">
-                {/* Group appointments by date */}
-                {Object.entries(
-                  appointments.reduce(
-                    (groups, appointment) => {
-                      const dateKey = new Date(appointment.date).toDateString();
-                      if (!groups[dateKey]) {
-                        groups[dateKey] = [];
-                      }
-                      groups[dateKey].push(appointment);
-                      return groups;
-                    },
-                    {} as Record<string, Appointment[]>,
-                  ),
-                )
-                  .sort(([a], [b]) => new Date(a).getTime() - new Date(b).getTime())
-                  .map(([dateKey, dateAppointments]) => (
-                    <div key={dateKey}>
-                      <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3 px-1">
-                        {formatShortDate(new Date(dateKey))}
-                      </h3>
-                      <div className="bg-white border border-border rounded-lg divide-y divide-border">
-                        {dateAppointments.map(appointment => (
-                          <AppointmentCard
-                            key={appointment.id}
-                            appointment={appointment}
-                            showSource={false}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-    </div>
+      {/* Cancel Confirmation Dialog */}
+      <AlertDialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('cancelDialogTitle')}</AlertDialogTitle>
+            <AlertDialogDescription>{t('cancelConfirmation')}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('cancelDialogNo')}</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleCancelAppointment}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {t('cancelDialogYes')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }
