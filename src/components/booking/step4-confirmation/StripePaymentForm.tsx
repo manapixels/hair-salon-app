@@ -70,6 +70,10 @@ export function StripePaymentForm({ amount, onSuccess, onError }: StripePaymentF
       <PaymentElement
         options={{
           layout: 'tabs',
+          // Disable "Save my information for faster checkout" (Stripe Link)
+          terms: {
+            card: 'never',
+          },
         }}
       />
 
