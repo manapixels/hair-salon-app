@@ -8,8 +8,18 @@ import { eq, and, lt } from 'drizzle-orm';
 import type { Deposit, DepositStatus } from '@/types';
 import Stripe from 'stripe';
 
-// Initialize Stripe with secret key
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '');
+// Lazy Stripe initialization to avoid build-time errors
+let stripeInstance: Stripe | null = null;
+function getStripe(): Stripe {
+  if (!stripeInstance) {
+    const key = process.env.STRIPE_SECRET_KEY;
+    if (!key) {
+      throw new Error('STRIPE_SECRET_KEY environment variable is not set');
+    }
+    stripeInstance = new Stripe(key);
+  }
+  return stripeInstance;
+}
 
 /**
  * Check if a user requires a deposit based on their visit history
@@ -114,7 +124,7 @@ export async function createDepositPayment(params: {
 
   // Create Stripe PaymentIntent
   try {
-    const paymentIntent = await stripe.paymentIntents.create({
+    const paymentIntent = await getStripe().paymentIntents.create({
       amount: params.amount, // Stripe uses cents
       currency: 'sgd',
       receipt_email: params.customerEmail,
@@ -193,7 +203,7 @@ export async function createCheckoutSession(params: {
 
   // Create Stripe Checkout Session
   try {
-    const session = await stripe.checkout.sessions.create({
+    const session = await getStripe().checkout.sessions.create({
       mode: 'payment',
       customer_email: params.customerEmail,
       line_items: [
@@ -255,7 +265,7 @@ export function verifyWebhookSignature(
   }
 
   try {
-    return stripe.webhooks.constructEvent(payload, signature, webhookSecret);
+    return getStripe().webhooks.constructEvent(payload, signature, webhookSecret);
   } catch (err: any) {
     console.error('[Payment] Webhook signature verification failed:', err.message);
     return null;
@@ -405,7 +415,7 @@ export async function refundDeposit(depositId: string): Promise<boolean> {
 
   try {
     // Create Stripe refund
-    await stripe.refunds.create({
+    await getStripe().refunds.create({
       payment_intent: deposit.stripePaymentIntentId,
       amount: deposit.amount,
     });
