@@ -1,18 +1,15 @@
 /**
- * Payment Service for HitPay integration
+ * Payment Service for Stripe integration
  * Handles deposit payments for no-show protection
  */
 import { getDb } from '@/db';
 import * as schema from '@/db/schema';
 import { eq, and, lt } from 'drizzle-orm';
 import type { Deposit, DepositStatus } from '@/types';
-import crypto from 'crypto';
+import Stripe from 'stripe';
 
-// HitPay API configuration
-const HITPAY_API_URL =
-  process.env.NODE_ENV === 'production'
-    ? 'https://api.hit-pay.com/v1'
-    : 'https://api.sandbox.hit-pay.com/v1';
+// Initialize Stripe with secret key
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '');
 
 /**
  * Check if a user requires a deposit based on their visit history
@@ -79,7 +76,8 @@ export function calculateDepositAmount(totalPrice: number, percentage: number): 
 }
 
 /**
- * Create a HitPay payment request and store pending deposit
+ * Create a Stripe PaymentIntent and store pending deposit
+ * Returns clientSecret for use with Stripe Elements on frontend
  */
 export async function createDepositPayment(params: {
   appointmentId: string;
@@ -87,13 +85,8 @@ export async function createDepositPayment(params: {
   customerEmail: string;
   customerName: string;
   userId?: string;
-  redirectUrl: string;
-  webhookUrl: string;
-}): Promise<{ depositId: string; paymentUrl: string } | null> {
+}): Promise<{ depositId: string; clientSecret: string } | null> {
   const db = await getDb();
-
-  // Amount in dollars for HitPay API
-  const amountInDollars = (params.amount / 100).toFixed(2);
 
   // Calculate expiry (30 minutes from now)
   const expiresAt = new Date(Date.now() + 30 * 60 * 1000);
@@ -119,44 +112,29 @@ export async function createDepositPayment(params: {
     return null;
   }
 
-  // Create HitPay payment request
+  // Create Stripe PaymentIntent
   try {
-    const response = await fetch(`${HITPAY_API_URL}/payment-requests`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-BUSINESS-API-KEY': process.env.HITPAY_API_KEY || '',
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: params.amount, // Stripe uses cents
+      currency: 'sgd',
+      receipt_email: params.customerEmail,
+      metadata: {
+        depositId: deposit.id,
+        appointmentId: params.appointmentId,
+        customerName: params.customerName,
       },
-      body: JSON.stringify({
-        amount: amountInDollars,
-        currency: 'SGD',
-        email: params.customerEmail,
-        name: params.customerName,
-        purpose: `Booking Deposit - ${params.appointmentId.slice(0, 8)}`,
-        reference_number: deposit.id,
-        redirect_url: params.redirectUrl,
-        webhook: params.webhookUrl,
-        allow_repeated_payments: false,
-        expiry_date: expiresAt.toISOString(),
-      }),
+      description: `Booking Deposit - ${params.appointmentId.slice(0, 8)}`,
+      // Enable automatic payment methods (cards, Apple Pay, Google Pay)
+      automatic_payment_methods: {
+        enabled: true,
+      },
     });
 
-    if (!response.ok) {
-      const error = await response.text();
-      console.error('[Payment] HitPay API error:', error);
-      // Clean up the deposit record
-      await db.delete(schema.deposits).where(eq(schema.deposits.id, deposit.id));
-      return null;
-    }
-
-    const data = (await response.json()) as { id: string; url: string };
-
-    // Update deposit with HitPay payment details
+    // Update deposit with Stripe PaymentIntent ID
     await db
       .update(schema.deposits)
       .set({
-        hitpayPaymentId: data.id,
-        hitpayPaymentUrl: data.url,
+        stripePaymentIntentId: paymentIntent.id,
       })
       .where(eq(schema.deposits.id, deposit.id));
 
@@ -164,10 +142,10 @@ export async function createDepositPayment(params: {
 
     return {
       depositId: deposit.id,
-      paymentUrl: data.url,
+      clientSecret: paymentIntent.client_secret!,
     };
   } catch (error) {
-    console.error('[Payment] Error creating HitPay payment:', error);
+    console.error('[Payment] Error creating Stripe PaymentIntent:', error);
     // Clean up the deposit record
     await db.delete(schema.deposits).where(eq(schema.deposits.id, deposit.id));
     return null;
@@ -175,74 +153,178 @@ export async function createDepositPayment(params: {
 }
 
 /**
- * Verify HitPay webhook signature
+ * Create a Stripe Checkout Session for Telegram (external redirect)
+ * Used when embedded Elements aren't available (e.g., Telegram bot)
  */
-export function verifyWebhookSignature(payload: Record<string, any>, signature: string): boolean {
-  const salt = process.env.HITPAY_SALT || '';
-  if (!salt) {
-    console.warn('[Payment] HITPAY_SALT not configured, skipping signature verification');
-    return true;
-  }
-
-  // HitPay HMAC signature verification
-  // Build the string to sign (sorted keys, exclude hmac)
-  const sortedKeys = Object.keys(payload)
-    .filter(k => k !== 'hmac')
-    .sort();
-  const stringToSign = sortedKeys.map(k => `${k}${payload[k]}`).join('');
-
-  const expectedSignature = crypto.createHmac('sha256', salt).update(stringToSign).digest('hex');
-
-  return signature === expectedSignature;
-}
-
-/**
- * Handle HitPay webhook for payment completion
- */
-export async function handlePaymentWebhook(payload: {
-  payment_id: string;
-  payment_request_id: string;
-  reference_number: string; // This is our deposit ID
-  status: string;
-  amount: string;
-  currency: string;
-  hmac?: string;
-}): Promise<{ success: boolean; depositId?: string }> {
+export async function createCheckoutSession(params: {
+  appointmentId: string;
+  amount: number; // in cents
+  customerEmail: string;
+  customerName: string;
+  userId?: string;
+  successUrl: string;
+  cancelUrl: string;
+}): Promise<{ depositId: string; checkoutUrl: string } | null> {
   const db = await getDb();
 
-  // Find the deposit by reference number (which is our deposit ID)
+  // Calculate expiry (30 minutes from now)
+  const expiresAt = new Date(Date.now() + 30 * 60 * 1000);
+
+  // Create deposit record first
   const depositResult = await db
-    .select()
-    .from(schema.deposits)
-    .where(eq(schema.deposits.id, payload.reference_number))
-    .limit(1);
+    .insert(schema.deposits)
+    .values({
+      appointmentId: params.appointmentId,
+      userId: params.userId,
+      customerEmail: params.customerEmail,
+      amount: params.amount,
+      currency: 'SGD',
+      status: 'PENDING',
+      expiresAt,
+      createdAt: new Date(),
+    })
+    .returning();
 
   const deposit = depositResult[0];
   if (!deposit) {
-    console.error(`[Payment] Deposit not found: ${payload.reference_number}`);
-    return { success: false };
+    console.error('[Payment] Failed to create deposit record');
+    return null;
   }
 
-  // Update deposit status based on payment status
-  if (payload.status === 'completed') {
+  // Create Stripe Checkout Session
+  try {
+    const session = await stripe.checkout.sessions.create({
+      mode: 'payment',
+      customer_email: params.customerEmail,
+      line_items: [
+        {
+          price_data: {
+            currency: 'sgd',
+            product_data: {
+              name: 'Booking Deposit',
+              description: `Deposit for appointment ${params.appointmentId.slice(0, 8)}`,
+            },
+            unit_amount: params.amount,
+          },
+          quantity: 1,
+        },
+      ],
+      metadata: {
+        depositId: deposit.id,
+        appointmentId: params.appointmentId,
+        customerName: params.customerName,
+      },
+      success_url: params.successUrl,
+      cancel_url: params.cancelUrl,
+      expires_at: Math.floor(expiresAt.getTime() / 1000),
+    });
+
+    // Update deposit with Stripe Session ID (we'll use this to track)
+    await db
+      .update(schema.deposits)
+      .set({
+        stripePaymentIntentId: (session.payment_intent as string) || session.id,
+      })
+      .where(eq(schema.deposits.id, deposit.id));
+
+    console.log(`[Payment] Created Checkout Session for deposit ${deposit.id}`);
+
+    return {
+      depositId: deposit.id,
+      checkoutUrl: session.url!,
+    };
+  } catch (error) {
+    console.error('[Payment] Error creating Stripe Checkout Session:', error);
+    // Clean up the deposit record
+    await db.delete(schema.deposits).where(eq(schema.deposits.id, deposit.id));
+    return null;
+  }
+}
+
+/**
+ * Verify Stripe webhook signature
+ */
+export function verifyWebhookSignature(
+  payload: string | Buffer,
+  signature: string,
+): Stripe.Event | null {
+  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+  if (!webhookSecret) {
+    console.warn('[Payment] STRIPE_WEBHOOK_SECRET not configured');
+    return null;
+  }
+
+  try {
+    return stripe.webhooks.constructEvent(payload, signature, webhookSecret);
+  } catch (err: any) {
+    console.error('[Payment] Webhook signature verification failed:', err.message);
+    return null;
+  }
+}
+
+/**
+ * Handle Stripe webhook for payment completion
+ */
+export async function handlePaymentWebhook(event: Stripe.Event): Promise<{
+  success: boolean;
+  depositId?: string;
+}> {
+  const db = await getDb();
+
+  if (event.type === 'payment_intent.succeeded') {
+    const paymentIntent = event.data.object as Stripe.PaymentIntent;
+    const depositId = paymentIntent.metadata?.depositId;
+
+    if (!depositId) {
+      console.error('[Payment] No depositId in PaymentIntent metadata');
+      return { success: false };
+    }
+
+    // Update deposit status
     await db
       .update(schema.deposits)
       .set({
         status: 'PAID',
-        hitpayPaymentId: payload.payment_id,
+        stripePaymentIntentId: paymentIntent.id,
         paidAt: new Date(),
       })
-      .where(eq(schema.deposits.id, deposit.id));
+      .where(eq(schema.deposits.id, depositId));
 
-    console.log(`[Payment] Deposit ${deposit.id} marked as PAID`);
-    return { success: true, depositId: deposit.id };
-  } else if (payload.status === 'failed' || payload.status === 'expired') {
-    console.log(`[Payment] Payment ${payload.status} for deposit ${deposit.id}`);
-    // Keep as PENDING, user can retry
-    return { success: true, depositId: deposit.id };
+    console.log(`[Payment] Deposit ${depositId} marked as PAID`);
+    return { success: true, depositId };
   }
 
-  return { success: true, depositId: deposit.id };
+  if (event.type === 'checkout.session.completed') {
+    const session = event.data.object as Stripe.Checkout.Session;
+    const depositId = session.metadata?.depositId;
+
+    if (!depositId) {
+      console.error('[Payment] No depositId in Checkout Session metadata');
+      return { success: false };
+    }
+
+    // Update deposit status
+    await db
+      .update(schema.deposits)
+      .set({
+        status: 'PAID',
+        stripePaymentIntentId: (session.payment_intent as string) || session.id,
+        paidAt: new Date(),
+      })
+      .where(eq(schema.deposits.id, depositId));
+
+    console.log(`[Payment] Deposit ${depositId} marked as PAID (via Checkout)`);
+    return { success: true, depositId };
+  }
+
+  // Handle failed payments (optional logging)
+  if (event.type === 'payment_intent.payment_failed') {
+    const paymentIntent = event.data.object as Stripe.PaymentIntent;
+    console.log(`[Payment] Payment failed for intent ${paymentIntent.id}`);
+    return { success: true };
+  }
+
+  return { success: true };
 }
 
 /**
@@ -267,8 +349,7 @@ export async function getDepositByAppointmentId(appointmentId: string): Promise<
     customerEmail: dep.customerEmail,
     amount: dep.amount,
     currency: dep.currency,
-    hitpayPaymentId: dep.hitpayPaymentId,
-    hitpayPaymentUrl: dep.hitpayPaymentUrl,
+    stripePaymentIntentId: dep.stripePaymentIntentId,
     status: dep.status as DepositStatus,
     expiresAt: dep.expiresAt,
     createdAt: dep.createdAt,
@@ -295,8 +376,7 @@ export async function getPendingDepositsByEmail(email: string): Promise<Deposit[
     customerEmail: dep.customerEmail,
     amount: dep.amount,
     currency: dep.currency,
-    hitpayPaymentId: dep.hitpayPaymentId,
-    hitpayPaymentUrl: dep.hitpayPaymentUrl,
+    stripePaymentIntentId: dep.stripePaymentIntentId,
     status: dep.status as DepositStatus,
     expiresAt: dep.expiresAt,
     createdAt: dep.createdAt,
@@ -318,30 +398,17 @@ export async function refundDeposit(depositId: string): Promise<boolean> {
     .limit(1);
 
   const deposit = depositResult[0];
-  if (!deposit || deposit.status !== 'PAID' || !deposit.hitpayPaymentId) {
+  if (!deposit || deposit.status !== 'PAID' || !deposit.stripePaymentIntentId) {
     console.error(`[Payment] Cannot refund deposit ${depositId}: invalid state`);
     return false;
   }
 
   try {
-    // Call HitPay refund API
-    const response = await fetch(`${HITPAY_API_URL}/refund`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-BUSINESS-API-KEY': process.env.HITPAY_API_KEY || '',
-      },
-      body: JSON.stringify({
-        payment_id: deposit.hitpayPaymentId,
-        amount: (deposit.amount / 100).toFixed(2),
-      }),
+    // Create Stripe refund
+    await stripe.refunds.create({
+      payment_intent: deposit.stripePaymentIntentId,
+      amount: deposit.amount,
     });
-
-    if (!response.ok) {
-      const error = await response.text();
-      console.error('[Payment] HitPay refund error:', error);
-      return false;
-    }
 
     // Update deposit status
     await db

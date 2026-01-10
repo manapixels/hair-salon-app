@@ -452,8 +452,7 @@ export const deposits = pgTable(
     customerEmail: text('customerEmail').notNull(),
     amount: integer('amount').notNull(), // in cents
     currency: text('currency').default('SGD').notNull(),
-    hitpayPaymentId: text('hitpayPaymentId').unique(),
-    hitpayPaymentUrl: text('hitpayPaymentUrl'),
+    stripePaymentIntentId: text('stripePaymentIntentId').unique(),
     status: depositStatusEnum('status').default('PENDING').notNull(),
     expiresAt: timestamp('expiresAt').notNull(),
     createdAt: timestamp('createdAt').defaultNow().notNull(),

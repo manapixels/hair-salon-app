@@ -1,6 +1,6 @@
 /**
  * API Route: /api/payments/create
- * Creates a HitPay payment request for deposit
+ * Creates a Stripe PaymentIntent for deposit (Web) or Checkout Session (Telegram)
  */
 import { NextRequest, NextResponse } from 'next/server';
 import {
@@ -8,6 +8,7 @@ import {
   getDepositSettings,
   calculateDepositAmount,
   createDepositPayment,
+  createCheckoutSession,
 } from '@/services/paymentService';
 
 export const dynamic = 'force-dynamic';
@@ -20,6 +21,7 @@ export async function POST(request: NextRequest) {
       customerEmail: string;
       customerName: string;
       userId?: string;
+      source?: 'web' | 'telegram'; // Determines which flow to use
     };
     const {
       appointmentId,
@@ -27,6 +29,7 @@ export async function POST(request: NextRequest) {
       customerEmail,
       customerName,
       userId,
+      source = 'web', // Default to web (embedded Elements)
     } = body;
 
     if (!appointmentId || !totalPrice || !customerEmail || !customerName) {
@@ -48,20 +51,41 @@ export async function POST(request: NextRequest) {
     // Calculate deposit amount
     const depositAmount = calculateDepositAmount(totalPrice, settings.percentage);
 
-    // Build URLs
+    // Build URLs for Telegram flow
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || request.nextUrl.origin;
-    const redirectUrl = `${baseUrl}/booking/payment-success?appointmentId=${appointmentId}`;
-    const webhookUrl = `${baseUrl}/api/payments/webhook`;
 
-    // Create payment
+    if (source === 'telegram') {
+      // Use Checkout Session for Telegram (external redirect)
+      const result = await createCheckoutSession({
+        appointmentId,
+        amount: depositAmount,
+        customerEmail,
+        customerName,
+        userId,
+        successUrl: `${baseUrl}/booking/payment-success?appointmentId=${appointmentId}`,
+        cancelUrl: `${baseUrl}/booking/payment-cancelled?appointmentId=${appointmentId}`,
+      });
+
+      if (!result) {
+        return NextResponse.json({ error: 'Failed to create payment session' }, { status: 500 });
+      }
+
+      return NextResponse.json({
+        required: true,
+        depositId: result.depositId,
+        paymentUrl: result.checkoutUrl, // For Telegram - external link
+        amount: depositAmount,
+        percentage: settings.percentage,
+      });
+    }
+
+    // Use PaymentIntent for Web (embedded Elements)
     const result = await createDepositPayment({
       appointmentId,
       amount: depositAmount,
       customerEmail,
       customerName,
       userId,
-      redirectUrl,
-      webhookUrl,
     });
 
     if (!result) {
@@ -71,7 +95,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       required: true,
       depositId: result.depositId,
-      paymentUrl: result.paymentUrl,
+      clientSecret: result.clientSecret, // For web - use with Stripe Elements
       amount: depositAmount,
       percentage: settings.percentage,
     });

@@ -1,13 +1,9 @@
 /**
  * API Route: /api/payments/webhook
- * Handles HitPay webhook callbacks
+ * Handles Stripe webhook callbacks
  */
 import { NextRequest, NextResponse } from 'next/server';
-import {
-  verifyWebhookSignature,
-  handlePaymentWebhook,
-  getDepositByAppointmentId,
-} from '@/services/paymentService';
+import { verifyWebhookSignature, handlePaymentWebhook } from '@/services/paymentService';
 import { sendTelegramMessage } from '@/services/messagingService';
 import { getDb } from '@/db';
 import * as schema from '@/db/schema';
@@ -17,46 +13,35 @@ export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
   try {
-    // HitPay sends form data or JSON
-    const contentType = request.headers.get('content-type') || '';
-    let payload: Record<string, any>;
+    // Get raw body for signature verification
+    const body = await request.text();
+    const signature = request.headers.get('stripe-signature');
 
-    if (contentType.includes('application/json')) {
-      payload = await request.json();
-    } else {
-      // Form data
-      const formData = await request.formData();
-      payload = Object.fromEntries(formData.entries());
+    if (!signature) {
+      console.error('[Webhook] Missing Stripe signature');
+      return NextResponse.json({ error: 'Missing signature' }, { status: 400 });
     }
 
-    console.log('[Webhook] Received HitPay webhook:', JSON.stringify(payload));
-
-    // Verify signature if HMAC is present
-    if (payload.hmac) {
-      const isValid = verifyWebhookSignature(payload, payload.hmac);
-      if (!isValid) {
-        console.error('[Webhook] Invalid signature');
-        return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
-      }
+    // Verify webhook signature
+    const event = verifyWebhookSignature(body, signature);
+    if (!event) {
+      return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
     }
+
+    console.log(`[Webhook] Received Stripe event: ${event.type}`);
 
     // Handle the payment
-    const result = await handlePaymentWebhook({
-      payment_id: payload.payment_id,
-      payment_request_id: payload.payment_request_id,
-      reference_number: payload.reference_number,
-      status: payload.status,
-      amount: payload.amount,
-      currency: payload.currency,
-      hmac: payload.hmac,
-    });
+    const result = await handlePaymentWebhook(event);
 
     if (!result.success) {
       return NextResponse.json({ error: 'Failed to process webhook' }, { status: 400 });
     }
 
     // If payment completed, send confirmation to user
-    if (payload.status === 'completed' && result.depositId) {
+    if (
+      (event.type === 'payment_intent.succeeded' || event.type === 'checkout.session.completed') &&
+      result.depositId
+    ) {
       try {
         await sendPaymentConfirmation(result.depositId);
       } catch (e) {
@@ -65,7 +50,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ received: true });
   } catch (error: any) {
     console.error('[Webhook] Error:', error);
     return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 });

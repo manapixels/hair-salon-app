@@ -1,7 +1,7 @@
 import { getDb } from '@/db';
 import * as schema from '@/db/schema';
 import { eq, and, desc } from 'drizzle-orm';
-import type { Deposit, DepositStatus } from '@/types';
+import type { DepositStatus } from '@/types';
 
 export interface PendingBooking {
   appointmentId: string;
@@ -13,7 +13,6 @@ export interface PendingBooking {
     id: string;
     amount: number;
     status: DepositStatus;
-    paymentUrl?: string;
   };
 }
 
@@ -29,7 +28,6 @@ export async function getPendingBookingsByEmail(email: string): Promise<PendingB
       depositId: schema.deposits.id,
       depositAmount: schema.deposits.amount,
       depositStatus: schema.deposits.status,
-      depositPaymentUrl: schema.deposits.hitpayPaymentUrl,
       appointmentId: schema.appointments.id,
       appointmentDate: schema.appointments.date,
       appointmentTime: schema.appointments.time,
@@ -55,7 +53,6 @@ export async function getPendingBookingsByEmail(email: string): Promise<PendingB
       id: row.depositId,
       amount: row.depositAmount,
       status: row.depositStatus as DepositStatus,
-      paymentUrl: row.depositPaymentUrl ?? undefined,
     },
   }));
 }

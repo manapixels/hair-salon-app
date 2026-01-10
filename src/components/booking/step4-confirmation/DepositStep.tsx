@@ -2,9 +2,14 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
-import { Button } from '@/components/ui/button';
+import { loadStripe } from '@stripe/stripe-js';
+import { Elements } from '@stripe/react-stripe-js';
 import { LoadingSpinner } from '@/components/feedback/loaders/LoadingSpinner';
-import { Shield, CreditCard, AlertCircle } from 'lucide-react';
+import { Shield, AlertCircle, CheckCircle } from 'lucide-react';
+import { StripePaymentForm } from './StripePaymentForm';
+
+// Initialize Stripe
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || '');
 
 interface DepositStepProps {
   customerEmail: string;
@@ -13,12 +18,13 @@ interface DepositStepProps {
   totalPrice: number; // in cents
   onDepositRequired: (paymentUrl: string) => void;
   onNoDepositRequired: () => void;
+  onPaymentSuccess: () => void;
   onError: (message: string) => void;
 }
 
 /**
- * Deposit check and payment redirect component
- * Checks if user requires deposit and initiates HitPay payment if needed
+ * Deposit check and payment component
+ * Embeds Stripe Payment Elements for inline payment
  */
 export const DepositStep: React.FC<DepositStepProps> = ({
   customerEmail,
@@ -27,16 +33,18 @@ export const DepositStep: React.FC<DepositStepProps> = ({
   totalPrice,
   onDepositRequired,
   onNoDepositRequired,
+  onPaymentSuccess,
   onError,
 }) => {
   const t = useTranslations('Deposit');
   const [isChecking, setIsChecking] = useState(true);
+  const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [depositInfo, setDepositInfo] = useState<{
     required: boolean;
     amount: number;
     percentage: number;
   } | null>(null);
-  const [isProcessing, setIsProcessing] = useState(false);
+  const [paymentComplete, setPaymentComplete] = useState(false);
 
   const checkDepositRequirement = useCallback(async () => {
     try {
@@ -48,15 +56,16 @@ export const DepositStep: React.FC<DepositStepProps> = ({
           totalPrice,
           customerEmail,
           customerName,
+          source: 'web', // Use embedded Elements
         }),
       });
 
       const data = (await response.json()) as {
         required: boolean;
+        clientSecret?: string;
         amount?: number;
         percentage?: number;
         error?: string;
-        paymentUrl?: string;
       };
 
       if (!response.ok) {
@@ -73,6 +82,7 @@ export const DepositStep: React.FC<DepositStepProps> = ({
         amount: data.amount ?? 0,
         percentage: data.percentage ?? 15,
       });
+      setClientSecret(data.clientSecret || null);
       setIsChecking(false);
     } catch (error: any) {
       console.error('[DepositStep] Error:', error);
@@ -85,51 +95,41 @@ export const DepositStep: React.FC<DepositStepProps> = ({
     checkDepositRequirement();
   }, [checkDepositRequirement]);
 
-  const handlePayDeposit = async () => {
-    if (!depositInfo) return;
+  const handlePaymentSuccess = () => {
+    setPaymentComplete(true);
+    onPaymentSuccess();
+  };
 
-    setIsProcessing(true);
-    try {
-      const response = await fetch('/api/payments/create', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          appointmentId,
-          totalPrice,
-          customerEmail,
-          customerName,
-        }),
-      });
-
-      const data = (await response.json()) as {
-        required: boolean;
-        paymentUrl?: string;
-        error?: string;
-      };
-
-      if (!response.ok || !data.paymentUrl) {
-        throw new Error(data.error || 'Failed to create payment');
-      }
-
-      // Redirect to HitPay payment page
-      onDepositRequired(data.paymentUrl);
-      window.location.href = data.paymentUrl;
-    } catch (error: any) {
-      onError(error.message || 'Failed to initiate payment');
-      setIsProcessing(false);
-    }
+  const handlePaymentError = (message: string) => {
+    onError(message);
   };
 
   if (isChecking) {
     return (
       <div className="flex flex-col items-center justify-center py-8 space-y-4">
         <LoadingSpinner size="lg" />
-        <p className="text-gray-600">Checking booking requirements...</p>
+        <p className="text-gray-600">
+          {t('checkingRequirements', { fallback: 'Checking booking requirements...' })}
+        </p>
       </div>
     );
   }
 
-  if (!depositInfo?.required) {
+  if (paymentComplete) {
+    return (
+      <div className="bg-green-50 border border-green-200 rounded-lg p-6 text-center">
+        <CheckCircle className="h-12 w-12 text-green-600 mx-auto mb-4" />
+        <h3 className="font-semibold text-green-900">
+          {t('paymentSuccess', { fallback: 'Payment Successful!' })}
+        </h3>
+        <p className="text-sm text-green-700 mt-2">
+          {t('bookingConfirmed', { fallback: 'Your booking is now confirmed.' })}
+        </p>
+      </div>
+    );
+  }
+
+  if (!depositInfo?.required || !clientSecret) {
     return null;
   }
 
@@ -175,28 +175,26 @@ export const DepositStep: React.FC<DepositStepProps> = ({
         </span>
       </div>
 
-      <Button
-        onClick={handlePayDeposit}
-        disabled={isProcessing}
-        className="w-full bg-amber-600 hover:bg-amber-700 text-white"
-        size="lg"
+      {/* Stripe Payment Elements */}
+      <Elements
+        stripe={stripePromise}
+        options={{
+          clientSecret,
+          appearance: {
+            theme: 'stripe',
+            variables: {
+              colorPrimary: '#d97706', // amber-600
+              borderRadius: '8px',
+            },
+          },
+        }}
       >
-        {isProcessing ? (
-          <>
-            <LoadingSpinner size="sm" className="mr-2" />
-            Processing...
-          </>
-        ) : (
-          <>
-            <CreditCard className="h-5 w-5 mr-2" />
-            Pay Deposit {amountFormatted}
-          </>
-        )}
-      </Button>
-
-      <p className="text-xs text-center text-gray-500">
-        Secure payment via PayNow, Card, or GrabPay
-      </p>
+        <StripePaymentForm
+          amount={depositInfo.amount}
+          onSuccess={handlePaymentSuccess}
+          onError={handlePaymentError}
+        />
+      </Elements>
     </div>
   );
 };

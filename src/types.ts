@@ -219,8 +219,7 @@ export interface Deposit {
   customerEmail: string;
   amount: number; // in cents
   currency: string;
-  hitpayPaymentId?: string | null;
-  hitpayPaymentUrl?: string | null;
+  stripePaymentIntentId?: string | null;
   status: DepositStatus;
   expiresAt: Date;
   createdAt: Date;

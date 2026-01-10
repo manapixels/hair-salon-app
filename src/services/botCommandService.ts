@@ -1521,6 +1521,7 @@ Please make sure you're logged in and try again with /book`,
               customerEmail: user.email,
               customerName: user.name,
               userId: user.id,
+              source: 'telegram', // Use Stripe Checkout for external redirect
             }),
           },
         );
