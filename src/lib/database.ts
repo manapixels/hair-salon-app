@@ -695,6 +695,12 @@ export const updateAdminSettings = async (
         businessAddress: newSettings.businessAddress ?? existing[0].businessAddress,
         businessPhone: newSettings.businessPhone ?? existing[0].businessPhone,
         blockedSlots: (newSettings.blockedSlots ?? currentSettings.blockedSlots) as any,
+        depositEnabled: newSettings.depositEnabled ?? existing[0].depositEnabled,
+        depositPercentage: newSettings.depositPercentage ?? existing[0].depositPercentage,
+        depositTrustThreshold:
+          newSettings.depositTrustThreshold ?? existing[0].depositTrustThreshold,
+        depositRefundWindowHours:
+          newSettings.depositRefundWindowHours ?? existing[0].depositRefundWindowHours,
         socialLinks: (newSettings.socialLinks ?? currentSettings.socialLinks) as any,
         updatedAt: new Date(),
       })
@@ -708,6 +714,10 @@ export const updateAdminSettings = async (
       businessAddress:
         newSettings.businessAddress ?? '930 Yishun Avenue 1 #01-127, Singapore 760930',
       businessPhone: newSettings.businessPhone ?? '(555) 123-4567',
+      depositEnabled: newSettings.depositEnabled ?? true,
+      depositPercentage: newSettings.depositPercentage ?? 15,
+      depositTrustThreshold: newSettings.depositTrustThreshold ?? 1,
+      depositRefundWindowHours: newSettings.depositRefundWindowHours ?? 24,
       socialLinks: (newSettings.socialLinks ?? {}) as any,
     });
   }
