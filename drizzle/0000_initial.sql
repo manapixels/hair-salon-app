@@ -274,7 +274,7 @@ ALTER TABLE "service_tag_relations" ADD CONSTRAINT "service_tag_relations_tagId_
 ALTER TABLE "service_addons" ADD CONSTRAINT "service_addons_serviceId_services_id_fk" FOREIGN KEY ("serviceId") REFERENCES "public"."services"("id") ON DELETE cascade ON UPDATE no action;
 ALTER TABLE "appointments" ADD CONSTRAINT "appointments_categoryId_service_categories_id_fk" FOREIGN KEY ("categoryId") REFERENCES "public"."service_categories"("id") ON DELETE set null ON UPDATE no action;
 ALTER TABLE "appointments" ADD CONSTRAINT "appointments_stylistId_stylists_id_fk" FOREIGN KEY ("stylistId") REFERENCES "public"."stylists"("id") ON DELETE set null ON UPDATE no action;
-ALTER TABLE "appointments" ADD CONSTRAINT "appointments_userId_users_id_fk" FOREIGN KEY ("userId") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action;
+ALTER TABLE "appointments" ADD CONSTRAINT "appointments_userId_users_id_fk" FOREIGN KEY ("userId") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;
 ALTER TABLE "deposits" ADD CONSTRAINT "deposits_appointmentId_appointments_id_fk" FOREIGN KEY ("appointmentId") REFERENCES "public"."appointments"("id") ON DELETE cascade ON UPDATE no action;
 ALTER TABLE "deposits" ADD CONSTRAINT "deposits_userId_users_id_fk" FOREIGN KEY ("userId") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action;
 ALTER TABLE "feedback" ADD CONSTRAINT "feedback_appointmentId_appointments_id_fk" FOREIGN KEY ("appointmentId") REFERENCES "public"."appointments"("id") ON DELETE cascade ON UPDATE no action;

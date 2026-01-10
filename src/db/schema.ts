@@ -187,7 +187,7 @@ export const appointments = pgTable('appointments', {
   customerName: text('customerName').notNull(),
   customerEmail: text('customerEmail').notNull(),
   calendarEventId: text('calendarEventId'),
-  userId: text('userId').references(() => users.id, { onDelete: 'set null' }),
+  userId: text('userId').references(() => users.id, { onDelete: 'cascade' }),
   status: appointmentStatusEnum('status').default('SCHEDULED').notNull(),
   completedAt: timestamp('completedAt'),
   feedbackSent: boolean('feedbackSent').default(false).notNull(),

@@ -50,6 +50,13 @@
       "when": 1767771283284,
       "tag": "0006_past_nomad",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1768025101594,
+      "tag": "0007_user-cascade-delete",
+      "breakpoints": true
     }
   ]
 }
