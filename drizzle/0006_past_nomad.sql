@@ -1,3 +1,0 @@
-ALTER TABLE "service_addons" ALTER COLUMN "benefits" SET DATA TYPE text[];--> statement-breakpoint
-ALTER TABLE "service_addons" ALTER COLUMN "benefits" SET DEFAULT ARRAY[]::text[];--> statement-breakpoint
-ALTER TABLE "admin_settings" ADD COLUMN "socialLinks" json DEFAULT '{"instagram":{"url":"","isActive":false},"facebook":{"url":"","isActive":false},"whatsapp":{"url":"","isActive":false},"telegram":{"url":"","isActive":false}}'::json;
