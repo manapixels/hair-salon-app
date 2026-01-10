@@ -74,3 +74,20 @@ format.dateTime(date, {
   timeZone: 'Asia/Singapore', // Required for Cloudflare edge
 });
 ```
+
+---
+
+## 💳 Deposit Payment Flow
+
+New users (first appointment) require a deposit. The flow:
+
+1. **BookingForm** creates appointment with `status: PENDING_PAYMENT`
+2. **DepositPaymentView** displays inline (not modal) for seamless UX
+3. After payment success:
+   - Stripe webhook updates deposit status to `PAID`
+   - Appointment status updated to `SCHEDULED`
+   - **Google Calendar event created** (webhook handles this)
+   - Confirmation email sent
+
+> [!NOTE]
+> Calendar sync happens in the webhook (`/api/payments/webhook`), not during initial booking.

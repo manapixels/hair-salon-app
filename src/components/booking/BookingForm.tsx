@@ -20,7 +20,7 @@ import {
 // Imports from subfolders
 import { SimpleCategorySelector } from './step1-service';
 import { ConfirmationForm } from './step4-confirmation';
-import DepositPaymentModal from './step4-confirmation/DepositPaymentModal';
+import DepositPaymentView from './step4-confirmation/DepositPaymentView';
 import {
   getTodayInSalonTimezone,
   StylistSelectorLoading,
@@ -111,11 +111,12 @@ const BookingForm: React.FC<BookingFormProps> = ({
   const [currentStep, setCurrentStep] = useState(1);
   const [editingStep, setEditingStep] = useState<number | null>(null);
 
-  // Deposit Payment Modal State
-  const [depositPaymentConfig, setDepositPaymentConfig] = useState<{
+  // Deposit Payment State (inline, not modal)
+  const [depositPending, setDepositPending] = useState<{
     clientSecret: string;
     amount: number;
     appointmentId: string;
+    appointment: Appointment;
   } | null>(null);
 
   // Pre-selection/selection animation states for all steps
@@ -128,7 +129,6 @@ const BookingForm: React.FC<BookingFormProps> = ({
   const stylistSectionRef = useRef<HTMLDivElement>(null);
   const dateTimeSectionRef = useRef<HTMLDivElement>(null);
   const confirmationSectionRef = useRef<HTMLDivElement>(null);
-  const pendingAppointmentRef = useRef<Appointment | null>(null);
 
   // Track user scrolling to prevent auto-scroll conflicts
   const [userScrolling, setUserScrolling] = useState(false);
@@ -241,7 +241,7 @@ const BookingForm: React.FC<BookingFormProps> = ({
   useEffect(() => {
     let newStep = 1;
     if (bookingConfirmed) {
-      newStep = 4; // Completed
+      newStep = 4; // Completed - internal state stays at 4
     } else if (selectedTime) {
       newStep = 4; // Confirmation
     } else if (selectedCategory && stylistSelectionMade) {
@@ -253,13 +253,16 @@ const BookingForm: React.FC<BookingFormProps> = ({
     }
 
     setCurrentStep(newStep);
-    onStepChange?.(newStep);
+    // Report step 5 when all steps are complete (booking confirmed or deposit pending)
+    // This allows parent to show all checkmarks in progress bar
+    onStepChange?.(bookingConfirmed || depositPending ? 5 : newStep);
   }, [
     selectedCategory,
     selectedStylist,
     stylistSelectionMade,
     selectedTime,
     bookingConfirmed,
+    depositPending,
     onStepChange,
   ]);
 
@@ -412,14 +415,14 @@ Please confirm availability. Thank you!`;
       }
 
       if (depositData.required && depositData.clientSecret) {
-        // Open modal instead of redirect
-        pendingAppointmentRef.current = confirmedAppt;
-        setDepositPaymentConfig({
+        // Show inline deposit payment view (not modal)
+        toast.dismiss(toastId);
+        setDepositPending({
           clientSecret: depositData.clientSecret,
           amount: depositData.amount || 0,
           appointmentId: confirmedAppt.id,
+          appointment: confirmedAppt,
         });
-        toast.dismiss(toastId); // Dismiss the "Booking..." toast
         return;
       }
 
@@ -442,32 +445,11 @@ Please confirm availability. Thank you!`;
     }
   };
 
-  const handlePaymentSuccess = () => {
-    if (!depositPaymentConfig) return;
-
-    // Close modal
-    setDepositPaymentConfig(null);
-
-    // Show confirmation UI
-    // Fetch the confirmed appointment details or construct it
-    // Since we created it earlier, we might need to refetch or just assume success if we have the object
-    // But createAppointment returned the object. We can use that if we stored it?
-    // Wait, createAppointment result is lost in handleConfirmBooking scope.
-    // Ideally we should store 'pendingAppointment' in state if we want to display it.
-    // However, handleConfirmBooking sets bookingConfirmed state ONLY IF success.
-    // We need to pass the appointment object or ID to this handler or store in state.
-
-    // Actually, let's just trigger a re-fetch or use a simple success state.
-    // Better: modify handleConfirmBooking to store the pending appointment in a ref or state.
-
-    // Re-implementation: see handleConfirmBooking changes below.
-  };
-
-  const handleDepositModalSuccess = () => {
-    setDepositPaymentConfig(null);
-    if (pendingAppointmentRef.current) {
-      setBookingConfirmed(pendingAppointmentRef.current);
-      const email = pendingAppointmentRef.current.customerEmail;
+  const handleDepositSuccess = () => {
+    if (depositPending) {
+      setBookingConfirmed(depositPending.appointment);
+      setDepositPending(null);
+      const email = depositPending.appointment.customerEmail;
       const isMessagingEmail =
         email.endsWith('@whatsapp.local') || email.endsWith('@telegram.local');
 
@@ -476,37 +458,24 @@ Please confirm availability. Thank you!`;
           ? 'Appointment booked successfully!'
           : 'Appointment booked successfully! Confirmation sent to your email.',
       );
-      pendingAppointmentRef.current = null;
     }
   };
 
-  const handleDepositModalClose = async () => {
-    if (!depositPaymentConfig) return;
+  const handleDepositCancel = async () => {
+    if (!depositPending) return;
 
-    // If closed without success, cancel the appointment
-    const { appointmentId, amount } = depositPaymentConfig;
-    setDepositPaymentConfig(null);
+    const { appointmentId } = depositPending;
+    setDepositPending(null);
 
-    // Call cancel API
+    // Cancel the pending appointment
     try {
       await fetch('/api/appointments/cancel', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          // The cancel API expects email/date/time usually, let's check what it expects.
-          // AppointmentsList uses: customerEmail, date, time.
-          // We might not have these easily available if we don't store the full object.
-          // But we have appointmentId. Does cancel API support ID?
-          // If not, we should probably add ID support to cancel API or use delete.
-          // Let's assume for now we just show a toast and let the cron clean it up
-          // OR finding the pending appointment is hard without storing it.
-          // Wait, we have selectedDate, selectedTime, and customerEmail in the form state!
-          // We can use those.
+          appointmentId,
         }),
       });
-      // Actually, to be safe and simple, let's relying on the CRON job or a specific delete endpoint is better.
-      // But user asked for immediate cancellation.
-      // The form state (email, date, time) is still valid.
     } catch (e) {
       console.error('Failed to cancel pending appointment', e);
     }
@@ -608,6 +577,18 @@ Please confirm availability. Thank you!`;
     downloadIcsFile(event);
     setCalendarDropdownOpen(false);
   };
+
+  // Deposit Payment Pending State (inline, not modal)
+  if (depositPending) {
+    return (
+      <DepositPaymentView
+        clientSecret={depositPending.clientSecret}
+        amount={depositPending.amount}
+        onSuccess={handleDepositSuccess}
+        onCancel={handleDepositCancel}
+      />
+    );
+  }
 
   if (bookingConfirmed) {
     return (
@@ -846,17 +827,6 @@ Please confirm availability. Thank you!`;
             )}
         </div>
       </div>
-
-      {depositPaymentConfig && (
-        <DepositPaymentModal
-          isOpen={!!depositPaymentConfig}
-          onClose={handleDepositModalClose}
-          clientSecret={depositPaymentConfig.clientSecret}
-          amount={depositPaymentConfig.amount}
-          appointmentId={depositPaymentConfig.appointmentId}
-          onSuccess={handleDepositModalSuccess}
-        />
-      )}
     </div>
   );
 };

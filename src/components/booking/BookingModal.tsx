@@ -71,7 +71,10 @@ export function BookingModal() {
           <DrawerHeader className="flex-none">
             <DrawerTitle>{t('bookYourAppointment')}</DrawerTitle>
             <div className="mt-4">
-              <BookingProgress currentStep={currentStep} />
+              <BookingProgress
+                currentStep={Math.min(currentStep, 4)}
+                isAllComplete={currentStep === 5}
+              />
             </div>
           </DrawerHeader>
           <div className="p-4 flex-1 overflow-y-auto">{content}</div>
@@ -89,7 +92,10 @@ export function BookingModal() {
               {t('bookYourAppointment')}
             </DialogTitle>
             <div className="mt-4 landscape:mt-0 landscape:w-1/2 landscape:max-w-xs">
-              <BookingProgress currentStep={currentStep} />
+              <BookingProgress
+                currentStep={Math.min(currentStep, 4)}
+                isAllComplete={currentStep === 5}
+              />
             </div>
           </div>
         </DialogHeader>

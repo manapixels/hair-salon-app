@@ -59,6 +59,7 @@ export async function POST(request: NextRequest) {
 
 /**
  * Send payment confirmation to user via Telegram and/or email
+ * Also updates appointment status and syncs to Google Calendar
  */
 async function sendPaymentConfirmation(depositId: string) {
   const db = await getDb();
@@ -73,18 +74,9 @@ async function sendPaymentConfirmation(depositId: string) {
   const deposit = depositResult[0];
   if (!deposit) return;
 
-  // Get appointment details
+  // Get full appointment details for calendar sync
   const apptResult = await db
-    .select({
-      id: schema.appointments.id,
-      date: schema.appointments.date,
-      time: schema.appointments.time,
-      customerName: schema.appointments.customerName,
-      customerEmail: schema.appointments.customerEmail,
-      estimatedDuration: schema.appointments.estimatedDuration,
-      categoryId: schema.appointments.categoryId,
-      stylistId: schema.appointments.stylistId,
-    })
+    .select()
     .from(schema.appointments)
     .where(eq(schema.appointments.id, deposit.appointmentId))
     .limit(1);
@@ -92,9 +84,89 @@ async function sendPaymentConfirmation(depositId: string) {
   const appointment = apptResult[0];
   if (!appointment) return;
 
+  // 1. Update appointment status from PENDING_PAYMENT to SCHEDULED
+  if (appointment.status === 'PENDING_PAYMENT') {
+    await db
+      .update(schema.appointments)
+      .set({ status: 'SCHEDULED', updatedAt: new Date() })
+      .where(eq(schema.appointments.id, appointment.id));
+    console.log(`[Webhook] Updated appointment ${appointment.id} status to SCHEDULED`);
+  }
+
+  // 2. Sync to Google Calendar if not already done
+  if (!appointment.calendarEventId) {
+    try {
+      const { createCalendarEvent } = await import('@/lib/google');
+      const { updateAppointmentCalendarId } = await import('@/lib/database');
+
+      // Get stylist and category for calendar event
+      let stylist = null;
+      let category = null;
+
+      if (appointment.stylistId) {
+        const stylistResult = await db
+          .select()
+          .from(schema.stylists)
+          .where(eq(schema.stylists.id, appointment.stylistId))
+          .limit(1);
+        stylist = stylistResult[0];
+      }
+
+      if (appointment.categoryId) {
+        const catResult = await db
+          .select()
+          .from(schema.serviceCategories)
+          .where(eq(schema.serviceCategories.id, appointment.categoryId))
+          .limit(1);
+        category = catResult[0];
+      }
+
+      // Build appointment object for calendar sync
+      const appointmentForCalendar = {
+        id: appointment.id,
+        date: appointment.date,
+        time: appointment.time,
+        customerName: appointment.customerName,
+        customerEmail: appointment.customerEmail,
+        estimatedDuration: appointment.estimatedDuration || 60,
+        totalDuration: appointment.totalDuration || appointment.estimatedDuration || 60,
+        stylistId: appointment.stylistId,
+        stylist: stylist
+          ? {
+              id: stylist.id,
+              name: stylist.name,
+              email: stylist.email,
+              avatar: stylist.avatar || undefined,
+              bio: stylist.bio || undefined,
+              specialties: [],
+            }
+          : undefined,
+        category: category
+          ? {
+              id: category.id,
+              title: category.title,
+              slug: category.slug,
+              description: category.description || undefined,
+            }
+          : undefined,
+      };
+
+      const calendarEventId = await createCalendarEvent(appointmentForCalendar as any);
+      if (calendarEventId) {
+        await updateAppointmentCalendarId(appointment.id, calendarEventId);
+        console.log(
+          `[Webhook] ✅ Created calendar event ${calendarEventId} for appointment ${appointment.id}`,
+        );
+      }
+    } catch (calendarError) {
+      console.error('[Webhook] Failed to create calendar event:', calendarError);
+      // Don't fail the webhook for calendar errors
+    }
+  }
+
   const amountFormatted = `$${(deposit.amount / 100).toFixed(2)}`;
 
-  // Send Telegram message if user has telegramId
+  // 3. Send Telegram message if user has telegramId
   if (deposit.userId) {
     const userResult = await db
       .select()
@@ -110,7 +182,7 @@ async function sendPaymentConfirmation(depositId: string) {
     }
   }
 
-  // Send email confirmation for real email addresses
+  // 4. Send email confirmation for real email addresses
   const isMessagingEmail =
     appointment.customerEmail.endsWith('@whatsapp.local') ||
     appointment.customerEmail.endsWith('@telegram.local');

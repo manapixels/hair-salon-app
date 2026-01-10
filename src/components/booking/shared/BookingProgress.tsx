@@ -6,10 +6,16 @@ interface BookingProgressProps {
   currentStep: number;
   totalSteps?: number;
   className?: string;
+  isAllComplete?: boolean; // When true, all steps show checkmarks
 }
 
-export function BookingProgress({ currentStep, totalSteps = 4, className }: BookingProgressProps) {
-  const progress = (currentStep / totalSteps) * 100;
+export function BookingProgress({
+  currentStep,
+  totalSteps = 4,
+  className,
+  isAllComplete = false,
+}: BookingProgressProps) {
+  const progress = isAllComplete ? 100 : (currentStep / totalSteps) * 100;
 
   return (
     <div className={cn('w-full flex flex-col items-center', className)}>
@@ -21,8 +27,8 @@ export function BookingProgress({ currentStep, totalSteps = 4, className }: Book
         <div className="absolute top-1/2 left-0 w-full -translate-y-1/2 flex justify-between px-0.5">
           {Array.from({ length: totalSteps }).map((_, index) => {
             const stepNumber = index + 1;
-            const isActive = stepNumber <= currentStep;
-            const isCompleted = stepNumber < currentStep;
+            const isActive = stepNumber <= currentStep || isAllComplete;
+            const isCompleted = stepNumber < currentStep || isAllComplete;
 
             return (
               <div

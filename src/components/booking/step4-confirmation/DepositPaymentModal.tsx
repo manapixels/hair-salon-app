@@ -43,7 +43,7 @@ export default function DepositPaymentModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-md p-0 overflow-hidden bg-white">
+      <DialogContent className="sm:max-w-md p-0 overflow-hidden bg-white max-h-[90vh] overflow-y-auto">
         <div className="bg-gradient-to-r from-primary to-primary/90 px-6 py-6 text-white text-center">
           <Shield className="h-8 w-8 mx-auto mb-2 opacity-90" />
           <DialogTitle className="text-xl font-bold text-white mb-1">{t('payDeposit')}</DialogTitle>
