@@ -1,6 +1,7 @@
 import {
   Body,
   Button,
+  Column,
   Container,
   Head,
   Heading,
@@ -8,6 +9,7 @@ import {
   Img,
   Link,
   Preview,
+  Row,
   Section,
   Text,
   render,
@@ -196,68 +198,70 @@ export const BookingConfirmationEmail = ({
                   marginBottom: '12px',
                 }}
               >
-                <div
-                  style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-                >
-                  <Text style={label}>Service</Text>
-                  <Text style={value}>{serviceName}</Text>
-                </div>
+                <Row>
+                  <Column style={{ width: '100px' }}>
+                    <Text style={label}>Service</Text>
+                  </Column>
+                  <Column style={{ textAlign: 'right' }}>
+                    <Text style={value}>{serviceName}</Text>
+                  </Column>
+                </Row>
               </Section>
 
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  marginBottom: '8px',
-                }}
-              >
-                <Text style={label}>Date</Text>
-                <Text style={value}>{date}</Text>
-              </div>
+              <Row style={{ marginBottom: '8px' }}>
+                <Column style={{ width: '100px' }}>
+                  <Text style={label}>Date</Text>
+                </Column>
+                <Column style={{ textAlign: 'right' }}>
+                  <Text style={value}>{date}</Text>
+                </Column>
+              </Row>
 
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  marginBottom: '8px',
-                }}
-              >
-                <Text style={label}>Time</Text>
-                <Text style={value}>{time}</Text>
-              </div>
+              <Row style={{ marginBottom: '8px' }}>
+                <Column style={{ width: '100px' }}>
+                  <Text style={label}>Time</Text>
+                </Column>
+                <Column style={{ textAlign: 'right' }}>
+                  <Text style={value}>{time}</Text>
+                </Column>
+              </Row>
 
-              <div
+              <Row
                 style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
                   paddingTop: '12px',
                   marginTop: '4px',
                   borderTop: '1px solid #e8e4d9',
                 }}
               >
-                <Text style={label}>Stylist</Text>
-                <div style={{ display: 'flex', alignItems: 'center' }}>
+                <Column style={{ width: '100px' }}>
+                  <Text style={label}>Stylist</Text>
+                </Column>
+                <Column style={{ textAlign: 'right' }}>
                   {stylistAvatarUrl && (
                     <Img
                       src={stylistAvatarUrl}
                       alt={stylistName}
                       width="24"
                       height="24"
-                      style={{ borderRadius: '50%', marginRight: '8px', objectFit: 'cover' }}
+                      style={{
+                        borderRadius: '50%',
+                        marginRight: '8px',
+                        display: 'inline-block',
+                        verticalAlign: 'middle',
+                      }}
                     />
                   )}
-                  <Text style={value}>{stylistName}</Text>
-                </div>
-              </div>
+                  <Text style={{ ...value, display: 'inline', verticalAlign: 'middle' }}>
+                    {stylistName}
+                  </Text>
+                </Column>
+              </Row>
             </Section>
 
             {/* Actions */}
             <Section style={{ marginTop: '32px' }}>
-              <div style={{ display: 'flex', gap: '12px' }}>
-                <div style={{ flex: 1 }}>
+              <Row>
+                <Column style={{ width: '50%', paddingRight: '6px' }}>
                   <Button
                     href={cancelUrl}
                     style={{
@@ -272,8 +276,8 @@ export const BookingConfirmationEmail = ({
                   >
                     Cancel
                   </Button>
-                </div>
-                <div style={{ flex: 1 }}>
+                </Column>
+                <Column style={{ width: '50%', paddingLeft: '6px' }}>
                   <Button
                     href={rescheduleUrl}
                     style={{
@@ -288,8 +292,8 @@ export const BookingConfirmationEmail = ({
                   >
                     Reschedule
                   </Button>
-                </div>
-              </div>
+                </Column>
+              </Row>
             </Section>
 
             <Text style={contactText}>
