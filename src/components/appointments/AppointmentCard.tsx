@@ -35,11 +35,17 @@ export default function AppointmentCard({
   const tCommon = useTranslations('Common');
 
   // Format time as single string (e.g., "2:30 PM" or "14:30")
+  // Uses explicit timezone to prevent SSR issues on Cloudflare edge
   const formatTimeSimple = (time: string) => {
     const [hours, minutes] = time.split(':').map(Number);
     const date = new Date();
     date.setHours(hours, minutes);
-    return format.dateTime(date, { hour: 'numeric', minute: '2-digit', hour12: true });
+    return format.dateTime(date, {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+      timeZone: 'Asia/Singapore', // Always display in salon timezone
+    });
   };
 
   // Format duration with i18n (e.g., "2h" or "2小时")

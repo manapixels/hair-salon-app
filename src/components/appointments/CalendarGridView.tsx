@@ -122,12 +122,17 @@ export default function CalendarGridView({
     onDateChange(next);
   };
 
-  // Format time for display
+  // Format time for display with explicit timezone to prevent SSR issues
   const formatTimeDisplay = (time: string) => {
     const [hours, minutes] = time.split(':').map(Number);
     const date = new Date();
     date.setHours(hours, minutes);
-    return format.dateTime(date, { hour: 'numeric', minute: '2-digit', hour12: true });
+    return format.dateTime(date, {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+      timeZone: 'Asia/Singapore', // Always display in salon timezone
+    });
   };
 
   // Get header title based on view type

@@ -41,21 +41,28 @@ export const BookingConfirmationSummary: React.FC<BookingConfirmationSummaryProp
         ? t('durationHoursOnly', { hours })
         : t('durationHoursMinutes', { hours, minutes: mins });
 
-  // Format date and time using useFormatter for i18n
+  // Format date and time using useFormatter for i18n with explicit timezone
+  // This prevents SSR issues on Cloudflare edge servers (UTC)
   const formattedDate = format.dateTime(selectedDate, {
     weekday: 'short',
     day: 'numeric',
     month: 'short',
     year: 'numeric',
+    timeZone: timezone,
   });
 
-  // Parse time string (HH:MM format) and format it
+  // Parse time string (HH:MM format) and format it with explicit timezone
   const formatTime = (time: string): string => {
     if (!time) return '';
     const [hours, minutes] = time.split(':').map(Number);
     const date = new Date();
     date.setHours(hours, minutes);
-    return format.dateTime(date, { hour: 'numeric', minute: '2-digit', hour12: true });
+    return format.dateTime(date, {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+      timeZone: timezone, // Always display in salon timezone
+    });
   };
 
   return (

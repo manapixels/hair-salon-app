@@ -53,3 +53,24 @@ Incoming Message
 | Components | `src/components/` |
 | Database   | `src/db/`         |
 | i18n       | `src/i18n/`       |
+
+---
+
+## ⏰ Timezone Handling
+
+> [!IMPORTANT]
+> Always use explicit `timeZone: 'Asia/Singapore'` when formatting times with `useFormatter().dateTime()`.
+
+Cloudflare edge workers run in UTC. Without explicit timezone, times formatted on the server may differ from client expectations causing SSR hydration issues.
+
+**Pattern:**
+
+```tsx
+const format = useFormatter();
+format.dateTime(date, {
+  hour: 'numeric',
+  minute: '2-digit',
+  hour12: true,
+  timeZone: 'Asia/Singapore', // Required for Cloudflare edge
+});
+```

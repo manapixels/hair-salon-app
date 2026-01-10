@@ -62,18 +62,29 @@ const BookingForm: React.FC<BookingFormProps> = ({
   const tNav = useTranslations('Navigation');
   const formatter = useFormatter();
 
-  // i18n date/time formatting helpers
+  // i18n date/time formatting helpers with explicit timezone for Cloudflare edge
   const formatDate = (date: Date | string) => {
     const dateObj = typeof date === 'string' ? new Date(date) : date;
-    return formatter.dateTime(dateObj, { day: 'numeric', month: 'short', year: 'numeric' });
+    return formatter.dateTime(dateObj, {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+      timeZone: 'Asia/Singapore', // Always display in salon timezone
+    });
   };
 
+  // Format time with explicit timezone to prevent SSR issues on Cloudflare edge (UTC)
   const formatTime = (time: string) => {
     if (!time) return '';
     const [hours, minutes] = time.split(':').map(Number);
     const date = new Date();
     date.setHours(hours, minutes);
-    return formatter.dateTime(date, { hour: 'numeric', minute: '2-digit', hour12: true });
+    return formatter.dateTime(date, {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+      timeZone: 'Asia/Singapore', // Always display in salon timezone
+    });
   };
 
   // Get booking categories from context
