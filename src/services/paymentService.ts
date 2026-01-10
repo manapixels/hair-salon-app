@@ -9,6 +9,7 @@ import type { Deposit, DepositStatus } from '@/types';
 import Stripe from 'stripe';
 
 // Lazy Stripe initialization to avoid build-time errors
+// Configured for Cloudflare Workers compatibility (uses fetch instead of http)
 let stripeInstance: Stripe | null = null;
 function getStripe(): Stripe {
   if (!stripeInstance) {
@@ -16,7 +17,12 @@ function getStripe(): Stripe {
     if (!key) {
       throw new Error('STRIPE_SECRET_KEY environment variable is not set');
     }
-    stripeInstance = new Stripe(key);
+    stripeInstance = new Stripe(key, {
+      // Use fetch-based HTTP client for Cloudflare Workers compatibility
+      httpClient: Stripe.createFetchHttpClient(),
+      // Disable telemetry to reduce request overhead
+      telemetry: false,
+    });
   }
   return stripeInstance;
 }

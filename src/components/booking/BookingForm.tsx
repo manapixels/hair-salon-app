@@ -384,6 +384,12 @@ Please confirm availability. Thank you!`;
         error?: string;
       };
 
+      // Handle API errors
+      if (!depositResponse.ok) {
+        console.error('[Booking] Payment API error:', depositData.error);
+        throw new Error(depositData.error || 'Failed to process payment');
+      }
+
       if (depositData.required && depositData.clientSecret) {
         // Redirect to payment page with embedded Stripe Elements
         toast.loading('Redirecting to payment...', { id: toastId });
