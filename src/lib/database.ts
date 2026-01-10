@@ -2256,3 +2256,29 @@ export const getStylistWithUser = async (
 
   return { stylist, user };
 };
+
+// --- CRON JOBS ---
+
+export const cleanupPendingAppointments = async (): Promise<number> => {
+  const db = await getDb();
+  // 15 minutes ago
+  const cutoffTime = new Date(Date.now() - 15 * 60 * 1000);
+
+  try {
+    const result = await db
+      .update(schema.appointments)
+      .set({ status: 'CANCELLED', updatedAt: new Date() })
+      .where(
+        and(
+          eq(schema.appointments.status, 'PENDING_PAYMENT'),
+          lt(schema.appointments.createdAt, cutoffTime),
+        ),
+      )
+      .returning();
+
+    return result.length;
+  } catch (error) {
+    console.error('Failed to cleanup pending appointments:', error);
+    return 0;
+  }
+};

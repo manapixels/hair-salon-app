@@ -5,7 +5,7 @@
 -- ============================================
 -- ENUMS
 -- ============================================
-CREATE TYPE "public"."AppointmentStatus" AS ENUM('SCHEDULED', 'COMPLETED', 'CANCELLED', 'NO_SHOW');
+CREATE TYPE "public"."AppointmentStatus" AS ENUM('SCHEDULED', 'COMPLETED', 'CANCELLED', 'NO_SHOW', 'PENDING_PAYMENT');
 CREATE TYPE "public"."RetentionMessageType" AS ENUM('FEEDBACK_REQUEST', 'REBOOKING_NUDGE', 'WIN_BACK');
 CREATE TYPE "public"."TagCategory" AS ENUM('CONCERN', 'OUTCOME', 'HAIR_TYPE');
 CREATE TYPE "public"."BookingSource" AS ENUM('WEB', 'TELEGRAM', 'WHATSAPP');

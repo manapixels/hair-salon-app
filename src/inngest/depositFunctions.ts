@@ -1,8 +1,3 @@
-/**
- * Inngest functions for deposit management:
- * 1. Auto-cancel unpaid deposits after 2 hours
- * 2. Daily deposit summary for admins
- */
 import { inngest } from '@/lib/inngest';
 import { getDb } from '@/db';
 import * as schema from '@/db/schema';
@@ -10,92 +5,25 @@ import { eq, and, lt, gte, sql } from 'drizzle-orm';
 import { sendTelegramMessage, sendWhatsAppMessage } from '@/services/messagingService';
 
 // Time constants
-const DEPOSIT_EXPIRY_HOURS = 2;
 const SINGAPORE_TIMEZONE = 'Asia/Singapore';
 
 /**
- * Auto-cancel appointments with unpaid deposits after 2 hours
+ * Auto-cancel appointments with unpaid deposits after 15 minutes
  * Runs every 15 minutes
  */
 export const autoCancelUnpaidDeposits = inngest.createFunction(
   { id: 'auto-cancel-unpaid-deposits', name: 'Auto-Cancel Unpaid Deposits' },
   { cron: '*/15 * * * *' }, // Every 15 minutes
   async ({ step }) => {
-    const cancelled = await step.run('cancel-expired-deposits', async () => {
-      const db = await getDb();
-      const expiryTime = new Date(Date.now() - DEPOSIT_EXPIRY_HOURS * 60 * 60 * 1000);
+    const { cleanupPendingAppointments } = await import('@/lib/database');
 
-      // Find pending deposits that have expired
-      const expiredDeposits = await db
-        .select({
-          depositId: schema.deposits.id,
-          appointmentId: schema.deposits.appointmentId,
-          customerEmail: schema.deposits.customerEmail,
-          userId: schema.deposits.userId,
-        })
-        .from(schema.deposits)
-        .where(
-          and(eq(schema.deposits.status, 'PENDING'), lt(schema.deposits.createdAt, expiryTime)),
-        );
-
-      if (expiredDeposits.length === 0) {
-        return { cancelled: 0, notified: 0 };
-      }
-
-      let notifiedCount = 0;
-      const recoveryUrl = `${process.env.NEXT_PUBLIC_APP_URL}/booking/status`;
-
-      // Cancel each deposit and notify customer
-      for (const deposit of expiredDeposits) {
-        // Update deposit status to forfeited
-        await db
-          .update(schema.deposits)
-          .set({ status: 'FORFEITED' })
-          .where(eq(schema.deposits.id, deposit.depositId));
-
-        // Cancel the appointment
-        await db
-          .update(schema.appointments)
-          .set({ status: 'CANCELLED', updatedAt: new Date() })
-          .where(eq(schema.appointments.id, deposit.appointmentId));
-
-        console.log(
-          `[Deposit] Auto-cancelled appointment ${deposit.appointmentId} - deposit unpaid`,
-        );
-
-        // Try to notify customer if they have a linked user account
-        if (deposit.userId) {
-          try {
-            const userResult = await db
-              .select()
-              .from(schema.users)
-              .where(eq(schema.users.id, deposit.userId))
-              .limit(1);
-
-            const user = userResult[0];
-            if (user) {
-              const message = `⚠️ Your booking was cancelled because the deposit was not completed within 2 hours.\n\nYou can start a new booking anytime:\n${recoveryUrl}`;
-
-              if (user.telegramId) {
-                await sendTelegramMessage(Number(user.telegramId), message);
-                notifiedCount++;
-              } else if (user.whatsappPhone) {
-                await sendWhatsAppMessage(user.whatsappPhone, message);
-                notifiedCount++;
-              }
-            }
-          } catch (notifyError) {
-            console.error(`[Deposit] Failed to notify customer:`, notifyError);
-          }
-        }
-      }
-
-      return { cancelled: expiredDeposits.length, notified: notifiedCount };
+    const count = await step.run('run-cleanup', async () => {
+      return await cleanupPendingAppointments();
     });
 
     return {
-      message: `Auto-cancelled ${cancelled.cancelled} appointments, notified ${cancelled.notified} customers`,
-      ...cancelled,
+      message: `Ran auto-cancellation cleanup.`,
+      cancelledCount: count,
     };
   },
 );

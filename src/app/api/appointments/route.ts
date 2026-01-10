@@ -119,6 +119,10 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Check if deposit is required
+    const { requiresDeposit } = await import('@/services/paymentService');
+    const depositCheck = await requiresDeposit(customerEmail);
+
     const appointmentData = {
       date: new Date(date),
       time,
@@ -131,65 +135,58 @@ export async function POST(request: NextRequest) {
       // Category-based fields (optional)
       categoryId,
       estimatedDuration,
+      // If deposit is required, set status to PENDING_PAYMENT, otherwise DEFAULT (SCHEDULED)
+      status: depositCheck.required ? 'PENDING_PAYMENT' : 'SCHEDULED',
     };
 
+    // @ts-ignore - Status field might trigger type error if schema types aren't regenerated yet
     const newAppointment = await bookNewAppointment(appointmentData);
     console.log(
-      `[Appointment] Created appointment ${newAppointment.id} for ${newAppointment.customerName}`,
+      `[Appointment] Created appointment ${newAppointment.id} for ${newAppointment.customerName} with status ${newAppointment.status}`,
     );
 
-    // After successfully creating the appointment in our DB,
-    // create a corresponding event in Google Calendar.
-    console.log(
-      `[Appointment] Attempting Google Calendar sync for appointment ${newAppointment.id}...`,
-    );
-    const calendarEventId = await createCalendarEvent(newAppointment);
-
-    // Update the appointment with the calendar event ID if successful
-    if (calendarEventId) {
-      await updateAppointmentCalendarId(newAppointment.id, calendarEventId);
-      newAppointment.calendarEventId = calendarEventId;
-      console.log(`[Appointment] ✅ Calendar event created: ${calendarEventId}`);
-    } else {
-      console.warn(
-        `[Appointment] ⚠️ No calendar event created for appointment ${newAppointment.id}`,
+    // ONLY perform external syncs (Calendar, Email) if status is SCHEDULED (not pending payment)
+    if (newAppointment.status === 'SCHEDULED') {
+      // 1. Google Calendar Sync
+      console.log(
+        `[Appointment] Attempting Google Calendar sync for appointment ${newAppointment.id}...`,
       );
-    }
+      const calendarEventId = await createCalendarEvent(newAppointment);
 
-    // Send appointment confirmation via WhatsApp/Telegram
-    try {
-      let user = null;
-      if (existingUser) {
-        user = {
-          ...existingUser,
-          roles: existingUser.roles as ('CUSTOMER' | 'STYLIST' | 'ADMIN')[],
-          authProvider:
-            (existingUser.authProvider as 'email' | 'whatsapp' | 'telegram') ?? undefined,
-          telegramId: existingUser.telegramId ?? undefined,
-          whatsappPhone: existingUser.whatsappPhone ?? undefined,
-          avatar: existingUser.avatar ?? undefined,
-        };
+      if (calendarEventId) {
+        await updateAppointmentCalendarId(newAppointment.id, calendarEventId);
+        newAppointment.calendarEventId = calendarEventId;
+        console.log(`[Appointment] ✅ Calendar event created: ${calendarEventId}`);
+      } else {
+        console.warn(
+          `[Appointment] ⚠️ No calendar event created for appointment ${newAppointment.id}`,
+        );
       }
-      const messageSent = await sendAppointmentConfirmation(user, newAppointment, 'confirmation');
-      if (messageSent) {
-        console.log(`✅ Appointment confirmation sent to ${newAppointment.customerEmail}`);
+
+      // 2. Telegram/WhatsApp Confirmation
+      try {
+        let user = null;
+        if (existingUser) {
+          user = {
+            ...existingUser,
+            roles: existingUser.roles as ('CUSTOMER' | 'STYLIST' | 'ADMIN')[],
+            authProvider:
+              (existingUser.authProvider as 'email' | 'whatsapp' | 'telegram') ?? undefined,
+            telegramId: existingUser.telegramId ?? undefined,
+            whatsappPhone: existingUser.whatsappPhone ?? undefined,
+            avatar: existingUser.avatar ?? undefined,
+          };
+        }
+        const messageSent = await sendAppointmentConfirmation(user, newAppointment, 'confirmation');
+        if (messageSent) {
+          console.log(`✅ Appointment confirmation sent to ${newAppointment.customerEmail}`);
+        }
+      } catch (error) {
+        console.error('Failed to send appointment confirmation:', error);
       }
-    } catch (error) {
-      console.error('Failed to send appointment confirmation:', error);
-      // Don't fail the appointment creation if messaging fails
-    }
 
-    // Send email confirmation for real email addresses (not messaging platform users)
-    // Note: Email will be sent after deposit payment if deposit is required
-    // isMessagingEmail is already defined above
-
-    if (!isMessagingEmail) {
-      // Check if deposit is required - if so, email will be sent after payment
-      const { requiresDeposit } = await import('@/services/paymentService');
-      const depositCheck = await requiresDeposit(customerEmail);
-
-      if (!depositCheck.required) {
-        // No deposit required - send confirmation email now
+      // 3. Email Confirmation (if no deposit required)
+      if (!isMessagingEmail && !depositCheck.required) {
         try {
           const { sendBookingConfirmationEmail } = await import('@/services/emailService');
           const { format } = await import('date-fns');
@@ -246,9 +243,12 @@ export async function POST(request: NextRequest) {
           console.log(`✉️ Confirmation email sent to ${customerEmail}`);
         } catch (emailError) {
           console.error('Failed to send confirmation email:', emailError);
-          // Don't fail appointment creation if email fails
         }
       }
+    } else {
+      console.log(
+        `[Appointment] Status is ${newAppointment.status}, skipping external syncs (waiting for payment).`,
+      );
     }
 
     return NextResponse.json(newAppointment, { status: 201 });

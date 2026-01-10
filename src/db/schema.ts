@@ -26,6 +26,7 @@ export const appointmentStatusEnum = pgEnum('AppointmentStatus', [
   'COMPLETED',
   'CANCELLED',
   'NO_SHOW',
+  'PENDING_PAYMENT',
 ]);
 export const retentionMessageTypeEnum = pgEnum('RetentionMessageType', [
   'FEEDBACK_REQUEST',

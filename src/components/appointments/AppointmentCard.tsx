@@ -138,6 +138,21 @@ export default function AppointmentCard({
                 {t('bookedWith')} {getSourceIcon(appointment.bookingSource)}
               </Badge>
             )}
+
+            {/* Status Badge */}
+            {appointment.status === 'PENDING_PAYMENT' && (
+              <Badge
+                variant="outline"
+                className="gap-1 text-xs font-normal border-amber-500 text-amber-600 bg-amber-50"
+              >
+                Pending Payment
+              </Badge>
+            )}
+            {appointment.status === 'CANCELLED' && (
+              <Badge variant="destructive" className="gap-1 text-xs font-normal">
+                Cancelled
+              </Badge>
+            )}
           </div>
         </div>
       </div>
