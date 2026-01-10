@@ -82,7 +82,20 @@
     "loginTimedOut": "Login timed out. Please try again.",
     "loginError": "Failed to initiate login. Please try again.",
     "waitingForTelegramLogin": "Waiting for you to complete login in Telegram...",
-    "loginSuccessful": "Login successful!"
+    "loginSuccessful": "Login successful!",
+    "continueWithEmail": "Continue with Email",
+    "emailLabel": "Email Address",
+    "nameLabel": "Your Name",
+    "namePlaceholder": "Enter your name",
+    "newUserNote": "New account - we'll create one for you",
+    "sendMagicLink": "Send Magic Link",
+    "sendingMagicLink": "Sending...",
+    "magicLinkSent": "Magic link sent! Check your email.",
+    "magicLinkInfo": "We'll send you a secure link to log in instantly.",
+    "checkYourEmail": "Check Your Email",
+    "magicLinkSentTo": "We sent a login link to <bold>{email}</bold>. Click the link to log in.",
+    "magicLinkExpiry": "Link expires in 15 minutes",
+    "tryDifferentEmail": "Try a different email"
   },
   "ServicesPopup": {
     "title": "Our Services",

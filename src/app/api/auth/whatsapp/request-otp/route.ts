@@ -45,56 +45,31 @@ This code expires in 10 minutes. Don't share this code with anyone.`;
       const messageSent = await sendWhatsAppMessage(phoneNumber, message);
       console.log('📱 WhatsApp OTP send result:', messageSent);
 
-      // Production: Fail if WhatsApp doesn't work
-      if (!messageSent && process.env.NODE_ENV === 'production') {
+      // If WhatsApp send failed, return error (no dev fallback anymore)
+      if (!messageSent) {
         return NextResponse.json(
           {
             error:
-              'Unable to send verification code. WhatsApp service is currently unavailable. Please try again later or contact support.',
+              'Unable to send verification code. WhatsApp service is currently unavailable. Please try email login instead.',
           },
           { status: 503 },
         );
       }
 
-      // Development: Allow fallback
-      if (!messageSent) {
-        console.log(`🔐 Development OTP for ${phoneNumber}: ${otp}`);
-      }
-
       return NextResponse.json({
         success: true,
-        message: messageSent
-          ? 'OTP sent successfully via WhatsApp'
-          : 'Development mode: OTP generated (WhatsApp unavailable)',
+        message: 'OTP sent successfully via WhatsApp',
         expiresIn: 600, // 10 minutes in seconds
-        // Include OTP in response for development/testing only
-        ...(process.env.NODE_ENV === 'development' &&
-          !messageSent && {
-            testOtp: otp,
-            note: 'Development mode - WhatsApp unavailable. Use testOtp field or check server console.',
-          }),
       });
     } catch (error) {
       console.error('Failed to send WhatsApp OTP:', error);
 
-      // Production: Fail hard
-      if (process.env.NODE_ENV === 'production') {
-        return NextResponse.json(
-          { error: 'Service temporarily unavailable. Please try again later.' },
-          { status: 503 },
-        );
-      }
-
-      // Development: Allow fallback
-      console.log(`🔐 Development OTP for ${phoneNumber}: ${otp} (WhatsApp failed)`);
-
-      return NextResponse.json({
-        success: true,
-        message: 'Development mode: WhatsApp failed',
-        expiresIn: 600,
-        testOtp: otp,
-        note: 'Development mode - WhatsApp service error. Use testOtp field.',
-      });
+      return NextResponse.json(
+        {
+          error: 'Service temporarily unavailable. Please try email login or contact support.',
+        },
+        { status: 503 },
+      );
     }
   } catch (error) {
     console.error('OTP request error:', error);

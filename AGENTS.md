@@ -16,8 +16,9 @@
 | [docs/development.md](docs/development.md)             | Build commands, testing, deployment, extending the system                       |
 | [docs/design.md](docs/design.md)                       | shadcn/ui components, styling, accessibility                                    |
 | [docs/messaging.md](docs/messaging.md)                 | AI agents, Telegram bot, WhatsApp chat, intent parser, best practices           |
-| [docs/features/deposits.md](docs/features/deposits.md) | No-show protection, HitPay payments                                             |
+| [docs/features/deposits.md](docs/features/deposits.md) | No-show protection, Stripe payments                                             |
 | [docs/features/calendar.md](docs/features/calendar.md) | Stylist Google Calendar sync                                                    |
+| `src/services/emailService.ts`                         | Resend email integration (magic link, booking confirmations)                    |
 
 ---
 

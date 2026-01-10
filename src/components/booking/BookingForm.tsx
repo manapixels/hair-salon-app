@@ -370,30 +370,39 @@ Please confirm availability. Thank you!`;
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           appointmentId: confirmedAppt.id,
-          totalPrice: confirmedAppt.totalPrice || selectedCategory.priceRangeMin || 5000, // in cents
+          totalPrice: confirmedAppt.totalPrice || selectedCategory.priceRangeMin || 5000,
           customerEmail: email,
           customerName: name,
+          source: 'web',
         }),
       });
 
       const depositData = (await depositResponse.json()) as {
         required: boolean;
+        clientSecret?: string;
         paymentUrl?: string;
         error?: string;
       };
 
-      if (depositData.required && depositData.paymentUrl) {
-        // Redirect to payment
+      if (depositData.required && depositData.clientSecret) {
+        // Redirect to payment page with embedded Stripe Elements
         toast.loading('Redirecting to payment...', { id: toastId });
-        window.location.href = depositData.paymentUrl;
+        window.location.href = `/booking/payment?appointmentId=${confirmedAppt.id}&clientSecret=${encodeURIComponent(depositData.clientSecret)}`;
         return;
       }
 
-      // No deposit required - show confirmation
+      // No deposit required - confirmation email sent server-side in appointments API
+      const isMessagingEmail =
+        email.endsWith('@whatsapp.local') || email.endsWith('@telegram.local');
+
+      // Show confirmation
       setBookingConfirmed(confirmedAppt);
-      toast.success('Appointment booked successfully! Confirmation sent to your email.', {
-        id: toastId,
-      });
+      toast.success(
+        isMessagingEmail
+          ? 'Appointment booked successfully!'
+          : 'Appointment booked successfully! Confirmation sent to your email.',
+        { id: toastId },
+      );
     } catch (error: any) {
       toast.error(`Booking failed: ${error.message}`, { id: toastId });
     } finally {

@@ -9,6 +9,8 @@ import {
   getAppointments,
   updateAppointmentCalendarId,
   findUserByEmail,
+  createUserFromOAuth,
+  getAdminSettings,
 } from '../../../lib/database';
 import { createCalendarEvent } from '../../../lib/google';
 import { sendAppointmentConfirmation } from '../../../services/messagingService';
@@ -84,7 +86,38 @@ export async function POST(request: NextRequest) {
     }
 
     // Look up user by email to link appointment to user account
-    const existingUser = await findUserByEmail(customerEmail);
+    let existingUser: any = await findUserByEmail(customerEmail);
+
+    // If user doesn't exist and it's a real email, create a new user
+    const isMessagingEmail =
+      customerEmail.endsWith('@whatsapp.local') || customerEmail.endsWith('@telegram.local');
+    let isNewUser = false;
+
+    if (!existingUser && !isMessagingEmail) {
+      try {
+        console.log(`[Appointment] Creating new user for ${customerEmail}`);
+        existingUser = await createUserFromOAuth({
+          email: customerEmail,
+          name: customerName,
+          authProvider: 'email',
+        });
+        isNewUser = true;
+
+        // Send welcome email asynchronously
+        Promise.all([import('@/services/emailService'), getAdminSettings()]).then(
+          ([{ sendWelcomeEmail }, settings]) => {
+            sendWelcomeEmail(customerEmail, customerName, {
+              businessName: settings.businessName,
+              businessAddress: settings.businessAddress,
+              businessPhone: settings.businessPhone,
+            }).catch(err => console.error('[Appointment] Failed to send welcome email:', err));
+          },
+        );
+      } catch (userError) {
+        console.error('[Appointment] Failed to create new user:', userError);
+        // Continue without linking user if creation fails
+      }
+    }
 
     const appointmentData = {
       date: new Date(date),
@@ -144,6 +177,78 @@ export async function POST(request: NextRequest) {
     } catch (error) {
       console.error('Failed to send appointment confirmation:', error);
       // Don't fail the appointment creation if messaging fails
+    }
+
+    // Send email confirmation for real email addresses (not messaging platform users)
+    // Note: Email will be sent after deposit payment if deposit is required
+    // isMessagingEmail is already defined above
+
+    if (!isMessagingEmail) {
+      // Check if deposit is required - if so, email will be sent after payment
+      const { requiresDeposit } = await import('@/services/paymentService');
+      const depositCheck = await requiresDeposit(customerEmail);
+
+      if (!depositCheck.required) {
+        // No deposit required - send confirmation email now
+        try {
+          const { sendBookingConfirmationEmail } = await import('@/services/emailService');
+          const { format } = await import('date-fns');
+          const settings = await getAdminSettings();
+
+          // Get category name
+          const db = await import('@/db').then(m => m.getDb());
+          const schema = await import('@/db/schema');
+          const { eq } = await import('drizzle-orm');
+          let serviceName = 'Appointment';
+          if (categoryId) {
+            const catResult = await (await db)
+              .select({ title: schema.serviceCategories.title })
+              .from(schema.serviceCategories)
+              .where(eq(schema.serviceCategories.id, categoryId))
+              .limit(1);
+            if (catResult[0]) serviceName = catResult[0].title;
+          }
+
+          // Get stylist name and avatar
+          let stylistName: string | null = null;
+          let stylistAvatarUrl: string | undefined = undefined;
+
+          if (stylistId) {
+            const stylistResult = await (await db)
+              .select({ name: schema.stylists.name, avatar: schema.stylists.avatar })
+              .from(schema.stylists)
+              .where(eq(schema.stylists.id, stylistId))
+              .limit(1);
+            if (stylistResult[0]) {
+              stylistName = stylistResult[0].name;
+              stylistAvatarUrl = stylistResult[0].avatar || undefined;
+            }
+          }
+
+          await sendBookingConfirmationEmail(
+            {
+              customerName,
+              customerEmail,
+              appointmentId: newAppointment.id,
+              serviceName,
+              stylistName,
+              stylistAvatarUrl,
+              date: format(new Date(date), 'EEEE, MMMM d, yyyy'),
+              time,
+              duration: estimatedDuration || 60,
+            },
+            {
+              businessName: settings.businessName,
+              businessAddress: settings.businessAddress,
+              businessPhone: settings.businessPhone,
+            },
+          );
+          console.log(`✉️ Confirmation email sent to ${customerEmail}`);
+        } catch (emailError) {
+          console.error('Failed to send confirmation email:', emailError);
+          // Don't fail appointment creation if email fails
+        }
+      }
     }
 
     return NextResponse.json(newAppointment, { status: 201 });

@@ -1,10 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { toast } from 'sonner';
 import { useTranslations } from 'next-intl';
 import TelegramLoginWidget from './TelegramLoginWidget';
-import WhatsAppOTPLogin from './WhatsAppOTPLogin';
+import MagicLinkLogin from './MagicLinkLogin';
 
 import {
   Dialog,
@@ -13,16 +12,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { WhatsAppIcon, TelegramIcon } from '@/lib/icons';
+import { TelegramIcon } from '@/lib/icons';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Mail } from 'lucide-react';
 
 interface OAuthLoginModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-type LoginView = 'selection' | 'whatsapp' | 'telegram';
+type LoginView = 'selection' | 'email' | 'telegram';
 
 export default function OAuthLoginModal({ isOpen, onClose }: OAuthLoginModalProps) {
   const t = useTranslations('OAuthLoginModal');
@@ -79,11 +78,11 @@ export default function OAuthLoginModal({ isOpen, onClose }: OAuthLoginModalProp
       <p className="text-center text-sm text-gray-600">{t('chooseProvider')}</p>
 
       <Button
-        onClick={() => setView('whatsapp')}
-        className="w-full h-12 bg-[#25D366] text-white hover:bg-[#1ebe5d] text-base font-medium"
+        onClick={() => setView('email')}
+        className="w-full h-12 bg-primary text-white hover:bg-primary/90 text-base font-medium"
       >
-        <WhatsAppIcon className="h-6 w-6 mr-3" />
-        {t('continueWithWhatsApp')}
+        <Mail className="h-5 w-5 mr-3" />
+        {t('continueWithEmail')}
       </Button>
 
       <Button
@@ -153,7 +152,7 @@ export default function OAuthLoginModal({ isOpen, onClose }: OAuthLoginModalProp
 
         {view === 'selection' && renderSelectionView()}
 
-        {view === 'whatsapp' && <WhatsAppOTPLogin onSuccess={onClose} onBack={handleBack} />}
+        {view === 'email' && <MagicLinkLogin onSuccess={onClose} onBack={handleBack} />}
 
         {view === 'telegram' && renderTelegramView()}
 

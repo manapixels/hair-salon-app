@@ -58,12 +58,12 @@ export async function POST(request: NextRequest) {
 }
 
 /**
- * Send payment confirmation to user via Telegram if they have an account
+ * Send payment confirmation to user via Telegram and/or email
  */
 async function sendPaymentConfirmation(depositId: string) {
   const db = await getDb();
 
-  // Get deposit with user
+  // Get deposit
   const depositResult = await db
     .select()
     .from(schema.deposits)
@@ -71,21 +71,20 @@ async function sendPaymentConfirmation(depositId: string) {
     .limit(1);
 
   const deposit = depositResult[0];
-  if (!deposit?.userId) return;
-
-  // Get user
-  const userResult = await db
-    .select()
-    .from(schema.users)
-    .where(eq(schema.users.id, deposit.userId))
-    .limit(1);
-
-  const user = userResult[0];
-  if (!user?.telegramId) return;
+  if (!deposit) return;
 
   // Get appointment details
   const apptResult = await db
-    .select()
+    .select({
+      id: schema.appointments.id,
+      date: schema.appointments.date,
+      time: schema.appointments.time,
+      customerName: schema.appointments.customerName,
+      customerEmail: schema.appointments.customerEmail,
+      estimatedDuration: schema.appointments.estimatedDuration,
+      categoryId: schema.appointments.categoryId,
+      stylistId: schema.appointments.stylistId,
+    })
     .from(schema.appointments)
     .where(eq(schema.appointments.id, deposit.appointmentId))
     .limit(1);
@@ -94,7 +93,68 @@ async function sendPaymentConfirmation(depositId: string) {
   if (!appointment) return;
 
   const amountFormatted = `$${(deposit.amount / 100).toFixed(2)}`;
-  const message = `✅ *Deposit Received!*\n\nYour ${amountFormatted} deposit has been confirmed.\n\n📅 Your appointment is booked for:\n${appointment.date.toLocaleDateString('en-SG', { weekday: 'long', day: 'numeric', month: 'short' })} at ${appointment.time}\n\nSee you then! 💇`;
 
-  await sendTelegramMessage(user.telegramId, message);
+  // Send Telegram message if user has telegramId
+  if (deposit.userId) {
+    const userResult = await db
+      .select()
+      .from(schema.users)
+      .where(eq(schema.users.id, deposit.userId))
+      .limit(1);
+
+    const user = userResult[0];
+    if (user?.telegramId) {
+      const message = `✅ *Deposit Received!*\n\nYour ${amountFormatted} deposit has been confirmed.\n\n📅 Your appointment is booked for:\n${appointment.date.toLocaleDateString('en-SG', { weekday: 'long', day: 'numeric', month: 'short' })} at ${appointment.time}\n\nSee you then! 💇`;
+      await sendTelegramMessage(user.telegramId, message);
+      console.log(`✅ Telegram confirmation sent to user ${deposit.userId}`);
+    }
+  }
+
+  // Send email confirmation for real email addresses
+  const isMessagingEmail =
+    appointment.customerEmail.endsWith('@whatsapp.local') ||
+    appointment.customerEmail.endsWith('@telegram.local');
+
+  if (!isMessagingEmail) {
+    try {
+      const { sendBookingConfirmationEmail } = await import('@/services/emailService');
+      const { format } = await import('date-fns');
+
+      // Get category name
+      let serviceName = 'Appointment';
+      if (appointment.categoryId) {
+        const catResult = await db
+          .select({ title: schema.serviceCategories.title })
+          .from(schema.serviceCategories)
+          .where(eq(schema.serviceCategories.id, appointment.categoryId))
+          .limit(1);
+        if (catResult[0]) serviceName = catResult[0].title;
+      }
+
+      // Get stylist name
+      let stylistName: string | null = null;
+      if (appointment.stylistId) {
+        const stylistResult = await db
+          .select({ name: schema.stylists.name })
+          .from(schema.stylists)
+          .where(eq(schema.stylists.id, appointment.stylistId))
+          .limit(1);
+        if (stylistResult[0]) stylistName = stylistResult[0].name;
+      }
+
+      await sendBookingConfirmationEmail({
+        customerName: appointment.customerName,
+        customerEmail: appointment.customerEmail,
+        appointmentId: appointment.id,
+        serviceName,
+        stylistName,
+        date: format(appointment.date, 'EEEE, MMMM d, yyyy'),
+        time: appointment.time,
+        duration: appointment.estimatedDuration || 60,
+      });
+      console.log(`✉️ Confirmation email sent to ${appointment.customerEmail}`);
+    } catch (emailError) {
+      console.error('Failed to send confirmation email:', emailError);
+    }
+  }
 }

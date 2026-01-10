@@ -82,7 +82,20 @@
     "loginTimedOut": "登录超时。请重试。",
     "loginError": "无法启动登录。请重试。",
     "waitingForTelegramLogin": "等待您在 Telegram 中完成登录...",
-    "loginSuccessful": "登录成功！"
+    "loginSuccessful": "登录成功！",
+    "continueWithEmail": "使用邮箱继续",
+    "emailLabel": "邮箱地址",
+    "nameLabel": "您的姓名",
+    "namePlaceholder": "请输入姓名",
+    "newUserNote": "新用户 - 我们将为您创建账户",
+    "sendMagicLink": "发送登录链接",
+    "sendingMagicLink": "发送中...",
+    "magicLinkSent": "登录链接已发送！请查收邮箱。",
+    "magicLinkInfo": "我们将发送一个安全链接，让您即时登录。",
+    "checkYourEmail": "请查收邮箱",
+    "magicLinkSentTo": "我们已向 <bold>{email}</bold> 发送了登录链接。点击链接即可登录。",
+    "magicLinkExpiry": "链接将在15分钟后过期",
+    "tryDifferentEmail": "使用其他邮箱"
   },
   "ServicesPopup": {
     "title": "我们的服务",
